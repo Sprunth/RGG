@@ -1,6 +1,6 @@
 #include "cmbNucMainWindow.h"
  
-#include "Ui_qNucMainWindow.h"
+#include "ui_qNucMainWindow.h"
 #include <vtkActor.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
