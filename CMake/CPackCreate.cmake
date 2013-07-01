@@ -49,7 +49,7 @@ IF(APPLE)
 ENDIF(APPLE)
 
 CONFIGURE_FILE("${CMAKE_CURRENT_SOURCE_DIR}/CMake/CPackOptions.cmake.in"
-  "${ConceptualModelBuilder_BINARY_DIR}/CPackOptions.cmake" @ONLY)
+  "${CMBNuclearSuite_BINARY_DIR}/CPackOptions.cmake" @ONLY)
 SET(CPACK_PROJECT_CONFIG_FILE
   "${ConceptualModelBuilder_BINARY_DIR}/CPackOptions.cmake")
 
