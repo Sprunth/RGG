@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QVTKWidget" name="qvtkWidget" native="true"/>
+     <widget class="QVTKWidget" name="qvtkWidget"/>
     </item>
    </layout>
   </widget>
@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>541</width>
-     <height>21</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -46,6 +46,7 @@
      <string>File</string>
     </property>
     <addaction name="actionOpenFile"/>
+    <addaction name="actionSaveFile"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -75,6 +76,11 @@
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
+   </property>
+  </action>
+  <action name="actionSaveFile">
+   <property name="text">
+    <string>Save File...</string>
    </property>
   </action>
  </widget>

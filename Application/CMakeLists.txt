@@ -13,7 +13,13 @@ INCLUDE_DIRECTORIES(
 )
 
 #Now the QtVTK version
-SET(CMBNuclear_Srcs cmbNucMain.cxx cmbNucMainWindow.cxx)
+SET(CMBNuclear_Srcs
+  cmbNucMain.cxx
+  cmbNucMainWindow.cxx
+  cmbNucAssembly.cxx
+  cmbNucDuctSource.cxx
+  vtkCmbConeSource.cxx
+)
 SET(CMBNuclear_UI qNucMainWindow.ui)
 SET(CMBNuclear_Headers cmbNucMainWindow.h)
 
