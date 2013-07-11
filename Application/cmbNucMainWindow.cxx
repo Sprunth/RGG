@@ -11,6 +11,8 @@
 #include <QDebug>
 
 #include "cmbNucAssembly.h"
+#include "cmbNucInputPropertiesWidget.h"
+#include "cmbNucInputListWidget.h"
 
 #include "vtkAxesActor.h"
 #include "vtkProperty.h"
@@ -21,6 +23,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 {
   this->ui = new Ui_qNucMainWindow;
   this->ui->setupUi(this);
+  this->initPanels();
 
   this->Assembly = 0;
 
@@ -49,6 +52,14 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
+}
+
+void cmbNucMainWindow::initPanels()
+{
+  this->InputsWidget = new cmbNucInputListWidget(this);
+  this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
+  this->ui->InputsDock->setWidget(this->InputsWidget);
+  this->ui->PropertyDock->setWidget(this->PropertyWidget);
 }
 
 void cmbNucMainWindow::onExit()

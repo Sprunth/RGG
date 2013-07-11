@@ -18,10 +18,20 @@ SET(CMBNuclear_Srcs
   cmbNucMainWindow.cxx
   cmbNucAssembly.cxx
   cmbNucDuctSource.cxx
+  cmbNucInputListWidget.cxx
+  cmbNucInputPropertiesWidget.cxx
   vtkCmbConeSource.cxx
 )
-SET(CMBNuclear_UI qNucMainWindow.ui)
-SET(CMBNuclear_Headers cmbNucMainWindow.h)
+
+SET(CMBNuclear_UI
+  qNucMainWindow.ui
+  qInputListWidget.ui
+  qInputPropertiesWidget.ui)
+
+SET(CMBNuclear_Headers
+  cmbNucMainWindow.h
+  cmbNucInputListWidget.h
+  cmbNucInputPropertiesWidget.h)
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})
 QT4_WRAP_CPP(MOCSrcs ${CMBNuclear_Headers} )

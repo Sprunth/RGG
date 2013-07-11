@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>541</width>
-    <height>583</height>
+    <width>878</width>
+    <height>660</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,14 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QVTKWidget" name="qvtkWidget"/>
+     <widget class="QVTKWidget" name="qvtkWidget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -31,14 +38,15 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpenFile"/>
+   <addaction name="actionSaveFile"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>541</width>
-     <height>18</height>
+     <width>878</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -50,6 +58,39 @@
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
+  </widget>
+  <widget class="QDockWidget" name="InputsDock">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="windowTitle">
+    <string>Inputs</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents"/>
+  </widget>
+  <widget class="QDockWidget" name="PropertyDock">
+   <property name="windowTitle">
+    <string>Properties</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2"/>
+  </widget>
+  <widget class="QDockWidget" name="Assembly">
+   <property name="windowTitle">
+    <string>Assembly</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3"/>
   </widget>
   <action name="actionOpenFile">
    <property name="enabled">
@@ -79,8 +120,15 @@
    </property>
   </action>
   <action name="actionSaveFile">
+   <property name="icon">
+    <iconset resource="qNucResources.qrc">
+     <normaloff>:/CMBNuclear/Icons/qNucSave32.png</normaloff>:/CMBNuclear/Icons/qNucSave32.png</iconset>
+   </property>
    <property name="text">
     <string>Save File...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save File</string>
    </property>
   </action>
  </widget>

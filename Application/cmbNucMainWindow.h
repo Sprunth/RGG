@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 
+#include <QPointer>
 #include <vtkSmartPointer.h>
 
 // Forward Qt class declarations
@@ -12,6 +13,8 @@ class vtkActor;
 class vtkRenderer;
 class vtkCompositePolyDataMapper2;
 class cmbNucAssembly;
+class cmbNucInputPropertiesWidget;
+class cmbNucInputListWidget;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -29,6 +32,9 @@ public slots:
   void onFileSave();
   void saveFile(const QString &fileName);
 
+protected:
+  void initPanels();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
@@ -37,6 +43,9 @@ private:
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
   vtkSmartPointer<vtkActor> Actor;
   cmbNucAssembly *Assembly;
+  QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
+  QPointer<cmbNucInputListWidget> InputsWidget;
+
 };
 
 #endif // cmbNucMainWindow_H
