@@ -60,6 +60,21 @@ void cmbNucMainWindow::initPanels()
   this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
   this->ui->InputsDock->setWidget(this->InputsWidget);
   this->ui->PropertyDock->setWidget(this->PropertyWidget);
+  // current, 0=Ducts, 1=Pins, 2=Materials
+  QObject::connect(this->InputsWidget,
+      SIGNAL(partTypeSwitched(enumNucParts)), this,
+      SLOT(onPartTypeSwitched(enumNucParts)));
+
+}
+
+void cmbNucMainWindow::onPartTypeSwitched(enumNucParts enType)
+{
+  //this->PropertyWidget->stackedWidget
+}
+
+void cmbNucMainWindow::onPartSelected(enumNucParts enType)
+{
+  //this->PropertyWidget->stackedWidget
 }
 
 void cmbNucMainWindow::onExit()

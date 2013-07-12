@@ -2,6 +2,7 @@
 #define __cmbNucInputPropertiesWidget_h
 
 #include <QWidget>
+#include "cmbNucPartDefinition.h"
 
 class cmbNucInputPropertiesWidgetInternal;
 

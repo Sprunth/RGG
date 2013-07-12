@@ -42,7 +42,7 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
     }
 }
 
-cmbNucAssembly::PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
+PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {

@@ -5,6 +5,7 @@
 
 #include <QPointer>
 #include <vtkSmartPointer.h>
+#include "cmbNucPartDefinition.h"
 
 // Forward Qt class declarations
 class Ui_qNucMainWindow;
@@ -34,6 +35,10 @@ public slots:
 
 protected:
   void initPanels();
+
+protected slots:
+  void onPartTypeSwitched(enumNucParts enType);
+  void onPartSelected(enumNucParts enType);
 
 private:
   // Designer form

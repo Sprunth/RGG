@@ -29,8 +29,7 @@ cmbNucInputPropertiesWidget::~cmbNucInputPropertiesWidget()
 void cmbNucInputPropertiesWidget::setLabelText(
   const char* labelText)
 {
-  //this->Internal->label->setText(labelText);
-  //this->Internal->comboBox->setToolTip(labelText);
+  this->Internal->labelInput->setText(labelText);
 }
 
 //-----------------------------------------------------------------------------

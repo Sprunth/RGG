@@ -26,14 +26,6 @@ cmbNucInputListWidget::~cmbNucInputListWidget()
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputListWidget::setLabelText(
-  const char* labelText)
-{
-  //this->Internal->label->setText(labelText);
-  //this->Internal->comboBox->setToolTip(labelText);
-}
-
-//-----------------------------------------------------------------------------
 void cmbNucInputListWidget::onQtWidgetChanged()
 {
 }

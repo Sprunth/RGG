@@ -20,6 +20,7 @@ SET(CMBNuclear_Srcs
   cmbNucDuctSource.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
+  cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
 )
 

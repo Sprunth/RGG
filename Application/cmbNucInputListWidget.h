@@ -2,6 +2,7 @@
 #define __cmbNucInputListWidget_h
 
 #include <QWidget>
+#include "cmbNucPartDefinition.h"
 
 class cmbNucInputListWidgetInternal;
 
@@ -12,15 +13,15 @@ class cmbNucInputListWidget : public QWidget
 public:
   cmbNucInputListWidget(QWidget* parent=0);
   virtual ~cmbNucInputListWidget();
-
-  // Description:
-  // Set the label text of the widget
-  void setLabelText(const char*);
   
 signals:
   // Description:
-  // Fired when the text in the dropdown box is changed
-  void currentTextChanged(const QString&);
+  // Fired when the tab is switched
+  void partTypeSwitched(enumNucParts enType);
+
+  // Description:
+  // Fired when the tab is switched
+  void partSelected(enumNucParts enType);
   
 public slots:
 
