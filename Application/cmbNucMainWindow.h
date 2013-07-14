@@ -37,8 +37,8 @@ protected:
   void initPanels();
 
 protected slots:
-  void onPartTypeSwitched(enumNucPartsType enType);
-  void onPartSelected(enumNucPartsType enType);
+  void onObjectSelected(AssyPartObj*, const char* name);
+  void onAssemblyModified(AssyPartObj*);
 
 private:
   // Designer form

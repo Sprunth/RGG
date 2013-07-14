@@ -68,20 +68,36 @@ void cmbNucMainWindow::initPanels()
   this->ui->InputsDock->setWidget(this->InputsWidget);
   this->ui->PropertyDock->setWidget(this->PropertyWidget);
   this->ui->PropertyDock->setEnabled(0);
-  // current, 0=Ducts, 1=Pins, 2=Materials
+
   QObject::connect(this->InputsWidget,
-      SIGNAL(partTypeSwitched(enumNucPartsType)), this,
-      SLOT(onPartTypeSwitched(enumNucPartsType)));
+    SIGNAL(objectSelected(AssyPartObj*, const char*)), this,
+    SLOT(onObjectSelected(AssyPartObj*, const char*)));
+  QObject::connect(this->PropertyWidget,
+    SIGNAL(currentObjectModified(AssyPartObj*)), this,
+    SLOT(onAssemblyModified(AssyPartObj*)));
 }
 
-void cmbNucMainWindow::onPartTypeSwitched(enumNucPartsType enType)
+void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
+  const char* name)
 {
-  //this->PropertyWidget->stackedWidget
+  if(!selObj)
+    {
+    this->ui->PropertyDock->setEnabled(0);
+    return;
+    }
+  this->ui->PropertyDock->setEnabled(1);
+  QStringList materials;
+  for(size_t i = 0; i < this->Assembly->Materials.size(); i++)
+    {
+    Material &material = this->Assembly->Materials[i];
+    materials.append(material.label.c_str());
+    }
+  this->PropertyWidget->setObject(selObj, name, materials);
 }
 
-void cmbNucMainWindow::onPartSelected(enumNucPartsType enType)
+void cmbNucMainWindow::onAssemblyModified(AssyPartObj*)
 {
-  //this->PropertyWidget->stackedWidget
+  // regenerate assembly view ?
 }
 
 void cmbNucMainWindow::onExit()

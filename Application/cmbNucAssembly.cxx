@@ -123,10 +123,9 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             >> duct.z1
             >> duct.z2;
 
-      duct.thicknesses.resize(materials);
-      for(int i = 0; i < materials; i++)
+      duct.thicknesses.resize(materials*2);
+      for(int i = 0; i < materials*2; i++)
         {
-        input >> duct.thicknesses[i];
         input >> duct.thicknesses[i];
         }
 
@@ -253,7 +252,7 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
     for(size_t j = 0; j < duct.thicknesses.size(); j++)
       {
-      output << " " << duct.thicknesses[i] << " " << duct.thicknesses[i];
+      output << " " << duct.thicknesses[i];
       }
 
     for(size_t j = 0; j < duct.materials.size(); j++)
@@ -368,9 +367,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     ductSource->SetOrigin(0, 0, 0);
     ductSource->SetHeight(4.0);
 
-    for(size_t i = 0; i < duct.thicknesses.size(); i++)
+    for(size_t i = 0; i < duct.thicknesses.size()/2; i++)
       {
-      ductSource->AddLayer(duct.thicknesses[i], duct.thicknesses[i]);
+      ductSource->AddLayer(duct.thicknesses[2*i], duct.thicknesses[2*i+1]);
       }
 
     ductSource->Update();

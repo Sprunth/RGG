@@ -16,6 +16,10 @@ class cmbNucInputListWidgetInternal :
 public:
   cmbNucInputListWidgetInternal()
   {
+    this->RootDuctsNode = NULL;
+  }
+  void initActions()
+    {
     this->Action_NewPin = new QAction("Create Pin", this->PartsList);
     this->Action_NewFrustum = new QAction("Create Frustum", this->PartsList);
     this->Action_NewCylinder = new QAction("Create Cylinder", this->PartsList);
@@ -30,10 +34,9 @@ public:
     this->Action_NewMaterial = new QAction("Create Material", this->MaterialList);
     this->Action_DeleteMaterial = new QAction("Delete Selected", this->MaterialList);
     this->MaterialList->addAction(this->Action_NewMaterial);
-    this->MaterialList->addAction(this->Action_DeleteMaterial);
+    this->MaterialList->addAction(this->Action_DeleteMaterial);  
+    }
 
-    this->RootDuctsNode = NULL;
-  }
   QPointer<QAction> Action_NewPin;
   QPointer<QAction> Action_NewFrustum;
   QPointer<QAction> Action_NewCylinder;
@@ -52,6 +55,7 @@ cmbNucInputListWidget::cmbNucInputListWidget(
 {
   this->Internal = new cmbNucInputListWidgetInternal;
   this->Internal->setupUi(this);
+  this->Internal->initActions();
   this->Assembly = NULL;
 
   // set up the UI trees
@@ -78,10 +82,13 @@ cmbNucInputListWidget::cmbNucInputListWidget(
   //  this, SLOT(onDragStarted(QTreeWidget*)), Qt::QueuedConnection);
   QObject::connect(this->Internal->PartsList, SIGNAL(itemSelectionChanged()),
     this, SLOT(onPartsSelectionChanged()), Qt::QueuedConnection);
-  QObject::connect(this->Internal->PartsList, SIGNAL(itemSelectionChanged()),
+  QObject::connect(this->Internal->MaterialList, SIGNAL(itemSelectionChanged()),
     this, SLOT(onMaterialSelectionChanged()), Qt::QueuedConnection);
   QObject::connect(this->Internal->MaterialList, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
     this, SLOT(onMaterialNameChanged(QTreeWidgetItem*, int)));
+
+  QObject::connect(this->Internal->tabInputs, SIGNAL(currentChanged(int)),
+    this, SLOT(onTabChanged(int)));
 
   this->initUI();
 }
@@ -115,6 +122,18 @@ void cmbNucInputListWidget::initUI()
   this->Internal->RootDuctsNode = NULL;
   this->initTree(this->Internal->PartsList);
   this->initTree(this->Internal->MaterialList);
+}
+//----------------------------------------------------------------------------
+void cmbNucInputListWidget::onTabChanged(int currentTab)
+{
+  if(currentTab == 0) // parts
+    {
+    this->onPartsSelectionChanged();
+    }
+  else if(currentTab == 1) // materials
+    {
+    this->onMaterialSelectionChanged();
+    }
 }
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::setActionsEnabled(bool val)
@@ -434,11 +453,12 @@ void cmbNucInputListWidget::fireObjectSelectedSignal(
 {
   if(selItem)
     {
-    emit this->objectSelected(selItem->getPartObject());
+    emit this->objectSelected(selItem->getPartObject(),
+      selItem->text(0).toStdString().c_str());
     }
   else
     {
-    emit this->objectSelected(NULL);
+    emit this->objectSelected(NULL, NULL);
     }
 }
 //-----------------------------------------------------------------------------

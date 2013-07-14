@@ -25,15 +25,15 @@ public:
 signals:
   // Description:
   // Fired when a part/material is selected in the tree
-  void objectSelected(AssyPartObj*);
+  void objectSelected(AssyPartObj*, const char* name);
 
 private slots:
-
   // Description:
   // Tree widget interactions related slots 
   virtual void onPartsSelectionChanged();
   virtual void onMaterialSelectionChanged();
   virtual void onMaterialNameChanged(QTreeWidgetItem*, int);
+  virtual void onTabChanged(int);
 
   // Description:
   // Tree widget context menu related slots

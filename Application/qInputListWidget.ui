@@ -33,20 +33,13 @@
        <string>Parts</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="1" column="0" colspan="2">
+       <item row="0" column="0" colspan="2">
         <widget class="QTreeWidget" name="PartsList">
          <column>
           <property name="text">
            <string notr="true">1</string>
           </property>
          </column>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="NewPinButton">
-         <property name="text">
-          <string>New Pin</string>
-         </property>
         </widget>
        </item>
       </layout>
@@ -57,13 +50,6 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="0">
-        <widget class="QPushButton" name="NewMaterialButton">
-         <property name="text">
-          <string>New Material</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
         <widget class="QTreeWidget" name="MaterialList">
          <column>
           <property name="text">

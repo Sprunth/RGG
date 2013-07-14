@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "cmbNucPartDefinition.h"
+#include <QStringList>
 
 class cmbNucInputPropertiesWidgetInternal;
 
@@ -15,28 +16,45 @@ public:
   virtual ~cmbNucInputPropertiesWidget();
 
   // Description:
-  // Set the label text of the widget
-  void setLabelText(const char*);
+  // Set the assembly object the widget will be interacting
+  void setObject(AssyPartObj* selObj, const char* name,
+    const QStringList& materials);
+  AssyPartObj* getObject() {return this->CurrentObject;}
   
 signals:
   // Description:
-  // Fired when the text in the dropdown box is changed
-  void currentTextChanged(const QString&);
+  // Fired when the current object is modified
+  void currentObjectModified(AssyPartObj* selObj);
   
-public slots:
+protected slots:
+  // Invoked when Apply button clicked
+  void onApply();
+  // Invoked when Reset button clicked
+  void onReset();
+  // reset property panel with given object
+  void resetMaterial(Material* material);
+  void resetPinCell(PinCell* pincell);
+  void resetFrustum(Frustum* frust);
+  void resetCylinder(Cylinder* cylin);
+  void resetDuct(Duct* duct);
+  // apply property panel to given object
+  void applyToMaterial(Material* material);
+  void applyToPinCell(PinCell* pincell);
+  void applyToFrustum(Frustum* frust);
+  void applyToCylinder(Cylinder* cylin);
+  void applyToDuct(Duct* duct);
 
-private slots:
+  // Slot for duct layers
+  void onNumberOfDuctLayersChanged(int numLayers);
+  void onCurrentDuctLayerChanged(int idx);
+  // the following three works on current duct layer
+  void onCurrentDuctMaterialChanged();
+  void onDuctThicknessChanged();
 
-  // Description:
-  // Called when the qt widget changes, we mark undo set
-  // and push the widget changes to the property.
-  void onQtWidgetChanged();
-  
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;
 
   void initUI();
-
+  AssyPartObj* CurrentObject;
 };
 #endif
-
