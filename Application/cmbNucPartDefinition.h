@@ -39,6 +39,10 @@ enum enumNucPartsType
   class Cylinder : public AssyPartObj
   {
   public:
+    Cylinder()
+    {
+    x=0.0;y=0.0;z1=0.0;z2=4.0;r=1.6;material="";
+    }
     enumNucPartsType GetType()
     { return ASSY_CYLINDER_PIN;}
     bool operator==(const Cylinder& obj)
@@ -58,6 +62,10 @@ enum enumNucPartsType
   class Frustum : public AssyPartObj
   {
   public:
+    Frustum()
+      {
+      x=0.0;y=0.0;z1=4.0;z2=8.0;r1=1.6;r2=1.4;material="";
+      }
     enumNucPartsType GetType()
     { return ASSY_FRUSTUM_PIN;}
     bool operator==(const Frustum& obj)
@@ -79,6 +87,10 @@ enum enumNucPartsType
   class PinCell : public AssyPartObj
   {
   public:
+    PinCell()
+      {
+      pitchX=4.0;pitchY=4.0;pitchZ=4.0;name=label="newpin";
+      }
     enumNucPartsType GetType()
     { return ASSY_PINCELL;}
     void RemoveCylinder(const Cylinder& cylinder)
@@ -104,6 +116,10 @@ enum enumNucPartsType
   class Duct : public AssyPartObj
   {
   public:
+    Duct()
+      {
+      x=0.0;y=0.0;z1=0.0;z2=4.0;
+      }
     enumNucPartsType GetType()
     { return ASSY_RECT_DUCT;}
     bool operator==(const Duct& obj)
@@ -124,6 +140,10 @@ enum enumNucPartsType
   class Material : public AssyPartObj
   {
   public:
+    Material()
+      {
+      name=label="newmaterial";
+      }
     enumNucPartsType GetType()
     { return ASSY_MATERIAL;}
     std::string name;

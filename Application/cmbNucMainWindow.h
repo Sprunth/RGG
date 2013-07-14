@@ -28,6 +28,7 @@ public:
 
 public slots:
   void onExit();
+  void onFileNew();
   void onFileOpen();
   void openFile(const QString &fileName);
   void onFileSave();

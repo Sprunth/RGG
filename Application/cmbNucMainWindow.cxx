@@ -52,6 +52,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
+  connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
 }
 cmbNucMainWindow::~cmbNucMainWindow()
 {
@@ -105,6 +106,21 @@ void cmbNucMainWindow::onExit()
   qApp->exit();
 }
 
+void cmbNucMainWindow::onFileNew()
+{
+  if(this->Assembly)
+    {
+    this->InputsWidget->setAssembly(NULL);
+    delete this->Assembly;
+    }
+
+  this->Assembly = new cmbNucAssembly;
+  this->Mapper->SetInputDataObject(NULL);
+  this->Renderer->ResetCamera();
+  this->Renderer->Render();
+  this->InputsWidget->setAssembly(this->Assembly);
+}
+
 void cmbNucMainWindow::onFileOpen()
 {
   QString fileName =
@@ -123,7 +139,10 @@ void cmbNucMainWindow::onFileOpen()
 void cmbNucMainWindow::openFile(const QString &fileName)
 {
   // delete old assembly
-  delete this->Assembly;
+  if(this->Assembly)
+    {
+    delete this->Assembly;
+    }
 
   // read file and create new assembly
   this->Assembly = new cmbNucAssembly;

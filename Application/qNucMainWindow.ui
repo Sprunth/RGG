@@ -53,6 +53,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionNew"/>
     <addaction name="actionOpenFile"/>
     <addaction name="actionSaveFile"/>
     <addaction name="actionExit"/>
@@ -129,6 +130,14 @@
    </property>
    <property name="toolTip">
     <string>Save File</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="toolTip">
+    <string>Create New Assembly</string>
    </property>
   </action>
  </widget>
