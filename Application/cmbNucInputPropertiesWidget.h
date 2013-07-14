@@ -35,6 +35,8 @@ private slots:
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;
 
+  void initUI();
+
 };
 #endif
 

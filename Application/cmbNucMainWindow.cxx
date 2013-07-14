@@ -53,6 +53,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
 }
+cmbNucMainWindow::~cmbNucMainWindow()
+{
+  if(this->Assembly)
+    {
+    delete this->Assembly;
+    }
+}
 
 void cmbNucMainWindow::initPanels()
 {
@@ -60,27 +67,25 @@ void cmbNucMainWindow::initPanels()
   this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
   this->ui->InputsDock->setWidget(this->InputsWidget);
   this->ui->PropertyDock->setWidget(this->PropertyWidget);
+  this->ui->PropertyDock->setEnabled(0);
   // current, 0=Ducts, 1=Pins, 2=Materials
   QObject::connect(this->InputsWidget,
-      SIGNAL(partTypeSwitched(enumNucParts)), this,
-      SLOT(onPartTypeSwitched(enumNucParts)));
-
+      SIGNAL(partTypeSwitched(enumNucPartsType)), this,
+      SLOT(onPartTypeSwitched(enumNucPartsType)));
 }
 
-void cmbNucMainWindow::onPartTypeSwitched(enumNucParts enType)
+void cmbNucMainWindow::onPartTypeSwitched(enumNucPartsType enType)
 {
   //this->PropertyWidget->stackedWidget
 }
 
-void cmbNucMainWindow::onPartSelected(enumNucParts enType)
+void cmbNucMainWindow::onPartSelected(enumNucPartsType enType)
 {
   //this->PropertyWidget->stackedWidget
 }
 
 void cmbNucMainWindow::onExit()
 {
-  delete this->Assembly;
-
   qApp->exit();
 }
 
@@ -111,6 +116,8 @@ void cmbNucMainWindow::openFile(const QString &fileName)
   vtkSmartPointer<vtkMultiBlockDataSet> data = this->Assembly->GetData();
   this->Mapper->SetInputDataObject(data);
   this->Renderer->ResetCamera();
+  this->Renderer->Render();
+  this->InputsWidget->setAssembly(this->Assembly);
 }
 
 void cmbNucMainWindow::onFileSave()

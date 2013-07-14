@@ -42,6 +42,23 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
     }
 }
 
+void cmbNucAssembly::AddMaterial(const Material &material)
+{
+  this->Materials.push_back(material);
+}
+
+void cmbNucAssembly::RemoveMaterial(const std::string &name)
+{
+  for(size_t i = 0; i < this->Materials.size(); i++)
+    {
+    if(this->Materials[i].name == name)
+      {
+      this->Materials.erase(this->Materials.begin() + i);
+      break;
+      }
+    }
+}
+
 PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
@@ -119,7 +136,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         input >> duct.materials[i];
         }
 
-      this->Ducts.push_back(duct);
+      this->AssyDuct.Ducts.push_back(duct);
       }
     else if(value == "pincells")
       {
@@ -227,9 +244,9 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
   output << "\n";
 
   // ducts
-  for(size_t i = 0; i < this->Ducts.size(); i++)
+  for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
     {
-    const Duct &duct = this->Ducts[i];
+    const Duct &duct = this->AssyDuct.Ducts[i];
 
     output << "duct " << duct.materials.size() << " ";
     output << duct.x << " " << duct.y << " " << duct.z1 << " " << duct.z2;
@@ -296,8 +313,8 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 {
-  double outerDuctHeight = this->Ducts[0].thicknesses.back();
-  double innerDuctHeight = this->Ducts[0].thicknesses.front();
+  double outerDuctHeight = this->AssyDuct.Ducts[0].thicknesses.back();
+  double innerDuctHeight = this->AssyDuct.Ducts[0].thicknesses.front();
   double chamberStart = outerDuctHeight - innerDuctHeight;
   double chamberEnd = innerDuctHeight;
 
@@ -343,9 +360,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     }
 
   // setup ducts
-  for(size_t i = 0; i < this->Ducts.size(); i++)
+  for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
     {
-    const Duct &duct = this->Ducts[i];
+    const Duct &duct = this->AssyDuct.Ducts[i];
 
     cmbNucDuctSource *ductSource = cmbNucDuctSource::New();
     ductSource->SetOrigin(0, 0, 0);

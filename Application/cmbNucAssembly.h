@@ -54,15 +54,21 @@ public:
   // the assembly. This is used to render the assembly in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
 
+  // Adds/Remove a material by name
+  void AddMaterial(const Material &material);
+  void RemoveMaterial(const std::string &name);
+
+  // Expose assembly parts for UI access
+  std::vector<PinCell> PinCells;
+  DuctCell AssyDuct;
+  std::vector<Material> Materials;
+  
 private:
   // creates the polydata used to render the pincell
   vtkPolyData* CreatePinCellPolyData(const PinCell &pincell);
 
 private:
   std::string GeometryType;
-  std::vector<PinCell> PinCells;
-  std::vector<Duct> Ducts;
-  std::vector<Material> Materials;
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
   std::vector<std::vector<std::string> > Grid;
 };

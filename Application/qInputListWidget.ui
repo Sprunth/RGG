@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>210</width>
+    <width>261</width>
     <height>400</height>
    </rect>
   </property>
@@ -28,20 +28,13 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tabDuct">
+     <widget class="QWidget" name="tabParts">
       <attribute name="title">
-       <string>Ducts</string>
+       <string>Parts</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QPushButton" name="NewDuctButton">
-         <property name="text">
-          <string>New Duct</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QTreeWidget" name="DuctList">
+       <item row="1" column="0" colspan="2">
+        <widget class="QTreeWidget" name="PartsList">
          <column>
           <property name="text">
            <string notr="true">1</string>
@@ -49,27 +42,11 @@
          </column>
         </widget>
        </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tabPin">
-      <attribute name="title">
-       <string>Pins</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
         <widget class="QPushButton" name="NewPinButton">
          <property name="text">
           <string>New Pin</string>
          </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QTreeWidget" name="PinList">
-         <column>
-          <property name="text">
-           <string notr="true">1</string>
-          </property>
-         </column>
         </widget>
        </item>
       </layout>

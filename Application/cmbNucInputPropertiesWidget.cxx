@@ -17,12 +17,19 @@ cmbNucInputPropertiesWidget::cmbNucInputPropertiesWidget(
 {
   this->Internal = new cmbNucInputPropertiesWidgetInternal;
   this->Internal->setupUi(this);
+  this->initUI();
 }
 
 //-----------------------------------------------------------------------------
 cmbNucInputPropertiesWidget::~cmbNucInputPropertiesWidget()
 {
   delete this->Internal;
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::initUI()
+{
+
 }
 
 //-----------------------------------------------------------------------------

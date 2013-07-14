@@ -4,8 +4,49 @@
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
 
-  struct Cylinder
+
+enum enumNucPartsType
+{
+  ASSY_DUCTCELL=0,
+  ASSY_RECT_DUCT,
+  ASSY_HEX_DUCT,
+  ASSY_PINCELL,
+  ASSY_CYLINDER_PIN,
+  ASSY_FRUSTUM_PIN,
+  ASSY_MATERIAL,
+  ASSY_BASEOBJ
+};
+
+  class AssyPartObj
   {
+  public:
+    virtual enumNucPartsType GetType() {return ASSY_BASEOBJ;}
+    bool operator==(const AssyPartObj&){return false;}
+    template<class T> void removeObj(const T& obj, std::vector<T>& objs)
+      {
+      for(std::vector<T>::iterator fit=objs.begin();
+        fit!=objs.end(); ++fit)
+        {
+        if(*fit == obj)
+          {
+          objs.erase(fit);
+          break;
+          }
+        }
+      }
+  };
+
+  class Cylinder : public AssyPartObj
+  {
+  public:
+    enumNucPartsType GetType()
+    { return ASSY_CYLINDER_PIN;}
+    bool operator==(const Cylinder& obj)
+    {
+    return this->x==obj.x && this->y==obj.y &&
+            this->z1==obj.z1 && this->z2==obj.z2 &&
+            this->r==obj.r && this->material==obj.material;
+    } 
     double x;
     double y;
     double z1;
@@ -14,8 +55,18 @@
     std::string material;
   };
 
-  struct Frustum
+  class Frustum : public AssyPartObj
   {
+  public:
+    enumNucPartsType GetType()
+    { return ASSY_FRUSTUM_PIN;}
+    bool operator==(const Frustum& obj)
+      {
+      return this->x==obj.x && this->y==obj.y &&
+        this->z1==obj.z1 && this->z2==obj.z2 &&
+        this->r1==obj.r2 && this->r2==obj.r2 &&
+        this->material==obj.material;
+      } 
     double x;
     double y;
     double z1;
@@ -25,8 +76,20 @@
     std::string material;
   };
 
-  struct PinCell
+  class PinCell : public AssyPartObj
   {
+  public:
+    enumNucPartsType GetType()
+    { return ASSY_PINCELL;}
+    void RemoveCylinder(const Cylinder& cylinder)
+      {
+      this->removeObj(cylinder, this->cylinders);
+      }
+    void RemoveFrustum(const Frustum& frustum)
+      {
+      this->removeObj(frustum, this->frustums);
+      }
+    
     std::string name;
     std::string label;
     double pitchX;
@@ -38,8 +101,18 @@
     vtkSmartPointer<vtkPolyData> polyData;
   };
 
-  struct Duct
+  class Duct : public AssyPartObj
   {
+  public:
+    enumNucPartsType GetType()
+    { return ASSY_RECT_DUCT;}
+    bool operator==(const Duct& obj)
+      {
+      return this->x==obj.x && this->y==obj.y &&
+        this->z1==obj.z1 && this->z2==obj.z2 &&
+        this->materials==obj.materials &&
+        this->thicknesses==obj.thicknesses;
+      } 
     double x;
     double y;
     double z1;
@@ -48,21 +121,25 @@
     std::vector<double> thicknesses;
   };
 
-  struct Material
+  class Material : public AssyPartObj
   {
+  public:
+    enumNucPartsType GetType()
+    { return ASSY_MATERIAL;}
     std::string name;
     std::string label;
   };
 
-enum enumNucParts
-{
-  ASSY_DUCT=0,
-  ASSY_RECT_DUCT,
-  ASSY_HEX_DUCT,
-  ASSY_PINCELL,
-  ASSY_CYLINDER_PIN,
-  ASSY_FRUSTUM_PIN,
-  ASSY_MATERIAL
-};
+  class DuctCell : public AssyPartObj
+  {
+  public:
+    enumNucPartsType GetType()
+    { return ASSY_DUCTCELL;}
+    void RemoveDuct(const Duct& duct)
+    {
+    this->removeObj(duct, this->Ducts);
+    }
+    std::vector<Duct> Ducts;
+  };
 
 #endif

@@ -24,7 +24,7 @@ class cmbNucMainWindow : public QMainWindow
 public:
   // Constructor/Destructor
   cmbNucMainWindow();
-  ~cmbNucMainWindow() {};
+  ~cmbNucMainWindow();
 
 public slots:
   void onExit();
@@ -37,8 +37,8 @@ protected:
   void initPanels();
 
 protected slots:
-  void onPartTypeSwitched(enumNucParts enType);
-  void onPartSelected(enumNucParts enType);
+  void onPartTypeSwitched(enumNucPartsType enType);
+  void onPartSelected(enumNucPartsType enType);
 
 private:
   // Designer form
