@@ -361,10 +361,7 @@ void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
     qCritical() << "The duct layers and their materials are not set properly.";
     return;
     }
-  this->Internal->DuctXPos->setText(QString::number(duct->x));
-  this->Internal->DuctYPos->setText(QString::number(duct->y));
-  this->Internal->DuctZPos1->setText(QString::number(duct->z1));
-  this->Internal->DuctZPos2->setText(QString::number(duct->z2));
+
   duct->x = this->Internal->DuctXPos->text().toDouble();
   duct->y = this->Internal->DuctYPos->text().toDouble();
   duct->z1 = this->Internal->DuctZPos1->text().toDouble();
