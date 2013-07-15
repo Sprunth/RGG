@@ -106,7 +106,8 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
 
 void cmbNucMainWindow::onAssemblyModified(AssyPartObj*)
 {
-  // regenerate assembly view ?
+  // regenerate assembly view
+  this->Mapper->SetInputDataObject(this->Assembly->GetData());
 }
 
 void cmbNucMainWindow::onExit()

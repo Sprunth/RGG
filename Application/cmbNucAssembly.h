@@ -6,6 +6,8 @@
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
+#include "vtkSmartPointer.h"
+#include "vtkPolyData.h"
 
 class cmbNucAssembly
 {

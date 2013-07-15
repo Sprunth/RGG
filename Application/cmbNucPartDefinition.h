@@ -1,9 +1,7 @@
 #ifndef __cmbNucPartDefinition_h
 #define __cmbNucPartDefinition_h
 
-#include "vtkSmartPointer.h"
-#include "vtkPolyData.h"
-
+#include <vector>
 
 enum enumNucPartsType
 {
@@ -109,8 +107,6 @@ enum enumNucPartsType
     double pitchZ;
     std::vector<Cylinder> cylinders;
     std::vector<Frustum> frustums;
-
-    vtkSmartPointer<vtkPolyData> polyData;
   };
 
   class Duct : public AssyPartObj
