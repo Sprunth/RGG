@@ -41,6 +41,8 @@ vtkStandardNewMacro(cmbNucDuctSource);
 //----------------------------------------------------------------------------
 cmbNucDuctSource::cmbNucDuctSource()
 {
+  std::fill(this->Origin, this->Origin + 3, 0.0);
+  this->Height = 0.0;
   this->SetNumberOfInputPorts(0);
 }
 
