@@ -16,6 +16,7 @@ class vtkCompositePolyDataMapper2;
 class cmbNucAssembly;
 class cmbNucInputPropertiesWidget;
 class cmbNucInputListWidget;
+class cmbNucAssemblyEditor;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -52,6 +53,7 @@ private:
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 
+  cmbNucAssemblyEditor *AssemblyEditor;
 };
 
 #endif // cmbNucMainWindow_H

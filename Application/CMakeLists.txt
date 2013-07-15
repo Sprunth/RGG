@@ -17,6 +17,7 @@ SET(CMBNuclear_Srcs
   cmbNucMain.cxx
   cmbNucMainWindow.cxx
   cmbNucAssembly.cxx
+  cmbNucAssemblyEditor.cxx
   cmbNucDuctSource.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
@@ -34,7 +35,9 @@ SET(CMBNuclear_Headers
   cmbNucMainWindow.h
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
-  cmbNucPartsTreeItem.h)
+  cmbNucPartsTreeItem.h
+  cmbNucAssemblyEditor.h
+)
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})
 QT4_WRAP_CPP(MOCSrcs ${CMBNuclear_Headers} )
