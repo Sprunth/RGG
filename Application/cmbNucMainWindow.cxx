@@ -100,10 +100,14 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
   this->PropertyWidget->setObject(selObj, name, materials);
 }
 
-void cmbNucMainWindow::onAssemblyModified(AssyPartObj*)
+void cmbNucMainWindow::onAssemblyModified(AssyPartObj* obj)
 {
   // regenerate assembly view
   this->Mapper->SetInputDataObject(this->Assembly->GetData());
+  if(obj && obj->GetType() == ASSY_LATTICE)
+    {
+    this->AssemblyEditor->resetUI();
+    }
 }
 
 void cmbNucMainWindow::onExit()
@@ -116,6 +120,7 @@ void cmbNucMainWindow::onFileNew()
   if(this->Assembly)
     {
     this->InputsWidget->setAssembly(NULL);
+    this->AssemblyEditor->setAssembly(NULL);
     delete this->Assembly;
     }
 
@@ -124,6 +129,7 @@ void cmbNucMainWindow::onFileNew()
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->InputsWidget->setAssembly(this->Assembly);
+  this->AssemblyEditor->setAssembly(this->Assembly);
 }
 
 void cmbNucMainWindow::onFileOpen()
@@ -158,6 +164,7 @@ void cmbNucMainWindow::openFile(const QString &fileName)
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->InputsWidget->setAssembly(this->Assembly);
+  this->AssemblyEditor->setAssembly(this->Assembly);
 }
 
 void cmbNucMainWindow::onFileSave()

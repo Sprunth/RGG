@@ -24,6 +24,7 @@ SET(CMBNuclear_Srcs
   cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
   cmbNucPartsTreeItem.cxx
+  cmbNucDragLabel.cxx
 )
 
 SET(CMBNuclear_UI
@@ -37,6 +38,7 @@ SET(CMBNuclear_Headers
   cmbNucInputPropertiesWidget.h
   cmbNucPartsTreeItem.h
   cmbNucAssemblyEditor.h
+  cmbNucDragLabel.h
 )
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})
