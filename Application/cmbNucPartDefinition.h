@@ -24,7 +24,7 @@ enum enumNucPartsType
     bool operator==(const AssyPartObj&){return false;}
     template<class T> void removeObj(const T& obj, std::vector<T>& objs)
       {
-      for(std::vector<T>::iterator fit=objs.begin();
+      for(typename std::vector<T>::iterator fit=objs.begin();
         fit!=objs.end(); ++fit)
         {
         if(*fit == obj)
