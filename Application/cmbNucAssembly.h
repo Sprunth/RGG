@@ -30,22 +30,6 @@ public:
   // label exists.
   PinCell* GetPinCell(const std::string &label);
 
-  // Sets the dimensions of the cell assembly.
-  void SetDimensions(int x, int y);
-
-  // Returns the dimensions of the cell assembly.
-  std::pair<int, int> GetDimensions() const;
-
-  // Sets the contents of the cell (i, j) to name.
-  void SetCell(int i, int j, const std::string &name);
-
-  // Returns the contents of the cell (i, j).
-  std::string GetCell(int i, int j) const;
-
-  // Clears the contents of the cell (i, j). This is equivalent
-  // to calling SetCell(i, j, "xx").
-  void ClearCell(int i, int j);
-
   // Reads an assembly from a ".inp" file.
   void ReadFile(const std::string &FileName);
 
@@ -64,7 +48,8 @@ public:
   std::vector<PinCell> PinCells;
   DuctCell AssyDuct;
   std::vector<Material> Materials;
-  
+  Lattice AssyLattice;
+
 private:
   // creates the polydata used to render the pincell
   vtkPolyData* CreatePinCellPolyData(const PinCell &pincell);
@@ -72,7 +57,6 @@ private:
 private:
   std::string GeometryType;
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
-  std::vector<std::vector<std::string> > Grid;
 };
 
 #endif // cmbNucAssembly_H

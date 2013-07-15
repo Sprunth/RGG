@@ -37,12 +37,15 @@ protected slots:
   void resetFrustum(Frustum* frust);
   void resetCylinder(Cylinder* cylin);
   void resetDuct(Duct* duct);
+  void resetLattice(Lattice* lattice);
+
   // apply property panel to given object
   void applyToMaterial(Material* material);
   void applyToPinCell(PinCell* pincell);
   void applyToFrustum(Frustum* frust);
   void applyToCylinder(Cylinder* cylin);
   void applyToDuct(Duct* duct);
+  void applyToLattice(Lattice* lattice);
 
   // Slot for duct layers
   void onNumberOfDuctLayersChanged(int numLayers);

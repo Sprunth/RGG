@@ -8,6 +8,7 @@ enum enumNucPartsType
   ASSY_DUCTCELL=0,
   ASSY_RECT_DUCT,
   ASSY_HEX_DUCT,
+  ASSY_LATTICE,
   ASSY_PINCELL,
   ASSY_CYLINDER_PIN,
   ASSY_FRUSTUM_PIN,
@@ -157,5 +158,48 @@ enum enumNucPartsType
     }
     std::vector<Duct> Ducts;
   };
+
+  class Lattice : public AssyPartObj
+    {
+  public:
+    Lattice()
+      {
+      this->SetDimensions(4, 4);
+      }
+
+    // Sets the dimensions of the cell assembly.
+    void SetDimensions(int i, int j)
+      {
+      this->Grid.resize(i);
+      for(int k = 0; k < i; k++)
+        {
+        this->Grid[k].resize(j);
+        }
+      }
+    // Returns the dimensions of the cell assembly.
+    std::pair<int, int> GetDimensions() const
+      {
+      return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
+      }
+    // Sets the contents of the cell (i, j) to name.
+    void SetCell(int i, int j, const std::string &name)
+      {
+      this->Grid[i][j] = name;
+      }
+    // Returns the contents of the cell (i, j).
+    std::string GetCell(int i, int j) const
+      {
+      return this->Grid[i][j];
+      }
+    // Clears the contents of the cell (i, j). This is equivalent
+    // to calling SetCell(i, j, "xx").
+    void ClearCell(int i, int j)
+      {
+      this->SetCell(i, j, "xx");
+      }
+    enumNucPartsType GetType()
+      { return ASSY_LATTICE;}
+    std::vector<std::vector<std::string> > Grid;
+    };
 
 #endif

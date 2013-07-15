@@ -269,6 +269,7 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
   PinCell* pincell=NULL;
   switch(selObj->GetType())
   {
+  case ASSY_LATTICE:
   case ASSY_DUCTCELL:
     break;
   case ASSY_PINCELL:
@@ -374,6 +375,12 @@ void cmbNucInputListWidget::updateUI()
   /// ******** populate parts tree ********
   QTreeWidgetItem* partsRoot = this->Internal->PartsList->invisibleRootItem();
 
+  // lattice
+  cmbNucPartsTreeItem* latticeNode = new cmbNucPartsTreeItem(partsRoot,
+    &this->Assembly->AssyLattice);
+  latticeNode->setText(0, "Lattice");
+  latticeNode->setFlags(itemFlags); // not editable
+
   // ducts
   cmbNucPartsTreeItem* ductsNode = new cmbNucPartsTreeItem(partsRoot,
     &this->Assembly->AssyDuct);
@@ -463,6 +470,7 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
 
   switch(selObj->GetType())
   {
+  case ASSY_LATTICE:
   case ASSY_DUCTCELL:
     break;
   case ASSY_PINCELL:

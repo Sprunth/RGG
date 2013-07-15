@@ -104,8 +104,13 @@ void cmbNucInputPropertiesWidget::onApply()
   Frustum* frust=NULL;
   Duct* duct=NULL;
   Material* material=NULL;
+  Lattice* lattice=NULL;
   switch(selObj->GetType())
     {
+    case ASSY_LATTICE:
+      lattice = dynamic_cast<Lattice*>(selObj);
+      this->applyToLattice(lattice);
+      break;
     case ASSY_MATERIAL:
       material = dynamic_cast<Material*>(selObj);
       this->applyToMaterial(material);
@@ -145,8 +150,15 @@ void cmbNucInputPropertiesWidget::onReset()
   Frustum* frust=NULL;
   Duct* duct=NULL;
   Material* material=NULL;
+  Lattice* lattice=NULL;
   switch(selObj->GetType())
     {
+    case ASSY_LATTICE:
+      this->Internal->stackedWidget->setCurrentWidget(
+        this->Internal->pageLattice);
+      lattice = dynamic_cast<Lattice*>(selObj);
+      this->resetLattice(lattice);
+      break;
     case ASSY_MATERIAL:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageMaterial);
@@ -242,6 +254,13 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
   //layers
   this->Internal->NumOfDuctLayers->setValue((int)duct->materials.size());
 }
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
+{
+  this->Internal->latticeX->setValue(lattice->GetDimensions().first);
+  this->Internal->latticeY->setValue(lattice->GetDimensions().second);
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
 {
@@ -378,4 +397,11 @@ void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
     }
 
   emit this->currentObjectModified(duct);
+}
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
+{
+  lattice->SetDimensions(this->Internal->latticeX->value(),
+    this->Internal->latticeY->value());
+  emit this->currentObjectModified(lattice);
 }

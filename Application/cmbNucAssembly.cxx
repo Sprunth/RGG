@@ -206,13 +206,13 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         size_t y;
         input >> x >> y;
 
-        this->SetDimensions(x, y);
+        this->AssyLattice.SetDimensions(x, y);
 
         for(size_t i = 0; i < x; i++)
           {
           for(size_t j = 0; j < y; j++)
             {
-            input >> this->Grid[i][j];
+            input >> this->AssyLattice.Grid[i][j];
             }
           }
         }
@@ -289,12 +289,12 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
     }
 
   // assembly
-  output << "assembly " << this->Grid.size() << " " << this->Grid[0].size() << "\n";
-  for(size_t i = 0; i < this->Grid.size(); i++)
+  output << "assembly " << this->AssyLattice.Grid.size() << " " << this->AssyLattice.Grid[0].size() << "\n";
+  for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
     {
-    for(size_t j = 0; j < this->Grid[i].size(); j++)
+    for(size_t j = 0; j < this->AssyLattice.Grid[i].size(); j++)
       {
-      output << this->Grid[i][j] << " ";
+      output << this->AssyLattice.Grid[i][j] << " ";
       }
     output << "\n";
     }
@@ -318,14 +318,14 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   double chamberEnd = innerDuctHeight;
 
   // setup data
-  this->Data->SetNumberOfBlocks(this->Grid.size() * this->Grid[0].size() +
+  this->Data->SetNumberOfBlocks(this->AssyLattice.Grid.size() * this->AssyLattice.Grid[0].size() +
                                 this->AssyDuct.Ducts.size());
 
-  double cellLength = (chamberEnd - chamberStart) / this->Grid.size();
+  double cellLength = (chamberEnd - chamberStart) / this->AssyLattice.Grid.size();
 
-  for(size_t i = 0; i < this->Grid.size(); i++)
+  for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
     {
-    const std::vector<std::string> &row = this->Grid[i];
+    const std::vector<std::string> &row = this->AssyLattice.Grid[i];
 
     for(size_t j = 0; j < row.size(); j++)
       {
@@ -349,12 +349,12 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
         filter->SetInputDataObject(polyData);
         polyData->Delete();
         filter->Update();
-        this->Data->SetBlock(i*this->Grid.size()+j, filter->GetOutput());
+        this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, filter->GetOutput());
         filter->Delete();
         }
       else
         {
-        this->Data->SetBlock(i*this->Grid.size()+j, NULL);
+        this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, NULL);
         }
       }
     }
@@ -380,36 +380,6 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     }
 
   return this->Data;
-}
-
-void cmbNucAssembly::SetDimensions(int i, int j)
-{
-  this->Grid.resize(i);
-
-  for(int k = 0; k < i; k++)
-    {
-    this->Grid[k].resize(j);
-    }
-}
-
-std::pair<int, int> cmbNucAssembly::GetDimensions() const
-{
-  return std::make_pair(this->Grid.size(), this->Grid[0].size());
-}
-
-void cmbNucAssembly::SetCell(int i, int j, const std::string &name)
-{
-  this->Grid[i][j] = name;
-}
-
-std::string cmbNucAssembly::GetCell(int i, int j) const
-{
-  return this->Grid[i][j];
-}
-
-void cmbNucAssembly::ClearCell(int i, int j)
-{
-  this->SetCell(i, j, "xx");
 }
 
 vtkPolyData* cmbNucAssembly::CreatePinCellPolyData(const PinCell &pincell)
