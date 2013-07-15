@@ -318,7 +318,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   double chamberEnd = innerDuctHeight;
 
   // setup data
-  this->Data->SetNumberOfBlocks(this->Grid.size() * this->Grid[0].size() + 1);
+  this->Data->SetNumberOfBlocks(this->Grid.size() * this->Grid[0].size() +
+                                this->AssyDuct.Ducts.size());
 
   double cellLength = (chamberEnd - chamberStart) / this->Grid.size();
 
@@ -364,17 +365,17 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     const Duct &duct = this->AssyDuct.Ducts[i];
 
     cmbNucDuctSource *ductSource = cmbNucDuctSource::New();
-    ductSource->SetOrigin(0, 0, 0);
-    ductSource->SetHeight(4.0);
+    ductSource->SetOrigin(duct.x, duct.y, duct.z1);
+    ductSource->SetHeight(duct.z2 - duct.z1);
 
-    for(size_t i = 0; i < duct.thicknesses.size()/2; i++)
+    for(size_t j = 0; j < duct.thicknesses.size()/2; j++)
       {
-      ductSource->AddLayer(duct.thicknesses[2*i], duct.thicknesses[2*i+1]);
+      ductSource->AddLayer(duct.thicknesses[2*j], duct.thicknesses[2*j+1]);
       }
 
     ductSource->Update();
 
-    this->Data->SetBlock(this->Data->GetNumberOfBlocks() - 1, ductSource->GetOutput());
+    this->Data->SetBlock(this->Data->GetNumberOfBlocks() - i - 1, ductSource->GetOutput());
     ductSource->Delete();
     }
 

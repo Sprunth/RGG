@@ -74,9 +74,9 @@ void cmbNucMainWindow::initPanels()
   this->ui->PropertyDock->setEnabled(0);
   this->ui->AssemblyDock->setWidget(this->AssemblyEditor);
   // current, 0=Ducts, 1=Pins, 2=Materials
-  QObject::connect(this->InputsWidget,
-      SIGNAL(partTypeSwitched(enumNucParts)), this,
-      SLOT(onPartTypeSwitched(enumNucParts)));
+//  QObject::connect(this->InputsWidget,
+//      SIGNAL(partTypeSwitched(enumNucParts)), this,
+//      SLOT(onPartTypeSwitched(enumNucParts)));
 
   QObject::connect(this->InputsWidget,
     SIGNAL(objectSelected(AssyPartObj*, const char*)), this,
