@@ -331,7 +331,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
       {
       const std::string &type = row[j];
 
-      if(type != "xx" && type != "XX")
+      if(!type.empty() && type != "xx" && type != "XX")
         {
         const PinCell &pincell = this->PinCells[0];
 

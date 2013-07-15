@@ -104,6 +104,9 @@ void cmbNucMainWindow::onAssemblyModified(AssyPartObj*)
 {
   // regenerate assembly view
   this->Mapper->SetInputDataObject(this->Assembly->GetData());
+
+  // render
+  this->ui->qvtkWidget->update();
 }
 
 void cmbNucMainWindow::onExit()
