@@ -8,4 +8,6 @@ cmbNucDragLabel::cmbNucDragLabel(const QString &text, QWidget *parent)
     setAutoFillBackground(true);
     setFrameShape(QFrame::Panel);
     setFrameShadow(QFrame::Raised);
+    setAcceptDrops(true);
+    setAlignment(Qt::AlignCenter);
 }
