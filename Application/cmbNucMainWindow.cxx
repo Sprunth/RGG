@@ -108,6 +108,9 @@ void cmbNucMainWindow::onAssemblyModified(AssyPartObj* obj)
     {
     this->AssemblyEditor->resetUI();
     }
+
+  // render
+  this->ui->qvtkWidget->update();
 }
 
 void cmbNucMainWindow::onExit()
