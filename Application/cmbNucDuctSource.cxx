@@ -115,7 +115,7 @@ vtkPolyData* cmbNucDuctSource::CreateLayer(int layer)
   vtkPoints *points = vtkPoints::New();
   vtkCellArray *cells = vtkCellArray::New();
 
-  // create layer
+  // create outer layer
   vtkIdType p0 = points->InsertNextPoint(x, y, z);
   vtkIdType p1 = points->InsertNextPoint(x+l, y, z);
   vtkIdType p2 = points->InsertNextPoint(x+l, y+w, z);
@@ -137,6 +137,47 @@ vtkPolyData* cmbNucDuctSource::CreateLayer(int layer)
 
   vtkIdType c3[] = { p3, p7, p4, p0 };
   cells->InsertNextCell(4, c3);
+
+  // create inner layer (for all but the innermost layer)
+  if(layer != 0)
+    {
+    double tx = this->Layers[layer*2+0] - this->Layers[layer*2-2];
+    double ty = this->Layers[layer*2+1] - this->Layers[layer*2-1];
+
+    vtkIdType p8 = points->InsertNextPoint(x+tx, y+ty, z);
+    vtkIdType p9 = points->InsertNextPoint(x+l-tx, y+ty, z);
+    vtkIdType p10 = points->InsertNextPoint(x+l-tx, y+w-ty, z);
+    vtkIdType p11 = points->InsertNextPoint(x+tx, y+w-ty, z);
+
+    vtkIdType p12 = points->InsertNextPoint(x+tx, y+ty, z+h);
+    vtkIdType p13 = points->InsertNextPoint(x+l-tx, y+ty, z+h);
+    vtkIdType p14 = points->InsertNextPoint(x+l-tx, y+w-ty, z+h);
+    vtkIdType p15 = points->InsertNextPoint(x+tx, y+w-ty, z+h);
+
+    vtkIdType c4[] = { p0, p1, p9, p8 };
+    cells->InsertNextCell(4, c4);
+
+    vtkIdType c5[] = { p1, p2, p10, p9 };
+    cells->InsertNextCell(4, c5);
+
+    vtkIdType c6[] = { p2, p3, p11, p10 };
+    cells->InsertNextCell(4, c6);
+
+    vtkIdType c7[] = { p0, p3, p11, p8 };
+    cells->InsertNextCell(4, c7);
+
+    vtkIdType c8[] = { p4, p5, p13, p12 };
+    cells->InsertNextCell(4, c8);
+
+    vtkIdType c9[] = { p5, p6, p14, p13 };
+    cells->InsertNextCell(4, c9);
+
+    vtkIdType c10[] = { p6, p7, p15, p14 };
+    cells->InsertNextCell(4, c10);
+
+    vtkIdType c11[] = { p4, p7, p15, p12 };
+    cells->InsertNextCell(4, c11);
+    }
 
   polyData->SetPoints(points);
   polyData->SetPolys(cells);
