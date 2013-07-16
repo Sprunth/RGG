@@ -37,11 +37,10 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Actor->SetMapper(this->Mapper.GetPointer());
   this->Actor->GetProperty()->SetShading(1);
   this->Actor->GetProperty()->SetInterpolationToPhong();
+  this->Actor->GetProperty()->EdgeVisibilityOn();
   this->Renderer->AddActor(this->Actor);
 
   vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
-  double color[] = { 1.0, 1.0, 0.0 };
-  attributes->SetBlockColor(1, color);
   this->Mapper->SetCompositeDataDisplayAttributes(attributes);
   attributes->Delete();
 
@@ -163,6 +162,24 @@ void cmbNucMainWindow::openFile(const QString &fileName)
   this->Assembly->ReadFile(fileName.toStdString());
 
   vtkSmartPointer<vtkMultiBlockDataSet> data = this->Assembly->GetData();
+
+  // update composite attributes
+  vtkCompositeDataDisplayAttributes *attributes =
+    this->Mapper->GetCompositeDataDisplayAttributes();
+  std::pair<int, int> dimensions = this->Assembly->AssyLattice.GetDimensions();
+  int pins = dimensions.first * dimensions.second;
+  for(int i = 0; i < pins; i++)
+    {
+    double color[] = { 1.0, 0.4, 0.0 };
+    attributes->SetBlockColor(i, color);
+    }
+  for(int i = pins + 1; i < data->GetNumberOfBlocks(); i++)
+    {
+    double color[] = { 0.6, 0.4, 0.2 };
+    attributes->SetBlockColor(i, color);
+    //attributes->SetBlockOpacity(i, 0.7);
+    }
+
   this->Mapper->SetInputDataObject(data);
   this->Renderer->ResetCamera();
   this->Renderer->Render();
