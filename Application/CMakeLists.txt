@@ -36,7 +36,7 @@ SET(CMBNuclear_Headers
   cmbNucMainWindow.h
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
-  cmbNucPartsTreeItem.h
+#  cmbNucPartsTreeItem.h
   cmbNucAssemblyEditor.h
   cmbNucDragLabel.h
 )
