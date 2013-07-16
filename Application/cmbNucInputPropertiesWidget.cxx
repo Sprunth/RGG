@@ -2,6 +2,8 @@
 #include "cmbNucInputPropertiesWidget.h"
 #include "ui_qInputPropertiesWidget.h"
 
+#include "cmbNucAssemblyEditor.h"
+
 #include <QLabel>
 #include <QPointer>
 #include <QtDebug>
@@ -51,6 +53,12 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onDuctThicknessChanged()));
   QObject::connect(this->Internal->DuctThick2, SIGNAL(editingFinished()),
     this, SLOT(onDuctThicknessChanged()));
+}
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::setLatticeWidget(
+  cmbNucAssemblyEditor* lattice)
+{
+  this->Internal->frameLattice->layout()->addWidget(lattice);
 }
 
 //-----------------------------------------------------------------------------

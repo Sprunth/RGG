@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QVTKWidget" name="qvtkWidget">
+     <widget class="QVTKWidget" name="qvtkWidget" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -46,7 +46,7 @@
      <x>0</x>
      <y>0</y>
      <width>878</width>
-     <height>18</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -83,15 +83,6 @@
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2"/>
-  </widget>
-  <widget class="QDockWidget" name="AssemblyDock">
-   <property name="windowTitle">
-    <string>Assembly Editor</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_3"/>
   </widget>
   <action name="actionOpenFile">
    <property name="enabled">

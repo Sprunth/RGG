@@ -6,6 +6,7 @@
 #include <QStringList>
 
 class cmbNucInputPropertiesWidgetInternal;
+class cmbNucAssemblyEditor;
 
 class cmbNucInputPropertiesWidget : public QWidget
 {
@@ -20,7 +21,8 @@ public:
   void setObject(AssyPartObj* selObj, const char* name,
     const QStringList& materials);
   AssyPartObj* getObject() {return this->CurrentObject;}
-  
+  void setLatticeWidget(cmbNucAssemblyEditor* lattice);
+
 signals:
   // Description:
   // Fired when the current object is modified

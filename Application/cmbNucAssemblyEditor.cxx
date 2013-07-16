@@ -6,20 +6,20 @@
 #include <QtGui>
 
 cmbNucAssemblyEditor::cmbNucAssemblyEditor(QWidget *parent)
-  : QWidget(parent)
+  : QFrame(parent)
 {
   setAutoFillBackground(true);
 // this->GraphicsView = new QGraphicsView(this);
+//  this->LatticeView = new QFrame(this);
+  //QVBoxLayout *layout = new QVBoxLayout;
+  //layout->addWidget(this->LatticeView);
+  //setLayout(layout);
 
-  this->LatticeView = new QFrame(this);
-  this->LatticeView->setFrameShape(QFrame::WinPanel);
-  this->LatticeView->setFrameShadow(QFrame::Sunken);
-  this->LatticeView->setAcceptDrops(true);
-  this->LatticeLayout = new QGridLayout(this->LatticeView);
-  this->LatticeView->setLayout(this->LatticeLayout);
-  QVBoxLayout *layout = new QVBoxLayout;
-  layout->addWidget(this->LatticeView);
-  setLayout(layout);
+  this->setFrameShape(QFrame::WinPanel);
+  this->setFrameShadow(QFrame::Sunken);
+  this->setAcceptDrops(true);
+  this->LatticeLayout = new QGridLayout(this);
+  this->setLayout(this->LatticeLayout);
 }
 
 cmbNucAssemblyEditor::~cmbNucAssemblyEditor()
@@ -38,11 +38,6 @@ void cmbNucAssemblyEditor::setAssembly(cmbNucAssembly *assembly)
 }
 void cmbNucAssemblyEditor::clear(bool updateUI)
 {
-  pieceLocations.clear();
-  piecePinCells.clear();
-  pieceRects.clear();
-  highlightedRect = QRect();
-
   for(size_t i = 0; i < this->LatticeLayout->rowCount(); i++)
     {
     for(size_t j = 0; j < this->LatticeLayout->columnCount(); j++)
@@ -55,6 +50,7 @@ void cmbNucAssemblyEditor::clear(bool updateUI)
         }
       }
     }
+
   if(updateUI)
     {
     update();
@@ -75,8 +71,8 @@ void cmbNucAssemblyEditor::resetUI()
     this->LatticeLayout->rowCount()!=x)
     {
     delete this->LatticeLayout;
-    this->LatticeLayout = new QGridLayout(this->LatticeView);
-    this->LatticeView->setLayout(this->LatticeLayout);
+    this->LatticeLayout = new QGridLayout(this);
+    this->setLayout(this->LatticeLayout);
     }
   for(size_t i = 0; i < x; i++)
     {
@@ -84,158 +80,60 @@ void cmbNucAssemblyEditor::resetUI()
       {
       std::string pinlabel = this->Assembly->AssyLattice.Grid[i][j];
       cmbNucDragLabel *wordLabel = new cmbNucDragLabel(
-        pinlabel.c_str(), this->LatticeView);
+        pinlabel.c_str(), this);
       this->LatticeLayout->addWidget(wordLabel, i, j);
       }
     }
 }
-void cmbNucAssemblyEditor::dragEnterEvent(QDragEnterEvent *event)
-{
-  if (event->mimeData()->hasFormat("image/x-puzzle-piece"))
-      event->accept();
-  else
-      event->ignore();
-}
-
-void cmbNucAssemblyEditor::dragLeaveEvent(QDragLeaveEvent *event)
-{
-  QRect updateRect = highlightedRect;
-  highlightedRect = QRect();
-  update(updateRect);
-  event->accept();
-}
-
-void cmbNucAssemblyEditor::dragMoveEvent(QDragMoveEvent *event)
-{
-  QRect updateRect = highlightedRect.unite(targetSquare(event->pos()));
-
-  if (event->mimeData()->hasFormat("image/x-puzzle-piece")
-      && findPiece(targetSquare(event->pos())) == -1) {
-
-      highlightedRect = targetSquare(event->pos());
-      event->setDropAction(Qt::MoveAction);
-      event->accept();
-  } else {
-      highlightedRect = QRect();
-      event->ignore();
-  }
-
-  update(updateRect);
-}
-
-void cmbNucAssemblyEditor::dropEvent(QDropEvent *event)
-{
-  if (event->mimeData()->hasFormat("image/x-puzzle-piece")
-      && findPiece(targetSquare(event->pos())) == -1) {
-
-      QByteArray pieceData = event->mimeData()->data("image/x-puzzle-piece");
-      QDataStream dataStream(&pieceData, QIODevice::ReadOnly);
-      QRect square = targetSquare(event->pos());
-      QPixmap pixmap;
-      QPoint location;
-      dataStream >> pixmap >> location;
-
-      pieceLocations.append(location);
-      piecePinCells.append(pixmap);
-      pieceRects.append(square);
-
-      highlightedRect = QRect();
-      update(square);
-
-      event->setDropAction(Qt::MoveAction);
-      event->accept();
-
-      if (location == QPoint(square.x()/pieceSize(), square.y()/pieceSize())) {
-          //inPlace++;
-          emit pinMoved();
-      }
-  } else {
-      highlightedRect = QRect();
-      event->ignore();
-  }
-}
-
-int cmbNucAssemblyEditor::findPiece(const QRect &pieceRect) const
-{
-  for (int i = 0; i < pieceRects.size(); ++i) {
-      if (pieceRect == pieceRects[i]) {
-          return i;
-      }
-  }
-  return -1;
-}
 
 void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
 {
-  QRect square = targetSquare(event->pos());
-  int found = findPiece(square);
+    QLabel *child = static_cast<QLabel*>(childAt(event->pos()));
+    if (!child)
+        return;
 
-  if (found == -1)
-      return;
+    QMimeData *mimeData = new QMimeData;
+    mimeData->setText(child->text());
 
-  QPoint location = pieceLocations[found];
-  QPixmap pixmap = piecePinCells[found];
-  pieceLocations.removeAt(found);
-  piecePinCells.removeAt(found);
-  pieceRects.removeAt(found);
+    QPixmap pixmap(child->size());
+    child->render(&pixmap);
 
-  if (location == QPoint(square.x()/pieceSize(), square.y()/pieceSize()))
-      //inPlace--;
+    QDrag *drag = new QDrag(this);
+    drag->setMimeData(mimeData);
+    drag->setPixmap(pixmap);
 
-  update(square);
+    Qt::DropAction dropAction = drag->exec(Qt::CopyAction | Qt::MoveAction, Qt::CopyAction);
 
-  QByteArray itemData;
-  QDataStream dataStream(&itemData, QIODevice::WriteOnly);
+    child->setText("xx");
 
-  dataStream << pixmap << location;
-
-  QMimeData *mimeData = new QMimeData;
-  mimeData->setData("image/x-puzzle-piece", itemData);
-
-  QDrag *drag = new QDrag(this);
-  drag->setMimeData(mimeData);
-  drag->setHotSpot(event->pos() - square.topLeft());
-  drag->setPixmap(pixmap);
-
-  if (!(drag->exec(Qt::MoveAction) == Qt::MoveAction)) {
-      pieceLocations.insert(found, location);
-      piecePinCells.insert(found, pixmap);
-      pieceRects.insert(found, square);
-      update(targetSquare(event->pos()));
-
-      if (location == QPoint(square.x()/pieceSize(), square.y()/pieceSize()))
-          //inPlace++;
-          ;
-  }
+    if (dropAction == Qt::MoveAction)
+        child->close();
 }
 
-void cmbNucAssemblyEditor::paintEvent(QPaintEvent *event)
+const QRect cmbNucAssemblyEditor::targetRect(const QPoint &position) const
 {
-  QPainter painter;
-  painter.begin(this);
-  painter.fillRect(event->rect(), Qt::white);
-
-  if (highlightedRect.isValid()) {
-      painter.setBrush(QColor("#ffcccc"));
-      painter.setPen(Qt::NoPen);
-      painter.drawRect(highlightedRect.adjusted(0, 0, -1, -1));
-  }
-
-  for (int i = 0; i < pieceRects.size(); ++i) {
-      painter.drawPixmap(pieceRects[i], piecePinCells[i]);
-  }
-  painter.end();
+  return QRect(position.x()/ pieceWidth(), position.y()/
+    pieceHeight(), pieceWidth(), pieceHeight());
 }
 
-const QRect cmbNucAssemblyEditor::targetSquare(const QPoint &position) const
+int cmbNucAssemblyEditor::pieceWidth() const
 {
-  return QRect(position.x()/pieceSize() * pieceSize(), position.y()/
-    pieceSize() * pieceSize(), pieceSize(), pieceSize());
+  return this->width()/
+    this->Assembly->AssyLattice.GetDimensions().first;
 }
-
-int cmbNucAssemblyEditor::pieceSize() const
+int cmbNucAssemblyEditor::pieceHeight() const
 {
-  return (this->LatticeView->height()*this->LatticeView->width())/
-    (this->Assembly->AssyLattice.GetDimensions().first*
-    this->Assembly->AssyLattice.GetDimensions().second);
+  return this->height()/
+    this->Assembly->AssyLattice.GetDimensions().second;
+}
+cmbNucDragLabel* cmbNucAssemblyEditor::findLabel(const QRect &pieceRect)
+{
+  int i = pieceRect.x()/pieceWidth();
+  int j = pieceRect.y()/pieceHeight();
+  QLayoutItem* item = this->LatticeLayout->itemAtPosition(i, j);
+  if(item && item->widget())
+    {
+    return dynamic_cast<cmbNucDragLabel*>(item->widget());
+    }
+  return NULL;
 }

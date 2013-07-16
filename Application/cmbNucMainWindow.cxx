@@ -72,7 +72,7 @@ void cmbNucMainWindow::initPanels()
   this->ui->InputsDock->setWidget(this->InputsWidget);
   this->ui->PropertyDock->setWidget(this->PropertyWidget);
   this->ui->PropertyDock->setEnabled(0);
-  this->ui->AssemblyDock->setWidget(this->AssemblyEditor);
+  this->PropertyWidget->setLatticeWidget(this->AssemblyEditor);
 
   QObject::connect(this->InputsWidget,
     SIGNAL(objectSelected(AssyPartObj*, const char*)), this,
