@@ -99,6 +99,16 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj,
 
   this->onReset();
 }
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
+{
+  if(this->Assembly == assyObj)
+    {
+    return;
+    }
+  this->Assembly = assyObj;
+  this->AssemblyEditor->setAssembly(assyObj);
+}
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onApply()
@@ -166,7 +176,6 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageLattice);
       lattice = dynamic_cast<Lattice*>(selObj);
-      this->AssemblyEditor->setLattice(lattice);
       this->resetLattice(lattice);
       break;
     case ASSY_MATERIAL:

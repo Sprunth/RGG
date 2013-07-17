@@ -3,6 +3,8 @@
 #define __cmbNucDragLabel_H
 
 #include <QLabel>
+#include <QStringList>
+#include <QWeakPointer>
 
 class QDragEnterEvent;
 class QDragMoveEvent;

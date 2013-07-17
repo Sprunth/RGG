@@ -115,6 +115,7 @@ void cmbNucMainWindow::onFileNew()
   if(this->Assembly)
     {
     this->InputsWidget->setAssembly(NULL);
+    this->PropertyWidget->setAssembly(NULL);
     delete this->Assembly;
     }
 
@@ -123,6 +124,7 @@ void cmbNucMainWindow::onFileNew()
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->InputsWidget->setAssembly(this->Assembly);
+  this->PropertyWidget->setAssembly(this->Assembly);
 }
 
 void cmbNucMainWindow::onFileOpen()
@@ -175,6 +177,7 @@ void cmbNucMainWindow::openFile(const QString &fileName)
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->InputsWidget->setAssembly(this->Assembly);
+  this->PropertyWidget->setAssembly(this->Assembly);
 }
 
 void cmbNucMainWindow::onFileSave()

@@ -6,7 +6,7 @@
 #include <QtGui>
 
 cmbNucAssemblyEditor::cmbNucAssemblyEditor(QWidget *parent)
-  : QFrame(parent)
+  : QFrame(parent), CurrentAssembly(NULL)
 {
   setAutoFillBackground(true);
 // this->GraphicsView = new QGraphicsView(this);
@@ -27,19 +27,19 @@ cmbNucAssemblyEditor::~cmbNucAssemblyEditor()
   this->clearUI(false);
 }
 
-void cmbNucAssemblyEditor::setLattice(Lattice *lattice)
+void cmbNucAssemblyEditor::setAssembly(cmbNucAssembly *assy)
 {
-  if(this->CurrentLattice != lattice)
+  if(this->CurrentAssembly != assy)
     {
-    this->CurrentLattice = lattice;
+    this->CurrentAssembly = assy;
     }
   this->resetUI();
 }
 void cmbNucAssemblyEditor::clearUI(bool updateUI)
 {
-  for(size_t i = 0; i < this->LatticeLayout->rowCount(); i++)
+  for(int i = 0; i < this->LatticeLayout->rowCount(); i++)
     {
-    for(size_t j = 0; j < this->LatticeLayout->columnCount(); j++)
+    for(int j = 0; j < this->LatticeLayout->columnCount(); j++)
       {
       QLayoutItem* item = this->LatticeLayout->itemAtPosition(i, j);
       if(item && item->widget())
@@ -57,12 +57,12 @@ void cmbNucAssemblyEditor::clearUI(bool updateUI)
 void cmbNucAssemblyEditor::resetUI()
 {
   this->clearUI();
-  if(!this->CurrentLattice)
+  if(!this->CurrentAssembly)
     {
     this->setEnabled(0);
     return;
     }
-  std::pair<int, int> dimensions = this->CurrentLattice->GetDimensions();
+  std::pair<int, int> dimensions = this->CurrentAssembly->AssyLattice.GetDimensions();
   this->CurrentGrid.resize(dimensions.first);
   for(int k = 0; k < dimensions.first; k++)
     {
@@ -74,7 +74,7 @@ void cmbNucAssemblyEditor::resetUI()
     for(int j = 0; j < dimensions.second; j++)
       {
       this->CurrentGrid[k][j] =
-        this->CurrentLattice->GetCell(k, j);
+        this->CurrentAssembly->AssyLattice.GetCell(k, j);
       }
     }  
 
@@ -138,9 +138,9 @@ void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
         }
       }
     }
-  for(size_t i = 0; i < x; i++)
+  for(int i = 0; i < x; i++)
     {
-    for(size_t j = 0; j < y; j++)
+    for(int j = 0; j < y; j++)
       {
       std::string pinlabel = this->CurrentGrid[i][j];
       cmbNucDragLabel *wordLabel = new cmbNucDragLabel(
@@ -153,10 +153,14 @@ void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
 
 void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
 {
-    cmbNucDragLabel *child = static_cast<cmbNucDragLabel*>(childAt(event->pos()));
-    if (!child)
-        return;
+  cmbNucDragLabel *child = static_cast<cmbNucDragLabel*>(childAt(event->pos()));
+  if (!child)
+    return;
+  child->setHighlight(true);
+  child->update();
 
+  if(event->button() == Qt::LeftButton)
+    { // drag
     QMimeData *mimeData = new QMimeData;
     mimeData->setText(child->text());
 
@@ -180,8 +184,36 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
           child->text().toStdString();
         }
       }
+    }
+  else if(event->button() == Qt::RightButton)
+    { // context menu
+    QMenu pinMenu(this);
+    QAction* pAction = new QAction("xx", this);
+    pinMenu.addAction(pAction);
+    // pincells
+    for(size_t i = 0; i < this->CurrentAssembly->PinCells.size(); i++)
+      {
+      PinCell &pincell = this->CurrentAssembly->PinCells[i];
+      pAction = new QAction(pincell.label.c_str(), this);
+      pinMenu.addAction(pAction);
+//      connect(pAction, SIGNAL(triggered()), this, SLOT(onAssignPin()));
+//      this->addAction(pAction);
+      }
+    QAction* assignAct = pinMenu.exec(event->globalPos());
+    if(assignAct)
+      {
+      child->setText(assignAct->text());
+      this->CurrentGrid[child->getX()][child->getY()] =
+        child->text().toStdString();
+      }
+    }
+  child->setHighlight(false);
+  child->update();
 }
-
+//void cmbNucAssemblyEditor::onAssignPin()
+//{
+//
+//}
 const QRect cmbNucAssemblyEditor::targetRect(const QPoint &position) const
 {
   return QRect(position.x()/ pieceWidth(), position.y()/
@@ -191,12 +223,12 @@ const QRect cmbNucAssemblyEditor::targetRect(const QPoint &position) const
 int cmbNucAssemblyEditor::pieceWidth() const
 {
   return this->width()/
-    this->CurrentLattice->GetDimensions().first;
+    this->CurrentAssembly->AssyLattice.GetDimensions().first;
 }
 int cmbNucAssemblyEditor::pieceHeight() const
 {
   return this->height()/
-    this->CurrentLattice->GetDimensions().second;
+    this->CurrentAssembly->AssyLattice.GetDimensions().second;
 }
 cmbNucDragLabel* cmbNucAssemblyEditor::findLabel(const QRect &pieceRect)
 {

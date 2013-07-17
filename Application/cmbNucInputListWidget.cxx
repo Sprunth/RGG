@@ -402,7 +402,8 @@ void cmbNucInputListWidget::updateUI()
     {
     PinCell &pincell = this->Assembly->PinCells[i];
     cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, &pincell);
-    pinNode->setText(0, QString("PinCell").append(QString::number(i+1)));
+    //pinNode->setText(0, QString("PinCell").append(QString::number(i+1)));
+    pinNode->setText(0, QString::fromStdString(pincell.label));
     pinNode->setFlags(itemFlags); // not editable
     pinNode->setChildIndicatorPolicy(
       QTreeWidgetItem::DontShowIndicatorWhenChildless);

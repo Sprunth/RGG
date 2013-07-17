@@ -7,6 +7,7 @@
 
 class cmbNucInputPropertiesWidgetInternal;
 class cmbNucAssemblyEditor;
+class cmbNucAssembly;
 
 class cmbNucInputPropertiesWidget : public QWidget
 {
@@ -21,6 +22,9 @@ public:
   void setObject(AssyPartObj* selObj, const char* name,
     const QStringList& materials);
   AssyPartObj* getObject() {return this->CurrentObject;}
+  /// set/get the assembly that this widget with be interact with
+  void setAssembly(cmbNucAssembly*);
+  cmbNucAssembly* getAssembly(){return this->Assembly;}
 
 signals:
   // Description:
@@ -64,6 +68,7 @@ private:
   void initUI();
   AssyPartObj* CurrentObject;
   cmbNucAssemblyEditor *AssemblyEditor;
+  cmbNucAssembly *Assembly;
 
 };
 #endif

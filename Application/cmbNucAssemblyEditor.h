@@ -5,6 +5,7 @@
 //#include <QGraphicsView>
 
 #include "cmbNucAssembly.h"
+#include <QStringList>
 
 class QDragEnterEvent;
 class QDropEvent;
@@ -21,7 +22,7 @@ public:
   cmbNucAssemblyEditor(QWidget *parent = 0);
   ~cmbNucAssemblyEditor();
 
-  void setLattice(Lattice *lattice);
+  void setAssembly(cmbNucAssembly *assy);
   void resetUI();
   void updateLatticeView(int x, int y);
   void clearUI(bool updateUI=true);
@@ -36,7 +37,7 @@ protected:
 private:
   //QGraphicsView *GraphicsView;
   // QFrame* LatticeView;
-  Lattice *CurrentLattice;
+  cmbNucAssembly *CurrentAssembly;
 
   const QRect targetRect(const QPoint &position) const;
   int pieceWidth() const;
@@ -48,7 +49,6 @@ private:
   //QList<QPoint> pieceLocations;
   QGridLayout* LatticeLayout;
   std::vector<std::vector<std::string> > CurrentGrid;
-
 };
 
 #endif // cmbNucAssemblyEditor_H
