@@ -21,31 +21,33 @@ public:
   cmbNucAssemblyEditor(QWidget *parent = 0);
   ~cmbNucAssemblyEditor();
 
-  void setAssembly(cmbNucAssembly *assembly);
+  void setLattice(Lattice *lattice);
   void resetUI();
+  void updateLatticeView(int x, int y);
+  void clearUI(bool updateUI=true);
+  void updateLatticeWithGrid(Lattice* lattice);
 
 signals:
   void pinMoved();
 
 protected:
-
   void mousePressEvent(QMouseEvent *event);
 
 private:
   //QGraphicsView *GraphicsView;
   // QFrame* LatticeView;
-  cmbNucAssembly *Assembly;
+  Lattice *CurrentLattice;
 
   const QRect targetRect(const QPoint &position) const;
   int pieceWidth() const;
   int pieceHeight() const;
   cmbNucDragLabel* findLabel(const QRect &pieceRect);
-  void clear(bool updateUI=true);
 
   //QList<QPixmap> piecePinCells;
   //QList<QRect> pieceRects;
   //QList<QPoint> pieceLocations;
   QGridLayout* LatticeLayout;
+  std::vector<std::vector<std::string> > CurrentGrid;
 
 };
 

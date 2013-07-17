@@ -36,6 +36,9 @@ cmbNucInputPropertiesWidget::~cmbNucInputPropertiesWidget()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::initUI()
 {
+  this->AssemblyEditor = new cmbNucAssemblyEditor(this);
+  this->Internal->latticecontainerLayout->addWidget(
+    this->AssemblyEditor);
   QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
     this, SLOT(onApply()));
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
@@ -53,12 +56,10 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onDuctThicknessChanged()));
   QObject::connect(this->Internal->DuctThick2, SIGNAL(editingFinished()),
     this, SLOT(onDuctThicknessChanged()));
-}
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::setLatticeWidget(
-  cmbNucAssemblyEditor* lattice)
-{
-  this->Internal->frameLattice->layout()->addWidget(lattice);
+  QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
+    this, SLOT(onLatticeDimensionChanged()));
+  QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
+    this, SLOT(onLatticeDimensionChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -165,6 +166,7 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageLattice);
       lattice = dynamic_cast<Lattice*>(selObj);
+      this->AssemblyEditor->setLattice(lattice);
       this->resetLattice(lattice);
       break;
     case ASSY_MATERIAL:
@@ -265,8 +267,13 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
 {
+  this->Internal->latticeX->blockSignals(true);
+  this->Internal->latticeY->blockSignals(true);
   this->Internal->latticeX->setValue(lattice->GetDimensions().first);
   this->Internal->latticeY->setValue(lattice->GetDimensions().second);
+  this->Internal->latticeX->blockSignals(false);
+  this->Internal->latticeY->blockSignals(false);
+  this->AssemblyEditor->resetUI();
 }
 
 //-----------------------------------------------------------------------------
@@ -406,10 +413,17 @@ void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
 
   emit this->currentObjectModified(duct);
 }
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::onLatticeDimensionChanged()
+{
+  this->AssemblyEditor->clearUI(false);
+  this->AssemblyEditor->updateLatticeView(this->Internal->latticeX->value(),
+    this->Internal->latticeY->value());
+}
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 {
-  lattice->SetDimensions(this->Internal->latticeX->value(),
-    this->Internal->latticeY->value());
+  this->AssemblyEditor->updateLatticeWithGrid(lattice);
   emit this->currentObjectModified(lattice);
 }

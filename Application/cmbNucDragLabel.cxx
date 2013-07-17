@@ -2,8 +2,8 @@
 
 #include <QtGui>
 
-cmbNucDragLabel::cmbNucDragLabel(const QString &text, QWidget *parent)
-    : QLabel(text, parent)
+cmbNucDragLabel::cmbNucDragLabel(const QString &text, QWidget *parent,
+  int i, int j) : QLabel(text, parent), x(i), y(j)
 {
     setAutoFillBackground(true);
     setFrameShape(QFrame::Panel);

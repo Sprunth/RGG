@@ -14,7 +14,6 @@
 #include "cmbNucAssembly.h"
 #include "cmbNucInputPropertiesWidget.h"
 #include "cmbNucInputListWidget.h"
-#include "cmbNucAssemblyEditor.h"
 
 #include "vtkAxesActor.h"
 #include "vtkProperty.h"
@@ -67,11 +66,9 @@ void cmbNucMainWindow::initPanels()
 {
   this->InputsWidget = new cmbNucInputListWidget(this);
   this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
-  this->AssemblyEditor = new cmbNucAssemblyEditor(this);
   this->ui->InputsDock->setWidget(this->InputsWidget);
   this->ui->PropertyDock->setWidget(this->PropertyWidget);
   this->ui->PropertyDock->setEnabled(0);
-  this->PropertyWidget->setLatticeWidget(this->AssemblyEditor);
 
   QObject::connect(this->InputsWidget,
     SIGNAL(objectSelected(AssyPartObj*, const char*)), this,
@@ -103,10 +100,6 @@ void cmbNucMainWindow::onAssemblyModified(AssyPartObj* obj)
 {
   // regenerate assembly view
   this->Mapper->SetInputDataObject(this->Assembly->GetData());
-  if(obj && obj->GetType() == ASSY_LATTICE)
-    {
-    this->AssemblyEditor->resetUI();
-    }
 
   // render
   this->ui->qvtkWidget->update();
@@ -122,7 +115,6 @@ void cmbNucMainWindow::onFileNew()
   if(this->Assembly)
     {
     this->InputsWidget->setAssembly(NULL);
-    this->AssemblyEditor->setAssembly(NULL);
     delete this->Assembly;
     }
 
@@ -131,7 +123,6 @@ void cmbNucMainWindow::onFileNew()
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->InputsWidget->setAssembly(this->Assembly);
-  this->AssemblyEditor->setAssembly(this->Assembly);
 }
 
 void cmbNucMainWindow::onFileOpen()
@@ -184,7 +175,6 @@ void cmbNucMainWindow::openFile(const QString &fileName)
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->InputsWidget->setAssembly(this->Assembly);
-  this->AssemblyEditor->setAssembly(this->Assembly);
 }
 
 void cmbNucMainWindow::onFileSave()

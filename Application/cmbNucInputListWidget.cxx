@@ -440,6 +440,8 @@ void cmbNucInputListWidget::updateUI()
   this->Internal->MaterialList->expandAll();
   this->Internal->PartsList->blockSignals(false);
   this->Internal->MaterialList->blockSignals(false);
+  latticeNode->setSelected(true);
+  this->onPartsSelectionChanged(); 
 }
 
 //-----------------------------------------------------------------------------

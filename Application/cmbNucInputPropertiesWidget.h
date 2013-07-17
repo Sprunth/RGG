@@ -21,7 +21,6 @@ public:
   void setObject(AssyPartObj* selObj, const char* name,
     const QStringList& materials);
   AssyPartObj* getObject() {return this->CurrentObject;}
-  void setLatticeWidget(cmbNucAssemblyEditor* lattice);
 
 signals:
   // Description:
@@ -56,10 +55,15 @@ protected slots:
   void onCurrentDuctMaterialChanged();
   void onDuctThicknessChanged();
 
+  // Slot for Lattice dimensions
+  void onLatticeDimensionChanged();
+
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;
 
   void initUI();
   AssyPartObj* CurrentObject;
+  cmbNucAssemblyEditor *AssemblyEditor;
+
 };
 #endif
