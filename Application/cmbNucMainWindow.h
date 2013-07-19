@@ -41,6 +41,9 @@ protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
   void onAssemblyModified(AssyPartObj*);
 
+  // updates the block colors based on their materials
+  void updateMaterialColors();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;

@@ -18,6 +18,7 @@
 #include "vtkAxesActor.h"
 #include "vtkProperty.h"
 #include "vtkCompositeDataDisplayAttributes.h"
+#include "vtkDataObjectTreeIterator.h"
 
 // Constructor
 cmbNucMainWindow::cmbNucMainWindow()
@@ -36,7 +37,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Actor->SetMapper(this->Mapper.GetPointer());
   this->Actor->GetProperty()->SetShading(1);
   this->Actor->GetProperty()->SetInterpolationToPhong();
-  this->Actor->GetProperty()->EdgeVisibilityOn();
+//  this->Actor->GetProperty()->EdgeVisibilityOn();
   this->Renderer->AddActor(this->Actor);
 
   vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
@@ -101,6 +102,9 @@ void cmbNucMainWindow::onAssemblyModified(AssyPartObj* obj)
   // regenerate assembly view
   this->Mapper->SetInputDataObject(this->Assembly->GetData());
 
+  // update material colors
+  this->updateMaterialColors();
+
   // render
   this->ui->qvtkWidget->update();
 }
@@ -156,24 +160,12 @@ void cmbNucMainWindow::openFile(const QString &fileName)
 
   vtkSmartPointer<vtkMultiBlockDataSet> data = this->Assembly->GetData();
 
-  // update composite attributes
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-  std::pair<int, int> dimensions = this->Assembly->AssyLattice.GetDimensions();
-  int pins = dimensions.first * dimensions.second;
-  for(int i = 0; i < pins; i++)
-    {
-    double color[] = { 1.0, 0.4, 0.0 };
-    attributes->SetBlockColor(i, color);
-    }
-  for(int i = pins + 1; i < data->GetNumberOfBlocks(); i++)
-    {
-    double color[] = { 0.6, 0.4, 0.2 };
-    attributes->SetBlockColor(i, color);
-    //attributes->SetBlockOpacity(i, 0.7);
-    }
-
   this->Mapper->SetInputDataObject(data);
+
+  // update data colors
+  this->updateMaterialColors();
+
+  // render
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->InputsWidget->setAssembly(this->Assembly);
@@ -204,4 +196,39 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
     }
 
   this->Assembly->WriteFile(fileName.toStdString());
+}
+
+void cmbNucMainWindow::updateMaterialColors()
+{
+  vtkMultiBlockDataSet *data =
+    vtkMultiBlockDataSet::SafeDownCast(this->Mapper->GetInputDataObject(0, 0));
+
+  vtkCompositeDataDisplayAttributes *attributes =
+    this->Mapper->GetCompositeDataDisplayAttributes();
+
+  std::pair<int, int> dimensions = this->Assembly->AssyLattice.GetDimensions();
+  int pins = dimensions.first * dimensions.second;
+
+  vtkDataObjectTreeIterator *iter = data->NewTreeIterator();
+  iter->SetSkipEmptyNodes(false);
+  int pin_count = 0;
+
+  while(!iter->IsDoneWithTraversal())
+    {
+    int i = iter->GetCurrentFlatIndex();
+    if(pin_count < pins)
+      {
+      double color[] = { 1.0, 0.4, 0.0 };
+      attributes->SetBlockColor(i, color);
+      pin_count++;
+      }
+    else
+      {
+      double color[] = { 0.6, 0.4, 0.2 };
+      attributes->SetBlockColor(i, color);
+      attributes->SetBlockOpacity(i, 0.7);
+      }
+    iter->GoToNextItem();
+    }
+  iter->Delete();
 }
