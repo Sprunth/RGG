@@ -19,6 +19,7 @@ enum enumNucPartsType
   class AssyPartObj
   {
   public:
+    AssyPartObj(){}
     virtual enumNucPartsType GetType() {return ASSY_BASEOBJ;}
     bool operator==(const AssyPartObj&){return false;}
     template<class T> void removeObj(const T& obj, std::vector<T>& objs)
@@ -150,6 +151,7 @@ enum enumNucPartsType
   class DuctCell : public AssyPartObj
   {
   public:
+    DuctCell(){}
     enumNucPartsType GetType()
     { return ASSY_DUCTCELL;}
     void RemoveDuct(const Duct& duct)

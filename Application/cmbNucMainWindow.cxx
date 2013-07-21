@@ -70,6 +70,7 @@ void cmbNucMainWindow::initPanels()
   this->ui->InputsDock->setWidget(this->InputsWidget);
   this->ui->PropertyDock->setWidget(this->PropertyWidget);
   this->ui->PropertyDock->setEnabled(0);
+  this->InputsWidget->setEnabled(0);
 
   QObject::connect(this->InputsWidget,
     SIGNAL(objectSelected(AssyPartObj*, const char*)), this,

@@ -162,7 +162,7 @@ void cmbNucInputListWidget::onNewCylinder()
     Cylinder &newcy = pincell->cylinders[pincell->cylinders.size()-1];
     cmbNucPartsTreeItem* cNode = new cmbNucPartsTreeItem(selItem, &newcy);
     cNode->setText(0, QString("cylinder").append(
-      QString::number(pincell->cylinders.size()+1)));
+      QString::number(pincell->cylinders.size())));
     Qt::ItemFlags itemFlags(
       Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
     cNode->setFlags(itemFlags);
@@ -182,11 +182,11 @@ void cmbNucInputListWidget::onNewDuct()
     this->Assembly->AssyDuct.Ducts[this->Assembly->AssyDuct.Ducts.size()-1];
   cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, &newduct);
   dNode->setText(0, QString("duct").append(QString::number(
-    this->Assembly->AssyDuct.Ducts.size()+1)));
+    this->Assembly->AssyDuct.Ducts.size())));
   Qt::ItemFlags itemFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
   dNode->setFlags(itemFlags); // not editable
-  this->Internal->PartsList->setItemSelected(dNode, true);
+
   cmbNucPartsTreeItem* selItem = this->getSelectedItem(
     this->Internal->PartsList);
   if(selItem)
@@ -214,7 +214,7 @@ void cmbNucInputListWidget::onNewFrustum()
     Frustum &newfrust = pincell->frustums[pincell->frustums.size()-1];
     cmbNucPartsTreeItem* fNode = new cmbNucPartsTreeItem(selItem, &newfrust);
     fNode->setText(0, QString("frustum").append(
-      QString::number(pincell->frustums.size()+1)));
+      QString::number(pincell->frustums.size())));
     Qt::ItemFlags itemFlags(
       Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
     fNode->setFlags(itemFlags);
@@ -235,7 +235,7 @@ void cmbNucInputListWidget::onNewPin()
   PinCell &newpin = 
     this->Assembly->PinCells[this->Assembly->PinCells.size()-1];
   QString pinname = QString("PinCell").append(
-    QString::number(this->Assembly->PinCells.size()+1));
+    QString::number(this->Assembly->PinCells.size()));
   newpin.name = newpin.label = pinname.toStdString();
   QTreeWidgetItem* partsRoot = this->Internal->PartsList->invisibleRootItem();
   cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, &newpin);
@@ -321,10 +321,12 @@ void cmbNucInputListWidget::onNewMaterial()
   Qt::ItemFlags matFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
   Material material;
+  //size_t numM = this->Assembly->Materials.size();
   this->Assembly->AddMaterial(material);
-  Material &newmat = this->Assembly->Materials[this->Assembly->Materials.size()-1];
+  size_t numM = this->Assembly->Materials.size();
+  Material &newmat = this->Assembly->Materials[numM-1];
   QString matname = QString("material").append(
-    QString::number(this->Assembly->Materials.size()+1));
+    QString::number(numM));
   newmat.name = newmat.label = matname.toStdString();
   cmbNucPartsTreeItem* mNode = new cmbNucPartsTreeItem(matRoot, &newmat);
   mNode->setText(0, newmat.name.c_str());
@@ -362,8 +364,10 @@ void cmbNucInputListWidget::updateUI()
   this->initUI();
   if(!this->Assembly)
     {
+    this->setEnabled(0);
     return;
     }
+  this->setEnabled(1);
 
   Qt::ItemFlags itemFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
