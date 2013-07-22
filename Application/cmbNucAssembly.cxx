@@ -175,30 +175,36 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             }
           else if(value == "cylinder")
             {
-            int layers;
-            Cylinder* cylinder = new Cylinder();
-            input >> layers
-                  >> cylinder->x
+            int numCyliner;
+            input >> numCyliner;
+            for(int c=0; c<numCyliner; c++)
+              {
+              Cylinder* cylinder = new Cylinder();
+              input >> cylinder->x
                   >> cylinder->y
                   >> cylinder->z1
                   >> cylinder->z2
                   >> cylinder->r
                   >> cylinder->material;
-            pincell->cylinders.push_back(cylinder);
+                pincell->cylinders.push_back(cylinder);
+              }
             }
           else if(value == "frustum")
             {
-            int layers;
-            Frustum* frustum = new Frustum();
-            input >> layers
-                  >> frustum->x
+            int numFrustum;
+            input >> numFrustum;
+            for(int f=0; f<numFrustum; f++)
+              {
+              Frustum* frustum = new Frustum();
+              input >> frustum->x
                   >> frustum->y
                   >> frustum->z1
                   >> frustum->z2
                   >> frustum->r1
                   >> frustum->r2
                   >> frustum->material;
-            pincell->frustums.push_back(frustum);
+              pincell->frustums.push_back(frustum);
+              }
             }
           }
         this->AddPinCell(pincell);
@@ -256,12 +262,12 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
     for(size_t j = 0; j < duct->thicknesses.size(); j++)
       {
-      output << " " << duct->thicknesses[i];
+      output << " " << duct->thicknesses[j];
       }
 
     for(size_t j = 0; j < duct->materials.size(); j++)
       {
-      output << " " << duct->materials[i];
+      output << " " << duct->materials[j];
       }
     output << "\n";
     }
@@ -283,12 +289,29 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
     for(size_t j = 0; j < pincell->cylinders.size(); j++)
       {
-      output << "cylinder" << "\n";
+      if(j==0) output << "cylinder " << pincell->cylinders.size() << " ";
+      Cylinder* cylinder = pincell->cylinders[j];
+      output << cylinder->x << " "
+        << cylinder->y << " "
+        << cylinder->z1 << " "
+        << cylinder->z2 << " "
+        << cylinder->r << " "
+        << cylinder->material << " ";
+      if(j==pincell->cylinders.size()-1) output << "\n";
       }
 
     for(size_t j = 0; j < pincell->frustums.size(); j++)
       {
-      output << "frustum" << "\n";
+      if(j==0) output << "frustum " << pincell->frustums.size() << " ";
+      Frustum* frustum = pincell->frustums[j];
+      output << frustum->x << " "
+        << frustum->y << " "
+        << frustum->z1 << " "
+        << frustum->z2 << " "
+        << frustum->r1 << " "
+        << frustum->r2 << " "
+        << frustum->material << " ";
+      if(j==pincell->frustums.size()-1) output << "\n";
       }
     }
 
