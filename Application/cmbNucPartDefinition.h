@@ -22,17 +22,30 @@ enum enumNucPartsType
     AssyPartObj(){}
     virtual enumNucPartsType GetType() {return ASSY_BASEOBJ;}
     bool operator==(const AssyPartObj&){return false;}
-    template<class T> void removeObj(const T& obj, std::vector<T>& objs)
+    template<class T> static void removeObj(T* obj, std::vector<T*>& objs)
       {
-      for(typename std::vector<T>::iterator fit=objs.begin();
+      for(typename std::vector<T*>::iterator fit=objs.begin();
         fit!=objs.end(); ++fit)
         {
         if(*fit == obj)
           {
+          delete obj;
           objs.erase(fit);
           break;
           }
         }
+      }
+    template<class T> static void deleteObjs(std::vector<T*>& objs)
+      {
+      for(typename std::vector<T*>::iterator fit=objs.begin();
+        fit!=objs.end(); ++fit)
+        {
+        if(*fit)
+          {
+          delete *fit;
+          }
+        }
+      objs.clear();
       }
   };
 
@@ -91,13 +104,19 @@ enum enumNucPartsType
       {
       pitchX=4.0;pitchY=4.0;pitchZ=4.0;name=label="newpin";
       }
+    ~PinCell()
+      {
+      this->deleteObjs(this->cylinders);
+      this->deleteObjs(this->frustums);
+      }
+
     enumNucPartsType GetType()
     { return ASSY_PINCELL;}
-    void RemoveCylinder(const Cylinder& cylinder)
+    void RemoveCylinder(Cylinder* cylinder)
       {
       this->removeObj(cylinder, this->cylinders);
       }
-    void RemoveFrustum(const Frustum& frustum)
+    void RemoveFrustum(Frustum* frustum)
       {
       this->removeObj(frustum, this->frustums);
       }
@@ -107,8 +126,8 @@ enum enumNucPartsType
     double pitchX;
     double pitchY;
     double pitchZ;
-    std::vector<Cylinder> cylinders;
-    std::vector<Frustum> frustums;
+    std::vector<Cylinder*> cylinders;
+    std::vector<Frustum*> frustums;
   };
 
   class Duct : public AssyPartObj
@@ -152,13 +171,17 @@ enum enumNucPartsType
   {
   public:
     DuctCell(){}
+    ~DuctCell()
+    {
+    this->deleteObjs(this->Ducts);
+    }
     enumNucPartsType GetType()
     { return ASSY_DUCTCELL;}
-    void RemoveDuct(const Duct& duct)
+    void RemoveDuct(Duct* duct)
     {
     this->removeObj(duct, this->Ducts);
     }
-    std::vector<Duct> Ducts;
+    std::vector<Duct*> Ducts;
   };
 
   class Lattice : public AssyPartObj

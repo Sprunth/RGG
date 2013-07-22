@@ -193,8 +193,8 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
     // pincells
     for(size_t i = 0; i < this->CurrentAssembly->PinCells.size(); i++)
       {
-      PinCell &pincell = this->CurrentAssembly->PinCells[i];
-      pAction = new QAction(pincell.label.c_str(), this);
+      PinCell *pincell = this->CurrentAssembly->PinCells[i];
+      pAction = new QAction(pincell->label.c_str(), this);
       pinMenu.addAction(pAction);
 //      connect(pAction, SIGNAL(triggered()), this, SLOT(onAssignPin()));
 //      this->addAction(pAction);

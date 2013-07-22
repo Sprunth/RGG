@@ -92,8 +92,8 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
   QStringList materials;
   for(size_t i = 0; i < this->Assembly->Materials.size(); i++)
     {
-    Material &material = this->Assembly->Materials[i];
-    materials.append(material.label.c_str());
+    Material *material = this->Assembly->Materials[i];
+    materials.append(material->label.c_str());
     }
   this->PropertyWidget->setObject(selObj, name, materials);
 }

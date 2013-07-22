@@ -23,9 +23,11 @@ cmbNucAssembly::cmbNucAssembly()
 
 cmbNucAssembly::~cmbNucAssembly()
 {
+  AssyPartObj::deleteObjs(this->PinCells);
+  AssyPartObj::deleteObjs(this->Materials);
 }
 
-void cmbNucAssembly::AddPinCell(const PinCell &pincell)
+void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
   this->PinCells.push_back(pincell);
 }
@@ -34,7 +36,7 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
-    if(this->PinCells[i].label == label)
+    if(this->PinCells[i]->label == label)
       {
       this->PinCells.erase(this->PinCells.begin() + i);
       break;
@@ -42,7 +44,7 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
     }
 }
 
-void cmbNucAssembly::AddMaterial(const Material &material)
+void cmbNucAssembly::AddMaterial(Material *material)
 {
   this->Materials.push_back(material);
 }
@@ -51,7 +53,7 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
 {
   for(size_t i = 0; i < this->Materials.size(); i++)
     {
-    if(this->Materials[i].name == name)
+    if(this->Materials[i]->name == name)
       {
       this->Materials.erase(this->Materials.begin() + i);
       break;
@@ -63,9 +65,9 @@ PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
-    if(this->PinCells[i].label == label)
+    if(this->PinCells[i]->label == label)
       {
-      return &this->PinCells[i];
+      return this->PinCells[i];
       }
     }
 
@@ -105,34 +107,36 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
       int count;
       input >> count;
 
-      this->Materials.resize(count);
+      this->Materials.clear();
 
       for(int i = 0; i < count; i++)
         {
-        input >> this->Materials[i].name >> this->Materials[i].label;
+        Material* material = new Material();
+        input >> material->name >> material->label;
+        this->Materials.push_back(material);
         }
       }
     else if(value == "duct")
       {
-      Duct duct;
+      Duct* duct = new Duct();
       int materials;
 
       input >> materials
-            >> duct.x
-            >> duct.y
-            >> duct.z1
-            >> duct.z2;
+            >> duct->x
+            >> duct->y
+            >> duct->z1
+            >> duct->z2;
 
-      duct.thicknesses.resize(materials*2);
+      duct->thicknesses.resize(materials*2);
       for(int i = 0; i < materials*2; i++)
         {
-        input >> duct.thicknesses[i];
+        input >> duct->thicknesses[i];
         }
 
-      duct.materials.resize(materials);
+      duct->materials.resize(materials);
       for(int i = 0; i < materials; i++)
         {
-        input >> duct.materials[i];
+        input >> duct->materials[i];
         }
 
       this->AssyDuct.Ducts.push_back(duct);
@@ -144,11 +148,11 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
 
       for(int i = 0; i < count; i++)
         {
-        PinCell pincell;
+        PinCell* pincell = new PinCell();
         int attribute_count = 0;
-        input >> pincell.name;
+        input >> pincell->name;
 
-        if(!pincell.name.empty() && pincell.name[0] == '!')
+        if(!pincell->name.empty() && pincell->name[0] == '!')
           {
           // skip comment line
           input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -156,7 +160,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
           continue;
           }
 
-        input >> pincell.label >> attribute_count;
+        input >> pincell->label >> attribute_count;
 
         for(int j = 0; j < attribute_count; j++)
           {
@@ -165,36 +169,36 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
 
           if(value == "pitch")
             {
-            input >> pincell.pitchX
-                  >> pincell.pitchY
-                  >> pincell.pitchZ;
+            input >> pincell->pitchX
+                  >> pincell->pitchY
+                  >> pincell->pitchZ;
             }
           else if(value == "cylinder")
             {
             int layers;
-            Cylinder cylinder;
+            Cylinder* cylinder = new Cylinder();
             input >> layers
-                  >> cylinder.x
-                  >> cylinder.y
-                  >> cylinder.z1
-                  >> cylinder.z2
-                  >> cylinder.r
-                  >> cylinder.material;
-            pincell.cylinders.push_back(cylinder);
+                  >> cylinder->x
+                  >> cylinder->y
+                  >> cylinder->z1
+                  >> cylinder->z2
+                  >> cylinder->r
+                  >> cylinder->material;
+            pincell->cylinders.push_back(cylinder);
             }
           else if(value == "frustum")
             {
             int layers;
-            Frustum frustum;
+            Frustum* frustum = new Frustum();
             input >> layers
-                  >> frustum.x
-                  >> frustum.y
-                  >> frustum.z1
-                  >> frustum.z2
-                  >> frustum.r1
-                  >> frustum.r2
-                  >> frustum.material;
-            pincell.frustums.push_back(frustum);
+                  >> frustum->x
+                  >> frustum->y
+                  >> frustum->z1
+                  >> frustum->z2
+                  >> frustum->r1
+                  >> frustum->r2
+                  >> frustum->material;
+            pincell->frustums.push_back(frustum);
             }
           }
         this->AddPinCell(pincell);
@@ -238,26 +242,26 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
   output << "Materials " << this->Materials.size();
   for(size_t i = 0; i < this->Materials.size(); i++)
     {
-    output << " " << this->Materials[i].name << " " << this->Materials[i].label;
+    output << " " << this->Materials[i]->name << " " << this->Materials[i]->label;
     }
   output << "\n";
 
   // ducts
   for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
     {
-    const Duct &duct = this->AssyDuct.Ducts[i];
+    Duct *duct = this->AssyDuct.Ducts[i];
 
-    output << "duct " << duct.materials.size() << " ";
-    output << duct.x << " " << duct.y << " " << duct.z1 << " " << duct.z2;
+    output << "duct " << duct->materials.size() << " ";
+    output << duct->x << " " << duct->y << " " << duct->z1 << " " << duct->z2;
 
-    for(size_t j = 0; j < duct.thicknesses.size(); j++)
+    for(size_t j = 0; j < duct->thicknesses.size(); j++)
       {
-      output << " " << duct.thicknesses[i];
+      output << " " << duct->thicknesses[i];
       }
 
-    for(size_t j = 0; j < duct.materials.size(); j++)
+    for(size_t j = 0; j < duct->materials.size(); j++)
       {
-      output << " " << duct.materials[i];
+      output << " " << duct->materials[i];
       }
     output << "\n";
     }
@@ -267,22 +271,22 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
-    const PinCell &pincell = this->PinCells[i];
+    PinCell* pincell = this->PinCells[i];
 
     // count of attribute lines for the pincell. equal to the number
     // of frustums plus cylinders plus one for the pitch
-    size_t count = pincell.cylinders.size() + pincell.frustums.size() + 1;
+    size_t count = pincell->cylinders.size() + pincell->frustums.size() + 1;
 
-    output << pincell.name << " " << pincell.label << " " << count << "\n";
+    output << pincell->name << " " << pincell->label << " " << count << "\n";
 
-    output << "pitch " << pincell.pitchX << " " << pincell.pitchY << " " << pincell.pitchZ << "\n";
+    output << "pitch " << pincell->pitchX << " " << pincell->pitchY << " " << pincell->pitchZ << "\n";
 
-    for(size_t j = 0; j < pincell.cylinders.size(); j++)
+    for(size_t j = 0; j < pincell->cylinders.size(); j++)
       {
       output << "cylinder" << "\n";
       }
 
-    for(size_t j = 0; j < pincell.frustums.size(); j++)
+    for(size_t j = 0; j < pincell->frustums.size(); j++)
       {
       output << "frustum" << "\n";
       }
@@ -312,8 +316,8 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 {
-  double outerDuctHeight = this->AssyDuct.Ducts[0].thicknesses.back();
-  double innerDuctHeight = this->AssyDuct.Ducts[0].thicknesses.front();
+  double outerDuctHeight = this->AssyDuct.Ducts[0]->thicknesses.back();
+  double innerDuctHeight = this->AssyDuct.Ducts[0]->thicknesses.front();
   double chamberStart = outerDuctHeight - innerDuctHeight;
   double chamberEnd = innerDuctHeight;
 
@@ -333,15 +337,15 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 
       if(!type.empty() && type != "xx" && type != "XX")
         {
-        const PinCell &pincell = this->PinCells[0];
+        PinCell* pincell = this->PinCells[0];
 
         // create polydata for the pincell
         vtkPolyData *polyData = this->CreatePinCellPolyData(pincell);
 
         // move the polydata to the correct position
         vtkTransform *transform = vtkTransform::New();
-        transform->Translate(chamberStart + i * cellLength + pincell.cylinders[0].r,
-                             chamberStart + j * cellLength + pincell.cylinders[0].r,
+        transform->Translate(chamberStart + i * cellLength + pincell->cylinders[0]->r,
+                             chamberStart + j * cellLength + pincell->cylinders[0]->r,
                              0);
         vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
         filter->SetTransform(transform);
@@ -362,15 +366,15 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   // setup ducts
   for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
     {
-    const Duct &duct = this->AssyDuct.Ducts[i];
+    Duct *duct = this->AssyDuct.Ducts[i];
 
     cmbNucDuctSource *ductSource = cmbNucDuctSource::New();
-    ductSource->SetOrigin(duct.x, duct.y, duct.z1);
-    ductSource->SetHeight(duct.z2 - duct.z1);
+    ductSource->SetOrigin(duct->x, duct->y, duct->z1);
+    ductSource->SetHeight(duct->z2 - duct->z1);
 
-    for(size_t j = 0; j < duct.thicknesses.size()/2; j++)
+    for(size_t j = 0; j < duct->thicknesses.size()/2; j++)
       {
-      ductSource->AddLayer(duct.thicknesses[2*j], duct.thicknesses[2*j+1]);
+      ductSource->AddLayer(duct->thicknesses[2*j], duct->thicknesses[2*j+1]);
       }
 
     ductSource->Update();
@@ -382,21 +386,21 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   return this->Data;
 }
 
-vtkPolyData* cmbNucAssembly::CreatePinCellPolyData(const PinCell &pincell)
+vtkPolyData* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
 {
   vtkAppendPolyData *merger = vtkAppendPolyData::New();
 
   const int PinCellResolution = 16;
 
-  for(size_t j = 0; j < pincell.cylinders.size(); j++)
+  for(size_t j = 0; j < pincell->cylinders.size(); j++)
     {
-    const Cylinder &cylinder = pincell.cylinders[j];
+    Cylinder *cylinder = pincell->cylinders[j];
 
     vtkCmbConeSource *cylinderSource = vtkCmbConeSource::New();
-    cylinderSource->SetBaseCenter(0, 0, cylinder.z1);
-    cylinderSource->SetHeight(cylinder.z2 - cylinder.z1);
-    cylinderSource->SetBaseRadius(cylinder.r);
-    cylinderSource->SetTopRadius(cylinder.r);
+    cylinderSource->SetBaseCenter(0, 0, cylinder->z1);
+    cylinderSource->SetHeight(cylinder->z2 - cylinder->z1);
+    cylinderSource->SetBaseRadius(cylinder->r);
+    cylinderSource->SetTopRadius(cylinder->r);
     cylinderSource->SetResolution(PinCellResolution);
     double direction[] = { 0, 0, 1 };
     cylinderSource->SetDirection(direction);
@@ -405,15 +409,15 @@ vtkPolyData* cmbNucAssembly::CreatePinCellPolyData(const PinCell &pincell)
     cylinderSource->Delete();
     }
 
-  for(size_t j = 0; j < pincell.frustums.size(); j++)
+  for(size_t j = 0; j < pincell->frustums.size(); j++)
     {
-    const Frustum &frustum = pincell.frustums[j];
+    Frustum* frustum = pincell->frustums[j];
 
     vtkCmbConeSource *coneSource = vtkCmbConeSource::New();
-    coneSource->SetBaseCenter(0, 0, frustum.z1);
-    coneSource->SetHeight(frustum.z2 - frustum.z1);
-    coneSource->SetBaseRadius(frustum.r1);
-    coneSource->SetTopRadius(frustum.r2);
+    coneSource->SetBaseCenter(0, 0, frustum->z1);
+    coneSource->SetHeight(frustum->z2 - frustum->z1);
+    coneSource->SetBaseRadius(frustum->r1);
+    coneSource->SetTopRadius(frustum->r2);
     coneSource->SetResolution(PinCellResolution);
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
