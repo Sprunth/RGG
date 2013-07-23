@@ -36,6 +36,7 @@ public slots:
 
 protected:
   void initPanels();
+  void deleteAssembly(cmbNucAssembly* assembly);
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);

@@ -57,10 +57,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 }
 cmbNucMainWindow::~cmbNucMainWindow()
 {
-  if(this->Assembly)
-    {
-    delete this->Assembly;
-    }
+  this->deleteAssembly(this->Assembly);
 }
 
 void cmbNucMainWindow::initPanels()
@@ -113,14 +110,19 @@ void cmbNucMainWindow::onExit()
   qApp->exit();
 }
 
-void cmbNucMainWindow::onFileNew()
+void cmbNucMainWindow::deleteAssembly(cmbNucAssembly* assembly)
 {
-  if(this->Assembly)
+  if(assembly)
     {
     this->PropertyWidget->setAssembly(NULL);
     this->InputsWidget->setAssembly(NULL);
-    delete this->Assembly;
+    delete assembly;
     }
+}
+
+void cmbNucMainWindow::onFileNew()
+{
+  this->deleteAssembly(this->Assembly);
 
   this->Assembly = new cmbNucAssembly;
   this->Mapper->SetInputDataObject(NULL);
@@ -148,10 +150,7 @@ void cmbNucMainWindow::onFileOpen()
 void cmbNucMainWindow::openFile(const QString &fileName)
 {
   // delete old assembly
-  if(this->Assembly)
-    {
-    delete this->Assembly;
-    }
+  this->deleteAssembly(this->Assembly);
 
   // read file and create new assembly
   this->Assembly = new cmbNucAssembly;

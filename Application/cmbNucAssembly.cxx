@@ -325,8 +325,10 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
     PinCell* pincell = this->PinCells[i];
 
     // count of attribute lines for the pincell. equal to the number
-    // of frustums plus cylinders plus one for the pitch
-    size_t count = pincell->cylinders.size() + pincell->frustums.size() + 1;
+    // of frustums plus cylinders plus one for the pitch.
+    // We are writing multiple cylinders/frustums on one line.
+    size_t count = (pincell->cylinders.size()>0 ? 1: 0) +
+                   (pincell->frustums.size()>0 ? 1 : 0) + 1;
 
     output << pincell->name << " " << pincell->label << " " << count << "\n";
 
