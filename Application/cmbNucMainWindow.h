@@ -14,6 +14,7 @@ class vtkActor;
 class vtkRenderer;
 class vtkCompositePolyDataMapper2;
 class cmbNucAssembly;
+class cmbNucCore;
 class cmbNucInputPropertiesWidget;
 class cmbNucInputListWidget;
 
@@ -30,13 +31,14 @@ public slots:
   void onExit();
   void onFileNew();
   void onFileOpen();
-  void openFile(const QString &fileName);
   void onFileSave();
   void saveFile(const QString &fileName);
+  // read file and return a new Assembly
+  cmbNucAssembly* openFile(const QString &fileName);
 
 protected:
   void initPanels();
-  void deleteAssembly(cmbNucAssembly* assembly);
+  void clearCurrentAssembly();
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
@@ -52,7 +54,8 @@ private:
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
   vtkSmartPointer<vtkActor> Actor;
-  cmbNucAssembly *Assembly;
+  cmbNucAssembly *CurrentAssembly;
+  cmbNucCore *NuclearCore;
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 

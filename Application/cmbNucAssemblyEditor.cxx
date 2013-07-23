@@ -196,8 +196,6 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
       PinCell *pincell = this->CurrentAssembly->PinCells[i];
       pAction = new QAction(pincell->label.c_str(), this);
       pinMenu.addAction(pAction);
-//      connect(pAction, SIGNAL(triggered()), this, SLOT(onAssignPin()));
-//      this->addAction(pAction);
       }
     QAction* assignAct = pinMenu.exec(event->globalPos());
     if(assignAct)
@@ -210,10 +208,6 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
   child->setHighlight(false);
   child->update();
 }
-//void cmbNucAssemblyEditor::onAssignPin()
-//{
-//
-//}
 const QRect cmbNucAssemblyEditor::targetRect(const QPoint &position) const
 {
   return QRect(position.x()/ pieceWidth(), position.y()/

@@ -12,6 +12,7 @@
 #include <QDockWidget>
 
 #include "cmbNucAssembly.h"
+#include "cmbNucCore.h"
 #include "cmbNucInputPropertiesWidget.h"
 #include "cmbNucInputListWidget.h"
 
@@ -27,7 +28,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->setupUi(this);
   this->initPanels();
 
-  this->Assembly = 0;
+  this->CurrentAssembly = 0;
+  this->NuclearCore = new cmbNucCore;
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -57,7 +59,8 @@ cmbNucMainWindow::cmbNucMainWindow()
 }
 cmbNucMainWindow::~cmbNucMainWindow()
 {
-  this->deleteAssembly(this->Assembly);
+  this->clearCurrentAssembly();
+  delete this->NuclearCore;
 }
 
 void cmbNucMainWindow::initPanels()
@@ -96,7 +99,7 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
 void cmbNucMainWindow::onAssemblyModified(AssyPartObj* obj)
 {
   // regenerate assembly view
-  this->Mapper->SetInputDataObject(this->Assembly->GetData());
+  this->Mapper->SetInputDataObject(this->CurrentAssembly->GetData());
 
   // update material colors
   this->updateMaterialColors();
@@ -110,64 +113,82 @@ void cmbNucMainWindow::onExit()
   qApp->exit();
 }
 
-void cmbNucMainWindow::deleteAssembly(cmbNucAssembly* assembly)
+void cmbNucMainWindow::clearCurrentAssembly()
 {
-  if(assembly)
-    {
-    this->PropertyWidget->setAssembly(NULL);
-    this->InputsWidget->setAssembly(NULL);
-    delete assembly;
-    }
+  this->CurrentAssembly = NULL;
+  this->PropertyWidget->setAssembly(NULL);
+  this->InputsWidget->setAssembly(NULL);
 }
 
 void cmbNucMainWindow::onFileNew()
 {
-  this->deleteAssembly(this->Assembly);
+  this->clearCurrentAssembly();
 
-  this->Assembly = new cmbNucAssembly;
+  this->CurrentAssembly = new cmbNucAssembly;
+  this->CurrentAssembly->label = QString("Assembly").append(
+    QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
+  this->NuclearCore->AddAssembly(this->CurrentAssembly);
   this->Mapper->SetInputDataObject(NULL);
   this->Renderer->ResetCamera();
   this->Renderer->Render();
-  this->PropertyWidget->setAssembly(this->Assembly);
-  this->InputsWidget->setAssembly(this->Assembly);
+  this->PropertyWidget->setAssembly(this->CurrentAssembly);
+  this->InputsWidget->setAssembly(this->CurrentAssembly);
 }
 
 void cmbNucMainWindow::onFileOpen()
 {
-  QString fileName =
-    QFileDialog::getOpenFileName(this,
+  QStringList fileNames =
+    QFileDialog::getOpenFileNames(this,
                                  "Open Assygen File...",
                                  QDir::homePath(),
                                  "INP Files (*.inp)");
-  if(!fileName.isEmpty())
+
+  this->setCursor(Qt::BusyCursor);
+  // clear old assembly
+  this->clearCurrentAssembly();
+  int numExistingAssy = this->NuclearCore->GetNumberOfAssemblies();
+  int numNewAssy = 0;
+  QList<cmbNucAssembly*> assemblies;
+  foreach(QString fileName, fileNames)
     {
-    this->setCursor(Qt::BusyCursor);
-    this->openFile(fileName);
-    this->unsetCursor();
+    if(!fileName.isEmpty())
+      {
+      this->CurrentAssembly = this->openFile(fileName);
+      assemblies.append(this->CurrentAssembly);
+      numNewAssy++;
+      }
     }
-}
-
-void cmbNucMainWindow::openFile(const QString &fileName)
-{
-  // delete old assembly
-  this->deleteAssembly(this->Assembly);
-
-  // read file and create new assembly
-  this->Assembly = new cmbNucAssembly;
-  this->Assembly->ReadFile(fileName.toStdString());
-
-  vtkSmartPointer<vtkMultiBlockDataSet> data = this->Assembly->GetData();
-
+  // the very first time
+  if(numExistingAssy == 0)
+    {
+    this->NuclearCore->SetDimensions(numNewAssy, numNewAssy);
+    for(int i=0; i<numNewAssy ; i++)
+      {
+      this->NuclearCore->SetAssembly(i, 0, assemblies.at(i)->label);
+      }
+    }
+  vtkSmartPointer<vtkMultiBlockDataSet> data = this->NuclearCore->GetData();
   this->Mapper->SetInputDataObject(data);
-
   // update data colors
   this->updateMaterialColors();
-
   // render
   this->Renderer->ResetCamera();
   this->Renderer->Render();
-  this->PropertyWidget->setAssembly(this->Assembly);
-  this->InputsWidget->setAssembly(this->Assembly);
+  this->PropertyWidget->setAssembly(this->CurrentAssembly);
+  this->InputsWidget->setAssembly(this->CurrentAssembly);
+
+  this->unsetCursor();
+}
+
+cmbNucAssembly* cmbNucMainWindow::openFile(const QString &fileName)
+{
+  // read file and create new assembly
+  cmbNucAssembly* assembly = new cmbNucAssembly;
+  assembly->label = QString("Assembly").append(
+    QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
+  this->NuclearCore->AddAssembly(assembly);
+  assembly->ReadFile(fileName.toStdString());
+  return assembly;
 }
 
 void cmbNucMainWindow::onFileSave()
@@ -187,13 +208,13 @@ void cmbNucMainWindow::onFileSave()
 
 void cmbNucMainWindow::saveFile(const QString &fileName)
 {
-  if(!this->Assembly)
+  if(!this->CurrentAssembly)
     {
     qDebug() << "no assembly to save";
     return;
     }
 
-  this->Assembly->WriteFile(fileName.toStdString());
+  this->CurrentAssembly->WriteFile(fileName.toStdString());
 }
 
 void cmbNucMainWindow::updateMaterialColors()
@@ -201,32 +222,35 @@ void cmbNucMainWindow::updateMaterialColors()
   vtkMultiBlockDataSet *data =
     vtkMultiBlockDataSet::SafeDownCast(this->Mapper->GetInputDataObject(0, 0));
 
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-
-  std::pair<int, int> dimensions = this->Assembly->AssyLattice.GetDimensions();
-  int pins = dimensions.first * dimensions.second;
-
-  vtkDataObjectTreeIterator *iter = data->NewTreeIterator();
-  iter->SetSkipEmptyNodes(false);
-  int pin_count = 0;
-
-  while(!iter->IsDoneWithTraversal())
+  for(size_t idx=0; idx<this->NuclearCore->GetNumberOfAssemblies(); idx++)
     {
-    int i = iter->GetCurrentFlatIndex();
-    if(pin_count < pins)
+    vtkCompositeDataDisplayAttributes *attributes =
+      this->Mapper->GetCompositeDataDisplayAttributes();
+
+    std::pair<int, int> dimensions = this->CurrentAssembly->AssyLattice.GetDimensions();
+    int pins = dimensions.first * dimensions.second;
+
+    vtkDataObjectTreeIterator *iter = data->NewTreeIterator();
+    iter->SetSkipEmptyNodes(false);
+    int pin_count = 0;
+
+    while(!iter->IsDoneWithTraversal())
       {
-      double color[] = { 1.0, 0.4, 0.0 };
-      attributes->SetBlockColor(i, color);
-      pin_count++;
+      int i = iter->GetCurrentFlatIndex();
+      if(pin_count < pins)
+        {
+        double color[] = { 1.0, 0.4, 0.0 };
+        attributes->SetBlockColor(i, color);
+        pin_count++;
+        }
+      else
+        {
+        double color[] = { 0.6, 0.4, 0.2 };
+        attributes->SetBlockColor(i, color);
+        attributes->SetBlockOpacity(i, 0.7);
+        }
+      iter->GoToNextItem();
       }
-    else
-      {
-      double color[] = { 0.6, 0.4, 0.2 };
-      attributes->SetBlockColor(i, color);
-      attributes->SetBlockOpacity(i, 0.7);
-      }
-    iter->GoToNextItem();
+    iter->Delete();
     }
-  iter->Delete();
 }

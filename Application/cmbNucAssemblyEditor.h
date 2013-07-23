@@ -44,9 +44,6 @@ private:
   int pieceHeight() const;
   cmbNucDragLabel* findLabel(const QRect &pieceRect);
 
-  //QList<QPixmap> piecePinCells;
-  //QList<QRect> pieceRects;
-  //QList<QPoint> pieceLocations;
   QGridLayout* LatticeLayout;
   std::vector<std::vector<std::string> > CurrentGrid;
 };

@@ -49,6 +49,7 @@ public:
   DuctCell AssyDuct;
   std::vector<Material*> Materials;
   Lattice AssyLattice;
+  std::string label;
 
 private:
   // creates the polydata used to render the pincell
