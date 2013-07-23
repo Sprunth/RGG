@@ -39,7 +39,7 @@ protected:
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
-  void onAssemblyModified(AssyPartObj*);
+  void onAssemblyModified(AssyPartObj* obj=NULL);
 
   // updates the block colors based on their materials
   void updateMaterialColors();

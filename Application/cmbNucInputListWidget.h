@@ -26,6 +26,7 @@ signals:
   // Description:
   // Fired when a part/material is selected in the tree
   void objectSelected(AssyPartObj*, const char* name);
+  void objectRemoved();
 
 private slots:
   // Description:

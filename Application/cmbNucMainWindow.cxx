@@ -75,6 +75,10 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->InputsWidget,
     SIGNAL(objectSelected(AssyPartObj*, const char*)), this,
     SLOT(onObjectSelected(AssyPartObj*, const char*)));
+  QObject::connect(this->InputsWidget,
+    SIGNAL(objectRemoved()), this,
+    SLOT(onAssemblyModified()));
+
   QObject::connect(this->PropertyWidget,
     SIGNAL(currentObjectModified(AssyPartObj*)), this,
     SLOT(onAssemblyModified(AssyPartObj*)));
@@ -89,13 +93,7 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
     return;
     }
   this->ui->PropertyDock->setEnabled(1);
-  QStringList materials;
-  for(size_t i = 0; i < this->Assembly->Materials.size(); i++)
-    {
-    Material *material = this->Assembly->Materials[i];
-    materials.append(material->label.c_str());
-    }
-  this->PropertyWidget->setObject(selObj, name, materials);
+  this->PropertyWidget->setObject(selObj, name);
 }
 
 void cmbNucMainWindow::onAssemblyModified(AssyPartObj* obj)

@@ -42,6 +42,18 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
       break;
       }
     }
+  // update the Grid
+  std::pair<int, int> dim = this->AssyLattice.GetDimensions();
+  for(size_t i = 0; i < dim.first; i++)
+    {
+    for(size_t j = 0; j < dim.second; j++)
+      {
+      if(this->AssyLattice.GetCell(i, j) == label)
+        {
+        this->AssyLattice.SetCell(i, j, "xx");
+        }
+      }
+    }
 }
 
 void cmbNucAssembly::AddMaterial(Material *material)
@@ -59,6 +71,39 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
       break;
       }
     }
+  // update all places that references materials: ducts, pins
+   for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
+    {
+    Duct *duct = this->AssyDuct.Ducts[i];
+    for(size_t j = 0; j < duct->materials.size(); j++)
+      {
+      if(duct->materials[j] == name)
+        {
+        duct->materials[j] = "";
+        }
+     }
+    }
+  for(size_t i = 0; i < this->PinCells.size(); i++)
+    {
+    PinCell* pincell = this->PinCells[i];
+    for(size_t j = 0; j < pincell->cylinders.size(); j++)
+      {
+      Cylinder* cylinder = pincell->cylinders[j];
+      if(cylinder->material == name)
+        {
+        cylinder->material = "";
+        }
+      }
+    for(size_t j = 0; j < pincell->frustums.size(); j++)
+      {
+      Frustum* frustum = pincell->frustums[j];
+      if(frustum->material == name)
+        {
+        frustum->material = "";
+        }
+      }
+    }
+
 }
 
 PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
@@ -339,6 +384,10 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 {
+  if(this->AssyDuct.Ducts.size()==0)
+    {
+    return NULL;
+    }
   double outerDuctHeight = this->AssyDuct.Ducts[0]->thicknesses.back();
   double innerDuctHeight = this->AssyDuct.Ducts[0]->thicknesses.front();
   double chamberStart = outerDuctHeight - innerDuctHeight;
@@ -360,7 +409,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 
       if(!type.empty() && type != "xx" && type != "XX")
         {
-        PinCell* pincell = this->PinCells[0];
+        PinCell* pincell = this->GetPinCell(type);//this->PinCells[0];
 
         // create polydata for the pincell
         vtkPolyData *polyData = this->CreatePinCellPolyData(pincell);

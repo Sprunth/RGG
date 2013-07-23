@@ -258,13 +258,18 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     {
     return;
     }
+  bool objRemoved = true;
   AssyPartObj* selObj = selItem->getPartObject();
   cmbNucPartsTreeItem* pItem=NULL;
   PinCell* pincell=NULL;
-  switch(selObj->GetType())
+
+  enumNucPartsType selType = selObj->GetType();
+  std::string selText = selItem->text(0).toStdString();
+  switch(selType)
   {
   case ASSY_LATTICE:
   case ASSY_DUCTCELL:
+    objRemoved = false;
     break;
   case ASSY_PINCELL:
     pincell = dynamic_cast<PinCell*>(selObj);
@@ -305,8 +310,13 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     delete selItem;
     break;
   default:
+    objRemoved = false;
     break;
   }
+  if(objRemoved)
+    {
+    emit this->objectRemoved();
+    }
 }
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewMaterial()
@@ -348,6 +358,7 @@ void cmbNucInputListWidget::onRemoveMaterial()
     this->Assembly->RemoveMaterial(material->name);
     }
   delete selItem;
+  emit this->objectRemoved();
 }
 
 //-----------------------------------------------------------------------------
@@ -484,7 +495,9 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case ASSY_RECT_DUCT:
-    this->Internal->Action_DeletePart->setEnabled(true);
+    // keep at lease one duct
+    this->Internal->Action_DeletePart->setEnabled(
+      this->Assembly->AssyDuct.Ducts.size()>1 ? true : false);
     break;
   default:
     break;

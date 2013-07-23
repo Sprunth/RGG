@@ -63,8 +63,7 @@ void cmbNucInputPropertiesWidget::initUI()
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj,
-  const char* name, const QStringList& materials)
+void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* name)
 {
   if(this->CurrentObject == selObj)
     {
@@ -79,26 +78,37 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj,
     }
   this->setEnabled(true);
   this->Internal->labelInput->setText(name);
-  // update materials
-  this->Internal->DuctLayerMaterial->blockSignals(true);
-  this->Internal->FrustumMaterial->blockSignals(true);
-  this->Internal->CylinderMaterial->blockSignals(true);
-  
-  this->Internal->DuctLayerMaterial->clear();
-  this->Internal->FrustumMaterial->clear();
-  this->Internal->CylinderMaterial->clear();
-  foreach(QString material, materials)
-    {
-    this->Internal->DuctLayerMaterial->addItem(material);
-    this->Internal->FrustumMaterial->addItem(material);
-    this->Internal->CylinderMaterial->addItem(material);
-    }
-  this->Internal->DuctLayerMaterial->blockSignals(false);
-  this->Internal->FrustumMaterial->blockSignals(false);
-  this->Internal->CylinderMaterial->blockSignals(false);
+  this->updateMaterials();
 
   this->onReset();
 }
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::updateMaterials()
+{
+  // update materials
+  QStringList materials;
+
+  this->Internal->DuctLayerMaterial->blockSignals(true);
+  this->Internal->FrustumMaterial->blockSignals(true);
+  this->Internal->CylinderMaterial->blockSignals(true);
+
+  this->Internal->DuctLayerMaterial->clear();
+  this->Internal->FrustumMaterial->clear();
+  this->Internal->CylinderMaterial->clear();
+  for(size_t i = 0; i < this->Assembly->Materials.size(); i++)
+    {
+    Material *material = this->Assembly->Materials[i];
+    this->Internal->DuctLayerMaterial->addItem(material->label.c_str());
+    this->Internal->FrustumMaterial->addItem(material->label.c_str());
+    this->Internal->CylinderMaterial->addItem(material->label.c_str());
+    materials.append(material->label.c_str());
+    }
+
+  this->Internal->DuctLayerMaterial->blockSignals(false);
+  this->Internal->FrustumMaterial->blockSignals(false);
+  this->Internal->CylinderMaterial->blockSignals(false);
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
 {
@@ -272,6 +282,7 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
     }
   //layers
   this->Internal->NumOfDuctLayers->setValue((int)duct->materials.size());
+  this->onNumberOfDuctLayersChanged(this->Internal->NumOfDuctLayers->value());
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
@@ -296,24 +307,21 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
     this->Internal->DuctLayer->addItem(QString::number(i));
     }
   // add new layers if the number is increased
-  if(numLayers > this->Internal->DuctMaterials.size())
+  if(numLayers > this->Internal->DuctMaterials.count())
     {
-    for(int j=numLayers; j<this->Internal->DuctMaterials.size(); j++)
+    int nmaterials=this->Internal->DuctMaterials.count();
+    for(int j=nmaterials; j<numLayers; j++)
       {
-      // duplicate the last layer
-      this->Internal->DuctMaterials.append(
-        this->Internal->DuctMaterials.value(numLayers));
+      this->Internal->DuctMaterials.append("");
       this->Internal->DuctThicknesses.append(
-        qMakePair(this->Internal->DuctThicknesses.value(numLayers).first,
-                  this->Internal->DuctThicknesses.value(numLayers).second));
+        qMakePair(0.0,0.0));
       }
     }
   // remove layers if the number is decreased
-  else if(numLayers < this->Internal->DuctMaterials.size())
+  else if(numLayers < this->Internal->DuctMaterials.count())
     {
-    for(int j=this->Internal->DuctMaterials.size()-1; j>=numLayers; j--)
+    for(int j=this->Internal->DuctMaterials.count()-1; j>=numLayers; j--)
       {
-      // duplicate the last layer
       this->Internal->DuctMaterials.removeAt(j);
       this->Internal->DuctThicknesses.removeAt(j);
       }
@@ -326,7 +334,7 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onCurrentDuctLayerChanged(int idx)
 {
-  if(idx < this->Internal->DuctMaterials.size())
+  if(idx < this->Internal->DuctMaterials.count())
     {
     this->Internal->DuctLayerMaterial->setCurrentIndex(
       this->Internal->DuctLayerMaterial->findText(
@@ -350,8 +358,8 @@ void cmbNucInputPropertiesWidget::onDuctThicknessChanged()
   int currentLayer = this->Internal->DuctLayer->currentIndex();
   double dThick1 = this->Internal->DuctThick1->text().toDouble();
   double dThick2 = this->Internal->DuctThick2->text().toDouble();
-  this->Internal->DuctThicknesses.replace(
-    currentLayer, qMakePair(dThick1, dThick2));
+  this->Internal->DuctThicknesses.replace(currentLayer,
+    qMakePair(dThick1, dThick2));
 }
 
 // apply property panel to given object
@@ -413,7 +421,7 @@ void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
   // update the material and thickness for all layers.
   duct->materials.clear();
   duct->thicknesses.clear();
-  for(int i = 0; i < this->Internal->DuctMaterials.size(); i++)
+  for(int i = 0; i < this->Internal->DuctMaterials.count(); i++)
     {
     duct->materials.push_back(this->Internal->DuctMaterials.value(i).toStdString());
     duct->thicknesses.push_back(this->Internal->DuctThicknesses.value(i).first);

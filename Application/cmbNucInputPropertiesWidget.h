@@ -19,12 +19,17 @@ public:
 
   // Description:
   // Set the assembly object the widget will be interacting
-  void setObject(AssyPartObj* selObj, const char* name,
-    const QStringList& materials);
+  void setObject(AssyPartObj* selObj, const char* name);
   AssyPartObj* getObject() {return this->CurrentObject;}
-  /// set/get the assembly that this widget with be interact with
+
+  // Description:
+  // set/get the assembly that this widget with be interact with
   void setAssembly(cmbNucAssembly*);
   cmbNucAssembly* getAssembly(){return this->Assembly;}
+
+  // Description:
+  // Update material lists
+  void updateMaterials();
 
 signals:
   // Description:
