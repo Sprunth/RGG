@@ -9,6 +9,7 @@
 #include "cmbNucAssembly.h"
 
 #include "vtkTransform.h"
+#include "vtkInformation.h"
 #include "vtkTransformPolyDataFilter.h"
 
 cmbNucCore::cmbNucCore()
@@ -42,6 +43,7 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
     {
     if(this->Assemblies[i]->label == label)
       {
+      delete this->Assemblies[i];
       this->Assemblies.erase(this->Assemblies.begin() + i);
       break;
       }
@@ -52,9 +54,9 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
     {
     for(size_t j = 0; j < dim.second; j++)
       {
-      if(this->GetAssembly(i, j) == label)
+      if(this->GetAssemblyLabel(i, j) == label)
         {
-        this->SetAssembly(i, j, "xx");
+        this->SetAssemblyLabel(i, j, "xx");
         }
       }
     }
@@ -72,16 +74,20 @@ cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
 
   return 0;
 }
-
+cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
+{
+  return idx<this->Assemblies.size() ? this->Assemblies[idx] : NULL;
+}
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 {
-  if(this->Assemblies.size()==0)
+  if(this->Assemblies.size()==0 || this->Grid.size()==0
+    || this->Grid[0].size()==0)
     {
     return NULL;
     }
 
   // setup data
-  this->Data->SetNumberOfBlocks(this->Assemblies.size());
+  this->Data->SetNumberOfBlocks(this->Grid.size()*this->Grid[0].size());
 
   for(size_t i = 0; i < this->Grid.size(); i++)
     {
@@ -95,6 +101,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
         {
         cmbNucAssembly* assembly = this->GetAssembly(type);
         this->Data->SetBlock(i*this->Grid.size()+j, assembly->GetData());
+        vtkInformation* info = this->Data->GetMetaData(i*this->Grid.size()+j);
+        info->Set(vtkCompositeDataSet::NAME(), assembly->label.c_str());
         }
       else
         {

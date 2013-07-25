@@ -136,27 +136,27 @@ void cmbNucInputPropertiesWidget::onApply()
   Lattice* lattice=NULL;
   switch(selObj->GetType())
     {
-    case ASSY_LATTICE:
+    case CMBNUC_ASSY_LATTICE:
       lattice = dynamic_cast<Lattice*>(selObj);
       this->applyToLattice(lattice);
       break;
-    case ASSY_MATERIAL:
+    case CMBNUC_ASSY_MATERIAL:
       material = dynamic_cast<Material*>(selObj);
       this->applyToMaterial(material);
       break;
-    case ASSY_PINCELL:
+    case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
       this->applyToPinCell(pincell);
       break;
-    case ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_FRUSTUM_PIN:
       frust = dynamic_cast<Frustum*>(selObj);
       this->applyToFrustum(frust);
       break;
-    case ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
       cylin = dynamic_cast<Cylinder*>(selObj);
       this->applyToCylinder(cylin);
       break;
-    case ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_RECT_DUCT:
       duct = dynamic_cast<Duct*>(selObj);
       this->applyToDuct(duct);
       break;
@@ -182,37 +182,37 @@ void cmbNucInputPropertiesWidget::onReset()
   Lattice* lattice=NULL;
   switch(selObj->GetType())
     {
-    case ASSY_LATTICE:
+    case CMBNUC_ASSY_LATTICE:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageLattice);
       lattice = dynamic_cast<Lattice*>(selObj);
       this->resetLattice(lattice);
       break;
-    case ASSY_MATERIAL:
+    case CMBNUC_ASSY_MATERIAL:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageMaterial);
       material = dynamic_cast<Material*>(selObj);
       this->resetMaterial(material);
       break;
-    case ASSY_PINCELL:
+    case CMBNUC_ASSY_PINCELL:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pagePinCell);
       pincell = dynamic_cast<PinCell*>(selObj);
       this->resetPinCell(pincell);
       break;
-    case ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_FRUSTUM_PIN:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageFrustumPin);
       frust = dynamic_cast<Frustum*>(selObj);
       this->resetFrustum(frust);
       break;
-    case ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageCylinderPin);
       cylin = dynamic_cast<Cylinder*>(selObj);
       this->resetCylinder(cylin);
       break;
-    case ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_RECT_DUCT:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageRectDuct);
       duct = dynamic_cast<Duct*>(selObj);

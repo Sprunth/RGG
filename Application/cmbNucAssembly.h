@@ -9,7 +9,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
 
-class cmbNucAssembly
+class cmbNucAssembly : public AssyPartObj
 {
 public:
 
@@ -18,6 +18,8 @@ public:
 
   // Destroys the assembly.
   ~cmbNucAssembly();
+
+  virtual enumNucPartsType GetType() {return CMBNUC_ASSEMBLY;}
 
   // Adds a new pincell to the assebly. After adding the pincell it
   // can be placed in the assembly with the SetCell() method.
@@ -50,6 +52,7 @@ public:
   std::vector<Material*> Materials;
   Lattice AssyLattice;
   std::string label;
+  double MeshSize;
 
 private:
   // creates the polydata used to render the pincell

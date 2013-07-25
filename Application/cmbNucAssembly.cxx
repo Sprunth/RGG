@@ -19,6 +19,7 @@
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+  this->MeshSize = 2.0;
 }
 
 cmbNucAssembly::~cmbNucAssembly()
@@ -38,6 +39,7 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
     {
     if(this->PinCells[i]->label == label)
       {
+      delete this->PinCells[i];
       this->PinCells.erase(this->PinCells.begin() + i);
       break;
       }
@@ -67,6 +69,7 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
     {
     if(this->Materials[i]->name == name)
       {
+      delete this->Materials[i];
       this->Materials.erase(this->Materials.begin() + i);
       break;
       }
@@ -271,6 +274,10 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             }
           }
         }
+      else if(value == "tetmeshsize")
+        {
+        input >> this->MeshSize;
+        }
 
     input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
@@ -373,8 +380,10 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
     output << "\n";
     }
 
+  output << "tetmeshsize " << this->MeshSize << "\n";
+
   // other parameters
-  output << "tetmeshsize 2.0\n";
+  //output << "tetmeshsize 2.0\n";
   output << "createsideset no\n";
   output << "MaterialSet_StartId 1\n";
   output << "mergetolerance 1e-6\n";

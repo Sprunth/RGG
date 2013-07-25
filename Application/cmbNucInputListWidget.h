@@ -5,6 +5,7 @@
 #include "cmbNucPartDefinition.h"
 
 class cmbNucAssembly;
+class cmbNucCore;
 class cmbNucInputListWidgetInternal;
 class QTreeWidget;
 class QTreeWidgetItem;
@@ -18,15 +19,31 @@ public:
   cmbNucInputListWidget(QWidget* parent=0);
   virtual ~cmbNucInputListWidget();
 
-  /// set/get the assembly that this widget with be interact with
-  void setAssembly(cmbNucAssembly*);
-  cmbNucAssembly* getAssembly();
+  /// set core this widget with be interact with
+  void setCore(cmbNucCore*);
+  /// get current assembly that this widget is interacting with
+  cmbNucAssembly* getCurrentAssembly();
+  /// update UI and select last assembly lattice by default
+  void updateUI();
 
 signals:
   // Description:
   // Fired when a part/material is selected in the tree
   void objectSelected(AssyPartObj*, const char* name);
   void objectRemoved();
+
+public slots:
+  void onNewAssembly();
+
+protected:
+  cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
+  void fireObjectSelectedSignal(cmbNucPartsTreeItem* selItem);
+  void updateContextMenu(AssyPartObj* selObj);
+  void setActionsEnabled(bool val);
+  void updateWithAssembly(cmbNucAssembly* assy, bool select=true);
+  void updateMaterial(cmbNucAssembly* assy);
+  cmbNucPartsTreeItem* getCurrentAssemblyNode();
+  cmbNucPartsTreeItem* getDuctCellNode(cmbNucPartsTreeItem* assyNode);
 
 private slots:
   // Description:
@@ -46,20 +63,13 @@ private slots:
   void onNewMaterial();
   void onRemoveMaterial();
 
-protected:
-  cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
-  void fireObjectSelectedSignal(cmbNucPartsTreeItem* selItem);
-  void updateContextMenu(AssyPartObj* selObj);
-  void setActionsEnabled(bool val);
-
 private:
   cmbNucInputListWidgetInternal* Internal;
 
   /// clear UI
   void initUI();
   void initTree(QTreeWidget* treeWidget);
-  void updateUI();
 
-  cmbNucAssembly *Assembly;
+  cmbNucCore *NuclearCore;
 };
 #endif

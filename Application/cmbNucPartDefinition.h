@@ -5,22 +5,24 @@
 
 enum enumNucPartsType
 {
-  ASSY_DUCTCELL=0,
-  ASSY_RECT_DUCT,
-  ASSY_HEX_DUCT,
-  ASSY_LATTICE,
-  ASSY_PINCELL,
-  ASSY_CYLINDER_PIN,
-  ASSY_FRUSTUM_PIN,
-  ASSY_MATERIAL,
-  ASSY_BASEOBJ
+  CMBNUC_CORE,
+  CMBNUC_ASSEMBLY,
+  CMBNUC_ASSY_DUCTCELL,
+  CMBNUC_ASSY_RECT_DUCT,
+  CMBNUC_ASSY_HEX_DUCT,
+  CMBNUC_ASSY_LATTICE,
+  CMBNUC_ASSY_PINCELL,
+  CMBNUC_ASSY_CYLINDER_PIN,
+  CMBNUC_ASSY_FRUSTUM_PIN,
+  CMBNUC_ASSY_MATERIAL,
+  CMBNUC_ASSY_BASEOBJ
 };
 
   class AssyPartObj
   {
   public:
     AssyPartObj(){}
-    virtual enumNucPartsType GetType() {return ASSY_BASEOBJ;}
+    virtual enumNucPartsType GetType() {return CMBNUC_ASSY_BASEOBJ;}
     bool operator==(const AssyPartObj&){return false;}
     template<class T> static void removeObj(T* obj, std::vector<T*>& objs)
       {
@@ -57,7 +59,7 @@ enum enumNucPartsType
     x=0.0;y=0.0;z1=0.0;z2=4.0;r=1.6;material="";
     }
     enumNucPartsType GetType()
-    { return ASSY_CYLINDER_PIN;}
+    { return CMBNUC_ASSY_CYLINDER_PIN;}
     bool operator==(const Cylinder& obj)
     {
     return this->x==obj.x && this->y==obj.y &&
@@ -80,7 +82,7 @@ enum enumNucPartsType
       x=0.0;y=0.0;z1=4.0;z2=8.0;r1=1.6;r2=1.4;material="";
       }
     enumNucPartsType GetType()
-    { return ASSY_FRUSTUM_PIN;}
+    { return CMBNUC_ASSY_FRUSTUM_PIN;}
     bool operator==(const Frustum& obj)
       {
       return this->x==obj.x && this->y==obj.y &&
@@ -111,7 +113,7 @@ enum enumNucPartsType
       }
 
     enumNucPartsType GetType()
-    { return ASSY_PINCELL;}
+    { return CMBNUC_ASSY_PINCELL;}
     void RemoveCylinder(Cylinder* cylinder)
       {
       this->removeObj(cylinder, this->cylinders);
@@ -141,7 +143,7 @@ enum enumNucPartsType
       thicknesses.push_back(0.0);
       }
     enumNucPartsType GetType()
-    { return ASSY_RECT_DUCT;}
+    { return CMBNUC_ASSY_RECT_DUCT;}
     bool operator==(const Duct& obj)
       {
       return this->x==obj.x && this->y==obj.y &&
@@ -165,7 +167,7 @@ enum enumNucPartsType
       name=label="newmaterial";
       }
     enumNucPartsType GetType()
-    { return ASSY_MATERIAL;}
+    { return CMBNUC_ASSY_MATERIAL;}
     std::string name;
     std::string label;
   };
@@ -179,7 +181,7 @@ enum enumNucPartsType
     this->deleteObjs(this->Ducts);
     }
     enumNucPartsType GetType()
-    { return ASSY_DUCTCELL;}
+    { return CMBNUC_ASSY_DUCTCELL;}
     void RemoveDuct(Duct* duct)
     {
     this->removeObj(duct, this->Ducts);
@@ -226,7 +228,7 @@ enum enumNucPartsType
       this->SetCell(i, j, "xx");
       }
     enumNucPartsType GetType()
-      { return ASSY_LATTICE;}
+      { return CMBNUC_ASSY_LATTICE;}
     std::vector<std::vector<std::string> > Grid;
     };
 

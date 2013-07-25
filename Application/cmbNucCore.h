@@ -10,7 +10,7 @@
 
 class cmbNucAssembly;
 
-class cmbNucCore
+class cmbNucCore : public AssyPartObj
 {
 public:
 
@@ -20,6 +20,8 @@ public:
   // Destroys the Core.
   ~cmbNucCore();
 
+  virtual enumNucPartsType GetType() {return CMBNUC_CORE;}
+
   // Adds a new Assembly to the core. After adding the Assembly it
   // can be placed in the Core with the SetAssembly() method.
   void AddAssembly(cmbNucAssembly *assembly);
@@ -27,9 +29,10 @@ public:
   // Remove the Assembly with label from the Core.
   void RemoveAssembly(const std::string &label);
 
-  // Returns the Assembly with label. Returns 0 if no Assembly with
-  // label exists.
+  // Returns the Assembly with label or index.
+  // Returns 0 if no Assembly with label or index exists.
   cmbNucAssembly* GetAssembly(const std::string &label);
+  cmbNucAssembly* GetAssembly(int idx);
 
   // Return the number of assemblies in the core
   int GetNumberOfAssemblies()
@@ -50,20 +53,20 @@ public:
     return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
     }
   // Sets the contents of the Assembly (i, j) to name.
-  void SetAssembly(int i, int j, const std::string &name)
+  void SetAssemblyLabel(int i, int j, const std::string &name)
     {
     this->Grid[i][j] = name;
     }
   // Returns the contents of the Assembly (i, j).
-  std::string GetAssembly(int i, int j) const
+  std::string GetAssemblyLabel(int i, int j) const
     {
     return this->Grid[i][j];
     }
   // Clears the contents of the Assembly (i, j). This is equivalent
   // to calling SetAssembly(i, j, "xx").
-  void ClearAssembly(int i, int j)
+  void ClearAssemblyLabel(int i, int j)
     {
-    this->SetAssembly(i, j, "xx");
+    this->SetAssemblyLabel(i, j, "xx");
     }
 
   // Returns a multi-block data set containing the geometry for

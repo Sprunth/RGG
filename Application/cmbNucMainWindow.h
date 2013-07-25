@@ -38,11 +38,10 @@ public slots:
 
 protected:
   void initPanels();
-  void clearCurrentAssembly();
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
-  void onAssemblyModified(AssyPartObj* obj=NULL);
+  void onObjectModified(AssyPartObj* obj=NULL);
 
   // updates the block colors based on their materials
   void updateMaterialColors();
@@ -54,7 +53,6 @@ private:
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
   vtkSmartPointer<vtkActor> Actor;
-  cmbNucAssembly *CurrentAssembly;
   cmbNucCore *NuclearCore;
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
