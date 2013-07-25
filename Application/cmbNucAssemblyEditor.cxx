@@ -27,14 +27,6 @@ cmbNucAssemblyEditor::~cmbNucAssemblyEditor()
   this->clearUI(false);
 }
 
-void cmbNucAssemblyEditor::setAssembly(cmbNucAssembly *assy)
-{
-  if(this->CurrentAssembly != assy)
-    {
-    this->CurrentAssembly = assy;
-    }
-  this->resetUI();
-}
 void cmbNucAssemblyEditor::clearUI(bool updateUI)
 {
   for(int i = 0; i < this->LatticeLayout->rowCount(); i++)
@@ -49,54 +41,58 @@ void cmbNucAssemblyEditor::clearUI(bool updateUI)
         }
       }
     }
+  this->ActionList.clear();
   if(updateUI)
     {
     update();
     }
 }
-void cmbNucAssemblyEditor::resetUI()
+void cmbNucAssemblyEditor::resetUI(
+  const std::vector<std::vector<std::string> >& Grid,
+  QStringList& actions)
 {
   this->clearUI();
-  if(!this->CurrentAssembly)
+  if(Grid.size()==0 || Grid[0].size()==0)
     {
     this->setEnabled(0);
     return;
     }
-  std::pair<int, int> dimensions = this->CurrentAssembly->AssyLattice.GetDimensions();
-  this->CurrentGrid.resize(dimensions.first);
-  for(int k = 0; k < dimensions.first; k++)
+  this->ActionList = actions;
+
+  this->CurrentGrid.resize(Grid.size());
+  for(int k = 0; k < Grid.size(); k++)
     {
-    this->CurrentGrid[k].resize(dimensions.second);
+    this->CurrentGrid[k].resize(Grid[0].size());
     }
 
-  for(int k = 0; k < dimensions.first; k++)
+  for(size_t k = 0; k < Grid.size(); k++)
     {
-    for(int j = 0; j < dimensions.second; j++)
+    for(size_t j = 0; j < Grid[0].size(); j++)
       {
-      this->CurrentGrid[k][j] =
-        this->CurrentAssembly->AssyLattice.GetCell(k, j);
+      this->CurrentGrid[k][j] =Grid[k][j];
       }
-    }  
+    }
 
   this->setEnabled(1);
   this->updateLatticeView((int)this->CurrentGrid.size(),
     (int)this->CurrentGrid[0].size());
 }
 
-void cmbNucAssemblyEditor::updateLatticeWithGrid(Lattice* lattice)
+void cmbNucAssemblyEditor::updateLatticeWithGrid(
+  std::vector<std::vector<std::string> >& Grid)
 {
-  if(!lattice)
-    {
-    return;
-    }
   int x = (int)this->CurrentGrid.size();
   int y = (int)this->CurrentGrid[0].size();
-  lattice->SetDimensions(x, y);
+  Grid.resize(x);
+  for(int k = 0; k < x; k++)
+    {
+    Grid[k].resize(y);
+    }
   for(int k = 0; k < x; k++)
     {
     for(int j = 0; j < y; j++)
       {
-      lattice->SetCell(k, j, this->CurrentGrid[k][j]);
+      Grid[k][j] = this->CurrentGrid[k][j];
       }
     }  
 }
@@ -187,17 +183,16 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
     }
   else if(event->button() == Qt::RightButton)
     { // context menu
-    QMenu pinMenu(this);
-    QAction* pAction = new QAction("xx", this);
-    pinMenu.addAction(pAction);
-    // pincells
-    for(size_t i = 0; i < this->CurrentAssembly->PinCells.size(); i++)
+    QMenu contextMenu(this);
+    QAction* pAction = NULL;
+    // available parts
+    foreach(QString strAct, this->ActionList)
       {
-      PinCell *pincell = this->CurrentAssembly->PinCells[i];
-      pAction = new QAction(pincell->label.c_str(), this);
-      pinMenu.addAction(pAction);
+      pAction = new QAction(strAct, this);
+      contextMenu.addAction(pAction);
       }
-    QAction* assignAct = pinMenu.exec(event->globalPos());
+
+    QAction* assignAct = contextMenu.exec(event->globalPos());
     if(assignAct)
       {
       child->setText(assignAct->text());
@@ -207,31 +202,4 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
     }
   child->setHighlight(false);
   child->update();
-}
-const QRect cmbNucAssemblyEditor::targetRect(const QPoint &position) const
-{
-  return QRect(position.x()/ pieceWidth(), position.y()/
-    pieceHeight(), pieceWidth(), pieceHeight());
-}
-
-int cmbNucAssemblyEditor::pieceWidth() const
-{
-  return this->width()/
-    this->CurrentAssembly->AssyLattice.GetDimensions().first;
-}
-int cmbNucAssemblyEditor::pieceHeight() const
-{
-  return this->height()/
-    this->CurrentAssembly->AssyLattice.GetDimensions().second;
-}
-cmbNucDragLabel* cmbNucAssemblyEditor::findLabel(const QRect &pieceRect)
-{
-  int i = pieceRect.x()/pieceWidth();
-  int j = pieceRect.y()/pieceHeight();
-  QLayoutItem* item = this->LatticeLayout->itemAtPosition(i, j);
-  if(item && item->widget())
-    {
-    return dynamic_cast<cmbNucDragLabel*>(item->widget());
-    }
-  return NULL;
 }

@@ -76,9 +76,9 @@ public:
   // Get/Set Assembly pitch
   double AssyemblyPitchX;
   double AssyemblyPitchY;
+  std::vector<std::vector<std::string> > Grid;
 
 private:
-  std::vector<std::vector<std::string> > Grid;
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
   std::vector<cmbNucAssembly*> Assemblies;
 

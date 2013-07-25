@@ -4,7 +4,6 @@
 #include <QFrame>
 //#include <QGraphicsView>
 
-#include "cmbNucAssembly.h"
 #include <QStringList>
 
 class QDragEnterEvent;
@@ -13,6 +12,7 @@ class QMouseEvent;
 class QGridLayout;
 class QFrame;
 class cmbNucDragLabel;
+class cmbNucAssembly;
 
 class cmbNucAssemblyEditor : public QFrame
 {
@@ -22,14 +22,12 @@ public:
   cmbNucAssemblyEditor(QWidget *parent = 0);
   ~cmbNucAssemblyEditor();
 
-  void setAssembly(cmbNucAssembly *assy);
-  void resetUI();
+  void resetUI(const std::vector<std::vector<std::string> >& Grid,
+    QStringList& availableActions);
   void updateLatticeView(int x, int y);
   void clearUI(bool updateUI=true);
-  void updateLatticeWithGrid(Lattice* lattice);
-
-signals:
-  void pinMoved();
+  void updateLatticeWithGrid(
+    std::vector<std::vector<std::string> >& Grid);
 
 protected:
   void mousePressEvent(QMouseEvent *event);
@@ -39,13 +37,9 @@ private:
   // QFrame* LatticeView;
   cmbNucAssembly *CurrentAssembly;
 
-  const QRect targetRect(const QPoint &position) const;
-  int pieceWidth() const;
-  int pieceHeight() const;
-  cmbNucDragLabel* findLabel(const QRect &pieceRect);
-
   QGridLayout* LatticeLayout;
   std::vector<std::vector<std::string> > CurrentGrid;
+  QStringList ActionList;
 };
 
 #endif // cmbNucAssemblyEditor_H

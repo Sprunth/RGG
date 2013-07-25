@@ -27,9 +27,9 @@ cmbNucMainWindow::cmbNucMainWindow()
 {
   this->ui = new Ui_qNucMainWindow;
   this->ui->setupUi(this);
-  this->initPanels();
-
   this->NuclearCore = new cmbNucCore();
+
+  this->initPanels();
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -59,6 +59,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 }
 cmbNucMainWindow::~cmbNucMainWindow()
 {
+  this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
   this->InputsWidget->setCore(NULL);
   delete this->NuclearCore;
@@ -96,6 +97,7 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
     return;
     }
   this->ui->PropertyDock->setEnabled(1);
+  this->PropertyWidget->setAssembly(this->InputsWidget->getCurrentAssembly());
   this->PropertyWidget->setObject(selObj, name);
 }
 
@@ -115,6 +117,7 @@ void cmbNucMainWindow::onExit()
 
 void cmbNucMainWindow::onFileNew()
 {
+  this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
   this->InputsWidget->onNewAssembly();
   this->Renderer->ResetCamera();
@@ -131,6 +134,7 @@ void cmbNucMainWindow::onFileOpen()
 
   this->setCursor(Qt::BusyCursor);
   // clear old assembly
+  this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
   int numExistingAssy = this->NuclearCore->GetNumberOfAssemblies();
   int numNewAssy = 0;

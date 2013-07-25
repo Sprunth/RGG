@@ -8,6 +8,7 @@
 class cmbNucInputPropertiesWidgetInternal;
 class cmbNucAssemblyEditor;
 class cmbNucAssembly;
+class cmbNucCore;
 
 class cmbNucInputPropertiesWidget : public QWidget
 {
@@ -48,6 +49,8 @@ protected slots:
   void resetCylinder(Cylinder* cylin);
   void resetDuct(Duct* duct);
   void resetLattice(Lattice* lattice);
+  void resetAssembly(cmbNucAssembly* assy);
+  void resetCore(cmbNucCore* nucCore);
 
   // apply property panel to given object
   void applyToMaterial(Material* material);
@@ -56,6 +59,8 @@ protected slots:
   void applyToCylinder(Cylinder* cylin);
   void applyToDuct(Duct* duct);
   void applyToLattice(Lattice* lattice);
+  void applyToAssembly(cmbNucAssembly* assy);
+  void applyToCore(cmbNucCore* nucCore);
 
   // Slot for duct layers
   void onNumberOfDuctLayersChanged(int numLayers);
@@ -67,12 +72,16 @@ protected slots:
   // Slot for Lattice dimensions
   void onLatticeDimensionChanged();
 
+  // reset assembly lattice
+  void resetAssemblyLattice();
+
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;
 
   void initUI();
   AssyPartObj* CurrentObject;
   cmbNucAssemblyEditor *AssemblyEditor;
+  cmbNucAssemblyEditor *CoreEditor;
   cmbNucAssembly *Assembly;
 
 };

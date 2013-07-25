@@ -2,7 +2,9 @@
 #include "cmbNucInputPropertiesWidget.h"
 #include "ui_qInputPropertiesWidget.h"
 
+#include "cmbNucAssembly.h"
 #include "cmbNucAssemblyEditor.h"
+#include "cmbNucCore.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -39,6 +41,10 @@ void cmbNucInputPropertiesWidget::initUI()
   this->AssemblyEditor = new cmbNucAssemblyEditor(this);
   this->Internal->latticecontainerLayout->addWidget(
     this->AssemblyEditor);
+  this->CoreEditor = new cmbNucAssemblyEditor(this);
+  this->Internal->coreLatticeLayout->addWidget(
+    this->CoreEditor);
+
   QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
     this, SLOT(onApply()));
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
@@ -78,13 +84,16 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
     }
   this->setEnabled(true);
   this->Internal->labelInput->setText(name);
-  this->updateMaterials();
 
   this->onReset();
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::updateMaterials()
 {
+  if(!this->Assembly)
+  {
+  return;
+  }
   // update materials
   QStringList materials;
 
@@ -95,13 +104,16 @@ void cmbNucInputPropertiesWidget::updateMaterials()
   this->Internal->DuctLayerMaterial->clear();
   this->Internal->FrustumMaterial->clear();
   this->Internal->CylinderMaterial->clear();
-  for(size_t i = 0; i < this->Assembly->Materials.size(); i++)
+  if(this->Assembly)
     {
-    Material *material = this->Assembly->Materials[i];
-    this->Internal->DuctLayerMaterial->addItem(material->label.c_str());
-    this->Internal->FrustumMaterial->addItem(material->label.c_str());
-    this->Internal->CylinderMaterial->addItem(material->label.c_str());
-    materials.append(material->label.c_str());
+    for(size_t i = 0; i < this->Assembly->Materials.size(); i++)
+      {
+      Material *material = this->Assembly->Materials[i];
+      this->Internal->DuctLayerMaterial->addItem(material->label.c_str());
+      this->Internal->FrustumMaterial->addItem(material->label.c_str());
+      this->Internal->CylinderMaterial->addItem(material->label.c_str());
+      materials.append(material->label.c_str());
+      } 
     }
 
   this->Internal->DuctLayerMaterial->blockSignals(false);
@@ -117,7 +129,8 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
     return;
     }
   this->Assembly = assyObj;
-  this->AssemblyEditor->setAssembly(assyObj);
+  //this->resetAssemblyLattice();
+  this->updateMaterials();
 }
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
@@ -180,8 +193,22 @@ void cmbNucInputPropertiesWidget::onReset()
   Duct* duct=NULL;
   Material* material=NULL;
   Lattice* lattice=NULL;
+  cmbNucCore* nucCore=NULL;
+  cmbNucAssembly* assy=NULL;
   switch(selObj->GetType())
     {
+    case CMBNUC_CORE:
+      this->Internal->stackedWidget->setCurrentWidget(
+        this->Internal->pageCore);
+      nucCore = dynamic_cast<cmbNucCore*>(selObj);
+      this->resetCore(nucCore);
+      break;
+    case CMBNUC_ASSEMBLY:
+      this->Internal->stackedWidget->setCurrentWidget(
+        this->Internal->pageAssembly);
+      assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      this->resetAssembly(assy);
+      break;
     case CMBNUC_ASSY_LATTICE:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageLattice);
@@ -293,7 +320,26 @@ void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
   this->Internal->latticeY->setValue(lattice->GetDimensions().second);
   this->Internal->latticeX->blockSignals(false);
   this->Internal->latticeY->blockSignals(false);
-  this->AssemblyEditor->resetUI();
+
+  this->resetAssemblyLattice();
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::resetAssemblyLattice()
+{
+  if(this->Assembly)
+    {
+    QStringList actionList;
+    actionList.append("xx");
+    // pincells
+    for(size_t i = 0; i < this->Assembly->PinCells.size(); i++)
+      {
+      PinCell *pincell = this->Assembly->PinCells[i];
+      actionList.append(pincell->label.c_str());
+      }
+    this->AssemblyEditor->resetUI(
+      this->Assembly->AssyLattice.Grid, actionList); 
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -441,6 +487,46 @@ void cmbNucInputPropertiesWidget::onLatticeDimensionChanged()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 {
-  this->AssemblyEditor->updateLatticeWithGrid(lattice);
+  this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
   emit this->currentObjectModified(lattice);
+}
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
+{
+  assy->MeshSize = this->Internal->MeshSize->text().toDouble();
+  emit this->currentObjectModified(assy);
+}
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
+{
+  this->CoreEditor->updateLatticeWithGrid(nucCore->Grid);
+  emit this->currentObjectModified(nucCore);
+}
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
+{
+  this->Internal->MeshSize->setText(QString::number(assy->MeshSize));
+}
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
+{
+  this->Internal->coreLatticeX->blockSignals(true);
+  this->Internal->coreLatticeY->blockSignals(true);
+  this->Internal->coreLatticeX->setValue(nucCore->GetDimensions().first);
+  this->Internal->coreLatticeY->setValue(nucCore->GetDimensions().second);
+  this->Internal->coreLatticeX->blockSignals(false);
+  this->Internal->coreLatticeY->blockSignals(false);
+  if(nucCore)
+    {
+    QStringList actionList;
+    actionList.append("xx");
+    // assemblies
+    for(int i = 0; i < nucCore->GetNumberOfAssemblies(); i++)
+      {
+      cmbNucAssembly *assy = nucCore->GetAssembly(i);
+      actionList.append(assy->label.c_str());
+      }
+
+    this->CoreEditor->resetUI(nucCore->Grid, actionList);
+    }
 }
