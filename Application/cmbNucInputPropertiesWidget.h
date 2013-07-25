@@ -71,6 +71,7 @@ protected slots:
 
   // Slot for Lattice dimensions
   void onLatticeDimensionChanged();
+  void onCoreDimensionChanged();
 
   // reset assembly lattice
   void resetAssemblyLattice();

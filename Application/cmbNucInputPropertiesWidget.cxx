@@ -66,6 +66,10 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onLatticeDimensionChanged()));
   QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
     this, SLOT(onLatticeDimensionChanged()));
+  QObject::connect(this->Internal->coreLatticeX, SIGNAL(valueChanged(int)),
+    this, SLOT(onCoreDimensionChanged()));
+  QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
+    this, SLOT(onCoreDimensionChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -147,8 +151,18 @@ void cmbNucInputPropertiesWidget::onApply()
   Duct* duct=NULL;
   Material* material=NULL;
   Lattice* lattice=NULL;
+  cmbNucCore* nucCore=NULL;
+  cmbNucAssembly* assy=NULL;
   switch(selObj->GetType())
     {
+    case CMBNUC_CORE:
+      nucCore = dynamic_cast<cmbNucCore*>(selObj);
+      this->applyToCore(nucCore);
+      break;
+    case CMBNUC_ASSEMBLY:
+      assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      this->applyToAssembly(assy);
+      break;
     case CMBNUC_ASSY_LATTICE:
       lattice = dynamic_cast<Lattice*>(selObj);
       this->applyToLattice(lattice);
@@ -484,6 +498,15 @@ void cmbNucInputPropertiesWidget::onLatticeDimensionChanged()
   this->AssemblyEditor->updateLatticeView(this->Internal->latticeX->value(),
     this->Internal->latticeY->value());
 }
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
+{
+  this->CoreEditor->clearUI(false);
+  this->CoreEditor->updateLatticeView(this->Internal->coreLatticeX->value(),
+    this->Internal->coreLatticeY->value());
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 {
