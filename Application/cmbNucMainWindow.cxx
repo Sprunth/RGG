@@ -66,7 +66,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   // Hardcoded duct colors
   this->MaterialColors.insert("g1", QColor::fromRgbF(.7, .7, .7, 1.0));
   this->MaterialColors.insert("c1", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
-  this->MaterialColors.insert("m3", QColor::fromRgbF(0.8, 0.4, 0.0, 1.0));
+  this->MaterialColors.insert("m3", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
 
   // pin color
   this->MaterialColors.insert("pin", QColor::fromRgbF(1.0, 0.1, 0.1));
@@ -277,6 +277,21 @@ void cmbNucMainWindow::updateMaterialColors()
 //      vtkDataObjectTreeIterator *iter = data->NewTreeIterator();
 //      iter->SetSkipEmptyNodes(false);
       int pin_count = 0;
+      int ducts_count = 0;
+
+      std::string pinMaterial = "pin";
+      PinCell* pinCell = assy->PinCells.size()>0 ? assy->PinCells[0] : NULL;
+      if(pinCell)
+        {
+        if(pinCell->cylinders.size()>0)
+          {
+          pinMaterial = pinCell->cylinders[0]->material;
+          }
+        else if(pinCell->frustums.size()>0)
+          {
+          pinMaterial = pinCell->frustums[0]->material;
+          }
+        }
 
 //      while(!iter->IsDoneWithTraversal())
       int numAssyBlocks = data->GetNumberOfBlocks();
@@ -286,7 +301,7 @@ void cmbNucMainWindow::updateMaterialColors()
         if(pin_count < pins)
           {
           int i = realflatidx;
-          QColor pinColor = this->MaterialColors["pin"];
+          QColor pinColor = this->MaterialColors[pinMaterial.c_str()];
           double color[] = { pinColor.redF(), pinColor.greenF(), pinColor.blueF() };
           attributes->SetBlockColor(i, color);
           attributes->SetBlockOpacity(i, pinColor.alphaF());
@@ -297,25 +312,19 @@ void cmbNucMainWindow::updateMaterialColors()
           if(vtkMultiBlockDataSet* ductBlock =
             vtkMultiBlockDataSet::SafeDownCast(data->GetBlock(idx)))
             {
+            Duct* duct = assy->AssyDuct.Ducts[ducts_count];
             unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
             for(unsigned int b=0; b<numBlocks; b++)
               {
-              int iKey = b%3;
-              std::string strKey = "m3";
-              if(iKey == 1)
-                {
-                strKey = "c1";
-                }
-              else if(iKey == 2)
-                {
-                strKey = "g1";
-                }
+              std::string layerMaterial =
+                (duct && b<duct->materials.size()) ? duct->materials[b] : "m3";
               int i = ++realflatidx;
-              QColor matColor = this->MaterialColors.value(strKey.c_str());
+              QColor matColor = this->MaterialColors.value(layerMaterial.c_str());
               double color[] = { matColor.redF(), matColor.greenF(), matColor.blueF() };
               attributes->SetBlockColor(i, color);
               attributes->SetBlockOpacity(i, matColor.alphaF());
               }
+            ducts_count++;
             }
           }
         }
