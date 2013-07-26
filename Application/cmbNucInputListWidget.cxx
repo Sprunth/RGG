@@ -61,6 +61,9 @@ cmbNucInputListWidget::cmbNucInputListWidget(
   this->Internal->setupUi(this);
   this->Internal->initActions();
 
+  this->Internal->PartsList->setAlternatingRowColors(true);
+  this->Internal->MaterialList->setAlternatingRowColors(true);
+  
   // set up the UI trees
   QTreeWidget* treeWidget = this->Internal->PartsList;
 
@@ -509,6 +512,7 @@ void cmbNucInputListWidget::updateMaterial(cmbNucAssembly* assy)
     }
   this->Internal->MaterialList->setEnabled(true);
   this->Internal->MaterialList->blockSignals(true);
+  this->Internal->MaterialList->clear();
   QTreeWidgetItem* matRoot = this->Internal->MaterialList->invisibleRootItem();
   Qt::ItemFlags matFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
