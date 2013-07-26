@@ -62,7 +62,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
+
+  // Hardcoded material colors
+  this->MaterialColors.insert("g1", QColor::fromRgbF(0.5, 0.5, 0.5, 0.5));
+  this->MaterialColors.insert("c1", QColor::fromRgbF(0.6, 0.4, 0.2, 0.7));
+  this->MaterialColors.insert("m3", QColor::fromRgbF(1.0, 0.4, 0.0));
 }
+
 cmbNucMainWindow::~cmbNucMainWindow()
 {
   this->PropertyWidget->setObject(NULL, NULL);
@@ -220,11 +226,9 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
 
 void cmbNucMainWindow::updateMaterialColors()
 {
-  // regenerate assembly view
-  this->Mapper->SetInputDataObject(this->NuclearCore->GetData());
+  // regenerate core and assembly view
   vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
   this->Mapper->SetInputDataObject(coredata);
-
 
   for(unsigned int block=0; block<coredata->GetNumberOfBlocks(); block++)
     {

@@ -4,6 +4,8 @@
 #include <QMainWindow>
 
 #include <QPointer>
+#include <QMap>
+#include <QColor>
 #include <vtkSmartPointer.h>
 #include "cmbNucPartDefinition.h"
 
@@ -57,6 +59,7 @@ private:
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 
+  QMap<QString, QColor> MaterialColors;
 };
 
 #endif // cmbNucMainWindow_H
