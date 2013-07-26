@@ -63,10 +63,17 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
 
-  // Hardcoded duct and pin colors
+  // Hardcoded materials and  colors
   this->MaterialColors.insert("g1", QColor::fromRgbF(.7, .7, .7, 1.0));
   this->MaterialColors.insert("c1", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
   this->MaterialColors.insert("m3", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
+  this->MaterialColors.insert("fuel1", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
+  this->MaterialColors.insert("fuel2", QColor::fromRgbF(1.0, 0.5, 0.5, 1.0));
+  this->MaterialColors.insert("cntr1", QColor::fromRgbF(0.4, 1.0, 0.4, 1.0));
+  this->MaterialColors.insert("graphite", QColor::fromRgbF(.7, .7, .7, 1.0));
+  this->MaterialColors.insert("metal", QColor::fromRgbF(.4, .4, .4, 1.0));
+  this->MaterialColors.insert("coolant", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
+  
 
   // default pin and duct color
   this->MaterialColors.insert("pin", QColor::fromRgbF(1.0, 0.1, 0.1));
