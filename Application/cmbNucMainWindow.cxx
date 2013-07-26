@@ -299,7 +299,7 @@ void cmbNucMainWindow::updateMaterialColors()
           pinMaterial = pinCell->frustums[0]->material;
           }
         }
-
+      pinMaterial = QString(pinMaterial.c_str()).toLower().toStdString();
 //      while(!iter->IsDoneWithTraversal())
       int numAssyBlocks = data->GetNumberOfBlocks();
       for(unsigned int idx=0; idx<numAssyBlocks; idx++)
@@ -329,6 +329,7 @@ void cmbNucMainWindow::updateMaterialColors()
                 {
                 layerMaterial = "duct";
                 }
+              layerMaterial = QString(layerMaterial.c_str()).toLower().toStdString();
               int i = ++realflatidx;
               QColor matColor = this->MaterialColors.value(layerMaterial.c_str());
               double color[] = { matColor.redF(), matColor.greenF(), matColor.blueF() };
