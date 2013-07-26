@@ -225,10 +225,12 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewAssembly()
 {
+  this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
   assembly->label = QString("Assembly").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
   this->NuclearCore->AddAssembly(assembly);
+  this->initCoreRootNode();
   this->updateWithAssembly(assembly);
 }
 
@@ -479,16 +481,9 @@ void cmbNucInputListWidget::updateUI(bool selCore)
     return;
     }
   this->setEnabled(1);
-  // Assembly node
-  Qt::ItemFlags itemFlags(
-    Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-  this->Internal->RootCoreNode = new cmbNucPartsTreeItem(
-    this->Internal->PartsList->invisibleRootItem(), this->NuclearCore);
-  this->Internal->RootCoreNode->setText(0, "Core");
-  this->Internal->RootCoreNode->setFlags(itemFlags); // not editable
-  this->Internal->RootCoreNode->setChildIndicatorPolicy(
-    QTreeWidgetItem::DontShowIndicatorWhenChildless);
-
+  // Core node
+  this->initCoreRootNode();
+  // Assembly nodes
   for(int i=0; i<this->NuclearCore->GetNumberOfAssemblies(); i++)
     {
     this->updateWithAssembly(this->NuclearCore->GetAssembly(i),
@@ -499,6 +494,21 @@ void cmbNucInputListWidget::updateUI(bool selCore)
     {
     this->Internal->RootCoreNode->setSelected(true);
     this->onPartsSelectionChanged();
+    }
+}
+//-----------------------------------------------------------------------------
+void cmbNucInputListWidget::initCoreRootNode()
+{
+  if(this->Internal->RootCoreNode == NULL)
+    {
+    Qt::ItemFlags itemFlags(
+      Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+    this->Internal->RootCoreNode = new cmbNucPartsTreeItem(
+      this->Internal->PartsList->invisibleRootItem(), this->NuclearCore);
+    this->Internal->RootCoreNode->setText(0, "Core");
+    this->Internal->RootCoreNode->setFlags(itemFlags); // not editable
+    this->Internal->RootCoreNode->setChildIndicatorPolicy(
+      QTreeWidgetItem::DontShowIndicatorWhenChildless);
     }
 }
 

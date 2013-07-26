@@ -34,7 +34,12 @@ cmbNucCore::~cmbNucCore()
 
 void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 {
+  if(this->Assemblies.size()==0)
+    {
+    this->SetDimensions(1, 1);
+    }
   this->Assemblies.push_back(assembly);
+  this->SetAssemblyLabel(0, 0,assembly->label);
   // the new assembly need to be in the grid 
 }
 
@@ -88,6 +93,11 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
     {
     return NULL;
     }
+  // we need at least one duct
+  if(Assemblies[0]->AssyDuct.Ducts.size()==0)
+    {
+    return NULL;
+    }
 
   double startX = this->Assemblies[0]->AssyDuct.Ducts[0]->x;
   double startY = this->Assemblies[0]->AssyDuct.Ducts[0]->y;
@@ -110,10 +120,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
       if(!type.empty() && type != "xx" && type != "XX")
         {
         cmbNucAssembly* assembly = this->GetAssembly(type);
-        vtkMultiBlockDataSet* assemblyData = assembly->GetData();
+        vtkSmartPointer<vtkMultiBlockDataSet> assemblyData = assembly->GetData();
         vtkNew<vtkTransform> transform;
-        transform->Translate(startX + i * outerDuctHeight,
-                             startY + j * outerDuctHeight,
+        transform->Translate(startX + i * (outerDuctHeight+0.5),
+                             startY + j * (outerDuctHeight+0.5),
                              0);
  // transform block by block --- got to have better ways
         vtkNew<vtkMultiBlockDataSet> blockData;
@@ -135,7 +145,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
                 filter->SetTransform(transform.GetPointer());
                 filter->SetInputDataObject(ductBlock->GetBlock(b));
                 filter->Update();
-                ductObjs->SetBlock(idx, filter->GetOutput());
+                ductObjs->SetBlock(b, filter->GetOutput());
                 }
               blockData->SetBlock(idx, ductObjs.GetPointer());
               }

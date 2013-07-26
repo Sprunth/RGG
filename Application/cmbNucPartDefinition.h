@@ -139,8 +139,8 @@ enum enumNucPartsType
       {
       x=0.0;y=0.0;z1=0.0;z2=4.0;
       materials.push_back("");
-      thicknesses.push_back(0.0);
-      thicknesses.push_back(0.0);
+      thicknesses.push_back(18.0);
+      thicknesses.push_back(18.0);
       }
     enumNucPartsType GetType()
     { return CMBNUC_ASSY_RECT_DUCT;}

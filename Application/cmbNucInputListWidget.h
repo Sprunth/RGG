@@ -45,6 +45,7 @@ protected:
   void updateMaterial(cmbNucAssembly* assy);
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
   cmbNucPartsTreeItem* getDuctCellNode(cmbNucPartsTreeItem* assyNode);
+  void initCoreRootNode();
 
 private slots:
   // Description:

@@ -63,10 +63,14 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
 
-  // Hardcoded material colors
-  this->MaterialColors.insert("g1", QColor::fromRgbF(0.5, 0.5, 0.5, 0.5));
-  this->MaterialColors.insert("c1", QColor::fromRgbF(0.6, 0.4, 0.2, 0.7));
-  this->MaterialColors.insert("m3", QColor::fromRgbF(1.0, 0.4, 0.0));
+  // Hardcoded duct colors
+  this->MaterialColors.insert("g1", QColor::fromRgbF(1, 1, 1, 0.3));
+  this->MaterialColors.insert("c1", QColor::fromRgbF(0.6, 0.4, 0.2, 0.5));
+  this->MaterialColors.insert("m3", QColor::fromRgbF(0.8, 0.4, 0.0, 0.7));
+
+  // pin color
+  this->MaterialColors.insert("pin", QColor::fromRgbF(1.0, 0.4, 0.0));
+
 }
 
 cmbNucMainWindow::~cmbNucMainWindow()
@@ -147,7 +151,10 @@ void cmbNucMainWindow::onFileOpen()
                                  "Open Assygen File...",
                                  QDir::homePath(),
                                  "INP Files (*.inp)");
-
+  if(fileNames.count()==0)
+    {
+    return;
+    }
   this->setCursor(Qt::BusyCursor);
   // clear old assembly
   this->PropertyWidget->setObject(NULL, NULL);
@@ -229,9 +236,20 @@ void cmbNucMainWindow::updateMaterialColors()
   // regenerate core and assembly view
   vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
   this->Mapper->SetInputDataObject(coredata);
+  if(!coredata)
+  {
+  return;
+  }
+  unsigned int numCoreBlocks = coredata->GetNumberOfBlocks();
+  vtkCompositeDataDisplayAttributes *attributes =
+    this->Mapper->GetCompositeDataDisplayAttributes();
 
-  for(unsigned int block=0; block<coredata->GetNumberOfBlocks(); block++)
+  //vtkDataObjectTreeIterator *coreiter = coredata->NewTreeIterator();
+  //coreiter->SetSkipEmptyNodes(false);
+  unsigned int realflatidx=0;
+  for(unsigned int block=0; block<numCoreBlocks; block++)
     {
+    realflatidx++;
     if(!coredata->GetBlock(block))
       {
       continue;
@@ -241,44 +259,66 @@ void cmbNucMainWindow::updateMaterialColors()
       {
       continue;
       }
+    // for each assembly
     if(coredata->GetMetaData(block)->Has(vtkCompositeDataSet::NAME()))
       {
       std::string assyLabel = coredata->GetMetaData(block)->Get(
         vtkCompositeDataSet::NAME());
       cmbNucAssembly* assy = this->NuclearCore->GetAssembly(assyLabel);
       if(!assy)
-      {
-      qCritical() << "no specified assembly to found in core: " << assyLabel.c_str();
-      return;
-      }
+        {
+        qCritical() << "no specified assembly to found in core: " << assyLabel.c_str();
+        return;
+        }
 
       std::pair<int, int> dimensions = assy->AssyLattice.GetDimensions();
       int pins = dimensions.first * dimensions.second;
-      vtkCompositeDataDisplayAttributes *attributes =
-        this->Mapper->GetCompositeDataDisplayAttributes();
 
-      vtkDataObjectTreeIterator *iter = data->NewTreeIterator();
-      iter->SetSkipEmptyNodes(false);
+//      vtkDataObjectTreeIterator *iter = data->NewTreeIterator();
+//      iter->SetSkipEmptyNodes(false);
       int pin_count = 0;
 
-      while(!iter->IsDoneWithTraversal())
+//      while(!iter->IsDoneWithTraversal())
+      int numAssyBlocks = data->GetNumberOfBlocks();
+      for(unsigned int idx=0; idx<numAssyBlocks; idx++)
         {
-        int i = iter->GetCurrentFlatIndex();
+        realflatidx++;
         if(pin_count < pins)
           {
-          double color[] = { 1.0, 0.4, 0.0 };
+          int i = realflatidx;
+          QColor pinColor = this->MaterialColors["pin"];
+          double color[] = { pinColor.redF(), pinColor.greenF(), pinColor.blueF() };
           attributes->SetBlockColor(i, color);
+          attributes->SetBlockOpacity(i, pinColor.alphaF());
           pin_count++;
           }
-        else
+        else // ducts need to color by layers
           {
-          double color[] = { 0.6, 0.4, 0.2 };
-          attributes->SetBlockColor(i, color);
-          attributes->SetBlockOpacity(i, 0.7);
+          if(vtkMultiBlockDataSet* ductBlock =
+            vtkMultiBlockDataSet::SafeDownCast(data->GetBlock(idx)))
+            {
+            unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
+            for(unsigned int b=0; b<numBlocks; b++)
+              {
+              int iKey = b%3;
+              std::string strKey = "m3";
+              if(iKey == 1)
+                {
+                strKey = "c1";
+                }
+              else if(iKey == 2)
+                {
+                strKey = "g1";
+                }
+              int i = ++realflatidx;
+              QColor matColor = this->MaterialColors.value(strKey.c_str());
+              double color[] = { matColor.redF(), matColor.greenF(), matColor.blueF() };
+              attributes->SetBlockColor(i, color);
+              attributes->SetBlockOpacity(i, matColor.alphaF());
+              }
+            }
           }
-        iter->GoToNextItem();
         }
-      iter->Delete();
       }
     }
 }
