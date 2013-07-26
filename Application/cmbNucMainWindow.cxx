@@ -205,7 +205,7 @@ cmbNucAssembly* cmbNucMainWindow::openFile(const QString &fileName)
 {
   // read file and create new assembly
   cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->label = QString("Assembly").append(
+  assembly->label = QString("Assy").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
   this->NuclearCore->AddAssembly(assembly);
   assembly->ReadFile(fileName.toStdString());

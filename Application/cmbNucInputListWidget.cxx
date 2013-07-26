@@ -227,7 +227,7 @@ void cmbNucInputListWidget::onNewAssembly()
 {
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->label = QString("Assembly").append(
+  assembly->label = QString("Assy").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
 
   // TODO: material template list ?
