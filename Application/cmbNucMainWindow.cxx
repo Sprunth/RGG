@@ -63,14 +63,14 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
 
-  // Hardcoded duct colors
+  // Hardcoded duct and pin colors
   this->MaterialColors.insert("g1", QColor::fromRgbF(.7, .7, .7, 1.0));
   this->MaterialColors.insert("c1", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
   this->MaterialColors.insert("m3", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
 
-  // pin color
+  // default pin and duct color
   this->MaterialColors.insert("pin", QColor::fromRgbF(1.0, 0.1, 0.1));
-
+  this->MaterialColors.insert("duct", QColor::fromRgbF(1.0, 1.0, 1.0));
 }
 
 cmbNucMainWindow::~cmbNucMainWindow()
@@ -317,7 +317,11 @@ void cmbNucMainWindow::updateMaterialColors()
             for(unsigned int b=0; b<numBlocks; b++)
               {
               std::string layerMaterial =
-                (duct && b<duct->materials.size()) ? duct->materials[b] : "m3";
+                (duct && b<duct->materials.size()) ? duct->materials[b] : "duct";
+              if(layerMaterial.empty())
+                {
+                layerMaterial = "duct";
+                }
               int i = ++realflatidx;
               QColor matColor = this->MaterialColors.value(layerMaterial.c_str());
               double color[] = { matColor.redF(), matColor.greenF(), matColor.blueF() };

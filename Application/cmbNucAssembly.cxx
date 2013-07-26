@@ -30,7 +30,15 @@ cmbNucAssembly::~cmbNucAssembly()
 
 void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
+  if(this->PinCells.size()==0)
+    {
+    this->AssyLattice.SetDimensions(1,1);
+    }
   this->PinCells.push_back(pincell);
+  if(this->PinCells.size() == 1)
+    {
+    this->AssyLattice.SetCell(0,0,pincell->label);
+    }
 }
 
 void cmbNucAssembly::RemovePinCell(const std::string &label)
@@ -422,25 +430,31 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
       if(!type.empty() && type != "xx" && type != "XX")
         {
         PinCell* pincell = this->GetPinCell(type);//this->PinCells[0];
+        if(pincell && (pincell->cylinders.size()+pincell->frustums.size())>0)
+          {
+          // create polydata for the pincell
+          vtkPolyData *polyData = this->CreatePinCellPolyData(pincell);
 
-        // create polydata for the pincell
-        vtkPolyData *polyData = this->CreatePinCellPolyData(pincell);
-
-        // move the polydata to the correct position
-        vtkTransform *transform = vtkTransform::New();
-        double radius = pincell->cylinders.size()>0 ? pincell->cylinders[0]->r :
-          pincell->frustums[0]->r1;
-        transform->Translate(chamberStart + i * cellLength + radius,
-                             chamberStart + j * cellLength + radius,
-                             0);
-        vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
-        filter->SetTransform(transform);
-        transform->Delete();
-        filter->SetInputDataObject(polyData);
-        polyData->Delete();
-        filter->Update();
-        this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, filter->GetOutput());
-        filter->Delete();
+          // move the polydata to the correct position
+          vtkTransform *transform = vtkTransform::New();
+          double radius = pincell->cylinders.size()>0 ? pincell->cylinders[0]->r :
+            pincell->frustums[0]->r1;
+          transform->Translate(chamberStart + i * cellLength + radius,
+                               chamberStart + j * cellLength + radius,
+                               0);
+          vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
+          filter->SetTransform(transform);
+          transform->Delete();
+          filter->SetInputDataObject(polyData);
+          polyData->Delete();
+          filter->Update();
+          this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, filter->GetOutput());
+          filter->Delete();
+          }
+        else
+          {
+          this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, NULL);
+          }
         }
       else
         {

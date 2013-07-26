@@ -229,6 +229,21 @@ void cmbNucInputListWidget::onNewAssembly()
   cmbNucAssembly* assembly = new cmbNucAssembly;
   assembly->label = QString("Assembly").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
+
+  // TODO: material template list ?
+  Material* newmat1 = new Material();
+  newmat1->name = "mat_block_1";
+  newmat1->label = "g1";
+  assembly->AddMaterial(newmat1);
+  Material* newmat2 = new Material();
+  newmat2->name = "mat_coolant_2";
+  newmat2->label = "c1";
+  assembly->AddMaterial(newmat2);
+  Material* newmat3 = new Material();
+  newmat3->name = "pwr_rf_r_01_3";
+  newmat3->label = "m3";
+  assembly->AddMaterial(newmat3);
+
   this->NuclearCore->AddAssembly(assembly);
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
@@ -334,10 +349,10 @@ void cmbNucInputListWidget::onNewFrustum()
 void cmbNucInputListWidget::onNewPin()
 {
   PinCell* newpin = new PinCell();
-  this->getCurrentAssembly()->AddPinCell(newpin);
   QString pinname = QString("PinCell").append(
-    QString::number(this->getCurrentAssembly()->PinCells.size()));
+    QString::number(this->getCurrentAssembly()->PinCells.size()+1));
   newpin->name = newpin->label = pinname.toStdString();
+  this->getCurrentAssembly()->AddPinCell(newpin);
   QTreeWidgetItem* partsRoot = this->getCurrentAssemblyNode();
   if(!partsRoot)
     {

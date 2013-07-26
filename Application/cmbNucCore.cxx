@@ -39,7 +39,10 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
     this->SetDimensions(1, 1);
     }
   this->Assemblies.push_back(assembly);
-  this->SetAssemblyLabel(0, 0,assembly->label);
+  if(this->Assemblies.size() == 1)
+    {
+    this->SetAssemblyLabel(0, 0,assembly->label);
+    }
   // the new assembly need to be in the grid 
 }
 
