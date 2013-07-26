@@ -23,8 +23,9 @@ public:
   void setCore(cmbNucCore*);
   /// get current assembly that this widget is interacting with
   cmbNucAssembly* getCurrentAssembly();
-  /// update UI and select last assembly lattice by default
-  void updateUI();
+  /// update UI and if selCore is not set,
+  /// the last assembly lattice will be selected by default,
+  void updateUI(bool selCore);
 
 signals:
   // Description:

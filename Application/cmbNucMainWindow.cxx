@@ -21,10 +21,16 @@
 #include "vtkCompositeDataDisplayAttributes.h"
 #include "vtkDataObjectTreeIterator.h"
 #include "vtkInformation.h"
+#include "vtkCompositeDataPipeline.h"
+#include "vtkAlgorithm.h"
+#include "vtkNew.h"
 
 // Constructor
 cmbNucMainWindow::cmbNucMainWindow()
 {
+  // vtkNew<vtkCompositeDataPipeline> compositeExec;
+  // vtkAlgorithm::SetDefaultExecutivePrototype(compositeExec.GetPointer());
+
   this->ui = new Ui_qNucMainWindow;
   this->ui->setupUi(this);
   this->NuclearCore = new cmbNucCore();
@@ -106,6 +112,10 @@ void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
   // update material colors
   this->updateMaterialColors();
 
+  if(obj && obj->GetType() == CMBNUC_CORE)
+    {
+    this->Renderer->ResetCamera();
+    }
   // render
   this->ui->qvtkWidget->update();
 }
@@ -155,6 +165,10 @@ void cmbNucMainWindow::onFileOpen()
     for(int i=0; i<numNewAssy ; i++)
       {
       this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label);
+      for(int j=1; j<numNewAssy ; j++)
+        {
+        this->NuclearCore->SetAssemblyLabel(i, j, "xx");
+        }
       }
     }
   // update data colors
@@ -162,7 +176,7 @@ void cmbNucMainWindow::onFileOpen()
   // render
   this->Renderer->ResetCamera();
   this->Renderer->Render();
-  this->InputsWidget->updateUI();
+  this->InputsWidget->updateUI(numExistingAssy==0 && numNewAssy>1);
 
   this->unsetCursor();
 }

@@ -41,7 +41,6 @@ void cmbNucAssemblyEditor::clearUI(bool updateUI)
         }
       }
     }
-  this->ActionList.clear();
   if(updateUI)
     {
     update();

@@ -113,7 +113,6 @@ void cmbNucInputListWidget::setCore(cmbNucCore* core)
     return;
     }
   this->NuclearCore = core;
-  this->updateUI();
 }
 //-----------------------------------------------------------------------------
 cmbNucPartsTreeItem* cmbNucInputListWidget::getDuctCellNode(
@@ -190,7 +189,11 @@ cmbNucAssembly* cmbNucInputListWidget::getCurrentAssembly()
 void cmbNucInputListWidget::initUI()
 {
   this->setActionsEnabled(false);
-  this->Internal->RootCoreNode = NULL;
+  if(this->Internal->RootCoreNode)
+    {
+    delete this->Internal->RootCoreNode;
+    this->Internal->RootCoreNode = NULL;
+    }
   this->initTree(this->Internal->PartsList);
   this->initTree(this->Internal->MaterialList);
 }
@@ -464,7 +467,7 @@ void cmbNucInputListWidget::onRemoveMaterial()
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputListWidget::updateUI()
+void cmbNucInputListWidget::updateUI(bool selCore)
 {
   this->initUI();
   if(!this->NuclearCore)
@@ -486,7 +489,13 @@ void cmbNucInputListWidget::updateUI()
   for(int i=0; i<this->NuclearCore->GetNumberOfAssemblies(); i++)
     {
     this->updateWithAssembly(this->NuclearCore->GetAssembly(i),
-      i == (this->NuclearCore->GetNumberOfAssemblies()-1));
+      (!selCore && i == (this->NuclearCore->GetNumberOfAssemblies()-1)));
+    }
+
+  if(selCore)
+    {
+    this->Internal->RootCoreNode->setSelected(true);
+    this->onPartsSelectionChanged();
     }
 }
 

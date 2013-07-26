@@ -10,7 +10,8 @@
 
 #include "vtkTransform.h"
 #include "vtkInformation.h"
-#include "vtkTransformPolyDataFilter.h"
+#include "vtkNew.h"
+#include "vtkTransformFilter.h"
 
 cmbNucCore::cmbNucCore()
 {
@@ -74,10 +75,12 @@ cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
 
   return 0;
 }
+
 cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
 {
   return idx<this->Assemblies.size() ? this->Assemblies[idx] : NULL;
 }
+
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 {
   if(this->Assemblies.size()==0 || this->Grid.size()==0
@@ -85,6 +88,13 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
     {
     return NULL;
     }
+
+  double startX = this->Assemblies[0]->AssyDuct.Ducts[0]->x;
+  double startY = this->Assemblies[0]->AssyDuct.Ducts[0]->y;
+  double outerDuctHeight = this->Assemblies[0]->AssyDuct.Ducts[0]->thicknesses.back();
+//  double chamberStart = outerDuctHeight - innerDuctHeight;
+//  double chamberEnd = innerDuctHeight;
+
 
   // setup data
   this->Data->SetNumberOfBlocks(this->Grid.size()*this->Grid[0].size());
@@ -100,7 +110,60 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
       if(!type.empty() && type != "xx" && type != "XX")
         {
         cmbNucAssembly* assembly = this->GetAssembly(type);
-        this->Data->SetBlock(i*this->Grid.size()+j, assembly->GetData());
+        vtkMultiBlockDataSet* assemblyData = assembly->GetData();
+        vtkNew<vtkTransform> transform;
+        transform->Translate(startX + i * outerDuctHeight,
+                             startY + j * outerDuctHeight,
+                             0);
+ // transform block by block --- got to have better ways
+        vtkNew<vtkMultiBlockDataSet> blockData;
+        blockData->SetNumberOfBlocks(assemblyData->GetNumberOfBlocks());
+        // move the assembly to the correct position
+        for(int idx=0; idx<assemblyData->GetNumberOfBlocks(); idx++)
+          {
+          // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
+          if(vtkDataObject* objBlock = assemblyData->GetBlock(idx))
+            {
+            if(vtkMultiBlockDataSet* ductBlock =
+              vtkMultiBlockDataSet::SafeDownCast(objBlock))
+              {
+              vtkNew<vtkMultiBlockDataSet> ductObjs;
+              ductObjs->SetNumberOfBlocks(ductBlock->GetNumberOfBlocks());
+              for(int b=0; b<ductBlock->GetNumberOfBlocks(); b++)
+                {
+                vtkNew<vtkTransformFilter> filter;
+                filter->SetTransform(transform.GetPointer());
+                filter->SetInputDataObject(ductBlock->GetBlock(b));
+                filter->Update();
+                ductObjs->SetBlock(idx, filter->GetOutput());
+                }
+              blockData->SetBlock(idx, ductObjs.GetPointer());
+              }
+            else // pins
+              {
+              vtkNew<vtkTransformFilter> filter;
+              filter->SetTransform(transform.GetPointer());
+              filter->SetInputDataObject(assemblyData->GetBlock(idx));
+              filter->Update();
+              blockData->SetBlock(idx, filter->GetOutput());
+              }
+            }
+          else
+            {
+            blockData->SetBlock(idx, NULL);
+            }
+          }
+       this->Data->SetBlock(i*this->Grid.size()+j, blockData.GetPointer());
+
+/* // The following (better) method is not working ???, even the pipeline is
+   // be default compositepipeline
+
+             vtkNew<vtkTransformFilter> filter;
+            filter->SetTransform(transform.GetPointer());
+            filter->SetInputDataObject(assemblyData);
+            filter->Update();
+        this->Data->SetBlock(i*this->Grid.size()+j, filter->GetOutput());
+*/
         vtkInformation* info = this->Data->GetMetaData(i*this->Grid.size()+j);
         info->Set(vtkCompositeDataSet::NAME(), assembly->label.c_str());
         }
