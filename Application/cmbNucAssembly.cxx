@@ -30,15 +30,7 @@ cmbNucAssembly::~cmbNucAssembly()
 
 void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
-  if(this->PinCells.size()==0)
-    {
-    this->AssyLattice.SetDimensions(1,1);
-    }
   this->PinCells.push_back(pincell);
-  if(this->PinCells.size() == 1)
-    {
-    this->AssyLattice.SetCell(0,0,pincell->label);
-    }
 }
 
 void cmbNucAssembly::RemovePinCell(const std::string &label)
@@ -228,7 +220,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             input >> pincell->pitchX
                   >> pincell->pitchY
                   >> pincell->pitchZ;
-            j--;  // Pitch does not count towards count!
+            //j--;  // Pitch does not count towards count!
             }
           else if(value == "cylinder")
             {
