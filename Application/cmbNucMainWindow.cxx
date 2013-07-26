@@ -64,12 +64,12 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
 
   // Hardcoded duct colors
-  this->MaterialColors.insert("g1", QColor::fromRgbF(1, 1, 1, 0.3));
-  this->MaterialColors.insert("c1", QColor::fromRgbF(0.6, 0.4, 0.2, 0.5));
-  this->MaterialColors.insert("m3", QColor::fromRgbF(0.8, 0.4, 0.0, 0.7));
+  this->MaterialColors.insert("g1", QColor::fromRgbF(.7, .7, .7, 1.0));
+  this->MaterialColors.insert("c1", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
+  this->MaterialColors.insert("m3", QColor::fromRgbF(0.8, 0.4, 0.0, 1.0));
 
   // pin color
-  this->MaterialColors.insert("pin", QColor::fromRgbF(1.0, 0.4, 0.0));
+  this->MaterialColors.insert("pin", QColor::fromRgbF(1.0, 0.1, 0.1));
 
 }
 
