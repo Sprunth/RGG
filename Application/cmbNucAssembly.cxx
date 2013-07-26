@@ -209,7 +209,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
           }
 
         input >> pincell->label >> attribute_count;
-
+ 
         for(int j = 0; j < attribute_count; j++)
           {
           input >> value;
@@ -220,6 +220,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             input >> pincell->pitchX
                   >> pincell->pitchY
                   >> pincell->pitchZ;
+            j--;  // Pitch does not count towards count!
             }
           else if(value == "cylinder")
             {
