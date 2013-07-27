@@ -7,6 +7,7 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkCompositePolyDataMapper2.h>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QStringList>
 #include <QDebug>
 #include <QDockWidget>
@@ -64,6 +65,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
 
   // Hardcoded materials and  colors
+  this->MaterialColors.insert("gap", QColor::fromRgbF(0.0, 0.0, 0.0, 0.0));
   this->MaterialColors.insert("g1", QColor::fromRgbF(.7, .7, .7, 1.0));
   this->MaterialColors.insert("c1", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
   this->MaterialColors.insert("m3", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
@@ -73,10 +75,18 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->MaterialColors.insert("graphite", QColor::fromRgbF(.7, .7, .7, 1.0));
   this->MaterialColors.insert("metal", QColor::fromRgbF(.4, .4, .4, 1.0));
   this->MaterialColors.insert("coolant", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
-  this->MaterialColors.insert("ff1", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
-  this->MaterialColors.insert("ff2", QColor::fromRgbF(1.0, 0.5, 0.5, 1.0));
-  this->MaterialColors.insert("h2", QColor::fromRgbF(0.5, 0.5, 1.0, 0.5));
-  this->MaterialColors.insert("cm", QColor::fromRgbF(0.5, 1.0, 0.5, 1.0));
+  this->MaterialColors.insert("fuel_uox1", QColor::fromRgbF(0.694, 0.0, 0.149, 1.0));
+  this->MaterialColors.insert("fuel_uox2", QColor::fromRgbF(0.890, 0.102, 0.110, 1.0));
+  this->MaterialColors.insert("mox_43", QColor::fromRgbF(0.988, 0.306, 0.165, 1.0));
+  this->MaterialColors.insert("mox_73", QColor::fromRgbF(0.992, 0.553, 0.235, 1.0));
+  this->MaterialColors.insert("mox_87", QColor::fromRgbF(0.996, 0.698, 0.298, 1.0));
+  this->MaterialColors.insert("water", QColor::fromRgbF(0.651, 0.741, 0.859, 0.5));
+  this->MaterialColors.insert("water_rod", QColor::fromRgbF(0.212, 0.565, 0.753, 1.0));
+  this->MaterialColors.insert("barod16", QColor::fromRgbF(0.000, 0.427, 0.173, 1.0));
+  this->MaterialColors.insert("barod18", QColor::fromRgbF(0.192, 0.639, 0.329, 1.0));
+  this->MaterialColors.insert("barod28", QColor::fromRgbF(0.455, 0.769, 0.463, 1.0));
+  this->MaterialColors.insert("control_rod", QColor::fromRgbF(0.729, 0.894, 0.702, 1.0));
+  this->MaterialColors.insert("cladding", QColor::fromRgbF(0.75, 0.75, 0.75, 1.0));
   
 
   // default pin and duct color
@@ -208,9 +218,11 @@ void cmbNucMainWindow::onFileOpen()
 cmbNucAssembly* cmbNucMainWindow::openFile(const QString &fileName)
 {
   // read file and create new assembly
+    QFileInfo finfo(fileName);
   cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->label = QString("Assy").append(
-    QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
+  assembly->label = finfo.baseName().toStdString();
+//  assembly->label = QString("Assy").append(
+//    QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
   this->NuclearCore->AddAssembly(assembly);
   assembly->ReadFile(fileName.toStdString());
   return assembly;
