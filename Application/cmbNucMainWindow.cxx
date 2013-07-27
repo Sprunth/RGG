@@ -73,6 +73,10 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->MaterialColors.insert("graphite", QColor::fromRgbF(.7, .7, .7, 1.0));
   this->MaterialColors.insert("metal", QColor::fromRgbF(.4, .4, .4, 1.0));
   this->MaterialColors.insert("coolant", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
+  this->MaterialColors.insert("ff1", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
+  this->MaterialColors.insert("ff2", QColor::fromRgbF(1.0, 0.5, 0.5, 1.0));
+  this->MaterialColors.insert("h2", QColor::fromRgbF(0.5, 0.5, 1.0, 0.5));
+  this->MaterialColors.insert("cm", QColor::fromRgbF(0.5, 1.0, 0.5, 1.0));
   
 
   // default pin and duct color
@@ -308,6 +312,9 @@ void cmbNucMainWindow::updateMaterialColors()
         if(pin_count < pins)
           {
           int i = realflatidx;
+          pinMaterial = assy->GetCellMaterial(pin_count);
+          pinMaterial = QString(pinMaterial.c_str()).toLower().toStdString();
+          //std::cout << "Pin Material = " << pinMaterial << "\n";
           QColor pinColor = this->MaterialColors[pinMaterial.c_str()];
           double color[] = { pinColor.redF(), pinColor.greenF(), pinColor.blueF() };
           attributes->SetBlockColor(i, color);

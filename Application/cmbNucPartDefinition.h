@@ -122,7 +122,18 @@ enum enumNucPartsType
       {
       this->removeObj(frustum, this->frustums);
       }
-    
+      std::string GetMaterial()
+          {
+              if (this->cylinders.size())
+                  {
+                  return this->cylinders[0]->material;
+                  }
+              if (this->frustums.size())
+                  {
+                  return this->frustums[0]->material;
+                  }
+              return std::string("");
+          } 
     std::string name;
     std::string label;
     double pitchX;
@@ -220,6 +231,15 @@ enum enumNucPartsType
     std::string GetCell(int i, int j) const
       {
       return this->Grid[i][j];
+      }
+    // Returns the contents of the cell (I).
+    std::string GetCell(int i) const
+      {
+          // Convert to j,k
+          int s = (int)this->Grid.size();
+          int j = i / s;
+          int k = i - (j*s);
+          return this->Grid[j][k];
       }
     // Clears the contents of the cell (i, j). This is equivalent
     // to calling SetCell(i, j, "xx").

@@ -529,3 +529,22 @@ vtkPolyData* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
   normals->Delete();
   return polyData;
 }
+
+std::string cmbNucAssembly::GetCellMaterial(int i)
+{
+// First find the cell
+    std::string cellType = this->AssyLattice.GetCell(i);
+    std::string result;
+    // If the cell is xx then return ""
+    if (cellType == "xx")
+        {
+        return result;
+        }
+    // Get the pin
+    PinCell *pin = this->GetPinCell(cellType);
+    if (pin)
+        {
+        return pin->GetMaterial();
+        }
+    return result;
+}

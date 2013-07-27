@@ -45,7 +45,10 @@ public:
   // Adds/Remove a material by name
   void AddMaterial(Material *material);
   void RemoveMaterial(const std::string &name);
-
+    //Return the material of the ith latticeGetCellMaterial location
+    //If the cell is empty return "" else return the
+    // material of the pin inside the cell
+    std::string GetCellMaterial(int i);
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;
