@@ -225,24 +225,29 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewAssembly()
 {
+    const char  *defaultMaterials[] = 
+        {"Fuel1", "Fuel2", "Fuel_uox1", "Fuel_uox2", 
+         "MOX_43", "MOX_73", "MOX_87", 
+         "Water", "Coolant", "Water_Rod", "Control_Rod", "BARod16", "BARod18", "BARod28", "Graphite", "Cladding", "Gap", "Metal", "MaterialBlock", "end"};
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
   assembly->label = QString("Assy").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
-
-  // TODO: material template list ?
-  Material* newmat1 = new Material();
-  newmat1->name = "mat_block_1";
-  newmat1->label = "g1";
-  assembly->AddMaterial(newmat1);
-  Material* newmat2 = new Material();
-  newmat2->name = "mat_coolant_2";
-  newmat2->label = "c1";
-  assembly->AddMaterial(newmat2);
-  Material* newmat3 = new Material();
-  newmat3->name = "pwr_rf_r_01_3";
-  newmat3->label = "m3";
-  assembly->AddMaterial(newmat3);
+  std::string s;
+  int i;
+  Material *mat;
+  for (i = 0;; i++)
+      {
+      s = defaultMaterials[i];
+      if (s == "end")
+          {
+          break;
+          }
+      mat =  new Material();
+      mat->name = s;
+      mat->label = s;
+      assembly->AddMaterial(mat);
+      }
 
   this->NuclearCore->AddAssembly(assembly);
   this->initCoreRootNode();

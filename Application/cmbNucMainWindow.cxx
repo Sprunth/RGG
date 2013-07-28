@@ -66,14 +66,14 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // Hardcoded materials and  colors
   this->MaterialColors.insert("gap", QColor::fromRgbF(0.0, 0.0, 0.0, 0.0));
-  this->MaterialColors.insert("g1", QColor::fromRgbF(.7, .7, .7, 1.0));
+  this->MaterialColors.insert("MaterialBlock", QColor::fromRgbF(.7, .1, .7, 1.0));
   this->MaterialColors.insert("c1", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
   this->MaterialColors.insert("m3", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
   this->MaterialColors.insert("fuel1", QColor::fromRgbF(1.0, 0.1, 0.1, 1.0));
   this->MaterialColors.insert("fuel2", QColor::fromRgbF(1.0, 0.5, 0.5, 1.0));
   this->MaterialColors.insert("cntr1", QColor::fromRgbF(0.4, 1.0, 0.4, 1.0));
-  this->MaterialColors.insert("graphite", QColor::fromRgbF(.7, .7, .7, 1.0));
-  this->MaterialColors.insert("metal", QColor::fromRgbF(.4, .4, .4, 1.0));
+  this->MaterialColors.insert("graphite", QColor::fromRgbF(.4, .4, .4, 1.0));
+  this->MaterialColors.insert("metal", QColor::fromRgbF(.6, .6, .6, 1.0));
   this->MaterialColors.insert("coolant", QColor::fromRgbF(0.3, 0.5, 1.0, 1.0));
   this->MaterialColors.insert("fuel_uox1", QColor::fromRgbF(0.694, 0.0, 0.149, 1.0));
   this->MaterialColors.insert("fuel_uox2", QColor::fromRgbF(0.890, 0.102, 0.110, 1.0));
