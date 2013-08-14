@@ -26,12 +26,15 @@ SET(CMBNuclear_Srcs
   vtkCmbConeSource.cxx
   cmbNucPartsTreeItem.cxx
   cmbNucDragLabel.cxx
+  cmbNucPinCellEditor.cxx
 )
 
 SET(CMBNuclear_UI
   qNucMainWindow.ui
   qInputListWidget.ui
-  qInputPropertiesWidget.ui)
+  qInputPropertiesWidget.ui
+  cmbNucPinCellEditor.ui
+)
 
 SET(CMBNuclear_Headers
   cmbNucMainWindow.h
@@ -40,6 +43,7 @@ SET(CMBNuclear_Headers
 #  cmbNucPartsTreeItem.h
   cmbNucAssemblyEditor.h
   cmbNucDragLabel.h
+  cmbNucPinCellEditor.h
 )
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})

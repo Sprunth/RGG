@@ -57,9 +57,8 @@ public:
   std::string label;
   double MeshSize;
 
-private:
   // creates the polydata used to render the pincell
-  vtkPolyData* CreatePinCellPolyData(PinCell *pincell);
+  static vtkPolyData* CreatePinCellPolyData(PinCell *pincell);
 
 private:
   std::string GeometryType;

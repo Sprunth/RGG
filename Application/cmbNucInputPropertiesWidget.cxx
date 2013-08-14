@@ -5,6 +5,7 @@
 #include "cmbNucAssembly.h"
 #include "cmbNucAssemblyEditor.h"
 #include "cmbNucCore.h"
+#include "cmbNucPinCellEditor.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -70,6 +71,10 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onCoreDimensionChanged()));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
     this, SLOT(onCoreDimensionChanged()));
+
+  // pincell related connections
+  QObject::connect(this->Internal->advancedButton, SIGNAL(clicked()),
+    this, SLOT(showPinCellEditor()));
 }
 
 //-----------------------------------------------------------------------------
@@ -552,4 +557,32 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
 
     this->CoreEditor->resetUI(nucCore->Grid, actionList);
     }
+}
+
+void cmbNucInputPropertiesWidget::showPinCellEditor()
+{
+  // get the current pincell
+  PinCell* pincell = dynamic_cast<PinCell*>(this->CurrentObject);
+  if(!pincell)
+    {
+    std::cerr << "Error: don't have pincell" << std::endl;
+    return;
+    }
+
+  cmbNucPinCellEditor *editor = new cmbNucPinCellEditor(this);
+  editor->SetPinCell(pincell);
+  editor->setWindowFlags(Qt::Dialog);
+  connect(editor, SIGNAL(accepted()), this, SLOT(pinCellEditorAccepted()));
+  editor->show();
+}
+
+void cmbNucInputPropertiesWidget::pinCellEditorAccepted()
+{
+  cmbNucPinCellEditor *editor = qobject_cast<cmbNucPinCellEditor *>(sender());
+  if(!editor)
+    {
+    return;
+    }
+
+  emit this->currentObjectModified(editor->GetPinCell());
 }

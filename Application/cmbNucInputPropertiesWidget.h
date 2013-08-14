@@ -76,6 +76,9 @@ protected slots:
   // reset assembly lattice
   void resetAssemblyLattice();
 
+  void showPinCellEditor();
+  void pinCellEditorAccepted();
+
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;
 
