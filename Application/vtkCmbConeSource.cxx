@@ -205,6 +205,7 @@ int vtkCmbConeSource::RequestData(
 
       for (i = start; i <= end; ++i)
         {
+        x[0] = 0.0;
         x[1] = this->BaseRadius * cos ((i+1)*angle);
         x[2] = this->BaseRadius * sin ((i+1)*angle);
         pts[2] = newPoints->InsertNextPoint(x);
