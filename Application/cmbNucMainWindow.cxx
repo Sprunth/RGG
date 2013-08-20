@@ -25,6 +25,7 @@
 #include "vtkCompositeDataPipeline.h"
 #include "vtkAlgorithm.h"
 #include "vtkNew.h"
+#include "vtkCmbLayeredConeSource.h"
 
 // Constructor
 cmbNucMainWindow::cmbNucMainWindow()
@@ -46,8 +47,15 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Actor->SetMapper(this->Mapper.GetPointer());
   this->Actor->GetProperty()->SetShading(1);
   this->Actor->GetProperty()->SetInterpolationToPhong();
-//  this->Actor->GetProperty()->EdgeVisibilityOn();
+// this->Actor->GetProperty()->EdgeVisibilityOn();
   this->Renderer->AddActor(this->Actor);
+
+  vtkCmbLayeredConeSource *cone = vtkCmbLayeredConeSource::New();
+  cone->SetNumberOfLayers(3);
+  cone->SetHeight(20.0);
+  cone->Update();
+  this->Mapper->SetInputDataObject(cone->GetOutput());
+  cone->Delete();
 
   vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
   this->Mapper->SetCompositeDataDisplayAttributes(attributes);
@@ -55,7 +63,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // add axes actor
   vtkAxesActor *axesActor = vtkAxesActor::New();
-  this->Renderer->AddActor(axesActor);
+ // this->Renderer->AddActor(axesActor);
   axesActor->Delete();
 
   // Set up action signals and slots
@@ -87,11 +95,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->MaterialColors.insert("barod28", QColor::fromRgbF(0.455, 0.769, 0.463, 1.0));
   this->MaterialColors.insert("control_rod", QColor::fromRgbF(0.729, 0.894, 0.702, 1.0));
   this->MaterialColors.insert("cladding", QColor::fromRgbF(0.75, 0.75, 0.75, 1.0));
-  
 
   // default pin and duct color
   this->MaterialColors.insert("pin", QColor::fromRgbF(1.0, 0.1, 0.1));
   this->MaterialColors.insert("duct", QColor::fromRgbF(1.0, 1.0, 1.0));
+
+  this->Renderer->ResetCamera();
+  this->ui->qvtkWidget->update();
 }
 
 cmbNucMainWindow::~cmbNucMainWindow()
@@ -304,18 +314,7 @@ void cmbNucMainWindow::updateMaterialColors()
 
       std::string pinMaterial = "pin";
       PinCell* pinCell = assy->PinCells.size()>0 ? assy->PinCells[0] : NULL;
-      if(pinCell)
-        {
-        if(pinCell->cylinders.size()>0)
-          {
-          pinMaterial = pinCell->cylinders[0]->material;
-          }
-        else if(pinCell->frustums.size()>0)
-          {
-          pinMaterial = pinCell->frustums[0]->material;
-          }
-        }
-      pinMaterial = QString(pinMaterial.c_str()).toLower().toStdString();
+      pinMaterial = QString(pinCell->GetMaterial().c_str()).toLower().toStdString();
 //      while(!iter->IsDoneWithTraversal())
       int numAssyBlocks = data->GetNumberOfBlocks();
       for(unsigned int idx=0; idx<numAssyBlocks; idx++)

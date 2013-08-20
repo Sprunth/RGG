@@ -8,6 +8,7 @@
 
 #include "cmbNucDuctSource.h"
 #include "vtkCmbConeSource.h"
+#include "vtkCmbLayeredConeSource.h"
 
 #include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
@@ -89,24 +90,14 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
     PinCell* pincell = this->PinCells[i];
-    for(size_t j = 0; j < pincell->cylinders.size(); j++)
+    for(size_t j = 0; j < pincell->materials.size(); j++)
       {
-      Cylinder* cylinder = pincell->cylinders[j];
-      if(cylinder->material == name)
+      if(pincell->materials[j] == name)
         {
-        cylinder->material = "";
-        }
-      }
-    for(size_t j = 0; j < pincell->frustums.size(); j++)
-      {
-      Frustum* frustum = pincell->frustums[j];
-      if(frustum->material == name)
-        {
-        frustum->material = "";
+        pincell->materials[j] = "";
         }
       }
     }
-
 }
 
 PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
@@ -138,13 +129,18 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
 
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
-    if(input.eof() || value.empty())
+    if(input.eof())
       {
       break;
       }
-    if(value == "end")
+    else if(value == "end")
       {
       break;
+      }
+    else if(value.empty())
+      {
+      input.clear();
+      continue;
       }
     else if(value == "geometrytype")
       {
@@ -234,7 +230,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
                   >> cylinder->z1
                   >> cylinder->z2
                   >> cylinder->r
-                  >> cylinder->material;
+                  >> pincell->materials[0];
                 pincell->cylinders.push_back(cylinder);
               }
             }
@@ -251,7 +247,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
                   >> frustum->z2
                   >> frustum->r1
                   >> frustum->r2
-                  >> frustum->material;
+                  >> pincell->materials[0];
               pincell->frustums.push_back(frustum);
               }
             }
@@ -264,8 +260,14 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         size_t x;
         size_t y;
         input >> x >> y;
+        input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
         this->AssyLattice.SetDimensions(x, y);
+
+        if(input.peek() == '!')
+          {
+          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          }
 
         for(size_t i = 0; i < x; i++)
           {
@@ -273,6 +275,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             {
             input >> this->AssyLattice.Grid[i][j];
             }
+            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           }
         }
       else if(value == "tetmeshsize")
@@ -350,8 +353,11 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
         << cylinder->y << " "
         << cylinder->z1 << " "
         << cylinder->z2 << " "
-        << cylinder->r << " "
-        << cylinder->material << " ";
+        << cylinder->r << " ";
+      for(int material = 0; material < pincell->materials.size(); material++)
+        {
+        output << pincell->materials[material] << " ";
+        }
       if(j==pincell->cylinders.size()-1) output << "\n";
       }
 
@@ -364,8 +370,11 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
         << frustum->z1 << " "
         << frustum->z2 << " "
         << frustum->r1 << " "
-        << frustum->r2 << " "
-        << frustum->material << " ";
+        << frustum->r2 << " ";
+      for(int material = 0; material < pincell->materials.size(); material++)
+        {
+        output << pincell->materials[material] << " ";
+        }
       if(j==pincell->frustums.size()-1) output << "\n";
       }
     }
@@ -480,6 +489,11 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 
 vtkPolyData* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
 {
+  if(pincell->cylinders.size() + pincell->frustums.size() == 0)
+    {
+    return vtkPolyData::New();
+    }
+
   vtkAppendPolyData *merger = vtkAppendPolyData::New();
 
   const int PinCellResolution = 16;
@@ -488,34 +502,53 @@ vtkPolyData* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
     {
     Cylinder *cylinder = pincell->cylinders[j];
 
-    vtkCmbConeSource *cylinderSource = vtkCmbConeSource::New();
-    cylinderSource->SetBaseCenter(0, 0, cylinder->z1);
-    cylinderSource->SetHeight(cylinder->z2 - cylinder->z1);
-    cylinderSource->SetBaseRadius(cylinder->r);
-    cylinderSource->SetTopRadius(cylinder->r);
-    cylinderSource->SetResolution(PinCellResolution);
+    vtkCmbLayeredConeSource *coneSource = vtkCmbLayeredConeSource::New();
+    coneSource->SetNumberOfLayers(pincell->materials.size());
+    coneSource->SetBaseCenter(0, 0, cylinder->z1);
+    coneSource->SetHeight(cylinder->z2 - cylinder->z1);
+
+    for(int k = 0; k < pincell->materials.size(); k++)
+      {
+      coneSource->SetBaseRadius(k, pincell->radii[k] * cylinder->r);
+      coneSource->SetTopRadius(k, pincell->radii[k] * cylinder->r);
+      }
+    coneSource->SetResolution(PinCellResolution);
     double direction[] = { 0, 0, 1 };
-    cylinderSource->SetDirection(direction);
-    cylinderSource->Update();
-    merger->AddInputData(cylinderSource->GetOutput());
-    cylinderSource->Delete();
+    coneSource->SetDirection(direction);
+    coneSource->Update();
+
+    vtkMultiBlockDataSet *mbds = coneSource->GetOutput();
+    for(int layer = 0; layer < coneSource->GetNumberOfLayers(); layer++)
+      {
+      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
+      }
+    coneSource->Delete();
     }
 
   for(size_t j = 0; j < pincell->frustums.size(); j++)
     {
     Frustum* frustum = pincell->frustums[j];
 
-    vtkCmbConeSource *coneSource = vtkCmbConeSource::New();
+    vtkCmbLayeredConeSource *coneSource = vtkCmbLayeredConeSource::New();
+    coneSource->SetNumberOfLayers(pincell->materials.size());
     coneSource->SetBaseCenter(0, 0, frustum->z1);
     coneSource->SetHeight(frustum->z2 - frustum->z1);
-    coneSource->SetBaseRadius(frustum->r1);
-    coneSource->SetTopRadius(frustum->r2);
+
+    for(int k = 0; k < pincell->materials.size(); k++)
+      {
+      coneSource->SetBaseRadius(k, pincell->radii[k] * frustum->r1);
+      coneSource->SetTopRadius(k, pincell->radii[k] * frustum->r2);
+      }
     coneSource->SetResolution(PinCellResolution);
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
     coneSource->Update();
 
-    merger->AddInputData(coneSource->GetOutput());
+    vtkMultiBlockDataSet *mbds = coneSource->GetOutput();
+    for(int layer = 0; layer < coneSource->GetNumberOfLayers(); layer++)
+      {
+      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
+      }
     coneSource->Delete();
     }
 

@@ -56,7 +56,7 @@ enum enumNucPartsType
   public:
     Cylinder()
     {
-    x=0.0;y=0.0;z1=0.0;z2=4.0;r=1.6;material="";
+    x=0.0;y=0.0;z1=0.0;z2=4.0;r=1.6;
     }
     enumNucPartsType GetType()
     { return CMBNUC_ASSY_CYLINDER_PIN;}
@@ -64,14 +64,13 @@ enum enumNucPartsType
     {
     return this->x==obj.x && this->y==obj.y &&
             this->z1==obj.z1 && this->z2==obj.z2 &&
-            this->r==obj.r && this->material==obj.material;
-    } 
+            this->r==obj.r;
+    }
     double x;
     double y;
     double z1;
     double z2;
     double r;
-    std::string material;
   };
 
   class Frustum : public AssyPartObj
@@ -79,7 +78,7 @@ enum enumNucPartsType
   public:
     Frustum()
       {
-      x=0.0;y=0.0;z1=4.0;z2=8.0;r1=1.6;r2=1.4;material="";
+      x=0.0;y=0.0;z1=4.0;z2=8.0;r1=1.6;r2=1.4;
       }
     enumNucPartsType GetType()
     { return CMBNUC_ASSY_FRUSTUM_PIN;}
@@ -87,24 +86,28 @@ enum enumNucPartsType
       {
       return this->x==obj.x && this->y==obj.y &&
         this->z1==obj.z1 && this->z2==obj.z2 &&
-        this->r1==obj.r2 && this->r2==obj.r2 &&
-        this->material==obj.material;
-      } 
+        this->r1==obj.r2 && this->r2==obj.r2;
+      }
     double x;
     double y;
     double z1;
     double z2;
     double r1;
     double r2;
-    std::string material;
   };
 
   class PinCell : public AssyPartObj
   {
   public:
     PinCell()
+      : radii(1),
+        materials(1)
       {
-      pitchX=4.0;pitchY=4.0;pitchZ=4.0;name=label="newpin";
+      pitchX=4.0;
+      pitchY=4.0;
+      pitchZ=4.0;
+      name=label="p1";
+      radii[0] = 1.0;
       }
     ~PinCell()
       {
@@ -122,18 +125,14 @@ enum enumNucPartsType
       {
       this->removeObj(frustum, this->frustums);
       }
-      std::string GetMaterial()
-          {
-              if (this->cylinders.size())
-                  {
-                  return this->cylinders[0]->material;
-                  }
-              if (this->frustums.size())
-                  {
-                  return this->frustums[0]->material;
-                  }
-              return std::string("");
-          } 
+    std::string GetMaterial()
+      {
+      if(this->materials.empty())
+        {
+        return std::string();
+        }
+      return this->materials[0];
+      }
     std::string name;
     std::string label;
     double pitchX;
@@ -141,6 +140,8 @@ enum enumNucPartsType
     double pitchZ;
     std::vector<Cylinder*> cylinders;
     std::vector<Frustum*> frustums;
+    std::vector<double> radii;
+    std::vector<std::string> materials;
   };
 
   class Duct : public AssyPartObj

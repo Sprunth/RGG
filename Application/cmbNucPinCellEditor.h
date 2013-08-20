@@ -10,7 +10,9 @@
 
 #include "ui_cmbNucPinCellEditor.h"
 
+class QComboBox;
 class PinCell;
+class cmbNucAssembly;
 
 class cmbNucPinCellEditor : public QWidget
 {
@@ -23,8 +25,11 @@ public:
   void SetPinCell(PinCell *pincell);
   PinCell* GetPinCell();
 
+  void SetAssembly(cmbNucAssembly *assembly) { this->AssemblyObject = assembly; }
+
   void UpdatePinCell();
   void UpdatePolyData();
+  void UpdateRenderView();
 
 public slots:
   void Apply();
@@ -34,12 +39,19 @@ signals:
   void rejected();
 
 private slots:
+  void tableCellChanged(int row, int col);
+  void tableItemChanged(QTableWidgetItem *item);
   void addComponent();
   void deleteComponent();
+  void numberOfLayersChanged(int layers);
+  void sectionTypeComboBoxChanged(const QString &type);
+  void setupMaterialComboBox(QComboBox *comboBox);
+  void layerTableCellChanged(int row, int col);
 
 private:
   Ui::cmbNucPinCellEditor *Ui;
   PinCell *PinCellObject;
+  cmbNucAssembly *AssemblyObject;
   vtkSmartPointer<vtkActor> Actor;
   vtkSmartPointer<vtkPolyDataMapper> Mapper;
   vtkSmartPointer<vtkRenderer> Renderer;

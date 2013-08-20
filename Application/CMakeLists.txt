@@ -24,6 +24,7 @@ SET(CMBNuclear_Srcs
   cmbNucInputPropertiesWidget.cxx
   cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
+  vtkCmbLayeredConeSource.cxx
   cmbNucPartsTreeItem.cxx
   cmbNucDragLabel.cxx
   cmbNucPinCellEditor.cxx

@@ -23,14 +23,14 @@ public:
     {
     this->Action_NewAssembly = new QAction("Create Assembly", this->PartsList);
     this->Action_NewPin = new QAction("Create Pin", this->PartsList);
-    this->Action_NewFrustum = new QAction("Create Frustum", this->PartsList);
-    this->Action_NewCylinder = new QAction("Create Cylinder", this->PartsList);
+    //this->Action_NewFrustum = new QAction("Create Frustum", this->PartsList);
+    //this->Action_NewCylinder = new QAction("Create Cylinder", this->PartsList);
     this->Action_NewDuct = new QAction("Create Duct", this->PartsList);
     this->Action_DeletePart = new QAction("Delete Selected", this->PartsList);
     this->PartsList->addAction(this->Action_NewAssembly);
     this->PartsList->addAction(this->Action_NewPin);
-    this->PartsList->addAction(this->Action_NewFrustum);
-    this->PartsList->addAction(this->Action_NewCylinder);
+    //this->PartsList->addAction(this->Action_NewFrustum);
+    //this->PartsList->addAction(this->Action_NewCylinder);
     this->PartsList->addAction(this->Action_NewDuct);
     this->PartsList->addAction(this->Action_DeletePart);
 
@@ -42,8 +42,8 @@ public:
 
   QPointer<QAction> Action_NewAssembly;
   QPointer<QAction> Action_NewPin;
-  QPointer<QAction> Action_NewFrustum;
-  QPointer<QAction> Action_NewCylinder;
+  //QPointer<QAction> Action_NewFrustum;
+  //QPointer<QAction> Action_NewCylinder;
   QPointer<QAction> Action_NewDuct;
   QPointer<QAction> Action_DeletePart;
 
@@ -70,12 +70,12 @@ cmbNucInputListWidget::cmbNucInputListWidget(
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
     this, SLOT(onNewAssembly()));
-  QObject::connect(this->Internal->Action_NewCylinder, SIGNAL(triggered()),
-    this, SLOT(onNewCylinder()));
+  //QObject::connect(this->Internal->Action_NewCylinder, SIGNAL(triggered()),
+  //  this, SLOT(onNewCylinder()));
   QObject::connect(this->Internal->Action_NewDuct, SIGNAL(triggered()),
     this, SLOT(onNewDuct()));
-  QObject::connect(this->Internal->Action_NewFrustum, SIGNAL(triggered()),
-    this, SLOT(onNewFrustum()));
+  //QObject::connect(this->Internal->Action_NewFrustum, SIGNAL(triggered()),
+  // this, SLOT(onNewFrustum()));
   QObject::connect(this->Internal->Action_NewPin, SIGNAL(triggered()),
     this, SLOT(onNewPin()));
   QObject::connect(this->Internal->Action_DeletePart, SIGNAL(triggered()),
@@ -218,8 +218,8 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
   this->Internal->Action_NewAssembly->setEnabled(val);
   this->Internal->Action_NewPin->setEnabled(val);
   this->Internal->Action_NewDuct->setEnabled(val);
-  this->Internal->Action_NewFrustum->setEnabled(val);
-  this->Internal->Action_NewCylinder->setEnabled(val);
+  //this->Internal->Action_NewFrustum->setEnabled(val);
+  //this->Internal->Action_NewCylinder->setEnabled(val);
   this->Internal->Action_DeletePart->setEnabled(val);
 }
 //----------------------------------------------------------------------------
@@ -668,18 +668,18 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
     this->Internal->Action_NewPin->setEnabled(false);
     break;
   case CMBNUC_ASSY_PINCELL:
-    this->Internal->Action_NewFrustum->setEnabled(true);
-    this->Internal->Action_NewCylinder->setEnabled(true);
+    //this->Internal->Action_NewFrustum->setEnabled(true);
+    //this->Internal->Action_NewCylinder->setEnabled(true);
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_FRUSTUM_PIN:
-    this->Internal->Action_NewFrustum->setEnabled(true);
-    this->Internal->Action_NewCylinder->setEnabled(true);
+    //this->Internal->Action_NewFrustum->setEnabled(true);
+    //this->Internal->Action_NewCylinder->setEnabled(true);
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_CYLINDER_PIN:
-    this->Internal->Action_NewFrustum->setEnabled(true);
-    this->Internal->Action_NewCylinder->setEnabled(true);
+    //this->Internal->Action_NewFrustum->setEnabled(true);
+    //this->Internal->Action_NewCylinder->setEnabled(true);
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_RECT_DUCT:

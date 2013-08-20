@@ -279,9 +279,6 @@ void cmbNucInputPropertiesWidget::resetMaterial(Material* material)
 void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
 {
   this->Internal->PinCellLabel->setText(pincell->label.c_str());
-  this->Internal->CellPitchX->setText(QString::number(pincell->pitchX));
-  this->Internal->CellPitchY->setText(QString::number(pincell->pitchY));
-  this->Internal->CellPitchZ->setText(QString::number(pincell->pitchZ));
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetFrustum(Frustum* frust)
@@ -294,8 +291,8 @@ void cmbNucInputPropertiesWidget::resetFrustum(Frustum* frust)
   this->Internal->FrustumRadius1->setText(QString::number(frust->r1));
   this->Internal->FrustumRadius2->setText(QString::number(frust->r2));
 
-  this->Internal->FrustumMaterial->setCurrentIndex(
-    this->Internal->FrustumMaterial->findText(frust->material.c_str()));
+  //this->Internal->FrustumMaterial->setCurrentIndex(
+  //  this->Internal->FrustumMaterial->findText(frust->material.c_str()));
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetCylinder(Cylinder* cylin)
@@ -306,8 +303,8 @@ void cmbNucInputPropertiesWidget::resetCylinder(Cylinder* cylin)
   this->Internal->CylinderZPos2->setText(QString::number(cylin->z2));
 
   this->Internal->CylinderRadius->setText(QString::number(cylin->r));
-  this->Internal->CylinderMaterial->setCurrentIndex(
-    this->Internal->CylinderMaterial->findText(cylin->material.c_str()));
+  //this->Internal->CylinderMaterial->setCurrentIndex(
+  //  this->Internal->CylinderMaterial->findText(cylin->material.c_str()));
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
@@ -438,9 +435,6 @@ void cmbNucInputPropertiesWidget::applyToMaterial(Material* material)
 void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 {
   pincell->label = this->Internal->PinCellLabel->text().toStdString();
-  pincell->pitchX = this->Internal->CellPitchX->text().toDouble();
-  pincell->pitchY = this->Internal->CellPitchY->text().toDouble();
-  pincell->pitchZ = this->Internal->CellPitchZ->text().toDouble();
   emit this->currentObjectModified(pincell);
 }
 //-----------------------------------------------------------------------------
@@ -453,7 +447,7 @@ void cmbNucInputPropertiesWidget::applyToFrustum(Frustum* frust)
   frust->r1 = this->Internal->FrustumRadius1->text().toDouble();
   frust->r2 = this->Internal->FrustumRadius2->text().toDouble();
 
-  frust->material = this->Internal->FrustumMaterial->currentText().toStdString();
+  //frust->material = this->Internal->FrustumMaterial->currentText().toStdString();
   emit this->currentObjectModified(frust);
 }
 //-----------------------------------------------------------------------------
@@ -465,7 +459,7 @@ void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
   cylin->z2 = this->Internal->CylinderZPos2->text().toDouble();
   cylin->r = this->Internal->CylinderRadius->text().toDouble();
 
-  cylin->material = this->Internal->CylinderMaterial->currentText().toStdString();
+  //cylin->material = this->Internal->CylinderMaterial->currentText().toStdString();
   emit this->currentObjectModified(cylin);
 }
 //-----------------------------------------------------------------------------
@@ -584,5 +578,6 @@ void cmbNucInputPropertiesWidget::pinCellEditorAccepted()
     return;
     }
 
-  emit this->currentObjectModified(editor->GetPinCell());
+  this->applyToPinCell(editor->GetPinCell());
+  //emit this->currentObjectModified(editor->GetPinCell());
 }
