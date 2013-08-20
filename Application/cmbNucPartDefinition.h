@@ -133,6 +133,10 @@ enum enumNucPartsType
         }
       return this->materials[0];
       }
+    int GetNumberOfLayers()
+      {
+      return this->materials.size();
+      }
     std::string name;
     std::string label;
     double pitchX;

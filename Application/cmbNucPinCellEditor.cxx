@@ -64,14 +64,14 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
   this->Ui->qvtkWidget->GetRenderWindow()->AddRenderer(this->Renderer);
   this->Actor = vtkSmartPointer<vtkActor>::New();
-  this->Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
   this->Actor->SetMapper(this->Mapper);
   this->Renderer->AddActor(this->Actor);
 
   this->Ui->layersTable->setRowCount(0);
   this->Ui->layersTable->setColumnCount(2);
   this->Ui->layersTable->setHorizontalHeaderLabels(
-    QStringList() << "Material" << "Radius"
+    QStringList() << "Material" << "Radius (normalized)"
   );
 
   connect(this->Ui->acceptButton, SIGNAL(clicked()), this, SLOT(Apply()));
@@ -158,6 +158,9 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell)
     }
   else
     {
+    this->Ui->layersSpinBox->blockSignals(true);
+    this->Ui->layersSpinBox->setValue(layers);
+    this->Ui->layersSpinBox->blockSignals(false);
     this->Ui->layersTable->setRowCount(layers);
     for(int i = 0; i < layers; i++)
       {
@@ -269,9 +272,9 @@ void cmbNucPinCellEditor::UpdatePinCell()
 
 void cmbNucPinCellEditor::UpdatePolyData()
 {
-  vtkPolyData *polyData = cmbNucAssembly::CreatePinCellPolyData(this->PinCellObject);
-  this->Mapper->SetInputData(polyData);
-  polyData->Delete();
+  vtkMultiBlockDataSet *data_set = cmbNucAssembly::CreatePinCellPolyData(this->PinCellObject);
+  this->Mapper->SetInputDataObject(data_set);
+  data_set->Delete();
 }
 
 void cmbNucPinCellEditor::UpdateRenderView()

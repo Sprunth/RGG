@@ -305,7 +305,18 @@ void cmbNucMainWindow::updateMaterialColors()
         }
 
       std::pair<int, int> dimensions = assy->AssyLattice.GetDimensions();
-      int pins = dimensions.first * dimensions.second;
+
+      // count number of pin blocks in the data set
+      int pins = 0;
+      for(int i = 0; i < dimensions.first; i++)
+        {
+        for(int j = 0; j < dimensions.second; j++)
+          {
+          std::string label = assy->AssyLattice.GetCell(i, j);
+          PinCell* pinCell = assy->GetPinCell(label);
+          pins += 1;
+          }
+        }
 
 //      vtkDataObjectTreeIterator *iter = data->NewTreeIterator();
 //      iter->SetSkipEmptyNodes(false);
@@ -314,22 +325,32 @@ void cmbNucMainWindow::updateMaterialColors()
 
       std::string pinMaterial = "pin";
       PinCell* pinCell = assy->PinCells.size()>0 ? assy->PinCells[0] : NULL;
-      pinMaterial = QString(pinCell->GetMaterial().c_str()).toLower().toStdString();
+      if(pinCell)
+        {
+        pinMaterial = pinCell->GetMaterial();
+        }
 //      while(!iter->IsDoneWithTraversal())
       int numAssyBlocks = data->GetNumberOfBlocks();
       for(unsigned int idx=0; idx<numAssyBlocks; idx++)
         {
-        realflatidx++;
+        realflatidx += 1;
         if(pin_count < pins)
           {
           int i = realflatidx;
           pinMaterial = assy->GetCellMaterial(pin_count);
           pinMaterial = QString(pinMaterial.c_str()).toLower().toStdString();
           //std::cout << "Pin Material = " << pinMaterial << "\n";
-          QColor pinColor = this->MaterialColors[pinMaterial.c_str()];
-          double color[] = { pinColor.redF(), pinColor.greenF(), pinColor.blueF() };
-          attributes->SetBlockColor(i, color);
-          attributes->SetBlockOpacity(i, pinColor.alphaF());
+          if(pinCell)
+            {
+            for(int j = 0; j < pinCell->GetNumberOfLayers(); j++)
+              {
+              QColor pinColor = this->MaterialColors[pinMaterial.c_str()];
+              double color[] = { pinColor.redF(), pinColor.greenF(), pinColor.blueF() };
+              attributes->SetBlockColor(i+j, color);
+              attributes->SetBlockOpacity(i+j, pinColor.alphaF());
+              realflatidx++;
+              }
+            }
           pin_count++;
           }
         else // ducts need to color by layers

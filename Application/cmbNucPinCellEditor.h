@@ -4,7 +4,7 @@
 #include <QWidget>
 
 #include <vtkActor.h>
-#include <vtkPolyDataMapper.h>
+#include <vtkCompositePolyDataMapper2.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 
@@ -53,7 +53,7 @@ private:
   PinCell *PinCellObject;
   cmbNucAssembly *AssemblyObject;
   vtkSmartPointer<vtkActor> Actor;
-  vtkSmartPointer<vtkPolyDataMapper> Mapper;
+  vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
   vtkSmartPointer<vtkRenderer> Renderer;
 };
 

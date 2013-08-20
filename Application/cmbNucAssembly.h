@@ -58,7 +58,7 @@ public:
   double MeshSize;
 
   // creates the polydata used to render the pincell
-  static vtkPolyData* CreatePinCellPolyData(PinCell *pincell);
+  static vtkMultiBlockDataSet* CreatePinCellPolyData(PinCell *pincell);
 
 private:
   std::string GeometryType;
