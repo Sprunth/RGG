@@ -16,6 +16,7 @@
 #include "vtkCellArray.h"
 #include "vtkPoints.h"
 #include "vtkPolyDataNormals.h"
+#include "vtkNew.h"
 
 cmbNucAssembly::cmbNucAssembly()
 {
@@ -454,22 +455,33 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
           {
           // create polydata for the pincell
           vtkMultiBlockDataSet *dataSet = this->CreatePinCellPolyData(pincell);
+          vtkNew<vtkMultiBlockDataSet> transdataSet;
+          transdataSet->SetNumberOfBlocks(dataSet->GetNumberOfBlocks());
+          for(int block=0; block<dataSet->GetNumberOfBlocks(); block++)
+            {
+            vtkPolyData* polyBlock =
+              vtkPolyData::SafeDownCast(dataSet->GetBlock(block));
+            if(!polyBlock)
+              {
+              continue;
+              }
 
-          // move the polydata to the correct position
-          vtkTransform *transform = vtkTransform::New();
-          double radius = pincell->cylinders.size()>0 ? pincell->cylinders[0]->r :
-            pincell->frustums[0]->r1;
-          transform->Translate(chamberStart + i * cellLength + radius,
-                               chamberStart + j * cellLength + radius,
-                               0);
-          vtkTransformFilter *filter = vtkTransformFilter::New();
-          filter->SetTransform(transform);
-          transform->Delete();
-          filter->SetInputDataObject(dataSet);
+            // move the polydata to the correct position
+            vtkTransform *transform = vtkTransform::New();
+            double radius = pincell->cylinders.size()>0 ? pincell->cylinders[0]->r :
+              pincell->frustums[0]->r1;
+            transform->Translate(chamberStart + i * cellLength + radius,
+                                 chamberStart + j * cellLength + radius,
+                                 0);
+            vtkNew<vtkTransformFilter> filter;
+            filter->SetTransform(transform);
+            transform->Delete();
+            filter->SetInputDataObject(polyBlock);
+            filter->Update();
+            transdataSet->SetBlock(block, filter->GetOutput());
+            }
           dataSet->Delete();
-          filter->Update();
-          this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, filter->GetOutput());
-          filter->Delete();
+          this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, transdataSet.GetPointer());
           }
         else
           {
@@ -513,15 +525,15 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
     return vtkMultiBlockDataSet::New();
     }
 
-  vtkAppendPolyData *merger = vtkAppendPolyData::New();
-
+  // build all cylinders and frustums
   const int PinCellResolution = 16;
-
+  std::vector<vtkSmartPointer<vtkCmbLayeredConeSource> > cylinderSrcs;
   for(size_t j = 0; j < pincell->cylinders.size(); j++)
     {
     Cylinder *cylinder = pincell->cylinders[j];
 
-    vtkCmbLayeredConeSource *coneSource = vtkCmbLayeredConeSource::New();
+    vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
+      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
     coneSource->SetNumberOfLayers(pincell->materials.size());
     coneSource->SetBaseCenter(0, 0, cylinder->z1);
     coneSource->SetHeight(cylinder->z2 - cylinder->z1);
@@ -535,20 +547,16 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
     coneSource->Update();
-
-    vtkMultiBlockDataSet *mbds = coneSource->GetOutput();
-    for(int layer = 0; layer < coneSource->GetNumberOfLayers(); layer++)
-      {
-      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
-      }
-    coneSource->Delete();
+    cylinderSrcs.push_back(coneSource);
     }
 
+  std::vector<vtkSmartPointer<vtkCmbLayeredConeSource> > frustumSrcs;
   for(size_t j = 0; j < pincell->frustums.size(); j++)
     {
     Frustum* frustum = pincell->frustums[j];
 
-    vtkCmbLayeredConeSource *coneSource = vtkCmbLayeredConeSource::New();
+    vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
+      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
     coneSource->SetNumberOfLayers(pincell->materials.size());
     coneSource->SetBaseCenter(0, 0, frustum->z1);
     coneSource->SetHeight(frustum->z2 - frustum->z1);
@@ -562,46 +570,39 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
     coneSource->Update();
-
-    vtkMultiBlockDataSet *mbds = coneSource->GetOutput();
-    for(int layer = 0; layer < coneSource->GetNumberOfLayers(); layer++)
-      {
-      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
-      }
-    coneSource->Delete();
+    frustumSrcs.push_back(coneSource);
     }
 
-  vtkPolyDataNormals *normals = vtkPolyDataNormals::New();
-  normals->SetInputConnection(merger->GetOutputPort());
-  merger->Delete();
-  normals->Update();
-
-  vtkPolyData *polyData = vtkPolyData::New();
-  polyData->DeepCopy(normals->GetOutput());
-  normals->Delete();
-
   vtkMultiBlockDataSet *dataSet = vtkMultiBlockDataSet::New();
-  dataSet->SetNumberOfBlocks(1);
-  dataSet->SetBlock(0, polyData);
-  polyData->Delete();
-  return dataSet;
-}
+  dataSet->SetNumberOfBlocks(pincell->materials.size());
+  // Now append each layer's polydata together to form a multiblock with
+  // appended layers as blocks. ASSUMING all sections have same layers.
+  for(int layer=0; layer<pincell->materials.size(); layer++)
+    {
+    vtkAppendPolyData *merger = vtkAppendPolyData::New();
+    for(size_t j = 0; j <cylinderSrcs.size(); j++)
+      {
+      vtkMultiBlockDataSet *mbds = cylinderSrcs[j]->GetOutput();
+      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
+      }
+    for(int k = 0; k < frustumSrcs.size(); k++)
+      {
+      vtkMultiBlockDataSet *mbds = frustumSrcs[k]->GetOutput();
+      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
+      }
+ 
+    merger->Update();
+    vtkPolyDataNormals *normals = vtkPolyDataNormals::New();
+    normals->SetInputConnection(merger->GetOutputPort());
+    merger->Delete();
+    normals->Update();
 
-std::string cmbNucAssembly::GetCellMaterial(int i)
-{
-// First find the cell
-    std::string cellType = this->AssyLattice.GetCell(i);
-    std::string result;
-    // If the cell is xx then return ""
-    if (cellType == "xx")
-        {
-        return result;
-        }
-    // Get the pin
-    PinCell *pin = this->GetPinCell(cellType);
-    if (pin)
-        {
-        return pin->GetMaterial();
-        }
-    return result;
+    vtkPolyData *polyData = vtkPolyData::New();
+    polyData->DeepCopy(normals->GetOutput());
+    normals->Delete();
+    dataSet->SetBlock(layer, polyData);
+    polyData->Delete();
+    }
+
+  return dataSet;
 }

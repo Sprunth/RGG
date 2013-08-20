@@ -312,8 +312,6 @@ void cmbNucMainWindow::updateMaterialColors()
         {
         for(int j = 0; j < dimensions.second; j++)
           {
-          std::string label = assy->AssyLattice.GetCell(i, j);
-          PinCell* pinCell = assy->GetPinCell(label);
           pins += 1;
           }
         }
@@ -324,12 +322,6 @@ void cmbNucMainWindow::updateMaterialColors()
       int ducts_count = 0;
 
       std::string pinMaterial = "pin";
-      PinCell* pinCell = assy->PinCells.size()>0 ? assy->PinCells[0] : NULL;
-      if(pinCell)
-        {
-        pinMaterial = pinCell->GetMaterial();
-        }
-//      while(!iter->IsDoneWithTraversal())
       int numAssyBlocks = data->GetNumberOfBlocks();
       for(unsigned int idx=0; idx<numAssyBlocks; idx++)
         {
@@ -337,18 +329,22 @@ void cmbNucMainWindow::updateMaterialColors()
         if(pin_count < pins)
           {
           int i = realflatidx;
-          pinMaterial = assy->GetCellMaterial(pin_count);
-          pinMaterial = QString(pinMaterial.c_str()).toLower().toStdString();
-          //std::cout << "Pin Material = " << pinMaterial << "\n";
+
+          std::string label = assy->AssyLattice.GetCell(pin_count);
+          PinCell* pinCell = assy->GetPinCell(label);
+
           if(pinCell)
             {
+          //std::cout << "Pin Material = " << pinMaterial << "\n";
             for(int j = 0; j < pinCell->GetNumberOfLayers(); j++)
               {
+              realflatidx++;
+              pinMaterial = pinCell->GetMaterial(j);
+              pinMaterial = QString(pinMaterial.c_str()).toLower().toStdString();
               QColor pinColor = this->MaterialColors[pinMaterial.c_str()];
               double color[] = { pinColor.redF(), pinColor.greenF(), pinColor.blueF() };
-              attributes->SetBlockColor(i+j, color);
-              attributes->SetBlockOpacity(i+j, pinColor.alphaF());
-              realflatidx++;
+              attributes->SetBlockColor(realflatidx, color);
+              attributes->SetBlockOpacity(realflatidx, pinColor.alphaF());
               }
             }
           pin_count++;

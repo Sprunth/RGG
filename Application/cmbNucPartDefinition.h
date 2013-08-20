@@ -125,13 +125,13 @@ enum enumNucPartsType
       {
       this->removeObj(frustum, this->frustums);
       }
-    std::string GetMaterial()
+    std::string GetMaterial(int i)
       {
-      if(this->materials.empty())
+      if(i>=0 && i<this->materials.size())
         {
-        return std::string();
+        return this->materials[i];
         }
-      return this->materials[0];
+      return std::string();
       }
     int GetNumberOfLayers()
       {
