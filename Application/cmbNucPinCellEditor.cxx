@@ -6,9 +6,11 @@
 
 #include <vtkRenderWindow.h>
 #include <vtkClipClosedSurface.h>
+#include "vtkCompositeDataDisplayAttributes.h"
 
 #include "cmbNucPartDefinition.h"
 #include "cmbNucAssembly.h"
+#include "cmbNucMaterialColors.h"
 
 class PinCellComponent
 {
@@ -67,6 +69,10 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
   this->Actor->SetMapper(this->Mapper);
   this->Renderer->AddActor(this->Actor);
+
+  vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
+  this->Mapper->SetCompositeDataDisplayAttributes(attributes);
+  attributes->Delete();
 
   this->Ui->layersTable->setRowCount(0);
   this->Ui->layersTable->setColumnCount(2);
@@ -183,10 +189,6 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell)
       }
     }
   this->UpdatePolyData();
-
-  // setup 3d view
-  this->Renderer->ResetCamera();
-  this->Ui->qvtkWidget->update();
 }
 
 PinCell* cmbNucPinCellEditor::GetPinCell()
@@ -250,6 +252,11 @@ void cmbNucPinCellEditor::UpdatePinCell()
     z += l;
   }
 
+  this->UpdateLayerMaterials();
+}
+
+void cmbNucPinCellEditor::UpdateLayerMaterials()
+{
   // setup materials
   int materials = this->Ui->layersTable->rowCount();
   this->PinCellObject->materials.resize(materials);
@@ -273,8 +280,21 @@ void cmbNucPinCellEditor::UpdatePinCell()
 void cmbNucPinCellEditor::UpdatePolyData()
 {
   vtkMultiBlockDataSet *data_set = cmbNucAssembly::CreatePinCellPolyData(this->PinCellObject);
+
   this->Mapper->SetInputDataObject(data_set);
+  vtkCompositeDataDisplayAttributes *attributes =
+    this->Mapper->GetCompositeDataDisplayAttributes();
+  for(unsigned int idx=0; idx<data_set->GetNumberOfBlocks(); idx++)
+    {
+    std::string pinMaterial = this->PinCellObject->materials[idx];
+    pinMaterial = QString(pinMaterial.c_str()).toLower().toStdString();
+    QColor pinColor = NUCLEAR_MaterialColors()[pinMaterial.c_str()];
+    double color[] = { pinColor.redF(), pinColor.greenF(), pinColor.blueF() };
+    attributes->SetBlockColor(idx+1, color);
+    attributes->SetBlockOpacity(idx+1, pinColor.alphaF());
+    }
   data_set->Delete();
+  this->UpdateRenderView();
 }
 
 void cmbNucPinCellEditor::UpdateRenderView()
@@ -327,7 +347,6 @@ void cmbNucPinCellEditor::addComponent()
   // update view
   this->UpdatePinCell();
   this->UpdatePolyData();
-  this->UpdateRenderView();
 }
 
 void cmbNucPinCellEditor::deleteComponent()
@@ -342,7 +361,6 @@ void cmbNucPinCellEditor::deleteComponent()
   // update view
   this->UpdatePinCell();
   this->UpdatePolyData();
-  this->UpdateRenderView();
 }
 
 void cmbNucPinCellEditor::tableCellChanged(int row, int col)
@@ -403,7 +421,6 @@ void cmbNucPinCellEditor::tableCellChanged(int row, int col)
   // update pin cell and render view
   this->UpdatePinCell();
   this->UpdatePolyData();
-  this->UpdateRenderView();
 }
 
 void cmbNucPinCellEditor::tableItemChanged(QTableWidgetItem *item)
@@ -427,7 +444,8 @@ void cmbNucPinCellEditor::numberOfLayersChanged(int layers)
     QComboBox *comboBox = new QComboBox;
     this->setupMaterialComboBox(comboBox);
     this->Ui->layersTable->setCellWidget(row, 0, comboBox);
-
+    QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
+      this, SLOT(onUpdateLayerMaterial()));
     item = new QTableWidgetItem;
     item->setText(QString::number(1.0));
     this->Ui->layersTable->setItem(row, 1, item);
@@ -447,7 +465,6 @@ void cmbNucPinCellEditor::sectionTypeComboBoxChanged(const QString &type)
 //  this->tableCellChanged(row, 0);
   this->UpdatePinCell();
   this->UpdatePolyData();
-  this->UpdateRenderView();
 }
 
 void cmbNucPinCellEditor::setupMaterialComboBox(QComboBox *comboBox)
@@ -470,5 +487,10 @@ void cmbNucPinCellEditor::layerTableCellChanged(int row, int col)
 {
   this->UpdatePinCell();
   this->UpdatePolyData();
-  this->UpdateRenderView();
+}
+
+void cmbNucPinCellEditor::onUpdateLayerMaterial()
+{
+  this->UpdateLayerMaterials();
+  this->UpdatePolyData();
 }

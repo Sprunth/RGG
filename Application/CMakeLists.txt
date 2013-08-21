@@ -22,6 +22,7 @@ SET(CMBNuclear_Srcs
   cmbNucDuctSource.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
+  cmbNucMaterialColors.h
   cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
   vtkCmbLayeredConeSource.cxx

@@ -2,7 +2,6 @@
 #define __cmbNucPinCellEditor_h
 
 #include <QWidget>
-
 #include <vtkActor.h>
 #include <vtkCompositePolyDataMapper2.h>
 #include <vtkRenderer.h>
@@ -27,12 +26,12 @@ public:
 
   void SetAssembly(cmbNucAssembly *assembly) { this->AssemblyObject = assembly; }
 
+public slots:
+  void Apply();
   void UpdatePinCell();
   void UpdatePolyData();
   void UpdateRenderView();
-
-public slots:
-  void Apply();
+  void onUpdateLayerMaterial();
 
 signals:
   void accepted();
@@ -47,6 +46,7 @@ private slots:
   void sectionTypeComboBoxChanged(const QString &type);
   void setupMaterialComboBox(QComboBox *comboBox);
   void layerTableCellChanged(int row, int col);
+  void UpdateLayerMaterials();
 
 private:
   Ui::cmbNucPinCellEditor *Ui;
