@@ -19,6 +19,7 @@ class cmbNucAssembly;
 class cmbNucCore;
 class cmbNucInputPropertiesWidget;
 class cmbNucInputListWidget;
+class cmbNucMaterialColors;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -59,7 +60,7 @@ private:
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 
-  QMap<QString, QColor> MaterialColors;
+  cmbNucMaterialColors* MaterialColors;
 };
 
 #endif // cmbNucMainWindow_H

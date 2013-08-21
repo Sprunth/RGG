@@ -288,7 +288,8 @@ void cmbNucPinCellEditor::UpdatePolyData()
     {
     std::string pinMaterial = this->PinCellObject->materials[idx];
     pinMaterial = QString(pinMaterial.c_str()).toLower().toStdString();
-    QColor pinColor = NUCLEAR_MaterialColors()[pinMaterial.c_str()];
+    cmbNucMaterialColors matColorMap;
+    QColor pinColor = matColorMap.MaterialColorMap()[pinMaterial.c_str()];
     double color[] = { pinColor.redF(), pinColor.greenF(), pinColor.blueF() };
     attributes->SetBlockColor(idx+1, color);
     attributes->SetBlockOpacity(idx+1, pinColor.alphaF());
