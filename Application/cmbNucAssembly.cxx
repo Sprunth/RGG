@@ -405,7 +405,12 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
     {
     for(size_t j = 0; j < this->AssyLattice.Grid[i].size(); j++)
       {
-      output << this->AssyLattice.Grid[i][j] << " ";
+      std::string label = this->AssyLattice.Grid[i][j];
+      if(label.empty())
+        {
+        label = "xx";
+        }
+      output << label << " ";
       }
     output << "\n";
     }
