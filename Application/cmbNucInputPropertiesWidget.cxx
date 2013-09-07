@@ -6,6 +6,7 @@
 #include "cmbNucAssemblyEditor.h"
 #include "cmbNucCore.h"
 #include "cmbNucPinCellEditor.h"
+#include "cmbNucMaterialColors.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -99,13 +100,7 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::updateMaterials()
 {
-  if(!this->Assembly)
-  {
-  return;
-  }
   // update materials
-  QStringList materials;
-
   this->Internal->DuctLayerMaterial->blockSignals(true);
   this->Internal->FrustumMaterial->blockSignals(true);
   this->Internal->CylinderMaterial->blockSignals(true);
@@ -113,17 +108,16 @@ void cmbNucInputPropertiesWidget::updateMaterials()
   this->Internal->DuctLayerMaterial->clear();
   this->Internal->FrustumMaterial->clear();
   this->Internal->CylinderMaterial->clear();
-  if(this->Assembly)
+
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  QString matLabel;
+  foreach(QString material, matColorMap->MaterialColorMap().keys())
     {
-    for(size_t i = 0; i < this->Assembly->Materials.size(); i++)
-      {
-      Material *material = this->Assembly->Materials[i];
-      this->Internal->DuctLayerMaterial->addItem(material->label.c_str());
-      this->Internal->FrustumMaterial->addItem(material->label.c_str());
-      this->Internal->CylinderMaterial->addItem(material->label.c_str());
-      materials.append(material->label.c_str());
-      } 
-    }
+    matLabel = matColorMap->MaterialColorMap()[material].first;
+    this->Internal->DuctLayerMaterial->addItem(matLabel);
+    this->Internal->FrustumMaterial->addItem(matLabel);
+    this->Internal->CylinderMaterial->addItem(matLabel);
+    } 
 
   this->Internal->DuctLayerMaterial->blockSignals(false);
   this->Internal->FrustumMaterial->blockSignals(false);
@@ -138,8 +132,6 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
     return;
     }
   this->Assembly = assyObj;
-  //this->resetAssemblyLattice();
-  this->updateMaterials();
 }
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
@@ -154,7 +146,6 @@ void cmbNucInputPropertiesWidget::onApply()
   Cylinder* cylin=NULL;
   Frustum* frust=NULL;
   Duct* duct=NULL;
-  Material* material=NULL;
   Lattice* lattice=NULL;
   cmbNucCore* nucCore=NULL;
   cmbNucAssembly* assy=NULL;
@@ -171,10 +162,6 @@ void cmbNucInputPropertiesWidget::onApply()
     case CMBNUC_ASSY_LATTICE:
       lattice = dynamic_cast<Lattice*>(selObj);
       this->applyToLattice(lattice);
-      break;
-    case CMBNUC_ASSY_MATERIAL:
-      material = dynamic_cast<Material*>(selObj);
-      this->applyToMaterial(material);
       break;
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
@@ -210,7 +197,6 @@ void cmbNucInputPropertiesWidget::onReset()
   Cylinder* cylin=NULL;
   Frustum* frust=NULL;
   Duct* duct=NULL;
-  Material* material=NULL;
   Lattice* lattice=NULL;
   cmbNucCore* nucCore=NULL;
   cmbNucAssembly* assy=NULL;
@@ -233,12 +219,6 @@ void cmbNucInputPropertiesWidget::onReset()
         this->Internal->pageLattice);
       lattice = dynamic_cast<Lattice*>(selObj);
       this->resetLattice(lattice);
-      break;
-    case CMBNUC_ASSY_MATERIAL:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageMaterial);
-      material = dynamic_cast<Material*>(selObj);
-      this->resetMaterial(material);
       break;
     case CMBNUC_ASSY_PINCELL:
       this->Internal->stackedWidget->setCurrentWidget(
@@ -271,11 +251,6 @@ void cmbNucInputPropertiesWidget::onReset()
 }
 // reset property panel with given object
 //-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::resetMaterial(Material* material)
-{
-  this->Internal->MaterialLabel->setText(material->label.c_str());
-}
-//-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
 {
   this->Internal->PinCellLabel->setText(pincell->label.c_str());
@@ -291,6 +266,9 @@ void cmbNucInputPropertiesWidget::resetFrustum(Frustum* frust)
   this->Internal->FrustumRadius1->setText(QString::number(frust->r1));
   this->Internal->FrustumRadius2->setText(QString::number(frust->r2));
 
+  this->Internal->FrustumMaterial->setVisible(false); // should be a table for layers
+  this->Internal->labelFruMaterial->setVisible(false);
+
   //this->Internal->FrustumMaterial->setCurrentIndex(
   //  this->Internal->FrustumMaterial->findText(frust->material.c_str()));
 }
@@ -303,6 +281,9 @@ void cmbNucInputPropertiesWidget::resetCylinder(Cylinder* cylin)
   this->Internal->CylinderZPos2->setText(QString::number(cylin->z2));
 
   this->Internal->CylinderRadius->setText(QString::number(cylin->r));
+  this->Internal->CylinderMaterial->setVisible(false); // should be a table for layers
+  this->Internal->labelCylMaterial->setVisible(false);
+
   //this->Internal->CylinderMaterial->setCurrentIndex(
   //  this->Internal->CylinderMaterial->findText(cylin->material.c_str()));
 }
@@ -425,12 +406,6 @@ void cmbNucInputPropertiesWidget::onDuctThicknessChanged()
 }
 
 // apply property panel to given object
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::applyToMaterial(Material* material)
-{
-  material->label = this->Internal->MaterialLabel->text().toStdString();
-  emit this->currentObjectModified(material);
-}
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 {

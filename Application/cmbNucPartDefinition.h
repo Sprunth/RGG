@@ -14,7 +14,6 @@ enum enumNucPartsType
   CMBNUC_ASSY_PINCELL,
   CMBNUC_ASSY_CYLINDER_PIN,
   CMBNUC_ASSY_FRUSTUM_PIN,
-  CMBNUC_ASSY_MATERIAL,
   CMBNUC_ASSY_BASEOBJ
 };
 
@@ -54,7 +53,7 @@ enum enumNucPartsType
   class Cylinder : public AssyPartObj
   {
   public:
-    Cylinder()
+    Cylinder() : materials(1)
     {
     x=0.0;y=0.0;z1=0.0;z2=4.0;r=1.6;
     }
@@ -66,6 +65,27 @@ enum enumNucPartsType
             this->z1==obj.z1 && this->z2==obj.z2 &&
             this->r==obj.r;
     }
+    std::string GetMaterial(int i)
+      {
+      if(i>=0 && i<this->materials.size())
+        {
+        return this->materials[i];
+        }
+      return std::string();
+      }
+    void SetMaterial(int i, const std::string& material)
+      {
+      if(i>=0 && i<this->materials.size())
+        {
+        this->materials[i] = material;
+        }
+      }
+    void SetNumberOfLayers(int numLayers)
+      {
+      this->materials.resize(numLayers);
+      }
+
+    std::vector<std::string> materials;
     double x;
     double y;
     double z1;
@@ -76,7 +96,7 @@ enum enumNucPartsType
   class Frustum : public AssyPartObj
   {
   public:
-    Frustum()
+    Frustum() : materials(1)
       {
       x=0.0;y=0.0;z1=4.0;z2=8.0;r1=1.6;r2=1.4;
       }
@@ -88,6 +108,26 @@ enum enumNucPartsType
         this->z1==obj.z1 && this->z2==obj.z2 &&
         this->r1==obj.r2 && this->r2==obj.r2;
       }
+    std::string GetMaterial(int i)
+      {
+      if(i>=0 && i<this->materials.size())
+        {
+        return this->materials[i];
+        }
+      return std::string();
+      }
+    void SetMaterial(int i, const std::string& material)
+      {
+      if(i>=0 && i<this->materials.size())
+        {
+        this->materials[i] = material;
+        }
+      }   
+    void SetNumberOfLayers(int numLayers)
+    {
+      this->materials.resize(numLayers);
+    }
+    std::vector<std::string> materials;
     double x;
     double y;
     double z1;
@@ -100,8 +140,7 @@ enum enumNucPartsType
   {
   public:
     PinCell()
-      : radii(1),
-        materials(1)
+      : radii(1)
       {
       pitchX=4.0;
       pitchY=4.0;
@@ -117,6 +156,22 @@ enum enumNucPartsType
 
     enumNucPartsType GetType()
     { return CMBNUC_ASSY_PINCELL;}
+    void RemoveSection(AssyPartObj* obj)
+      {
+      if(!obj)
+        {
+        return;
+        }
+      if(obj->GetType() == CMBNUC_ASSY_CYLINDER_PIN)
+        {
+        this->RemoveCylinder(dynamic_cast<Cylinder*>(obj));
+        }
+      else if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
+        {
+        this->RemoveFrustum(dynamic_cast<Frustum*>(obj));
+        }
+      }
+
     void RemoveCylinder(Cylinder* cylinder)
       {
       this->removeObj(cylinder, this->cylinders);
@@ -125,17 +180,63 @@ enum enumNucPartsType
       {
       this->removeObj(frustum, this->frustums);
       }
-    std::string GetMaterial(int i)
+    void SetMaterial(int idx, const std::string& material)
       {
-      if(i>=0 && i<this->materials.size())
-        {
-        return this->materials[i];
+      for(size_t i = 0; i < this->cylinders.size(); i++){
+        this->cylinders[i]->SetMaterial(idx, material);
         }
-      return std::string();
+      for(size_t i = 0; i < this->frustums.size(); i++){
+        this->frustums[i]->SetMaterial(idx, material);
+        }
       }
+    void RemoveMaterial(const std::string& name)
+      {
+      for(size_t i = 0; i < this->cylinders.size(); i++){
+        for(size_t j = 0; j < this->cylinders[i]->materials.size(); j++)
+          {
+          if(this->cylinders[i]->materials[j] == name)
+            {
+            this->cylinders[i]->materials[j] = "";
+            }
+          }
+        }
+      for(size_t i = 0; i < this->frustums.size(); i++){
+        for(size_t j = 0; j < this->frustums[i]->materials.size(); j++)
+          {
+          if(this->frustums[i]->materials[j] == name)
+            {
+            this->frustums[i]->materials[j] = "";
+            }
+          }
+        }
+      }
+
     int GetNumberOfLayers()
       {
-      return this->materials.size();
+      if(this->cylinders.size() > 0)
+        {
+        return this->cylinders[0]->materials.size();
+        }
+      else if(this->frustums.size() > 0)
+        {
+        return this->frustums[0]->materials.size();
+        }
+      return 0;
+      }
+    void SetNumberOfLayers(int numLayers)
+      {
+      for(size_t i = 0; i < this->cylinders.size(); i++){
+        this->cylinders[i]->SetNumberOfLayers(numLayers);
+        }
+      for(size_t i = 0; i < this->frustums.size(); i++){
+        this->frustums[i]->SetNumberOfLayers(numLayers);
+        }
+      size_t curNum = this->radii.size();
+      this->radii.resize(numLayers);
+      for(size_t i=curNum; i<numLayers; i++)
+        {
+        this->radii[i] = 1.0;
+        }
       }
     std::string name;
     std::string label;
@@ -145,7 +246,6 @@ enum enumNucPartsType
     std::vector<Cylinder*> cylinders;
     std::vector<Frustum*> frustums;
     std::vector<double> radii;
-    std::vector<std::string> materials;
   };
 
   class Duct : public AssyPartObj
@@ -173,19 +273,6 @@ enum enumNucPartsType
     double z2;
     std::vector<std::string> materials;
     std::vector<double> thicknesses;
-  };
-
-  class Material : public AssyPartObj
-  {
-  public:
-    Material()
-      {
-      name=label="newmaterial";
-      }
-    enumNucPartsType GetType()
-    { return CMBNUC_ASSY_MATERIAL;}
-    std::string name;
-    std::string label;
   };
 
   class DuctCell : public AssyPartObj

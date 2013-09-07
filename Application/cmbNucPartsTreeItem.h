@@ -18,9 +18,14 @@ public:
   virtual void setPartObject(AssyPartObj* obj)
     {this->PartObject=obj;}
 
+  // column text
+  virtual void setData ( int column, int role, const QVariant & value );
+  void setText ( int column, const QString & text );
+  const QString& previousText() const{return this->PreviousText;}
 protected:
 
   AssyPartObj* PartObject;
+  QString PreviousText;
 };
 
 #endif /* __cmbNucPartsTreeItem_h */

@@ -32,6 +32,7 @@ signals:
   // Fired when a part/material is selected in the tree
   void objectSelected(AssyPartObj*, const char* name);
   void objectRemoved();
+  void materialColorChanged(const QString& name);
 
 public slots:
   void onNewAssembly();
@@ -42,18 +43,20 @@ protected:
   void updateContextMenu(AssyPartObj* selObj);
   void setActionsEnabled(bool val);
   void updateWithAssembly(cmbNucAssembly* assy, bool select=true);
-  void updateMaterial(cmbNucAssembly* assy);
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
   cmbNucPartsTreeItem* getDuctCellNode(cmbNucPartsTreeItem* assyNode);
   void initCoreRootNode();
+  void createMaterialItem(
+    const QString& name, const QString& label, const QColor& color);
 
 private slots:
   // Description:
   // Tree widget interactions related slots 
   virtual void onPartsSelectionChanged();
   virtual void onMaterialSelectionChanged();
-  virtual void onMaterialNameChanged(QTreeWidgetItem*, int);
+  virtual void onMaterialChanged(QTreeWidgetItem*, int col);
   virtual void onTabChanged(int);
+  void onMaterialClicked(QTreeWidgetItem*, int col);
 
   // Description:
   // Tree widget context menu related slots
@@ -64,13 +67,16 @@ private slots:
   void onRemoveSelectedPart();
   void onNewMaterial();
   void onRemoveMaterial();
+  void onImportMaterial();
+  void onSaveMaterial();
 
 private:
   cmbNucInputListWidgetInternal* Internal;
 
   /// clear UI
   void initUI();
-  void initTree(QTreeWidget* treeWidget);
+  void initPartsTree();
+  void initMaterialsTree();
 
   cmbNucCore *NuclearCore;
 };

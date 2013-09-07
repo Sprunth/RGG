@@ -137,20 +137,39 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
           if(vtkDataObject* objBlock = assemblyData->GetBlock(idx))
             {
-            if(vtkMultiBlockDataSet* ductBlock =
+            if(vtkMultiBlockDataSet* assyPartBlock =
               vtkMultiBlockDataSet::SafeDownCast(objBlock))
               {
-              vtkNew<vtkMultiBlockDataSet> ductObjs;
-              ductObjs->SetNumberOfBlocks(ductBlock->GetNumberOfBlocks());
-              for(int b=0; b<ductBlock->GetNumberOfBlocks(); b++)
+              vtkNew<vtkMultiBlockDataSet> assyPartObjs;
+              assyPartObjs->SetNumberOfBlocks(assyPartBlock->GetNumberOfBlocks());
+              for(int b=0; b<assyPartBlock->GetNumberOfBlocks(); b++)
                 {
-                vtkNew<vtkTransformFilter> filter;
-                filter->SetTransform(transform.GetPointer());
-                filter->SetInputDataObject(ductBlock->GetBlock(b));
-                filter->Update();
-                ductObjs->SetBlock(b, filter->GetOutput());
+                vtkDataObject* apBlock = assyPartBlock->GetBlock(b);
+                if(vtkMultiBlockDataSet* pinPartBlock =
+                  vtkMultiBlockDataSet::SafeDownCast(apBlock)) // pins
+                  {
+                  vtkNew<vtkMultiBlockDataSet> pinPartObjs;
+                  pinPartObjs->SetNumberOfBlocks(pinPartBlock->GetNumberOfBlocks());
+                  for(int p=0; p<pinPartBlock->GetNumberOfBlocks(); p++)
+                    {
+                    vtkNew<vtkTransformFilter> filter;
+                    filter->SetTransform(transform.GetPointer());
+                    filter->SetInputDataObject(pinPartBlock->GetBlock(p));
+                    filter->Update();
+                    pinPartObjs->SetBlock(p, filter->GetOutput());
+                    }
+                  assyPartObjs->SetBlock(b, pinPartObjs.GetPointer());
+                  }
+                else // ducts
+                  {
+                  vtkNew<vtkTransformFilter> filter;
+                  filter->SetTransform(transform.GetPointer());
+                  filter->SetInputDataObject(apBlock);
+                  filter->Update();
+                  assyPartObjs->SetBlock(b, filter->GetOutput());
+                  }
                 }
-              blockData->SetBlock(idx, ductObjs.GetPointer());
+              blockData->SetBlock(idx, assyPartObjs.GetPointer());
               }
             else // pins
               {

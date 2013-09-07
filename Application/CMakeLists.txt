@@ -22,7 +22,7 @@ SET(CMBNuclear_Srcs
   cmbNucDuctSource.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
-  cmbNucMaterialColors.h
+  cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
   vtkCmbLayeredConeSource.cxx
@@ -63,3 +63,37 @@ SOURCE_GROUP("Generated" FILES
 
 ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES})
 TARGET_LINK_LIBRARIES( CMBNuclear ${QT_LIBRARIES} ${VTK_LIBRARIES} )
+
+# The initial material color file
+set (materialColorsName "materialcolors")
+if(WIN32)
+  #quick work around since we don't know what build type we are doing on windows
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
+             ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
+             @ONLY)
+
+  add_custom_command(OUTPUT ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${materialColorsName}.ini
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
+    ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${materialColorsName}.ini
+    )
+
+  add_custom_target(Copy${materialColorsName}WorkerRegFile ALL DEPENDS
+    ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${materialColorsName}.ini)
+
+  install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
+elseif(APPLE)
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
+             ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
+             @ONLY)
+  #on the mac the rw file needs to be installed into the scene and model builder apps
+  install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION
+          ${VTK_INSTALL_RUNTIME_DIR}/SceneBuilder.app/Contents/bin)
+  install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION
+          ${VTK_INSTALL_RUNTIME_DIR}/ModelBuilder.app/Contents/bin)
+else()
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
+             ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
+             @ONLY)
+  install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
+endif()

@@ -42,23 +42,19 @@ public:
   // the assembly. This is used to render the assembly in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
 
-  // Adds/Remove a material by name
-  void AddMaterial(Material *material);
+  // Remove a material by name, which will also update the material
+  // assignment of the ducts and pincells inside this assembly
   void RemoveMaterial(const std::string &name);
-    //Return the material of the ith latticeGetCellMaterial location
-    //If the cell is empty return "" else return the
-    // material of the pin inside the cell
-    std::string GetCellMaterial(int i);
+
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;
-  std::vector<Material*> Materials;
   Lattice AssyLattice;
   std::string label;
   double MeshSize;
 
-  // creates the polydata used to render the pincell
-  static vtkMultiBlockDataSet* CreatePinCellPolyData(PinCell *pincell);
+  // creates the multiblock used to render the pincell
+  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell);
 
 private:
   std::string GeometryType;

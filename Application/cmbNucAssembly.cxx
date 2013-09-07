@@ -7,6 +7,7 @@
 #include <limits>
 
 #include "cmbNucDuctSource.h"
+#include "cmbNucMaterialColors.h"
 #include "vtkCmbConeSource.h"
 #include "vtkCmbLayeredConeSource.h"
 
@@ -18,6 +19,8 @@
 #include "vtkPolyDataNormals.h"
 #include "vtkNew.h"
 
+#include <QMap>
+
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
@@ -27,7 +30,6 @@ cmbNucAssembly::cmbNucAssembly()
 cmbNucAssembly::~cmbNucAssembly()
 {
   AssyPartObj::deleteObjs(this->PinCells);
-  AssyPartObj::deleteObjs(this->Materials);
 }
 
 void cmbNucAssembly::AddPinCell(PinCell *pincell)
@@ -60,22 +62,8 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
     }
 }
 
-void cmbNucAssembly::AddMaterial(Material *material)
-{
-  this->Materials.push_back(material);
-}
-
 void cmbNucAssembly::RemoveMaterial(const std::string &name)
 {
-  for(size_t i = 0; i < this->Materials.size(); i++)
-    {
-    if(this->Materials[i]->name == name)
-      {
-      delete this->Materials[i];
-      this->Materials.erase(this->Materials.begin() + i);
-      break;
-      }
-    }
   // update all places that references materials: ducts, pins
    for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
     {
@@ -91,13 +79,7 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
     PinCell* pincell = this->PinCells[i];
-    for(size_t j = 0; j < pincell->materials.size(); j++)
-      {
-      if(pincell->materials[j] == name)
-        {
-        pincell->materials[j] = "";
-        }
-      }
+    pincell->RemoveMaterial(name);
     }
 }
 
@@ -152,13 +134,22 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
       int count;
       input >> count;
 
-      this->Materials.clear();
-
+      cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
       for(int i = 0; i < count; i++)
         {
-        Material* material = new Material();
-        input >> material->name >> material->label;
-        this->Materials.push_back(material);
+        std::string mname, mlabel;
+        input >> mname >> mlabel;
+        if(!matColorMap->MaterialColorMap().contains(mname.c_str()))
+          {
+          matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(),
+            1.0, 1.0, 1.0, 1.0);
+          }
+        else
+          {
+          // replace the label
+          const QColor &color = matColorMap->MaterialColorMap()[mname.c_str()].second;
+          matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(), color);
+          }
         }
       }
     else if(value == "duct")
@@ -223,13 +214,12 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             {
             int layers;
             input >> layers;
-            if(layers > pincell->materials.size())
+            Cylinder* cylinder = new Cylinder();
+            if(layers > pincell->GetNumberOfLayers())
               {
-              pincell->materials.resize(layers);
+              cylinder->materials.resize(layers);
               pincell->radii.resize(layers);
               }
-
-            Cylinder* cylinder = new Cylinder();
 
             input >> cylinder->x
                   >> cylinder->y
@@ -241,7 +231,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
             for(int c=0; c < layers; c++)
               {
-              input >> pincell->materials[c];
+              input >> cylinder->materials[c];
               }
             pincell->cylinders.push_back(cylinder);
             }
@@ -249,13 +239,13 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             {
             int layers;
             input >> layers;
-            if(layers > pincell->materials.size())
+            Frustum* frustum = new Frustum();
+            if(layers > pincell->GetNumberOfLayers())
               {
-              pincell->materials.resize(layers);
+              frustum->materials.resize(layers);
               pincell->radii.resize(layers);
               }
 
-            Frustum* frustum = new Frustum();
             input >> frustum->x
                 >> frustum->y
                 >> frustum->z1
@@ -267,7 +257,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
             for(int c=0; c < layers; c++)
               {
-              input >> pincell->materials[c];
+              input >> frustum->materials[c];
               }
             pincell->frustums.push_back(frustum);
             }
@@ -321,10 +311,13 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
   output << "GeometryType rectangular\n";
 
   // materials
-  output << "Materials " << this->Materials.size();
-  for(size_t i = 0; i < this->Materials.size(); i++)
+  QMap<std::string, std::string> materials;
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  matColorMap->GetAssemblyMaterials(this, materials);
+  output << "Materials " << materials.count();
+  foreach(std::string name, materials.keys())
     {
-    output << " " << this->Materials[i]->name << " " << this->Materials[i]->label;
+    output << " " << name << " " << materials[name];
     }
   output << "\n";
 
@@ -374,9 +367,9 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
         << cylinder->z1 << " "
         << cylinder->z2 << " "
         << cylinder->r << " ";
-      for(int material = 0; material < pincell->materials.size(); material++)
+      for(int material = 0; material < cylinder->materials.size(); material++)
         {
-        output << pincell->materials[material] << " ";
+        output << cylinder->materials[material] << " ";
         }
       if(j==pincell->cylinders.size()-1) output << "\n";
       }
@@ -391,9 +384,9 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
         << frustum->z2 << " "
         << frustum->r1 << " "
         << frustum->r2 << " ";
-      for(int material = 0; material < pincell->materials.size(); material++)
+      for(int material = 0; material < frustum->materials.size(); material++)
         {
-        output << pincell->materials[material] << " ";
+        output << frustum->materials[material] << " ";
         }
       if(j==pincell->frustums.size()-1) output << "\n";
       }
@@ -459,34 +452,46 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
         if(pincell && (pincell->cylinders.size()+pincell->frustums.size())>0)
           {
           // create polydata for the pincell
-          vtkMultiBlockDataSet *dataSet = this->CreatePinCellPolyData(pincell);
-          vtkNew<vtkMultiBlockDataSet> transdataSet;
-          transdataSet->SetNumberOfBlocks(dataSet->GetNumberOfBlocks());
+          vtkMultiBlockDataSet *dataSet = this->CreatePinCellMultiBlock(pincell);
+          vtkNew<vtkMultiBlockDataSet> pinDataSet;
+          pinDataSet->SetNumberOfBlocks(dataSet->GetNumberOfBlocks());
           for(int block=0; block<dataSet->GetNumberOfBlocks(); block++)
-            {
-            vtkPolyData* polyBlock =
-              vtkPolyData::SafeDownCast(dataSet->GetBlock(block));
-            if(!polyBlock)
+            { 
+            vtkMultiBlockDataSet* sectionBlock =
+              vtkMultiBlockDataSet::SafeDownCast(dataSet->GetBlock(block));
+            if(!sectionBlock)
               {
               continue;
               }
+            vtkNew<vtkMultiBlockDataSet> transdataSet;
+            transdataSet->SetNumberOfBlocks(sectionBlock->GetNumberOfBlocks());
+            for(int layer=0; layer<sectionBlock->GetNumberOfBlocks(); layer++)
+              {
+              vtkPolyData* polyBlock =
+                vtkPolyData::SafeDownCast(sectionBlock->GetBlock(layer));
+              if(!polyBlock)
+                {
+                continue;
+                }
 
-            // move the polydata to the correct position
-            vtkTransform *transform = vtkTransform::New();
-            double radius = pincell->cylinders.size()>0 ? pincell->cylinders[0]->r :
-              pincell->frustums[0]->r1;
-            transform->Translate(chamberStart + i * cellLength + radius,
-                                 chamberStart + j * cellLength + radius,
-                                 0);
-            vtkNew<vtkTransformFilter> filter;
-            filter->SetTransform(transform);
-            transform->Delete();
-            filter->SetInputDataObject(polyBlock);
-            filter->Update();
-            transdataSet->SetBlock(block, filter->GetOutput());
+              // move the polydata to the correct position
+              vtkTransform *transform = vtkTransform::New();
+              double radius = pincell->cylinders.size()>0 ? pincell->cylinders[0]->r :
+                pincell->frustums[0]->r1;
+              transform->Translate(chamberStart + i * cellLength + radius,
+                                   chamberStart + j * cellLength + radius,
+                                   0);
+              vtkNew<vtkTransformFilter> filter;
+              filter->SetTransform(transform);
+              transform->Delete();
+              filter->SetInputDataObject(polyBlock);
+              filter->Update();
+              transdataSet->SetBlock(layer, filter->GetOutput());
+              }
+            pinDataSet->SetBlock(block, transdataSet.GetPointer());
             }
           dataSet->Delete();
-          this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, transdataSet.GetPointer());
+          this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, pinDataSet.GetPointer());
           }
         else
           {
@@ -523,27 +528,31 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   return this->Data;
 }
 
-vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
+vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell)
 {
   if(pincell->cylinders.size() + pincell->frustums.size() == 0)
     {
     return vtkMultiBlockDataSet::New();
     }
 
+  // There are two child multibock, one for cylinders, one for frustums
+  vtkMultiBlockDataSet *dataSet = vtkMultiBlockDataSet::New();
+  dataSet->SetNumberOfBlocks(pincell->cylinders.size() + pincell->frustums.size());
+
   // build all cylinders and frustums
   const int PinCellResolution = 16;
-  std::vector<vtkSmartPointer<vtkCmbLayeredConeSource> > cylinderSrcs;
-  for(size_t j = 0; j < pincell->cylinders.size(); j++)
+  size_t numCyls = pincell->cylinders.size();
+  for(size_t j = 0; j < numCyls; j++)
     {
     Cylinder *cylinder = pincell->cylinders[j];
 
     vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
       vtkSmartPointer<vtkCmbLayeredConeSource>::New();
-    coneSource->SetNumberOfLayers(pincell->materials.size());
+    coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers());
     coneSource->SetBaseCenter(0, 0, cylinder->z1);
     coneSource->SetHeight(cylinder->z2 - cylinder->z1);
 
-    for(int k = 0; k < pincell->materials.size(); k++)
+    for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
       {
       coneSource->SetBaseRadius(k, pincell->radii[k] * cylinder->r);
       coneSource->SetTopRadius(k, pincell->radii[k] * cylinder->r);
@@ -552,21 +561,20 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
     coneSource->Update();
-    cylinderSrcs.push_back(coneSource);
+    dataSet->SetBlock(j, coneSource->GetOutput());
     }
 
-  std::vector<vtkSmartPointer<vtkCmbLayeredConeSource> > frustumSrcs;
   for(size_t j = 0; j < pincell->frustums.size(); j++)
     {
     Frustum* frustum = pincell->frustums[j];
 
     vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
       vtkSmartPointer<vtkCmbLayeredConeSource>::New();
-    coneSource->SetNumberOfLayers(pincell->materials.size());
+    coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers());
     coneSource->SetBaseCenter(0, 0, frustum->z1);
     coneSource->SetHeight(frustum->z2 - frustum->z1);
 
-    for(int k = 0; k < pincell->materials.size(); k++)
+    for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
       {
       coneSource->SetBaseRadius(k, pincell->radii[k] * frustum->r1);
       coneSource->SetTopRadius(k, pincell->radii[k] * frustum->r2);
@@ -575,14 +583,13 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
     coneSource->Update();
-    frustumSrcs.push_back(coneSource);
+    dataSet->SetBlock(numCyls+j, coneSource->GetOutput());
     }
 
-  vtkMultiBlockDataSet *dataSet = vtkMultiBlockDataSet::New();
-  dataSet->SetNumberOfBlocks(pincell->materials.size());
+/*
   // Now append each layer's polydata together to form a multiblock with
   // appended layers as blocks. ASSUMING all sections have same layers.
-  for(int layer=0; layer<pincell->materials.size(); layer++)
+  for(int layer=0; layer<pincell->GetNumberOfLayers; layer++)
     {
     vtkAppendPolyData *merger = vtkAppendPolyData::New();
     for(size_t j = 0; j <cylinderSrcs.size(); j++)
@@ -605,9 +612,8 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellPolyData(PinCell* pincell)
     vtkPolyData *polyData = vtkPolyData::New();
     polyData->DeepCopy(normals->GetOutput());
     normals->Delete();
-    dataSet->SetBlock(layer, polyData);
     polyData->Delete();
     }
-
+*/
   return dataSet;
 }

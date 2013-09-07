@@ -43,7 +43,6 @@ protected slots:
   // Invoked when Reset button clicked
   void onReset();
   // reset property panel with given object
-  void resetMaterial(Material* material);
   void resetPinCell(PinCell* pincell);
   void resetFrustum(Frustum* frust);
   void resetCylinder(Cylinder* cylin);
@@ -53,7 +52,6 @@ protected slots:
   void resetCore(cmbNucCore* nucCore);
 
   // apply property panel to given object
-  void applyToMaterial(Material* material);
   void applyToPinCell(PinCell* pincell);
   void applyToFrustum(Frustum* frust);
   void applyToCylinder(Cylinder* cylin);
