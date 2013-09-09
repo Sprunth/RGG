@@ -84,13 +84,11 @@ if(WIN32)
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
 elseif(APPLE)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
-             ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
+             ${EXECUTABLE_OUTPUT_PATH}/CMBNuclear.app/Contents/MacOS/${materialColorsName}.ini
              @ONLY)
-  #on the mac the rw file needs to be installed into the scene and model builder apps
+  #on the mac the marterialcolor file needs to be installed into the CMBNuclear app
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION
-          ${VTK_INSTALL_RUNTIME_DIR}/SceneBuilder.app/Contents/bin)
-  install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION
-          ${VTK_INSTALL_RUNTIME_DIR}/ModelBuilder.app/Contents/bin)
+          ${CMAKE_INSTALL_PREFIX}/CMBNuclear.app/Contents/MacOS)
 else()
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
              ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
