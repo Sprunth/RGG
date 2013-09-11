@@ -40,7 +40,15 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
-  this->ui->qvtkWidget->GetRenderWindow()->AddRenderer(this->Renderer);
+
+  // setup depth peeling
+  vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
+  renderWindow->SetAlphaBitPlanes(1);
+  renderWindow->SetMultiSamples(0);
+  this->Renderer->SetUseDepthPeeling(1);
+  this->Renderer->SetMaximumNumberOfPeels(100);
+
+  renderWindow->AddRenderer(this->Renderer);
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
   this->Actor = vtkSmartPointer<vtkActor>::New();
   this->Actor->SetMapper(this->Mapper.GetPointer());
