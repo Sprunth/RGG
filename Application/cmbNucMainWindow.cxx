@@ -11,6 +11,8 @@
 #include <QStringList>
 #include <QDebug>
 #include <QDockWidget>
+#include <QProcess>
+#include <QTemporaryFile>
 
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
@@ -78,6 +80,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
+  connect(this->ui->actionPreferences, SIGNAL(triggered()), this, SLOT(onShowPreferences()));
+  connect(this->ui->actionRunAssygen, SIGNAL(triggered()), this, SLOT(onRunAssygen()));
 
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();
@@ -373,4 +377,32 @@ void cmbNucMainWindow::updateMaterialColors()
         }
       }
     }
+}
+
+void cmbNucMainWindow::onShowPreferences()
+{
+}
+
+void cmbNucMainWindow::onRunAssygen()
+{
+  // write input file
+  QTemporaryFile file("XXXXXX.inp");
+  file.setAutoRemove(false);
+  file.open();
+  file.close();
+  saveFile(file.fileName());
+
+  QString input_file_name = file.fileName();
+  input_file_name.chop(4); // remove '.inp' suffix
+
+  QString assygen = "/home/kyle/SiMBA/meshkit/build/meshkit/src/meshkit-build/rgg/assygen";
+  QStringList args;
+  args.append(input_file_name);
+  QProcess proc;
+  proc.start(assygen, args);
+  qDebug() << "ran: " << assygen << input_file_name;
+
+  proc.waitForFinished(-1);
+  qDebug() << proc.readAllStandardOutput();
+  qDebug() << proc.readAllStandardError();
 }

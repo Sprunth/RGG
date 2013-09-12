@@ -5,7 +5,6 @@
 #include <QTableWidgetItem>
 
 #include <vtkRenderWindow.h>
-#include <vtkClipClosedSurface.h>
 #include "vtkCompositeDataDisplayAttributes.h"
 
 #include "cmbNucPartDefinition.h"
@@ -99,6 +98,8 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
           this, SLOT(numberOfLayersChanged(int)));
   connect(this->Ui->layersTable, SIGNAL(cellChanged(int, int)),
           this, SLOT(layerTableCellChanged(int, int)));
+  connect(this->Ui->cutAwayViewCheckBox, SIGNAL(toggled(bool)),
+          this, SLOT(onCutAwayCheckBoxToggled(bool)));
 }
 
 cmbNucPinCellEditor::~cmbNucPinCellEditor()
@@ -314,7 +315,9 @@ void cmbNucPinCellEditor::UpdateLayerMaterials(AssyPartObj* objPart)
 
 void cmbNucPinCellEditor::UpdatePolyData()
 {
-  vtkMultiBlockDataSet *data_set = cmbNucAssembly::CreatePinCellMultiBlock(this->PinCellObject);
+  bool cutaway = this->Ui->cutAwayViewCheckBox->isChecked();
+  vtkMultiBlockDataSet *data_set =
+    cmbNucAssembly::CreatePinCellMultiBlock(this->PinCellObject, cutaway);
 
   this->Mapper->SetInputDataObject(data_set);
   vtkCompositeDataDisplayAttributes *attributes =
@@ -673,4 +676,11 @@ AssyPartObj *cmbNucPinCellEditor::getSelectedPiece()
   AssyPartObj* obj =
     static_cast<AssyPartObj*>(comboBox->itemData(0).value<void *>());
   return obj;
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucPinCellEditor::onCutAwayCheckBoxToggled(bool state)
+{
+  this->UpdatePolyData();
+  this->UpdateRenderView();
 }

@@ -6,6 +6,7 @@
 #include <vtkCompositePolyDataMapper2.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
+#include <vtkClipClosedSurface.h>
 
 #include "ui_cmbNucPinCellEditor.h"
 
@@ -52,6 +53,7 @@ private slots:
   void updateComponentObject(int i, double& z);
   void createComponentItem(int row, double default_length,
     double default_radius1, double default_radius2);
+  void onCutAwayCheckBoxToggled(bool state);
 
 private:
   AssyPartObj* getSelectedPiece();

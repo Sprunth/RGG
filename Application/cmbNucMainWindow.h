@@ -49,6 +49,12 @@ protected slots:
   // updates the block colors based on their materials
   void updateMaterialColors();
 
+  // shows the preferences dialog
+  void onShowPreferences();
+
+  // runs assygen
+  void onRunAssygen();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;

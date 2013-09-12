@@ -53,8 +53,9 @@ public:
   std::string label;
   double MeshSize;
 
-  // creates the multiblock used to render the pincell
-  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell);
+  // creates the multiblock used to render the pincell. if cutaway is true the
+  // pincell will be cut in half length-wise to show the interior layers.
+  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell, bool cutaway = false);
 
 private:
   std::string GeometryType;

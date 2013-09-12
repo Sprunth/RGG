@@ -10,6 +10,8 @@
 #include "cmbNucMaterialColors.h"
 #include "vtkCmbConeSource.h"
 #include "vtkCmbLayeredConeSource.h"
+#include <vtkClipClosedSurface.h>
+#include <vtkPlaneCollection.h>
 
 #include "vtkTransform.h"
 #include "vtkTransformFilter.h"
@@ -243,7 +245,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             if(layers > pincell->GetNumberOfLayers())
               {
               frustum->materials.resize(layers);
-              pincell->radii.resize(layers);
+              pincell->radii.resize(layers*2);
               }
 
             input >> frustum->x
@@ -253,7 +255,8 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
 
             for(int c=0; c < layers; c++)
               {
-              input >> pincell->radii[c];
+              input >> pincell->radii[c*2+0];
+              input >> pincell->radii[c*2+1];
               }
             for(int c=0; c < layers; c++)
               {
@@ -317,7 +320,13 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
   output << "Materials " << materials.count();
   foreach(std::string name, materials.keys())
     {
-    output << " " << name << " " << materials[name];
+    std::string material_name = materials[name];
+    if(material_name.empty())
+      {
+      material_name = name;
+      }
+
+    output << " " << name << " " << material_name;
     }
   output << "\n";
 
@@ -327,7 +336,7 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
     Duct *duct = this->AssyDuct.Ducts[i];
 
     output << "duct " << duct->materials.size() << " ";
-    output << duct->x << " " << duct->y << " " << duct->z1 << " " << duct->z2;
+    output << std::showpoint << duct->x << " " << duct->y << " " << duct->z1 << " " << duct->z2;
 
     for(size_t j = 0; j < duct->thicknesses.size(); j++)
       {
@@ -360,13 +369,17 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
     for(size_t j = 0; j < pincell->cylinders.size(); j++)
       {
-      if(j==0) output << "cylinder " << pincell->cylinders.size() << " ";
+      if(j==0) output << "cylinder " << pincell->GetNumberOfLayers() << " ";
       Cylinder* cylinder = pincell->cylinders[j];
-      output << cylinder->x << " "
+      output << std::showpoint
+        << cylinder->x << " "
         << cylinder->y << " "
         << cylinder->z1 << " "
-        << cylinder->z2 << " "
-        << cylinder->r << " ";
+        << cylinder->z2 << " ";
+      for(int material = 0; material < cylinder->materials.size(); material++)
+        {
+        output << std::showpoint << pincell->radii[material] << " ";
+        }
       for(int material = 0; material < cylinder->materials.size(); material++)
         {
         output << cylinder->materials[material] << " ";
@@ -376,14 +389,18 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
     for(size_t j = 0; j < pincell->frustums.size(); j++)
       {
-      if(j==0) output << "frustum " << pincell->frustums.size() << " ";
+      if(j==0) output << "frustum " << pincell->GetNumberOfLayers() << " ";
       Frustum* frustum = pincell->frustums[j];
-      output << frustum->x << " "
+      output << std::showpoint
+        << frustum->x << " "
         << frustum->y << " "
         << frustum->z1 << " "
-        << frustum->z2 << " "
-        << frustum->r1 << " "
-        << frustum->r2 << " ";
+        << frustum->z2 << " ";
+      for(int material = 0; material < frustum->materials.size() / 2; material++)
+        {
+        output << std::showpoint << pincell->radii[material*2+0] << " ";
+        output << std::showpoint << pincell->radii[material*2+1] << " ";
+        }
       for(int material = 0; material < frustum->materials.size(); material++)
         {
         output << frustum->materials[material] << " ";
@@ -528,7 +545,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   return this->Data;
 }
 
-vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell)
+vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, bool cutaway)
 {
   if(pincell->cylinders.size() + pincell->frustums.size() == 0)
     {
@@ -561,7 +578,39 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell)
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
     coneSource->Update();
-    dataSet->SetBlock(j, coneSource->GetOutput());
+
+    if(cutaway)
+      {
+      vtkMultiBlockDataSet *coneData = coneSource->GetOutput();
+      for(int block = 0; block < coneData->GetNumberOfBlocks(); block++)
+        {
+        vtkPolyData *coneLayerData =
+          vtkPolyData::SafeDownCast(coneData->GetBlock(block));
+        vtkSmartPointer<vtkClipClosedSurface> clipper =
+            vtkSmartPointer<vtkClipClosedSurface>::New();
+        vtkSmartPointer<vtkPlaneCollection> clipPlanes =
+          vtkSmartPointer<vtkPlaneCollection>::New();
+        vtkSmartPointer<vtkPlane> plane =
+          vtkSmartPointer<vtkPlane>::New();
+        plane->SetOrigin(0, 0 + 0.001 * block, 0);
+        plane->SetNormal(0, 1, 0);
+        clipPlanes->AddItem(plane);
+        clipper->SetClippingPlanes(clipPlanes);
+        clipper->SetActivePlaneId(0);
+        clipper->SetClipColor(1.0,1.0,1.0);
+        clipper->SetActivePlaneColor(1.0,1.0,0.8);
+        clipper->GenerateOutlineOn();
+        clipper->SetInputData(coneLayerData);
+        clipper->GenerateFacesOn();
+        clipper->Update();
+        coneData->SetBlock(block, clipper->GetOutput());
+        }
+      dataSet->SetBlock(j, coneData);
+      }
+    else
+      {
+      dataSet->SetBlock(j, coneSource->GetOutput());
+      }
     }
 
   for(size_t j = 0; j < pincell->frustums.size(); j++)
@@ -583,7 +632,39 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell)
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
     coneSource->Update();
-    dataSet->SetBlock(numCyls+j, coneSource->GetOutput());
+
+    if(cutaway)
+      {
+      vtkMultiBlockDataSet *coneData = coneSource->GetOutput();
+      for(int block = 0; block < coneData->GetNumberOfBlocks(); block++)
+        {
+        vtkPolyData *coneLayerData =
+          vtkPolyData::SafeDownCast(coneData->GetBlock(block));
+        vtkSmartPointer<vtkClipClosedSurface> clipper =
+            vtkSmartPointer<vtkClipClosedSurface>::New();
+        vtkSmartPointer<vtkPlaneCollection> clipPlanes =
+          vtkSmartPointer<vtkPlaneCollection>::New();
+        vtkSmartPointer<vtkPlane> plane =
+          vtkSmartPointer<vtkPlane>::New();
+        plane->SetOrigin(0, 0 + 0.001 * block, 0);
+        plane->SetNormal(0, 1, 0);
+        clipPlanes->AddItem(plane);
+        clipper->SetClippingPlanes(clipPlanes);
+        clipper->SetActivePlaneId(0);
+        clipper->SetClipColor(1.0,1.0,1.0);
+        clipper->SetActivePlaneColor(1.0,1.0,0.8);
+        clipper->GenerateOutlineOn();
+        clipper->SetInputData(coneLayerData);
+        clipper->GenerateFacesOn();
+        clipper->Update();
+        coneData->SetBlock(block, clipper->GetOutput());
+        }
+      dataSet->SetBlock(numCyls+j, coneData);
+      }
+    else
+      {
+      dataSet->SetBlock(numCyls+j, coneSource->GetOutput());
+      }
     }
 
 /*
