@@ -91,6 +91,15 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->initPanels();
 
+  // by default 1:1 scaling for the Z-axis
+  this->ZScale = 1.0;
+  connect(this->ui->viewScaleSlider, SIGNAL(valueChanged(int)),
+          this->ui->viewScaleSpinBox, SLOT(setValue(int)));
+  connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
+          this->ui->viewScaleSlider, SLOT(setValue(int)));
+  connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
+          this, SLOT(zScaleChanged(int)));
+
   this->Renderer->ResetCamera();
   this->ui->qvtkWidget->update();
 }
@@ -405,4 +414,12 @@ void cmbNucMainWindow::onRunAssygen()
   proc.waitForFinished(-1);
   qDebug() << proc.readAllStandardOutput();
   qDebug() << proc.readAllStandardError();
+}
+
+void cmbNucMainWindow::zScaleChanged(int value)
+{
+  this->ZScale = 1.0 / value;
+  this->Actor->SetScale(1, 1, this->ZScale);
+  this->Renderer->ResetCamera();
+  this->ui->qvtkWidget->update();
 }

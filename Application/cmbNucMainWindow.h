@@ -55,6 +55,9 @@ protected slots:
   // runs assygen
   void onRunAssygen();
 
+  // called when the z-scale slider or spin box changes
+  void zScaleChanged(int value);
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
@@ -67,6 +70,7 @@ private:
   QPointer<cmbNucInputListWidget> InputsWidget;
 
   cmbNucMaterialColors* MaterialColors;
+  double ZScale;
 };
 
 #endif // cmbNucMainWindow_H
