@@ -235,6 +235,10 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               {
               input >> cylinder->materials[c];
               }
+
+            // normalize radii
+            cylinder->r = pincell->radii.back();
+
             pincell->cylinders.push_back(cylinder);
             }
           else if(value == "frustum")
@@ -262,6 +266,11 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               {
               input >> frustum->materials[c];
               }
+
+            // normalize radii
+            frustum->r1 = pincell->radii[layers-1];
+            frustum->r2 = pincell->radii[layers-2];
+
             pincell->frustums.push_back(frustum);
             }
           }
