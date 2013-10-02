@@ -30,6 +30,8 @@ public:
   cmbNucMainWindow();
   ~cmbNucMainWindow();
 
+  double getZScale() const { return this->ZScale; }
+
 public slots:
   void onExit();
   void onFileNew();
@@ -38,6 +40,9 @@ public slots:
   void saveFile(const QString &fileName);
   // read file and return a new Assembly
   cmbNucAssembly* openFile(const QString &fileName);
+
+signals:
+  void updateGlobalZScale(double scale);
 
 protected:
   void initPanels();

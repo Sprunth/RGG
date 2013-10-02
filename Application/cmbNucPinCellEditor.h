@@ -34,6 +34,7 @@ public slots:
   void UpdatePolyData();
   void UpdateRenderView();
   void onUpdateLayerMaterial();
+  void setZScale(double scale);
 
 signals:
   void accepted();

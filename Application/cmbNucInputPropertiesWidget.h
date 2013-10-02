@@ -7,6 +7,7 @@
 
 class cmbNucInputPropertiesWidgetInternal;
 class cmbNucAssemblyEditor;
+class cmbNucMainWindow;
 class cmbNucAssembly;
 class cmbNucCore;
 
@@ -15,7 +16,7 @@ class cmbNucInputPropertiesWidget : public QWidget
   Q_OBJECT
 
 public:
-  cmbNucInputPropertiesWidget(QWidget* parent=0);
+  cmbNucInputPropertiesWidget(cmbNucMainWindow *mainWindow);
   virtual ~cmbNucInputPropertiesWidget();
 
   // Description:
@@ -85,6 +86,6 @@ private:
   cmbNucAssemblyEditor *AssemblyEditor;
   cmbNucAssemblyEditor *CoreEditor;
   cmbNucAssembly *Assembly;
-
+  cmbNucMainWindow *MainWindow;
 };
 #endif

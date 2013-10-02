@@ -422,4 +422,6 @@ void cmbNucMainWindow::zScaleChanged(int value)
   this->Actor->SetScale(1, 1, this->ZScale);
   this->Renderer->ResetCamera();
   this->ui->qvtkWidget->update();
+
+  emit updateGlobalZScale(this->ZScale);
 }
