@@ -37,9 +37,10 @@ public slots:
   void onFileNew();
   void onFileOpen();
   void onFileSave();
+  void openFiles(const QStringList &fileNames);
   void saveFile(const QString &fileName);
   // read file and return a new Assembly
-  cmbNucAssembly* openFile(const QString &fileName);
+  cmbNucAssembly* loadAssemblyFromFile(const QString &fileName);
 
 signals:
   void updateGlobalZScale(double scale);

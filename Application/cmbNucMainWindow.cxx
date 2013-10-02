@@ -192,6 +192,15 @@ void cmbNucMainWindow::onFileOpen()
     {
     return;
     }
+  this->openFiles(fileNames);
+
+  // update render view
+  this->Renderer->ResetCamera();
+  this->Renderer->Render();
+}
+
+void cmbNucMainWindow::openFiles(const QStringList &fileNames)
+{
   this->setCursor(Qt::BusyCursor);
   // clear old assembly
   this->PropertyWidget->setObject(NULL, NULL);
@@ -203,7 +212,7 @@ void cmbNucMainWindow::onFileOpen()
     {
     if(!fileName.isEmpty())
       {
-      cmbNucAssembly* assy = this->openFile(fileName);
+      cmbNucAssembly* assy = this->loadAssemblyFromFile(fileName);
       assemblies.append(assy);
       numNewAssy++;
       }
@@ -224,14 +233,12 @@ void cmbNucMainWindow::onFileOpen()
   // update data colors
   this->updateMaterialColors();
   // render
-  this->Renderer->ResetCamera();
-  this->Renderer->Render();
   this->InputsWidget->updateUI(numExistingAssy==0 && numNewAssy>1);
 
   this->unsetCursor();
 }
 
-cmbNucAssembly* cmbNucMainWindow::openFile(const QString &fileName)
+cmbNucAssembly* cmbNucMainWindow::loadAssemblyFromFile(const QString &fileName)
 {
   // read file and create new assembly
   QFileInfo finfo(fileName);
