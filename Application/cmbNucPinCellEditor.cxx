@@ -684,3 +684,10 @@ void cmbNucPinCellEditor::onCutAwayCheckBoxToggled(bool state)
   this->UpdatePolyData();
   this->UpdateRenderView();
 }
+
+//-----------------------------------------------------------------------------
+void cmbNucPinCellEditor::setZScale(double scale)
+{
+    this->Actor->SetScale(1, 1, scale);
+    this->UpdateRenderView();
+}

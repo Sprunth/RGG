@@ -7,6 +7,7 @@
 #include "cmbNucCore.h"
 #include "cmbNucPinCellEditor.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucMainWindow.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -22,8 +23,9 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-cmbNucInputPropertiesWidget::cmbNucInputPropertiesWidget(
-  QWidget* _p): QWidget(_p)
+cmbNucInputPropertiesWidget::cmbNucInputPropertiesWidget(cmbNucMainWindow *mainWindow)
+  : QWidget(mainWindow),
+    MainWindow(mainWindow)
 {
   this->Internal = new cmbNucInputPropertiesWidgetInternal;
   this->Internal->setupUi(this);
@@ -540,8 +542,11 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
 
   cmbNucPinCellEditor *editor = new cmbNucPinCellEditor(this);
   editor->SetPinCell(pincell);
+  editor->setZScale(this->MainWindow->getZScale());
   editor->setWindowFlags(Qt::Dialog);
   connect(editor, SIGNAL(accepted()), this, SLOT(pinCellEditorAccepted()));
+  connect(this->MainWindow, SIGNAL(updateGlobalZScale(double)),
+          editor, SLOT(setZScale(double)));
   editor->show();
 }
 
