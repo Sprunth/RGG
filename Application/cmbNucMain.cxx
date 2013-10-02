@@ -15,7 +15,7 @@ int main( int argc, char** argv )
 
   if(argc >= 2)
     {
-    cmbNucAppUI.openFile(argv[1]);
+    cmbNucAppUI.openFiles(QStringList() << argv[1]);
     }
  
   return app.exec();
