@@ -41,6 +41,7 @@ public slots:
   void saveFile(const QString &fileName);
   // read file and return a new Assembly
   cmbNucAssembly* loadAssemblyFromFile(const QString &fileName);
+  void ResetView();
 
 signals:
   void updateGlobalZScale(double scale);
