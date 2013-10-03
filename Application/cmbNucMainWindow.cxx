@@ -13,6 +13,7 @@
 #include <QDockWidget>
 #include <QProcess>
 #include <QTemporaryFile>
+#include <QTimer>
 
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
@@ -100,8 +101,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
           this, SLOT(zScaleChanged(int)));
 
-  this->Renderer->ResetCamera();
-  this->ui->qvtkWidget->update();
+  QTimer::singleShot(0, this, SLOT(ResetView()));
 }
 
 cmbNucMainWindow::~cmbNucMainWindow()
@@ -427,8 +427,13 @@ void cmbNucMainWindow::zScaleChanged(int value)
 {
   this->ZScale = 1.0 / value;
   this->Actor->SetScale(1, 1, this->ZScale);
-  this->Renderer->ResetCamera();
-  this->ui->qvtkWidget->update();
+  this->ResetView();
 
   emit updateGlobalZScale(this->ZScale);
+}
+
+void cmbNucMainWindow::ResetView()
+{
+  this->Renderer->ResetCamera();
+  this->ui->qvtkWidget->update();
 }
