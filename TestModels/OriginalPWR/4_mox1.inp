@@ -1,0 +1,64 @@
+! ###############################################################################
+! Square PWR Assembly Definition without CellMaterials (Prism) around Pins
+! ###############################################################################
+!
+GeometryType Rectangular 
+!
+Materials 6 MOX_43 M1 MOX_73 M2  MOX_87 M3  Gap GP  Clad CL  Water H2 
+!
+DUCT 1 0.0 0.0 0 365.76 21.42 21.42 H2 
+!
+Pincells 4 
+!
+! Standard fuel cell (1)
+FMOX_43 M1 2
+Pitch  1.26 1.26 365.76 
+Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  M1 GP CL                                                                                               
+!
+!
+! Standard fuel cell (2)
+FMOX_73 M2 2
+Pitch  1.26 1.26 365.76 
+Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  M2 GP CL                                                                                             
+!
+! Standard fuel cell (3)
+FMOX_87 M3 2
+Pitch  1.26 1.26 365.76 
+Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  M3 GP CL                                                                                               
+!
+! Guide Tube pin-cell (4)
+GuideTube GT 2
+Pitch  1.26 1.26 365.76 
+Cylinder 2 0.0 0.0  0.0 365.76   0.5715  0.6120  H2  CL
+!
+Assembly 17 17
+! 1  2   3   4   5   6   7   8   9  10  11  12  13  14  15  16 17
+M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1 M1    !  1
+M1  M1  M2  M2  M2  M2  M2  M2  M2  M2  M2  M2  M2  M2  M2  M1 M1    !  2
+M1  M2  M2  M2  M2  GT  M2  M2  GT  M2  M2  GT  M2  M2  M2  M2 M1    !  3
+M1  M2  M2  GT  M2  M2  M2  M2  M2  M2  M2  M2  M2  GT  M2  M2 M1    !  4
+M1  M2  M2  M2  M2  M3  M3  M3  M3  M3  M3  M3  M2  M2  M2  M2 M1    !  5
+M1  M2  GT  M2  M3  GT  M3  M3  GT  M3  M3  GT  M3  M2  GT  M2 M1    !  6
+M1  M2  M2  M2  M3  M3  M3  M3  M3  M3  M3  M3  M3  M2  M2  M2 M1    !  7
+M1  M2  M2  M2  M3  M3  M3  M3  M3  M3  M3  M3  M3  M2  M2  M2 M1    !  8
+M1  M2  GT  M2  M3  GT  M3  M3  GT  M3  M3  GT  M3  M2  GT  M2 M1    !  9
+M1  M2  M2  M2  M3  M3  M3  M3  M3  M3  M3  M3  M3  M2  M2  M2 M1    ! 10
+M1  M2  M2  M2  M3  M3  M3  M3  M3  M3  M3  M3  M3  M2  M2  M2 M1    ! 11
+M1  M2  GT  M2  M3  GT  M3  M3  GT  M3  M3  GT  M3  M2  GT  M2 M1    ! 12
+M1  M2  M2  M2  M2  M3  M3  M3  M3  M3  M3  M3  M2  M2  M2  M2 M1    ! 13
+M1  M2  M2  GT  M2  M2  M2  M2  M2  M2  M2  M2  M2  GT  M2  M2 M1    ! 14
+M1  M2  M2  M2  M2  GT  M2  M2  GT  M2  M2  GT  M2  M2  M2  M2 M1    ! 15
+M1  M1  M2  M2  M2  M2  M2  M2  M2  M2  M2  M2  M2  M2  M2  M1 M1    ! 16
+M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1  M1 M1    ! 17
+center
+MaterialSet_StartId 12222
+NeumannSet_StartId 12222
+RadialMeshSize 0.05
+AxialMeshSize 2
+END     ! This is a must                  
+                                                                                         
+
+
+
+
+
