@@ -142,9 +142,9 @@ enum enumNucPartsType
     PinCell()
       : radii(1)
       {
-      pitchX=4.0;
-      pitchY=4.0;
-      pitchZ=4.0;
+      pitchX=0.0;
+      pitchY=0.0;
+      pitchZ=0.0;
       name=label="p1";
       radii[0] = 1.0;
       }

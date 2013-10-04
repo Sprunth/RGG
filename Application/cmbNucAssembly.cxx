@@ -482,7 +482,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
           vtkNew<vtkMultiBlockDataSet> pinDataSet;
           pinDataSet->SetNumberOfBlocks(dataSet->GetNumberOfBlocks());
           for(int block=0; block<dataSet->GetNumberOfBlocks(); block++)
-            { 
+            {
             vtkMultiBlockDataSet* sectionBlock =
               vtkMultiBlockDataSet::SafeDownCast(dataSet->GetBlock(block));
             if(!sectionBlock)
@@ -502,10 +502,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 
               // move the polydata to the correct position
               vtkTransform *transform = vtkTransform::New();
-              double radius = pincell->cylinders.size()>0 ? pincell->cylinders[0]->r :
-                pincell->frustums[0]->r1;
-              transform->Translate(chamberStart + i * cellLength + radius,
-                                   chamberStart + j * cellLength + radius,
+              transform->Translate(chamberStart + i * cellLength + 0.5 * pincell->pitchX,
+                                   chamberStart + j * cellLength + 0.5 * pincell->pitchY,
                                    0);
               vtkNew<vtkTransformFilter> filter;
               filter->SetTransform(transform);
