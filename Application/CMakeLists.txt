@@ -22,6 +22,7 @@ SET(CMBNuclear_Srcs
   cmbNucDuctSource.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
+  cmbNucNewDialog.cxx
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
@@ -33,6 +34,7 @@ SET(CMBNuclear_Srcs
 
 SET(CMBNuclear_UI
   qNucMainWindow.ui
+  qNucNewDialog.ui
   qInputListWidget.ui
   qInputPropertiesWidget.ui
   cmbNucPinCellEditor.ui
@@ -42,6 +44,7 @@ SET(CMBNuclear_Headers
   cmbNucMainWindow.h
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
+  cmbNucNewDialog.h
 #  cmbNucPartsTreeItem.h
   cmbNucAssemblyEditor.h
   cmbNucDragLabel.h

@@ -20,6 +20,7 @@
 #include "cmbNucInputPropertiesWidget.h"
 #include "cmbNucInputListWidget.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucNewDialog.h"
 
 #include "vtkAxesActor.h"
 #include "vtkProperty.h"
@@ -40,6 +41,10 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui = new Ui_qNucMainWindow;
   this->ui->setupUi(this);
   this->NuclearCore = new cmbNucCore();
+
+  this->NewDialog = new cmbNucNewDialog(this);
+
+  connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -173,6 +178,11 @@ void cmbNucMainWindow::onExit()
 }
 
 void cmbNucMainWindow::onFileNew()
+{
+  this->NewDialog->show();
+}
+
+void cmbNucMainWindow::onNewDialogAccept()
 {
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
