@@ -167,4 +167,9 @@ void cmbNucMaterialColors::SetBlockMaterialColor(
     attributes->SetBlockColor(flatIdx, color);
     attributes->SetBlockOpacity(flatIdx, bColor.alphaF());
     }
+  else
+    {
+    double color[] = { 255, 192, 203 }; // pink
+    attributes->SetBlockColor(flatIdx, color);
+    }
 }
