@@ -320,7 +320,7 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
   output << "MeshType tet\n";
   output << "GeomEngine acis\n";
-  output << "GeometryType rectangular\n";
+  output << "GeometryType " << this->GeometryType << "\n";
 
   // materials
   QMap<std::string, std::string> materials;

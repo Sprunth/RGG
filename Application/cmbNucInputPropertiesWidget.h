@@ -10,6 +10,7 @@ class cmbNucAssemblyEditor;
 class cmbNucMainWindow;
 class cmbNucAssembly;
 class cmbNucCore;
+class cmbNucHexLattice;
 
 class cmbNucInputPropertiesWidget : public QWidget
 {
@@ -77,6 +78,8 @@ protected slots:
 
   void showPinCellEditor();
   void pinCellEditorAccepted();
+  void onCoreLayersChanged();
+  void onAssyLayersChanged();
 
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;
@@ -87,5 +90,7 @@ private:
   cmbNucAssemblyEditor *CoreEditor;
   cmbNucAssembly *Assembly;
   cmbNucMainWindow *MainWindow;
+  cmbNucHexLattice* HexCore;
+  cmbNucHexLattice* HexAssy;
 };
 #endif

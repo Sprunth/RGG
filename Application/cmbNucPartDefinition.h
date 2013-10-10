@@ -344,4 +344,74 @@ enum enumNucPartsType
     std::vector<std::vector<std::string> > Grid;
     };
 
+  class HexMap
+    {
+    public:
+      HexMap()
+        {
+        this->SetNumberOfLayers(0);
+        }
+
+      // Sets the dimensions of the cell assembly.
+      void SetNumberOfLayers(int layers)
+        {
+        int current = this->Grid.size();
+        if(current == layers)
+          {
+          return;
+          }
+
+        this->Grid.resize(layers);
+
+        if(layers>current )
+          {
+          for(int k = current; k < layers; k++)
+            {
+            if(k==0)
+              {
+              this->Grid[k].resize(1);
+              this->Grid[k][0] = "xx";
+              }
+            else
+              {
+              // for each layer, we need 6*Layer cells
+              this->Grid[k].resize(6*k);
+              for(int j = 0; j < 6*k; j++)
+                {
+                this->Grid[k][j] = "xx";
+                }
+              }
+            }
+          }
+        }
+
+      // Returns the layers of the hex grid.
+      int numberOfLayers() const
+        {
+        return (int)this->Grid.size();
+        }
+      // Sets the contents of the cell (i, j) to name.
+      void SetCell(int layer, int idx, const std::string &name)
+        {
+        this->Grid[layer][idx] = name;
+        }
+      // Returns the contents of the cell (i, j).
+      std::string GetCell(int layer, int idx) const
+        {
+        return this->Grid[layer][idx];
+        }
+      // Clears the contents of the cell (i, j). This is equivalent
+      // to calling SetCell(i, j, "xx").
+      void ClearCell(int layer, int idx)
+        {
+        this->SetCell(layer, idx, "xx");
+        }
+
+      // Stored as layered vectors. For each layer of hex cells
+      // we have a vector with 6*Layer cells, where Layer is the
+      // index into hex layers (starting 0), and Layer > 0.
+      // For Layer==0, just one cell.
+      std::vector<std::vector<std::string> > Grid;
+    };
+
 #endif

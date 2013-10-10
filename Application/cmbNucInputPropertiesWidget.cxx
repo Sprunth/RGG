@@ -9,6 +9,8 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucMainWindow.h"
 
+#include "cmbNucHexLattice.h"
+
 #include <QLabel>
 #include <QPointer>
 #include <QtDebug>
@@ -49,6 +51,14 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->coreLatticeLayout->addWidget(
     this->CoreEditor);
 
+  this->HexCore = new cmbNucHexLattice(this);
+  this->HexCore->setItemShape(HexLatticeItem::Hexagon);
+  this->Internal->hexLatticeLayout->addWidget(
+    this->HexCore);
+  this->HexAssy = new cmbNucHexLattice(this);
+  this->Internal->hexLatticeAssyLayout->addWidget(
+    this->HexAssy);
+
   QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
     this, SLOT(onApply()));
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
@@ -74,6 +84,10 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onCoreDimensionChanged()));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
     this, SLOT(onCoreDimensionChanged()));
+  QObject::connect(this->Internal->hexLattice, SIGNAL(valueChanged(int)),
+    this, SLOT(onCoreLayersChanged()));
+  QObject::connect(this->Internal->hexLatticeAssy, SIGNAL(valueChanged(int)),
+    this, SLOT(onAssyLayersChanged()));
 
   // pincell related connections
   QObject::connect(this->Internal->advancedButton, SIGNAL(clicked()),
@@ -206,15 +220,21 @@ void cmbNucInputPropertiesWidget::onReset()
     {
     case CMBNUC_CORE:
       this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageCore);
-      nucCore = dynamic_cast<cmbNucCore*>(selObj);
-      this->resetCore(nucCore);
+        this->Internal->pageHexCore);
+
+      //this->Internal->stackedWidget->setCurrentWidget(
+      //  this->Internal->pageCore);
+      //nucCore = dynamic_cast<cmbNucCore*>(selObj);
+      //this->resetCore(nucCore);
       break;
     case CMBNUC_ASSEMBLY:
       this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageAssembly);
-      assy = dynamic_cast<cmbNucAssembly*>(selObj);
-      this->resetAssembly(assy);
+        this->Internal->pageHexAssy);
+
+      //this->Internal->stackedWidget->setCurrentWidget(
+      //  this->Internal->pageAssembly);
+      //assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      //this->resetAssembly(assy);
       break;
     case CMBNUC_ASSY_LATTICE:
       this->Internal->stackedWidget->setCurrentWidget(
@@ -560,4 +580,12 @@ void cmbNucInputPropertiesWidget::pinCellEditorAccepted()
 
   this->applyToPinCell(editor->GetPinCell());
   //emit this->currentObjectModified(editor->GetPinCell());
+}
+void cmbNucInputPropertiesWidget::onCoreLayersChanged()
+{
+  this->HexCore->setLayers(this->Internal->hexLattice->value());
+}
+void cmbNucInputPropertiesWidget::onAssyLayersChanged()
+{
+  this->HexAssy->setLayers(this->Internal->hexLatticeAssy->value());
 }

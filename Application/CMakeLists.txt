@@ -20,6 +20,7 @@ SET(CMBNuclear_Srcs
   cmbNucAssemblyEditor.cxx
   cmbNucCore.cxx
   cmbNucDuctSource.cxx
+  cmbNucHexDuctSource.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
   cmbNucMaterialColors.cxx
@@ -29,6 +30,8 @@ SET(CMBNuclear_Srcs
   cmbNucPartsTreeItem.cxx
   cmbNucDragLabel.cxx
   cmbNucPinCellEditor.cxx
+  cmbNucHexLattice.cxx
+  HexLatticeItem.cxx
 )
 
 SET(CMBNuclear_UI
@@ -46,6 +49,8 @@ SET(CMBNuclear_Headers
   cmbNucAssemblyEditor.h
   cmbNucDragLabel.h
   cmbNucPinCellEditor.h
+  cmbNucHexLattice.h
+  HexLatticeItem.h
 )
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})
