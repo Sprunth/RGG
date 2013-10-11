@@ -136,6 +136,15 @@ enum enumNucPartsType
     double r2;
   };
 
+  // Represents a single pin cell. Pin cells can have multiple
+  // sections which are either cylinders (constant radius) or
+  // frustums (with start and end radii) aka truncated cones.
+  // Pin cells also have multiple layers specified by their thickness
+  // which can be assigned different material properties.
+  //
+  // Pin cells also have names (strings) and labels (usually two character
+  // strings). In other parts of the code (e.g. cmbNucAssembly) pin cells
+  // are refered to by their label.
   class PinCell : public AssyPartObj
   {
   public:

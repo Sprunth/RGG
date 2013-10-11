@@ -5,6 +5,9 @@
 
 #include <vtkMultiBlockDataSetAlgorithm.h>
 
+// Creates a cone with multiple layers. Each layer is a separate block
+// in the multi-block output data-set so that individual layers property's
+// can be modified with the composite poly-data mapper.
 class vtkCmbLayeredConeSource : public vtkMultiBlockDataSetAlgorithm
 {
 public:

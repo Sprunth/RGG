@@ -9,6 +9,10 @@
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
 
+// Represents an assembly. Assemblies are composed of pin cells (cmbNucPinCell)
+// and the surrounding ducting. Assemblies can be loaded and stored to files
+// with the ReadFile() and Write() file methods. Assemblies are grouped together
+// into cores (cmbNucCore).
 class cmbNucAssembly : public AssyPartObj
 {
 public:
