@@ -15,6 +15,10 @@ class PinCell;
 class cmbNucAssembly;
 class AssyPartObj;
 
+// the pin cell editor widget. this dialog allows the user to modify a
+// single pin cell in an assembly. the sections (cylinders/frustums) can
+// be added/removed/modifed as well as the layers. materials can be assigned
+// to each layer via the materials table.
 class cmbNucPinCellEditor : public QWidget
 {
   Q_OBJECT

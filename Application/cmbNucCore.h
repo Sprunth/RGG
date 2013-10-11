@@ -10,6 +10,8 @@
 
 class cmbNucAssembly;
 
+// Represents the core which is composed of multiple assemblies
+// (cmbNucAssembly). Assemblies are layed out on a lattice.
 class cmbNucCore : public AssyPartObj
 {
 public:
