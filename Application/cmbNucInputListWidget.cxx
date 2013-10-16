@@ -16,7 +16,7 @@
 #include <QColorDialog>
 #include <QHeaderView>
 
-class cmbNucInputListWidgetInternal : 
+class cmbNucInputListWidgetInternal :
   public Ui::InputListWidget
 {
 public:
@@ -269,7 +269,7 @@ void cmbNucInputListWidget::onNewCylinder()
     selItem->setExpanded(true);
     cNode->setSelected(true);
     this->onPartsSelectionChanged();
-    }  
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -331,7 +331,7 @@ void cmbNucInputListWidget::onNewFrustum()
     fNode->setSelected(true);
 
     this->onPartsSelectionChanged();
-    }  
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -586,6 +586,7 @@ void cmbNucInputListWidget::initCoreRootNode()
     this->Internal->RootCoreNode->setFlags(itemFlags); // not editable
     this->Internal->RootCoreNode->setChildIndicatorPolicy(
       QTreeWidgetItem::DontShowIndicatorWhenChildless);
+    this->Internal->RootCoreNode->setExpanded(true);
     }
 }
 
@@ -655,13 +656,12 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
       }
     }
 
-  this->Internal->PartsList->expandAll();
   this->Internal->PartsList->blockSignals(false);
 
   if(select)
     {
     latticeNode->setSelected(true);
-    this->onPartsSelectionChanged(); 
+    this->onPartsSelectionChanged();
     }
 }
 
@@ -737,7 +737,7 @@ void cmbNucInputListWidget::onMaterialSelectionChanged()
 {
   //cmbNucPartsTreeItem* selItem = this->getSelectedItem(
   //  this->Internal->MaterialTree);
-  //this->fireObjectSelectedSignal(selItem);  
+  //this->fireObjectSelectedSignal(selItem);
 }
 
 //-----------------------------------------------------------------------------
@@ -810,8 +810,8 @@ void cmbNucInputListWidget::initMaterialsTree()
   treeWidget->setColumnCount(3);
   treeWidget->setAlternatingRowColors(true);
   treeWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-  treeWidget->header()->setResizeMode(0, QHeaderView::ResizeToContents);  
-  treeWidget->header()->setResizeMode(1, QHeaderView::ResizeToContents);  
+  treeWidget->header()->setResizeMode(0, QHeaderView::ResizeToContents);
+  treeWidget->header()->setResizeMode(1, QHeaderView::ResizeToContents);
   treeWidget->setAcceptDrops(false);
   treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
 
@@ -821,7 +821,7 @@ void cmbNucInputListWidget::initMaterialsTree()
     this->createMaterialItem(material,
       matColorMap->MaterialColorMap()[material].first,
       matColorMap->MaterialColorMap()[material].second);
-    } 
+    }
 
   treeWidget->blockSignals(false);
 }
