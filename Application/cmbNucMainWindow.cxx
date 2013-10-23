@@ -119,10 +119,15 @@ void cmbNucMainWindow::initPanels()
   this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
   this->PropertyWidget->updateMaterials();
   this->ui->InputsDock->setWidget(this->InputsWidget);
-  this->ui->PropertyDock->setWidget(this->PropertyWidget);
-  this->ui->PropertyDock->setEnabled(0);
-  this->InputsWidget->setEnabled(0);
+  this->ui->InputsDock->setFeatures(
+    QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 
+  this->ui->PropertyDock->setWidget(this->PropertyWidget);
+  this->ui->PropertyDock->setFeatures(
+    QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+
+  this->PropertyWidget->setEnabled(0);
+  this->InputsWidget->setEnabled(0);
   this->InputsWidget->setCore(this->NuclearCore);
 
   QObject::connect(this->InputsWidget,
