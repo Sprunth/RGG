@@ -53,6 +53,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   renderWindow->AddRenderer(this->Renderer);
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
+  this->Mapper->SetScalarVisibility(0);
   this->Actor = vtkSmartPointer<vtkActor>::New();
   this->Actor->SetMapper(this->Mapper.GetPointer());
   this->Actor->GetProperty()->SetShading(1);
