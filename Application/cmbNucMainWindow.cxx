@@ -13,6 +13,7 @@
 #include <QDockWidget>
 #include <QProcess>
 #include <QTemporaryFile>
+#include <QSettings>
 #include <QTimer>
 
 #include "cmbNucAssembly.h"
@@ -189,15 +190,24 @@ void cmbNucMainWindow::onFileNew()
 
 void cmbNucMainWindow::onFileOpen()
 {
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
   QStringList fileNames =
     QFileDialog::getOpenFileNames(this,
                                  "Open Assygen File...",
-                                 QDir::homePath(),
+                                 dir.path(),
                                  "INP Files (*.inp)");
   if(fileNames.count()==0)
     {
     return;
     }
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileNames[0]);
+  settings.setValue("cache/lastDir", info.dir().path());
+
   this->openFiles(fileNames);
 
   // update render view
@@ -259,17 +269,26 @@ cmbNucAssembly* cmbNucMainWindow::loadAssemblyFromFile(const QString &fileName)
 
 void cmbNucMainWindow::onFileSave()
 {
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
   QString fileName =
     QFileDialog::getSaveFileName(this,
                                  "Save Assygen File...",
-                                 QDir::homePath(),
+                                 dir.path(),
                                  "INP Files (*.inp)");
   if(!fileName.isEmpty())
     {
+    // Cache the directory for the next time the dialog is opened
+    QFileInfo info(fileName);
+    settings.setValue("cache/lastDir", info.dir().path());
+
     this->setCursor(Qt::BusyCursor);
     this->saveFile(fileName);
     this->unsetCursor();
     }
+
 }
 
 void cmbNucMainWindow::saveFile(const QString &fileName)
