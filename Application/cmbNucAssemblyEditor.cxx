@@ -2,18 +2,16 @@
 #include "cmbNucAssemblyEditor.h"
 
 #include "cmbNucDragLabel.h"
+#include "cmbNucPartDefinition.h"
+#include "cmbNucAssembly.h"
+#include <iostream>
 
 #include <QtGui>
 
-cmbNucAssemblyEditor::cmbNucAssemblyEditor(QWidget *parent)
-  : QFrame(parent), CurrentAssembly(NULL)
+cmbNucAssemblyEditor::cmbNucAssemblyEditor(QWidget *parent, cmbNucAssembly* assy)
+  : QFrame(parent), CurrentAssembly(assy)
 {
   setAutoFillBackground(true);
-// this->GraphicsView = new QGraphicsView(this);
-//  this->LatticeView = new QFrame(this);
-  //QVBoxLayout *layout = new QVBoxLayout;
-  //layout->addWidget(this->LatticeView);
-  //setLayout(layout);
 
   this->setFrameShape(QFrame::WinPanel);
   this->setFrameShadow(QFrame::Sunken);
@@ -25,6 +23,11 @@ cmbNucAssemblyEditor::cmbNucAssemblyEditor(QWidget *parent)
 cmbNucAssemblyEditor::~cmbNucAssemblyEditor()
 {
   this->clearUI(false);
+}
+
+void cmbNucAssemblyEditor::setAssembly(cmbNucAssembly* assy)
+{
+  this->CurrentAssembly = assy;
 }
 
 void cmbNucAssemblyEditor::clearUI(bool updateUI)
@@ -47,7 +50,7 @@ void cmbNucAssemblyEditor::clearUI(bool updateUI)
     }
 }
 void cmbNucAssemblyEditor::resetUI(
-  const std::vector<std::vector<std::string> >& Grid,
+  const std::vector<std::vector<LatticeCell> >& Grid,
   QStringList& actions)
 {
   this->clearUI();
@@ -68,7 +71,7 @@ void cmbNucAssemblyEditor::resetUI(
     {
     for(size_t j = 0; j < Grid[0].size(); j++)
       {
-      this->CurrentGrid[k][j] =Grid[k][j];
+      this->CurrentGrid[k][j] = Grid[k][j];
       }
     }
 
@@ -78,7 +81,7 @@ void cmbNucAssemblyEditor::resetUI(
 }
 
 void cmbNucAssemblyEditor::updateLatticeWithGrid(
-  std::vector<std::vector<std::string> >& Grid)
+  std::vector<std::vector<LatticeCell> >& Grid)
 {
   int x = (int)this->CurrentGrid.size();
   int y = (int)this->CurrentGrid[0].size();
@@ -93,7 +96,7 @@ void cmbNucAssemblyEditor::updateLatticeWithGrid(
       {
       Grid[k][j] = this->CurrentGrid[k][j];
       }
-    }  
+    }
 }
 
 void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
@@ -113,13 +116,14 @@ void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
     this->CurrentGrid[k].resize(y);
     }
 
-  if(x>availableX )
+  if(x>availableX)
     {
     for(int k = availableX; k < x; k++)
       {
       for(int j = 0; j < y; j++)
         {
-        this->CurrentGrid[k][j] ="xx";
+        this->CurrentGrid[k][j].label = "xx";
+        this->CurrentGrid[k][j].color = Qt::white;
         }
       }
     }
@@ -129,18 +133,21 @@ void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
       {
       for(int j = availableY; j < y; j++)
         {
-        this->CurrentGrid[k][j] ="xx";
+        this->CurrentGrid[k][j].label = "xx";
+        this->CurrentGrid[k][j].color = Qt::white;
         }
       }
     }
+
   for(int i = 0; i < x; i++)
     {
     for(int j = 0; j < y; j++)
       {
-      std::string pinlabel = this->CurrentGrid[i][j];
+      LatticeCell lc = this->CurrentGrid[i][j];
       cmbNucDragLabel *wordLabel = new cmbNucDragLabel(
-        pinlabel.c_str(), this, i, j);
-      this->LatticeLayout->addWidget(wordLabel, y-j-1, i);
+        lc.label.c_str(), this, i, j);
+      wordLabel->setBackgroundColor(lc.color);
+      this->LatticeLayout->addWidget(wordLabel, y - j - 1, i);
       }
     }
   update();
@@ -173,9 +180,9 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
       if(targeLabel != child)
         {
         child->setText("xx");
-        this->CurrentGrid[targeLabel->getX()][targeLabel->getY()] =
+        this->CurrentGrid[targeLabel->getX()][targeLabel->getY()].label =
           targeLabel->text().toStdString();
-        this->CurrentGrid[child->getX()][child->getY()] =
+        this->CurrentGrid[child->getX()][child->getY()].label =
           child->text().toStdString();
         }
       }
@@ -194,9 +201,19 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
     QAction* assignAct = contextMenu.exec(event->globalPos());
     if(assignAct)
       {
+      std::string label = assignAct->text().toStdString();
       child->setText(assignAct->text());
-      this->CurrentGrid[child->getX()][child->getY()] =
-        child->text().toStdString();
+
+      this->CurrentGrid[child->getX()][child->getY()].label = label;
+
+      if(this->CurrentAssembly)
+        {
+        PinCell* pc = this->CurrentAssembly->GetPinCell(label);
+        QColor color = pc ? pc->GetLegendColor() : Qt::white;
+
+        this->CurrentGrid[child->getX()][child->getY()].color = color;
+        child->setBackgroundColor(color);
+        }
       }
     }
   child->setHighlight(false);

@@ -37,7 +37,7 @@ signals:
   // Description:
   // Fired when the current object is modified
   void currentObjectModified(AssyPartObj* selObj);
-  
+
 protected slots:
   // Invoked when Apply button clicked
   void onApply();
@@ -77,6 +77,7 @@ protected slots:
 
   void showPinCellEditor();
   void pinCellEditorAccepted();
+  void choosePinLegendColor();
 
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;

@@ -239,10 +239,10 @@ void cmbNucMainWindow::openFiles(const QStringList &fileNames)
     this->NuclearCore->SetDimensions(numNewAssy, numNewAssy);
     for(int i=0; i<numNewAssy ; i++)
       {
-      this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label);
+      this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label, Qt::white);
       for(int j=1; j<numNewAssy ; j++)
         {
-        this->NuclearCore->SetAssemblyLabel(i, j, "xx");
+        this->NuclearCore->ClearAssemblyLabel(i, j);
         }
       }
     }
@@ -365,7 +365,7 @@ void cmbNucMainWindow::updateMaterialColors()
         realflatidx++;
         if(pin_count < pins)
           {
-          std::string label = assy->AssyLattice.GetCell(pin_count);
+          std::string label = assy->AssyLattice.GetCell(pin_count).label;
           PinCell* pinCell = assy->GetPinCell(label);
 
           if(pinCell)
