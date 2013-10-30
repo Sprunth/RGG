@@ -176,14 +176,16 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
     Qt::DropAction dropAction = drag->exec(Qt::CopyAction);
     if(dropAction != Qt::IgnoreAction)
       {
-      cmbNucDragLabel* targeLabel = dynamic_cast<cmbNucDragLabel*>(drag->target());
-      if(targeLabel != child)
+      cmbNucDragLabel* destCell = dynamic_cast<cmbNucDragLabel*>(drag->target());
+      if(destCell != child)
         {
-        child->setText("xx");
-        this->CurrentGrid[targeLabel->getX()][targeLabel->getY()].label =
-          targeLabel->text().toStdString();
-        this->CurrentGrid[child->getX()][child->getY()].label =
+        this->CurrentGrid[destCell->getX()][destCell->getY()].label =
           child->text().toStdString();
+        this->CurrentGrid[destCell->getX()][destCell->getY()].color =
+          child->getBackgroundColor();
+        destCell->setBackgroundColor(child->getBackgroundColor());
+        destCell->setHighlight(false);
+        destCell->update();
         }
       }
     }
