@@ -162,6 +162,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         {
         std::string mname, mlabel;
         input >> mname >> mlabel;
+        std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
         if(!matColorMap->MaterialColorMap().contains(mname.c_str()))
           {
           matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(),
@@ -254,7 +255,10 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
             for(int c=0; c < layers; c++)
               {
-              input >> cylinder->materials[c];
+              std::string mname;
+              input >> mname;
+              std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+              cylinder->materials[c] = mname;
               }
 
             // normalize radii
@@ -285,7 +289,10 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
             for(int c=0; c < layers; c++)
               {
-              input >> frustum->materials[c];
+              std::string mname;
+              input >> mname;
+              std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+              frustum->materials[c] = mname;
               }
 
             // normalize radii
