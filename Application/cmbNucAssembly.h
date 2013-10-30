@@ -32,6 +32,9 @@ public:
   // Remove the pincell with label from the assembly.
   void RemovePinCell(const std::string &label);
 
+  // Call this when a pin cell property changes, it will rebuild the lattice
+  void UpdateGrid();
+
   // Returns the pincell with label. Returns 0 if no pincell with
   // label exists.
   PinCell* GetPinCell(const std::string &label);

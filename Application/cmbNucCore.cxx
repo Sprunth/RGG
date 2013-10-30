@@ -41,9 +41,9 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
   this->Assemblies.push_back(assembly);
   if(this->Assemblies.size() == 1)
     {
-    this->SetAssemblyLabel(0, 0,assembly->label);
+    this->SetAssemblyLabel(0, 0, assembly->label, Qt::white);
     }
-  // the new assembly need to be in the grid 
+  // the new assembly need to be in the grid
 }
 
 void cmbNucCore::RemoveAssembly(const std::string &label)
@@ -63,9 +63,9 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
     {
     for(size_t j = 0; j < dim.second; j++)
       {
-      if(this->GetAssemblyLabel(i, j) == label)
+      if(this->GetAssemblyLabel(i, j).label == label)
         {
-        this->SetAssemblyLabel(i, j, "xx");
+        this->ClearAssemblyLabel(i, j);
         }
       }
     }
@@ -114,11 +114,11 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 
   for(size_t i = 0; i < this->Grid.size(); i++)
     {
-    const std::vector<std::string> &row = this->Grid[i];
+    const std::vector<LatticeCell> &row = this->Grid[i];
 
     for(size_t j = 0; j < row.size(); j++)
       {
-      const std::string &type = row[j];
+      const std::string &type = row[j].label;
 
       if(!type.empty() && type != "xx" && type != "XX")
         {

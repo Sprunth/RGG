@@ -2,6 +2,7 @@
 #define __cmbNucPartDefinition_h
 
 #include <vector>
+#include <QColor>
 
 enum enumNucPartsType
 {
@@ -122,7 +123,7 @@ enum enumNucPartsType
         {
         this->materials[i] = material;
         }
-      }   
+      }
     void SetNumberOfLayers(int numLayers)
     {
       this->materials.resize(numLayers);
@@ -156,7 +157,9 @@ enum enumNucPartsType
       pitchZ=0.0;
       name=label="p1";
       radii[0] = 1.0;
+      legendColor = Qt::white;
       }
+
     ~PinCell()
       {
       this->deleteObjs(this->cylinders);
@@ -220,6 +223,16 @@ enum enumNucPartsType
         }
       }
 
+    QColor GetLegendColor() const
+      {
+      return this->legendColor;
+      }
+
+    void SetLegendColor(const QColor& color)
+      {
+      this->legendColor = color;
+      }
+
     int GetNumberOfLayers()
       {
       if(this->cylinders.size() > 0)
@@ -255,6 +268,7 @@ enum enumNucPartsType
     std::vector<Cylinder*> cylinders;
     std::vector<Frustum*> frustums;
     std::vector<double> radii;
+    QColor legendColor;
   };
 
   class Duct : public AssyPartObj
@@ -275,7 +289,7 @@ enum enumNucPartsType
         this->z1==obj.z1 && this->z2==obj.z2 &&
         this->materials==obj.materials &&
         this->thicknesses==obj.thicknesses;
-      } 
+      }
     double x;
     double y;
     double z1;
@@ -301,6 +315,16 @@ enum enumNucPartsType
     std::vector<Duct*> Ducts;
   };
 
+  // Represents a cell in the lattice view widget, containing
+  // a label and a color.
+  struct LatticeCell
+    {
+    LatticeCell() : label("xx"), color(Qt::white) {}
+
+    std::string label;
+    QColor color;
+    };
+
   class Lattice : public AssyPartObj
     {
   public:
@@ -323,34 +347,39 @@ enum enumNucPartsType
       {
       return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
       }
+
     // Sets the contents of the cell (i, j) to name.
-    void SetCell(int i, int j, const std::string &name)
+    void SetCell(int i, int j, const std::string &name, const QColor& color)
       {
-      this->Grid[i][j] = name;
+      this->Grid[i][j].label = name;
+      this->Grid[i][j].color = color;
       }
+
     // Returns the contents of the cell (i, j).
-    std::string GetCell(int i, int j) const
+    LatticeCell GetCell(int i, int j) const
       {
       return this->Grid[i][j];
       }
+
     // Returns the contents of the cell (I).
-    std::string GetCell(int i) const
+    LatticeCell GetCell(int i) const
       {
-          // Convert to j,k
-          int s = (int)this->Grid.size();
-          int j = i / s;
-          int k = i - (j*s);
-          return this->Grid[j][k];
+      // Convert to j,k
+      int s = (int)this->Grid.size();
+      int j = i / s;
+      int k = i - (j*s);
+      return this->Grid[j][k];
       }
+
     // Clears the contents of the cell (i, j). This is equivalent
     // to calling SetCell(i, j, "xx").
     void ClearCell(int i, int j)
       {
-      this->SetCell(i, j, "xx");
+      this->SetCell(i, j, "xx", Qt::white);
       }
     enumNucPartsType GetType()
       { return CMBNUC_ASSY_LATTICE;}
-    std::vector<std::vector<std::string> > Grid;
+    std::vector<std::vector<LatticeCell> > Grid;
     };
 
 #endif

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <QColor>
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
@@ -55,20 +56,21 @@ public:
     return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
     }
   // Sets the contents of the Assembly (i, j) to name.
-  void SetAssemblyLabel(int i, int j, const std::string &name)
+  void SetAssemblyLabel(int i, int j, const std::string &name, const QColor& color)
     {
-    this->Grid[i][j] = name;
+    this->Grid[i][j].label = name;
+    this->Grid[i][j].color = color;
     }
   // Returns the contents of the Assembly (i, j).
-  std::string GetAssemblyLabel(int i, int j) const
+  LatticeCell GetAssemblyLabel(int i, int j) const
     {
     return this->Grid[i][j];
     }
   // Clears the contents of the Assembly (i, j). This is equivalent
-  // to calling SetAssembly(i, j, "xx").
+  // to calling SetAssembly(i, j, "xx", Qt::white).
   void ClearAssemblyLabel(int i, int j)
     {
-    this->SetAssemblyLabel(i, j, "xx");
+    this->SetAssemblyLabel(i, j, "xx", Qt::white);
     }
 
   // Returns a multi-block data set containing the geometry for
@@ -78,7 +80,7 @@ public:
   // Get/Set Assembly pitch
   double AssyemblyPitchX;
   double AssyemblyPitchY;
-  std::vector<std::vector<std::string> > Grid;
+  std::vector<std::vector<LatticeCell> > Grid;
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;

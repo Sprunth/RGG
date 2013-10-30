@@ -18,6 +18,16 @@ cmbNucDragLabel::cmbNucDragLabel(const QString &text, QWidget *parent,
     highlighted = false;
 }
 
+void cmbNucDragLabel::setBackgroundColor(const QColor& color)
+{
+  this->backgroundColor = color;
+}
+
+QColor cmbNucDragLabel::getBackgroundColor()
+{
+  return this->backgroundColor;
+}
+
 void cmbNucDragLabel::paintEvent(QPaintEvent *event)
 {
   this->QLabel::paintEvent(event);
@@ -28,7 +38,7 @@ void cmbNucDragLabel::paintEvent(QPaintEvent *event)
     }
   else
     {
-    palette.setColor(this->backgroundRole(), Qt::gray);
+    palette.setColor(this->backgroundRole(), this->backgroundColor);
     }
   this->setPalette(palette);
 }
