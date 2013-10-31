@@ -14,8 +14,9 @@
 #include <QLabel>
 #include <QPointer>
 #include <QtDebug>
+#include <QColorDialog>
 
-class cmbNucInputPropertiesWidgetInternal : 
+class cmbNucInputPropertiesWidgetInternal :
   public Ui::InputPropertiesWidget
 {
 public:
@@ -44,10 +45,10 @@ cmbNucInputPropertiesWidget::~cmbNucInputPropertiesWidget()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::initUI()
 {
-  this->AssemblyEditor = new cmbNucAssemblyEditor(this);
+  this->AssemblyEditor = new cmbNucAssemblyEditor(this, this->Assembly);
   this->Internal->latticecontainerLayout->addWidget(
     this->AssemblyEditor);
-  this->CoreEditor = new cmbNucAssemblyEditor(this);
+  this->CoreEditor = new cmbNucAssemblyEditor(this, this->Assembly);
   this->Internal->coreLatticeLayout->addWidget(
     this->CoreEditor);
 
@@ -58,6 +59,7 @@ void cmbNucInputPropertiesWidget::initUI()
   this->HexAssy = new cmbNucHexLattice(this);
   this->Internal->hexLatticeAssyLayout->addWidget(
     this->HexAssy);
+  this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
 
   QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
     this, SLOT(onApply()));
@@ -92,6 +94,8 @@ void cmbNucInputPropertiesWidget::initUI()
   // pincell related connections
   QObject::connect(this->Internal->advancedButton, SIGNAL(clicked()),
     this, SLOT(showPinCellEditor()));
+  QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
+    this, SLOT(choosePinLegendColor()));
 }
 
 //-----------------------------------------------------------------------------
@@ -133,7 +137,7 @@ void cmbNucInputPropertiesWidget::updateMaterials()
     this->Internal->DuctLayerMaterial->addItem(matLabel);
     this->Internal->FrustumMaterial->addItem(matLabel);
     this->Internal->CylinderMaterial->addItem(matLabel);
-    } 
+    }
 
   this->Internal->DuctLayerMaterial->blockSignals(false);
   this->Internal->FrustumMaterial->blockSignals(false);
@@ -148,6 +152,8 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
     return;
     }
   this->Assembly = assyObj;
+  this->AssemblyEditor->setAssembly(assyObj);
+  this->CoreEditor->setAssembly(assyObj);
 }
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
@@ -276,6 +282,11 @@ void cmbNucInputPropertiesWidget::onReset()
 void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
 {
   this->Internal->PinCellLabel->setText(pincell->label.c_str());
+
+  // Show color swatch with legendColor
+   QPalette palette = this->Internal->colorSwatch->palette();
+   palette.setColor(this->Internal->colorSwatch->backgroundRole(), pincell->GetLegendColor());
+   this->Internal->colorSwatch->setPalette(palette);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetFrustum(Frustum* frust)
@@ -356,8 +367,9 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       PinCell *pincell = this->Assembly->PinCells[i];
       actionList.append(pincell->label.c_str());
       }
+    this->Assembly->UpdateGrid();
     this->AssemblyEditor->resetUI(
-      this->Assembly->AssyLattice.Grid, actionList); 
+      this->Assembly->AssyLattice.Grid, actionList);
     }
 }
 
@@ -391,7 +403,7 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
       this->Internal->DuctThicknesses.removeAt(j);
       }
     }
-  
+
   this->Internal->DuctLayer->blockSignals(false);
   int currentLayer = previusLayer<numLayers ? previusLayer : 0;
   this->onCurrentDuctLayerChanged(currentLayer>=0 ? currentLayer : 0);
@@ -462,7 +474,7 @@ void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
 {
-  if(this->Internal->NumOfDuctLayers->value() != 
+  if(this->Internal->NumOfDuctLayers->value() !=
      this->Internal->DuctMaterials.size())
     {
     qCritical() << "The duct layers and their materials are not set properly.";
@@ -568,6 +580,27 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
   connect(this->MainWindow, SIGNAL(updateGlobalZScale(double)),
           editor, SLOT(setZScale(double)));
   editor->show();
+}
+
+void cmbNucInputPropertiesWidget::choosePinLegendColor()
+{
+  PinCell* pincell = dynamic_cast<PinCell*>(this->CurrentObject);
+  if(!pincell)
+    {
+    std::cerr << "Error: don't have pincell" << std::endl;
+    return;
+    }
+  QColor selected = QColorDialog::getColor(pincell->GetLegendColor(), this,
+    "Select key color for pin cell type");
+  if(selected.isValid())
+    {
+    pincell->SetLegendColor(selected);
+    QPalette palette = this->Internal->colorSwatch->palette();
+    palette.setColor(this->Internal->colorSwatch->backgroundRole(), selected);
+    this->Internal->colorSwatch->setPalette(palette);
+
+    this->resetAssemblyLattice();
+    }
 }
 
 void cmbNucInputPropertiesWidget::pinCellEditorAccepted()

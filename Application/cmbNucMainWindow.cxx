@@ -13,6 +13,7 @@
 #include <QDockWidget>
 #include <QProcess>
 #include <QTemporaryFile>
+#include <QSettings>
 #include <QTimer>
 
 #include "cmbNucAssembly.h"
@@ -53,6 +54,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   renderWindow->AddRenderer(this->Renderer);
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
+  this->Mapper->SetScalarVisibility(0);
   this->Actor = vtkSmartPointer<vtkActor>::New();
   this->Actor->SetMapper(this->Mapper.GetPointer());
   this->Actor->GetProperty()->SetShading(1);
@@ -119,10 +121,15 @@ void cmbNucMainWindow::initPanels()
   this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
   this->PropertyWidget->updateMaterials();
   this->ui->InputsDock->setWidget(this->InputsWidget);
-  this->ui->PropertyDock->setWidget(this->PropertyWidget);
-  this->ui->PropertyDock->setEnabled(0);
-  this->InputsWidget->setEnabled(0);
+  this->ui->InputsDock->setFeatures(
+    QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
 
+  this->ui->PropertyDock->setWidget(this->PropertyWidget);
+  this->ui->PropertyDock->setFeatures(
+    QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+
+  this->PropertyWidget->setEnabled(0);
+  this->InputsWidget->setEnabled(0);
   this->InputsWidget->setCore(this->NuclearCore);
 
   QObject::connect(this->InputsWidget,
@@ -183,15 +190,24 @@ void cmbNucMainWindow::onFileNew()
 
 void cmbNucMainWindow::onFileOpen()
 {
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
   QStringList fileNames =
     QFileDialog::getOpenFileNames(this,
                                  "Open Assygen File...",
-                                 QDir::homePath(),
+                                 dir.path(),
                                  "INP Files (*.inp)");
   if(fileNames.count()==0)
     {
     return;
     }
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileNames[0]);
+  settings.setValue("cache/lastDir", info.dir().path());
+
   this->openFiles(fileNames);
 
   // update render view
@@ -223,10 +239,10 @@ void cmbNucMainWindow::openFiles(const QStringList &fileNames)
     this->NuclearCore->SetDimensions(numNewAssy, numNewAssy);
     for(int i=0; i<numNewAssy ; i++)
       {
-      this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label);
+      this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label, Qt::white);
       for(int j=1; j<numNewAssy ; j++)
         {
-        this->NuclearCore->SetAssemblyLabel(i, j, "xx");
+        this->NuclearCore->ClearAssemblyLabel(i, j);
         }
       }
     }
@@ -253,17 +269,26 @@ cmbNucAssembly* cmbNucMainWindow::loadAssemblyFromFile(const QString &fileName)
 
 void cmbNucMainWindow::onFileSave()
 {
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
   QString fileName =
     QFileDialog::getSaveFileName(this,
                                  "Save Assygen File...",
-                                 QDir::homePath(),
+                                 dir.path(),
                                  "INP Files (*.inp)");
   if(!fileName.isEmpty())
     {
+    // Cache the directory for the next time the dialog is opened
+    QFileInfo info(fileName);
+    settings.setValue("cache/lastDir", info.dir().path());
+
     this->setCursor(Qt::BusyCursor);
     this->saveFile(fileName);
     this->unsetCursor();
     }
+
 }
 
 void cmbNucMainWindow::saveFile(const QString &fileName)
@@ -340,7 +365,7 @@ void cmbNucMainWindow::updateMaterialColors()
         realflatidx++;
         if(pin_count < pins)
           {
-          std::string label = assy->AssyLattice.GetCell(pin_count);
+          std::string label = assy->AssyLattice.GetCell(pin_count).label;
           PinCell* pinCell = assy->GetPinCell(label);
 
           if(pinCell)

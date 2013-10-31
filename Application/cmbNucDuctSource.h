@@ -30,6 +30,10 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 class vtkPolyData;
 
+// The cmbNucDuctSource is a VTK algorithm which produces a multi-block data-set
+// containing vtkPolyData for each of the layers in a rectangular duct. The height
+// and origin of the whole duct can be modified. Layers can be added by specifying
+// their thickness in the X and Y directions.
 class cmbNucDuctSource : public vtkMultiBlockDataSetAlgorithm
 {
 public:
@@ -47,7 +51,12 @@ public:
   vtkSetVector3Macro(Origin, double)
   vtkGetVectorMacro(Origin, double, 3)
 
+  // Add a new layer with thicknesses x and y. Ducts should be
+  // built up starting at the inner most layer and moving to the
+  // outermost layer.
   void AddLayer(double x, double y);
+
+  // Returns the number of layers in the duct.
   int GetNumberOfLayers();
 
 protected:

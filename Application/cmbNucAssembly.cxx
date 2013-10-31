@@ -34,6 +34,27 @@ cmbNucAssembly::~cmbNucAssembly()
   AssyPartObj::deleteObjs(this->PinCells);
 }
 
+void cmbNucAssembly::UpdateGrid()
+{
+  std::pair<int, int> dim = this->AssyLattice.GetDimensions();
+  for(size_t i = 0; i < dim.first; i++)
+    {
+    for(size_t j = 0; j < dim.second; j++)
+      {
+      std::string label = this->AssyLattice.GetCell(i, j).label;
+      PinCell* pc = this->GetPinCell(label);
+      if(pc)
+        {
+        this->AssyLattice.SetCell(i, j, label, pc->GetLegendColor());
+        }
+      else
+        {
+        this->AssyLattice.ClearCell(i, j);
+        }
+      }
+    }
+}
+
 void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
   this->PinCells.push_back(pincell);
@@ -56,9 +77,9 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
     {
     for(size_t j = 0; j < dim.second; j++)
       {
-      if(this->AssyLattice.GetCell(i, j) == label)
+      if(this->AssyLattice.GetCell(i, j).label == label)
         {
-        this->AssyLattice.SetCell(i, j, "xx");
+        this->AssyLattice.ClearCell(i, j);
         }
       }
     }
@@ -295,7 +316,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
           {
           for(size_t j = 0; j < y; j++)
             {
-            input >> this->AssyLattice.Grid[i][j];
+            input >> this->AssyLattice.Grid[i][j].label;
             }
             input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           }
@@ -424,7 +445,7 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
     {
     for(size_t j = 0; j < this->AssyLattice.Grid[i].size(); j++)
       {
-      std::string label = this->AssyLattice.Grid[i][j];
+      std::string label = this->AssyLattice.Grid[i][j].label;
       if(label.empty())
         {
         label = "xx";
@@ -466,11 +487,11 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 
   for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
     {
-    const std::vector<std::string> &row = this->AssyLattice.Grid[i];
+    const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
 
     for(size_t j = 0; j < row.size(); j++)
       {
-      const std::string &type = row[j];
+      const std::string &type = row[j].label;
 
       if(!type.empty() && type != "xx" && type != "XX")
         {
@@ -690,7 +711,7 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       vtkMultiBlockDataSet *mbds = frustumSrcs[k]->GetOutput();
       merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
       }
- 
+
     merger->Update();
     vtkPolyDataNormals *normals = vtkPolyDataNormals::New();
     normals->SetInputConnection(merger->GetOutputPort());
