@@ -2,6 +2,7 @@
 #define cmbNucNewDialog_H
 
 #include <QDialog>
+#include "cmbNucPartDefinition.h"
 
 // Forward Qt class declarations
 class Ui_qNucNewDialog;
@@ -14,12 +15,7 @@ public:
   cmbNucNewDialog(cmbNucMainWindow* mainWindow);
   ~cmbNucNewDialog();
 
-  enum CoreGeometry {
-    RECTILINEAR,
-    HEXAGONAL
-  };
-
-  CoreGeometry getSelectedGeometry();
+  enumGeometryType getSelectedGeometry();
 
 private:
   // Designer form

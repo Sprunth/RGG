@@ -34,6 +34,10 @@ public:
   // Update material lists
   void updateMaterials();
 
+  // Geometry type we are working with (hex or rect)
+  void setGeometryType(enumGeometryType g);
+  enumGeometryType getGeometryType();
+
 signals:
   // Description:
   // Fired when the current object is modified
@@ -85,6 +89,8 @@ protected slots:
 
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;
+
+  enumGeometryType GeometryType;
 
   void initUI();
   AssyPartObj* CurrentObject;

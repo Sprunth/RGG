@@ -191,6 +191,7 @@ void cmbNucMainWindow::onFileNew()
 
 void cmbNucMainWindow::onNewDialogAccept()
 {
+  this->PropertyWidget->setGeometryType(this->NewDialog->getSelectedGeometry());
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
   this->InputsWidget->onNewAssembly();

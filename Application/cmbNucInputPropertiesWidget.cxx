@@ -31,6 +31,7 @@ cmbNucInputPropertiesWidget::cmbNucInputPropertiesWidget(cmbNucMainWindow *mainW
     MainWindow(mainWindow)
 {
   this->Internal = new cmbNucInputPropertiesWidgetInternal;
+  this->GeometryType = RECTILINEAR;
   this->Internal->setupUi(this);
   this->initUI();
   this->CurrentObject = NULL;
@@ -96,6 +97,18 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(showPinCellEditor()));
   QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
     this, SLOT(choosePinLegendColor()));
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::setGeometryType(enumGeometryType g)
+{
+  this->GeometryType = g;
+}
+
+//-----------------------------------------------------------------------------
+enumGeometryType cmbNucInputPropertiesWidget::getGeometryType()
+{
+  return this->GeometryType;
 }
 
 //-----------------------------------------------------------------------------
@@ -210,37 +223,47 @@ void cmbNucInputPropertiesWidget::onApply()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onReset()
 {
-  if(this->CurrentObject==NULL)
+  if(this->CurrentObject == NULL)
     {
     return;
     }
   AssyPartObj* selObj = this->CurrentObject;
-  PinCell* pincell=NULL;
-  Cylinder* cylin=NULL;
-  Frustum* frust=NULL;
-  Duct* duct=NULL;
-  Lattice* lattice=NULL;
-  cmbNucCore* nucCore=NULL;
-  cmbNucAssembly* assy=NULL;
+  PinCell* pincell = NULL;
+  Cylinder* cylin = NULL;
+  Frustum* frust = NULL;
+  Duct* duct = NULL;
+  Lattice* lattice = NULL;
+  cmbNucCore* nucCore = NULL;
+  cmbNucAssembly* assy = NULL;
   switch(selObj->GetType())
     {
     case CMBNUC_CORE:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageHexCore);
-
-      //this->Internal->stackedWidget->setCurrentWidget(
-      //  this->Internal->pageCore);
-      //nucCore = dynamic_cast<cmbNucCore*>(selObj);
-      //this->resetCore(nucCore);
+      if(this->GeometryType == RECTILINEAR)
+        {
+        this->Internal->stackedWidget->setCurrentWidget(
+          this->Internal->pageCore);
+        nucCore = dynamic_cast<cmbNucCore*>(selObj);
+        this->resetCore(nucCore);
+        }
+      else if(this->GeometryType == HEXAGONAL)
+        {
+        this->Internal->stackedWidget->setCurrentWidget(
+          this->Internal->pageHexCore);
+        }
       break;
     case CMBNUC_ASSEMBLY:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageHexAssy);
-
-      //this->Internal->stackedWidget->setCurrentWidget(
-      //  this->Internal->pageAssembly);
-      //assy = dynamic_cast<cmbNucAssembly*>(selObj);
-      //this->resetAssembly(assy);
+      if(this->GeometryType == RECTILINEAR)
+        {
+        this->Internal->stackedWidget->setCurrentWidget(
+          this->Internal->pageAssembly);
+        assy = dynamic_cast<cmbNucAssembly*>(selObj);
+        this->resetAssembly(assy);
+        }
+      else if(this->GeometryType == HEXAGONAL)
+        {
+        this->Internal->stackedWidget->setCurrentWidget(
+          this->Internal->pageHexAssy);
+        }
       break;
     case CMBNUC_ASSY_LATTICE:
       this->Internal->stackedWidget->setCurrentWidget(

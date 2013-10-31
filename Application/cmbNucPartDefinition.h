@@ -18,6 +18,11 @@ enum enumNucPartsType
   CMBNUC_ASSY_BASEOBJ
 };
 
+enum enumGeometryType {
+  RECTILINEAR,
+  HEXAGONAL
+};
+
   class AssyPartObj
   {
   public:

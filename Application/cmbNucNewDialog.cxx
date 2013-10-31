@@ -14,7 +14,7 @@ cmbNucNewDialog::~cmbNucNewDialog()
 {
 }
 
-cmbNucNewDialog::CoreGeometry cmbNucNewDialog::getSelectedGeometry()
+enumGeometryType cmbNucNewDialog::getSelectedGeometry()
 {
   int idx = this->ui->geometrySelect->currentIndex();
 
