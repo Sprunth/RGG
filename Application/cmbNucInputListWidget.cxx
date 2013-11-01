@@ -603,16 +603,8 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   assyNode->setChildIndicatorPolicy(
     QTreeWidgetItem::DontShowIndicatorWhenChildless);
 
-    // | Qt::ItemIsDropEnabled | Qt::ItemIsEditable);
-
   /// ******** populate parts tree ********
   QTreeWidgetItem* partsRoot = assyNode;
-
-  // lattice
-  cmbNucPartsTreeItem* latticeNode = new cmbNucPartsTreeItem(partsRoot,
-    &assy->AssyLattice);
-  latticeNode->setText(0, "Lattice");
-  latticeNode->setFlags(itemFlags); // not editable
 
   // ducts
   cmbNucPartsTreeItem* ductsNode = new cmbNucPartsTreeItem(partsRoot,
@@ -660,7 +652,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
 
   if(select)
     {
-    latticeNode->setSelected(true);
+    partsRoot->setSelected(true); // select the assembly
     this->onPartsSelectionChanged();
     }
 }

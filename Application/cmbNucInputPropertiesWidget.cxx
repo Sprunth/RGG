@@ -193,10 +193,7 @@ void cmbNucInputPropertiesWidget::onApply()
     case CMBNUC_ASSEMBLY:
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
       this->applyToAssembly(assy);
-      break;
-    case CMBNUC_ASSY_LATTICE:
-      lattice = dynamic_cast<Lattice*>(selObj);
-      this->applyToLattice(lattice);
+      this->applyToLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
@@ -258,18 +255,13 @@ void cmbNucInputPropertiesWidget::onReset()
           this->Internal->pageAssembly);
         assy = dynamic_cast<cmbNucAssembly*>(selObj);
         this->resetAssembly(assy);
+        this->resetLattice(&assy->AssyLattice);
         }
       else if(this->GeometryType == HEXAGONAL)
         {
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageHexAssy);
         }
-      break;
-    case CMBNUC_ASSY_LATTICE:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageLattice);
-      lattice = dynamic_cast<Lattice*>(selObj);
-      this->resetLattice(lattice);
       break;
     case CMBNUC_ASSY_PINCELL:
       this->Internal->stackedWidget->setCurrentWidget(
