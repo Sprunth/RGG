@@ -106,6 +106,8 @@ void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
     {
     delete this->LatticeLayout;
     this->LatticeLayout = new QGridLayout(this);
+    this->LatticeLayout->setSpacing(2);
+    this->LatticeLayout->setContentsMargins(1, 1, 1, 1);
     this->setLayout(this->LatticeLayout);
     }
   int availableX = (int)this->CurrentGrid.size();

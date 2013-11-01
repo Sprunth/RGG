@@ -6,7 +6,7 @@
 
 class HexLatticeItem : public QGraphicsPolygonItem
 {
-    typedef QGraphicsPolygonItem Superclass;
+  typedef QGraphicsPolygonItem Superclass;
 
 public:
   enum ShapeStyle
@@ -15,28 +15,25 @@ public:
     Hexagon = 1
     };
 
-    HexLatticeItem(const QPolygonF & polygon,
-    int layer, int cellIdx,
-    HexLatticeItem::ShapeStyle shape=HexLatticeItem::Circle,
-    QGraphicsItem * parent = 0);
+    HexLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
+                   HexLatticeItem::ShapeStyle shape=HexLatticeItem::Circle,
+                   QGraphicsItem* parent = 0);
 
-
-//    QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    const QString& text() const {return this->m_text;}
-    void setColor(const QColor& acolor);
-    void setText(const QString& atext);
+    const QString& text() const;
+    void setColor(const QColor& color);
+    void setText(const QString& text);
     void setShape(HexLatticeItem::ShapeStyle sstyle);
-    int layer(){return m_layer;}
-    int cellIndex() {return m_cellIndex;}
+    int layer();
+    int cellIndex();
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-    void drawCircle(QPainter *painter);
-    void drawText(QPainter *painter);
+    void mousePressEvent(QGraphicsSceneMouseEvent* event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+    void drawCircle(QPainter* painter);
+    void drawText(QPainter* painter);
 
 private:
     QColor m_color;

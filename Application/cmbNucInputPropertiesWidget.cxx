@@ -53,13 +53,12 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->coreLatticeLayout->addWidget(
     this->CoreEditor);
 
-  this->HexCore = new cmbNucHexLattice(this);
-  this->HexCore->setItemShape(HexLatticeItem::Hexagon);
-  this->Internal->hexLatticeLayout->addWidget(
-    this->HexCore);
-  this->HexAssy = new cmbNucHexLattice(this);
-  this->Internal->hexLatticeAssyLayout->addWidget(
-    this->HexAssy);
+  this->HexCore = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
+  this->Internal->hexLatticeLayout->addWidget(this->HexCore);
+
+  this->HexAssy = new cmbNucHexLattice(HexLatticeItem::Circle, this);
+  this->Internal->hexLatticeAssyLayout->addWidget(this->HexAssy);
+
   this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
 
   QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
@@ -246,6 +245,7 @@ void cmbNucInputPropertiesWidget::onReset()
         {
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageHexCore);
+        this->HexCore->rebuild();
         }
       break;
     case CMBNUC_ASSEMBLY:
@@ -261,6 +261,7 @@ void cmbNucInputPropertiesWidget::onReset()
         {
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageHexAssy);
+        this->HexAssy->rebuild();
         }
       break;
     case CMBNUC_ASSY_PINCELL:
