@@ -480,10 +480,12 @@ void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long ev
   switch (event)
     {
     case vtkCommand::StartInteractionEvent:
-      this->Renderer->UseDepthPeelingOff();
+      //this->Renderer->UseDepthPeelingOff();
+      this->Renderer->SetMaximumNumberOfPeels(3);
       break;
     case vtkCommand::EndInteractionEvent:
-      this->Renderer->UseDepthPeelingOn();
+      //this->Renderer->UseDepthPeelingOn();
+      this->Renderer->SetMaximumNumberOfPeels(100);
       break;
     }
 }
