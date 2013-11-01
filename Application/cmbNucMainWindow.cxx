@@ -27,6 +27,8 @@
 #include "vtkCompositeDataDisplayAttributes.h"
 #include "vtkDataObjectTreeIterator.h"
 #include "vtkInformation.h"
+#include <vtkInteractorObserver.h>
+#include <vtkEventQtSlotConnect.h>
 #include "vtkCompositeDataPipeline.h"
 #include "vtkAlgorithm.h"
 #include "vtkNew.h"
@@ -44,15 +46,16 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
+  vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
+  renderWindow->AddRenderer(this->Renderer);
+  this->VTKToQt = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
   // setup depth peeling
-  vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
   renderWindow->SetAlphaBitPlanes(1);
   renderWindow->SetMultiSamples(0);
   this->Renderer->SetUseDepthPeeling(1);
   this->Renderer->SetMaximumNumberOfPeels(100);
 
-  renderWindow->AddRenderer(this->Renderer);
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
   this->Mapper->SetScalarVisibility(0);
   this->Actor = vtkSmartPointer<vtkActor>::New();
@@ -102,6 +105,15 @@ cmbNucMainWindow::cmbNucMainWindow()
           this->ui->viewScaleSlider, SLOT(setValue(int)));
   connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
           this, SLOT(zScaleChanged(int)));
+
+  //setup camera interaction to render more quickly and less precisely
+  vtkInteractorObserver *iStyle = renderWindow->GetInteractor()->GetInteractorStyle();
+  this->VTKToQt->Connect(
+    iStyle, vtkCommand::StartInteractionEvent,
+    this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
+  this->VTKToQt->Connect(
+    iStyle, vtkCommand::EndInteractionEvent,
+    this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
 }
@@ -461,4 +473,17 @@ void cmbNucMainWindow::ResetView()
 {
   this->Renderer->ResetCamera();
   this->ui->qvtkWidget->update();
+}
+
+void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long event)
+{
+  switch (event)
+    {
+    case vtkCommand::StartInteractionEvent:
+      this->Renderer->UseDepthPeelingOff();
+      break;
+    case vtkCommand::EndInteractionEvent:
+      this->Renderer->UseDepthPeelingOn();
+      break;
+    }
 }
