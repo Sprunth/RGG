@@ -11,10 +11,12 @@
 
 // Forward Qt class declarations
 class Ui_qNucMainWindow;
-class QVTKWidget;
 class vtkActor;
-class vtkRenderer;
 class vtkCompositePolyDataMapper2;
+class vtkEventQtSlotConnect;
+class vtkObject;
+class vtkRenderer;
+class QVTKWidget;
 class cmbNucAssembly;
 class cmbNucCore;
 class cmbNucInputPropertiesWidget;
@@ -42,6 +44,7 @@ public slots:
   // read file and return a new Assembly
   cmbNucAssembly* loadAssemblyFromFile(const QString &fileName);
   void ResetView();
+  void onInteractionTransition(vtkObject *, unsigned long event);
 
 signals:
   void updateGlobalZScale(double scale);
@@ -72,6 +75,8 @@ private:
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
   vtkSmartPointer<vtkActor> Actor;
+  vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
+
   cmbNucCore *NuclearCore;
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
