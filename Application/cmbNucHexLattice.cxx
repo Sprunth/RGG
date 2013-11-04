@@ -37,8 +37,7 @@ void cmbNucHexLattice::clear()
 
 void cmbNucHexLattice::init()
 {
-  // TODO populate action list with actual pin cells
-  this->ActionList << "xx" << "testAct1" << "testAct2";
+  this->ActionList << "xx";
   this->rebuild();
 }
 
@@ -133,7 +132,7 @@ void cmbNucHexLattice::rebuild()
       double deltx, delty, numSegs = i;
       for(int c = 0; c < 6; c++)
         {
-        int idxN = c == 5 ? 0 : c + 1;
+        int idxN = (c + 1) % 6;
         deltx = (layerCorners[idxN][0] - layerCorners[c][0]) / numSegs;
         delty = (layerCorners[idxN][1] - layerCorners[c][1]) / numSegs;
 

@@ -143,6 +143,10 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->InputsWidget,
     SIGNAL(objectRemoved()), this,
     SLOT(onObjectModified()));
+  QObject::connect(this->InputsWidget, SIGNAL(pinsModified(cmbNucAssembly*)),
+    this->PropertyWidget, SLOT(resetAssemblyEditor(cmbNucAssembly*)));
+  QObject::connect(this->InputsWidget, SIGNAL(assembliesModified(cmbNucCore*)),
+    this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
 
   QObject::connect(this->PropertyWidget,
     SIGNAL(currentObjectModified(AssyPartObj*)), this,
