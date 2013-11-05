@@ -9,6 +9,7 @@
 #include <QGraphicsItem>
 #include <QMenu>
 #include <QAction>
+#include <QStyleOptionGraphicsItem>
 
 #include "vtkMath.h"
 
@@ -20,6 +21,7 @@ cmbNucHexLattice::cmbNucHexLattice(HexLatticeItem::ShapeStyle shape,
   setInteractive(true);
   setResizeAnchor(QGraphicsView::AnchorViewCenter);
   setWindowFlags(f);
+  setAcceptDrops(true);
   setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
   this->HexGrid.SetNumberOfLayers(1);
@@ -175,15 +177,24 @@ void cmbNucHexLattice::showContextMenu(
     }
 }
 
-void cmbNucHexLattice::mousePressEvent(QMouseEvent* event)
+void cmbNucHexLattice::dropEvent(QDropEvent* event)
 {
-  QGraphicsItem* gitem = this->itemAt(this->mapFromGlobal(
-    event->globalPos()));
-  if(!gitem)
+  HexLatticeItem* dest = dynamic_cast<HexLatticeItem*>(this->itemAt(event->pos()));
+  if(!dest)
     {
     return;
     }
-  HexLatticeItem* hitem = dynamic_cast<HexLatticeItem*>(gitem);
+
+  dest->setText(event->mimeData()->text());
+  this->HexGrid.SetCell(dest->layer(), dest->cellIndex(),
+    dest->text().toStdString());
+  event->acceptProposedAction();
+ }
+
+void cmbNucHexLattice::mousePressEvent(QMouseEvent* event)
+{
+  HexLatticeItem* hitem = dynamic_cast<HexLatticeItem*>(this->itemAt(
+    this->mapFromGlobal(event->globalPos())));
   if(!hitem)
     {
     return;
@@ -194,5 +205,26 @@ void cmbNucHexLattice::mousePressEvent(QMouseEvent* event)
     {
     this->showContextMenu(hitem, event);
     }
-  // TODO drag and drop on left click?
+  // Drag and drop on left click
+  else if(event->button() == Qt::LeftButton)
+    {
+    QMimeData* mimeData = new QMimeData;
+    mimeData->setText(hitem->text());
+
+    QPixmap pixmap(hitem->boundingRect().size().toSize());
+    pixmap.fill(QColor(255, 255, 255, 0)); //Transparent background
+    QPainter imagePainter(&pixmap);
+    imagePainter.translate(-hitem->boundingRect().topLeft());
+
+    QStyleOptionGraphicsItem gstyle;
+
+    hitem->paint(&imagePainter, &gstyle, NULL);
+
+    QDrag* drag = new QDrag(this);
+    drag->setMimeData(mimeData);
+    drag->setPixmap(pixmap);
+    drag->exec(Qt::CopyAction);
+
+    imagePainter.end();
+    }
 }
