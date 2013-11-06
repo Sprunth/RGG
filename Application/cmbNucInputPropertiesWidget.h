@@ -43,6 +43,10 @@ signals:
   // Fired when the current object is modified
   void currentObjectModified(AssyPartObj* selObj);
 
+public slots:
+  void resetCore(cmbNucCore* nucCore);
+  void resetAssemblyEditor(cmbNucAssembly* assembly);
+
 protected slots:
   // Invoked when Apply button clicked
   void onApply();
@@ -54,8 +58,8 @@ protected slots:
   void resetCylinder(Cylinder* cylin);
   void resetDuct(Duct* duct);
   void resetLattice(Lattice* lattice);
+  void resetAssemblyLattice();
   void resetAssembly(cmbNucAssembly* assy);
-  void resetCore(cmbNucCore* nucCore);
 
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
@@ -76,9 +80,6 @@ protected slots:
   // Slot for Lattice dimensions
   void onLatticeDimensionChanged();
   void onCoreDimensionChanged();
-
-  // reset assembly lattice
-  void resetAssemblyLattice();
 
   void showPinCellEditor();
   void pinCellEditorAccepted();

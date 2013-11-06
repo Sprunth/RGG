@@ -236,6 +236,7 @@ void cmbNucInputListWidget::onNewAssembly()
   this->NuclearCore->AddAssembly(assembly);
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
+  emit assembliesModified(this->NuclearCore);
 }
 
 //----------------------------------------------------------------------------
@@ -362,6 +363,7 @@ void cmbNucInputListWidget::onNewPin()
     }
   pinNode->setSelected(true);
   this->onPartsSelectionChanged();
+  emit pinsModified(this->getCurrentAssembly());
 }
 
 //----------------------------------------------------------------------------
@@ -375,8 +377,8 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     }
   bool objRemoved = true;
   AssyPartObj* selObj = selItem->getPartObject();
-  cmbNucPartsTreeItem* pItem=NULL;
-  PinCell* pincell=NULL;
+  cmbNucPartsTreeItem* pItem = NULL;
+  PinCell* pincell = NULL;
 
   enumNucPartsType selType = selObj->GetType();
   std::string selText = selItem->text(0).toStdString();
@@ -384,12 +386,14 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
   {
   case CMBNUC_ASSEMBLY:
     this->NuclearCore->RemoveAssembly(selText);
+    emit assembliesModified(this->NuclearCore);
     break;
   case CMBNUC_ASSY_PINCELL:
     pincell = dynamic_cast<PinCell*>(selObj);
     if(pincell)
       {
       this->getCurrentAssembly()->RemovePinCell(pincell->label);
+      emit pinsModified(this->getCurrentAssembly());
       }
     delete selItem;
     break;

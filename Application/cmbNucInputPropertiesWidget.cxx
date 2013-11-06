@@ -371,6 +371,13 @@ void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
 }
 
 //-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::resetAssemblyEditor(cmbNucAssembly* assy)
+{
+  this->Assembly = assy;
+  this->resetAssemblyLattice();
+}
+
+//-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetAssemblyLattice()
 {
   if(this->Assembly)
@@ -386,6 +393,7 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     this->Assembly->UpdateGrid();
     this->AssemblyEditor->resetUI(
       this->Assembly->AssyLattice.Grid, actionList);
+    this->HexAssy->setActions(actionList);
     }
 }
 
@@ -402,8 +410,8 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
   // add new layers if the number is increased
   if(numLayers > this->Internal->DuctMaterials.count())
     {
-    int nmaterials=this->Internal->DuctMaterials.count();
-    for(int j=nmaterials; j<numLayers; j++)
+    int nmaterials = this->Internal->DuctMaterials.count();
+    for(int j = nmaterials; j<numLayers; j++)
       {
       this->Internal->DuctMaterials.append("");
       this->Internal->DuctThicknesses.append(
@@ -413,7 +421,7 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
   // remove layers if the number is decreased
   else if(numLayers < this->Internal->DuctMaterials.count())
     {
-    for(int j=this->Internal->DuctMaterials.count()-1; j>=numLayers; j--)
+    for(int j = this->Internal->DuctMaterials.count() - 1; j >= numLayers; j--)
       {
       this->Internal->DuctMaterials.removeAt(j);
       this->Internal->DuctThicknesses.removeAt(j);
@@ -421,8 +429,8 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
     }
 
   this->Internal->DuctLayer->blockSignals(false);
-  int currentLayer = previusLayer<numLayers ? previusLayer : 0;
-  this->onCurrentDuctLayerChanged(currentLayer>=0 ? currentLayer : 0);
+  int currentLayer = previusLayer < numLayers ? previusLayer : 0;
+  this->onCurrentDuctLayerChanged(currentLayer >= 0 ? currentLayer : 0);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onCurrentDuctLayerChanged(int idx)
@@ -557,16 +565,18 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
 {
-  this->Internal->coreLatticeX->blockSignals(true);
-  this->Internal->coreLatticeY->blockSignals(true);
-  this->Internal->coreLatticeX->setValue(nucCore->GetDimensions().first);
-  this->Internal->coreLatticeY->setValue(nucCore->GetDimensions().second);
-  this->Internal->coreLatticeX->blockSignals(false);
-  this->Internal->coreLatticeY->blockSignals(false);
   if(nucCore)
     {
+    this->Internal->coreLatticeX->blockSignals(true);
+    this->Internal->coreLatticeY->blockSignals(true);
+    this->Internal->coreLatticeX->setValue(nucCore->GetDimensions().first);
+    this->Internal->coreLatticeY->setValue(nucCore->GetDimensions().second);
+    this->Internal->coreLatticeX->blockSignals(false);
+    this->Internal->coreLatticeY->blockSignals(false);
+
     QStringList actionList;
     actionList.append("xx");
+
     // assemblies
     for(int i = 0; i < nucCore->GetNumberOfAssemblies(); i++)
       {
@@ -575,6 +585,7 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       }
 
     this->CoreEditor->resetUI(nucCore->Grid, actionList);
+    this->HexCore->setActions(actionList);
     }
 }
 

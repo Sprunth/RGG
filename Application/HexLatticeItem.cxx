@@ -1,5 +1,6 @@
 
 #include <QtGui>
+#include <iostream>
 
 #include "HexLatticeItem.h"
 #include "cmbNucHexLattice.h"
@@ -10,6 +11,7 @@ HexLatticeItem::HexLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
       m_text("xx"), m_shape(shape),
       m_layer(layer), m_cellIndex(cellIdx)
 {
+  this->setAcceptDrops(true);
 }
 
 const QString& HexLatticeItem::text() const

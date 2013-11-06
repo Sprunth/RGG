@@ -34,6 +34,9 @@ signals:
   void objectRemoved();
   void materialColorChanged(const QString& name);
 
+  void pinsModified(cmbNucAssembly*);
+  void assembliesModified(cmbNucCore*);
+
 public slots:
   void onNewAssembly();
 
@@ -51,7 +54,7 @@ protected:
 
 private slots:
   // Description:
-  // Tree widget interactions related slots 
+  // Tree widget interactions related slots
   virtual void onPartsSelectionChanged();
   virtual void onMaterialSelectionChanged();
   virtual void onMaterialChanged(QTreeWidgetItem*, int col);
