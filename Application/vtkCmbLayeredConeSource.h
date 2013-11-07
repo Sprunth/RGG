@@ -36,6 +36,12 @@ public:
   vtkSetVector3Macro(Direction,double);
   vtkGetVectorMacro(Direction,double,3);
 
+  // Determines whether surface normals should be generated
+  // On by default
+  vtkSetMacro(GenerateNormals,int);
+  vtkGetMacro(GenerateNormals,int);
+  vtkBooleanMacro(GenerateNormals,int);
+
 protected:
   vtkCmbLayeredConeSource();
   ~vtkCmbLayeredConeSource();
@@ -48,6 +54,7 @@ protected:
   double BaseCenter[3];
   double Direction[3];
   int Resolution;
+  int GenerateNormals;
 
 private:
   vtkCmbLayeredConeSource(const vtkCmbLayeredConeSource&);

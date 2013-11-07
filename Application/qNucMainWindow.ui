@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QVTKWidget" name="qvtkWidget">
+     <widget class="QVTKWidget" name="qvtkWidget" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -80,7 +80,7 @@
      <x>0</x>
      <y>0</y>
      <width>878</width>
-     <height>18</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -97,6 +97,7 @@
      <string>Edit</string>
     </property>
     <addaction name="actionPreferences"/>
+    <addaction name="actionParallel_Projection"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -187,6 +188,14 @@
   <action name="actionRunAssygen">
    <property name="text">
     <string>Run Assygen</string>
+   </property>
+  </action>
+  <action name="actionParallel_Projection">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Parallel Projection</string>
    </property>
   </action>
  </widget>

@@ -6,9 +6,10 @@
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 
-#include <vtkPolyData.h>
-#include <vtkPoints.h>
 #include <vtkCellArray.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include "vtkPolyDataNormals.h"
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkNew.h>
@@ -34,6 +35,7 @@ vtkCmbLayeredConeSource::vtkCmbLayeredConeSource()
   this->Direction[0] = 1.0;
   this->Direction[1] = 0.0;
   this->Direction[2] = 0.0;
+  this->GenerateNormals = 1;
 }
 
 vtkCmbLayeredConeSource::~vtkCmbLayeredConeSource()
@@ -103,8 +105,19 @@ int vtkCmbLayeredConeSource::RequestData(
     if(i == 0)
       {
       cone->SetCapping(true);
-      cone->Update();
-      output->SetBlock(i, cone->GetOutput());
+      if (this->GenerateNormals)
+        {
+        vtkNew<vtkPolyDataNormals> normals;
+        normals->SetInputConnection(cone->GetOutputPort());
+        normals->ComputePointNormalsOn();
+        normals->Update();
+        output->SetBlock(i, normals->GetOutput());
+        }
+      else
+        {
+        cone->Update();
+        output->SetBlock(i, cone->GetOutput());
+        }
       cone->Delete();
       }
     else
@@ -196,8 +209,19 @@ int vtkCmbLayeredConeSource::RequestData(
         }
 
       // merge all polydata
-      merger->Update();
-      output->SetBlock(i, merger->GetOutput());
+      if (this->GenerateNormals)
+        {
+        vtkNew<vtkPolyDataNormals> normals;
+        normals->SetInputConnection(merger->GetOutputPort());
+        normals->ComputePointNormalsOn();
+        normals->Update();
+        output->SetBlock(i, normals->GetOutput());
+        }
+      else
+        {
+        merger->Update();
+        output->SetBlock(i, merger->GetOutput());
+        }
       merger->Delete();
       }
     }
