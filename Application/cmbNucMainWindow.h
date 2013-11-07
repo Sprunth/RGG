@@ -45,6 +45,7 @@ public slots:
   cmbNucAssembly* loadAssemblyFromFile(const QString &fileName);
   void ResetView();
   void onInteractionTransition(vtkObject *, unsigned long event);
+  void useParallelProjection(bool val);
 
 signals:
   void updateGlobalZScale(double scale);

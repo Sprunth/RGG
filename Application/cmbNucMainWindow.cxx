@@ -2,6 +2,7 @@
 
 #include "ui_qNucMainWindow.h"
 #include <vtkActor.h>
+#include <vtkCamera.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -88,6 +89,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
   connect(this->ui->actionPreferences, SIGNAL(triggered()), this, SLOT(onShowPreferences()));
   connect(this->ui->actionRunAssygen, SIGNAL(triggered()), this, SLOT(onRunAssygen()));
+  connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
+          this, SLOT(useParallelProjection(bool)));
 
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();
@@ -488,4 +491,17 @@ void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long ev
       this->Renderer->SetMaximumNumberOfPeels(100);
       break;
     }
+}
+
+void cmbNucMainWindow::useParallelProjection(bool val)
+{
+  if (val)
+    {
+    this->Renderer->GetActiveCamera()->ParallelProjectionOn();
+    }
+  else
+    {
+    this->Renderer->GetActiveCamera()->ParallelProjectionOff();
+    }
+  this->ui->qvtkWidget->update();
 }

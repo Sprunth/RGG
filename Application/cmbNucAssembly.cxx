@@ -21,6 +21,7 @@
 #include "vtkPolyDataNormals.h"
 #include "vtkNew.h"
 
+#include "vtkXMLMultiBlockDataWriter.h"
 #include <QMap>
 
 cmbNucAssembly::cmbNucAssembly()
@@ -658,6 +659,7 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       }
     else
       {
+      coneSource->Update();
       dataSet->SetBlock(j, coneSource->GetOutput());
       }
     }
@@ -712,7 +714,8 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       }
     else
       {
-      dataSet->SetBlock(numCyls+j, coneSource->GetOutput());
+      coneSource->Update();
+      dataSet->SetBlock(numCyls+j, normals->GetOutput());
       }
     }
 
