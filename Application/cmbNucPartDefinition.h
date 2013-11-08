@@ -413,15 +413,17 @@ enum enumGeometryType {
             if(k==0)
               {
               this->Grid[k].resize(1);
-              this->Grid[k][0] = "xx";
+              this->Grid[k][0].label = "xx";
+              this->Grid[k][0].color = Qt::white;
               }
             else
               {
               // for each layer, we need 6*Layer cells
-              this->Grid[k].resize(6*k);
-              for(int j = 0; j < 6*k; j++)
+              this->Grid[k].resize(6 * k);
+              for(int j = 0; j < 6 * k; j++)
                 {
-                this->Grid[k][j] = "xx";
+                this->Grid[k][j].label = "xx";
+                this->Grid[k][j].color = Qt::white;
                 }
               }
             }
@@ -433,28 +435,32 @@ enum enumGeometryType {
         {
         return (int)this->Grid.size();
         }
+
       // Sets the contents of the cell (i, j) to name.
-      void SetCell(int layer, int idx, const std::string &name)
+      void SetCell(int layer, int idx, const std::string &name, const QColor& color)
         {
-        this->Grid[layer][idx] = name;
+        this->Grid[layer][idx].label = name;
+        this->Grid[layer][idx].color = color;
         }
+
       // Returns the contents of the cell (i, j).
-      std::string GetCell(int layer, int idx) const
+      LatticeCell GetCell(int layer, int idx) const
         {
         return this->Grid[layer][idx];
         }
+
       // Clears the contents of the cell (i, j). This is equivalent
       // to calling SetCell(i, j, "xx").
       void ClearCell(int layer, int idx)
         {
-        this->SetCell(layer, idx, "xx");
+        this->SetCell(layer, idx, "xx", Qt::white);
         }
 
       // Stored as layered vectors. For each layer of hex cells
       // we have a vector with 6*Layer cells, where Layer is the
       // index into hex layers (starting 0), and Layer > 0.
       // For Layer==0, just one cell.
-      std::vector<std::vector<std::string> > Grid;
+      std::vector<std::vector<LatticeCell> > Grid;
     };
 
 #endif

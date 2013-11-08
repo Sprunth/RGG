@@ -12,10 +12,11 @@
 #include <QStyleOptionGraphicsItem>
 
 #include "vtkMath.h"
+#include "cmbNucAssembly.h"
 
 cmbNucHexLattice::cmbNucHexLattice(HexLatticeItem::ShapeStyle shape,
     QWidget* parent, Qt::WindowFlags f)
-      : QGraphicsView(parent), ItemShape(shape)
+      : QGraphicsView(parent), ItemShape(shape), CurrentAssembly(NULL)
 {
   setScene(&this->Canvas);
   setInteractive(true);
@@ -68,30 +69,46 @@ void cmbNucHexLattice::setItemShape(HexLatticeItem::ShapeStyle shapetype)
   this->ItemShape = shapetype;
 }
 
+void cmbNucHexLattice::setAssembly(cmbNucAssembly* assy)
+{
+  this->CurrentAssembly = assy;
+}
+
 void cmbNucHexLattice::addCell(
   double centerPos[2], double radius, int layer, int cellIdx)
 {
   QPolygon polygon;
   polygon << QPoint(2 * radius, 0)
-            << QPoint(radius, -radius * 173/100)
-            << QPoint(-radius, -radius * 173/100)
+            << QPoint(radius, -radius * 1.73)
+            << QPoint(-radius, -radius * 1.73)
             << QPoint(-2 * radius, 0)
-            << QPoint(-radius, radius * 173/100)
-            << QPoint(radius, radius * 173/100);
+            << QPoint(-radius, radius * 1.73)
+            << QPoint(radius, radius * 1.73);
   HexLatticeItem* cell = new HexLatticeItem(polygon, layer, cellIdx,
     this->ItemShape);
-  cell->setText(HexGrid.GetCell(layer, cellIdx).c_str());
+
+  cell->setPos(centerPos[0] + this->rect().center().x(),
+               centerPos[1] + this->rect().center().y());
+
+  LatticeCell lc = HexGrid.GetCell(layer, cellIdx);
+  QColor color(Qt::white);
+  if(this->CurrentAssembly)
+    {
+    PinCell* pc = this->CurrentAssembly->GetPinCell(lc.label);
+    color = pc ? pc->GetLegendColor() : Qt::white;
+    }
+  // update color in hex map
+  this->HexGrid.SetCell(layer, cellIdx, lc.label, lc.color);
+  cell->setText(lc.label.c_str());
+  cell->setColor(color);
+
   scene()->addItem(cell);
-  int center_x = this->rect().center().x();
-  int center_y = this->rect().center().y();
-  cell->setPos(centerPos[0] + center_x, centerPos[1] + center_y);
 }
 
 void cmbNucHexLattice::rebuild()
 {
   clear();
   int numLayers = HexGrid.numberOfLayers();
-
   if(numLayers <= 0)
     {
     return;
@@ -147,7 +164,7 @@ void cmbNucHexLattice::rebuild()
         }
       }
     }
-  this->fitInView(scene()->sceneRect());
+  this->fitInView(scene()->sceneRect(), Qt::KeepAspectRatio);
 }
 
 void cmbNucHexLattice::showContextMenu(
@@ -171,9 +188,16 @@ void cmbNucHexLattice::showContextMenu(
   if(assignAct)
     {
     hexitem->setText(assignAct->text());
-    this->HexGrid.SetCell(
-      hexitem->layer(), hexitem->cellIndex(),
-      assignAct->text().toStdString());
+    QColor color(Qt::white);
+    if(this->CurrentAssembly)
+      {
+      PinCell* pc = this->CurrentAssembly->GetPinCell(hexitem->text().toStdString());
+      color = pc ? pc->GetLegendColor() : Qt::white;
+
+      hexitem->setColor(color);
+      }
+    this->HexGrid.SetCell(hexitem->layer(), hexitem->cellIndex(),
+      assignAct->text().toStdString(), color);
     }
 }
 
@@ -186,8 +210,16 @@ void cmbNucHexLattice::dropEvent(QDropEvent* event)
     }
 
   dest->setText(event->mimeData()->text());
+  QColor color(Qt::white);
+  if(this->CurrentAssembly)
+    {
+    PinCell* pc = this->CurrentAssembly->GetPinCell(dest->text().toStdString());
+    color = pc ? pc->GetLegendColor() : Qt::white;
+
+    dest->setColor(color);
+    }
   this->HexGrid.SetCell(dest->layer(), dest->cellIndex(),
-    dest->text().toStdString());
+    dest->text().toStdString(), color);
   event->acceptProposedAction();
  }
 
@@ -211,7 +243,8 @@ void cmbNucHexLattice::mousePressEvent(QMouseEvent* event)
     QMimeData* mimeData = new QMimeData;
     mimeData->setText(hitem->text());
 
-    QPixmap pixmap(hitem->boundingRect().size().toSize());
+    QSize size = hitem->boundingRect().size().toSize();
+    QPixmap pixmap(size.width() + 1, size.height() + 1);
     pixmap.fill(QColor(255, 255, 255, 0)); //Transparent background
     QPainter imagePainter(&pixmap);
     imagePainter.translate(-hitem->boundingRect().topLeft());
@@ -222,7 +255,7 @@ void cmbNucHexLattice::mousePressEvent(QMouseEvent* event)
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(mimeData);
-    drag->setPixmap(pixmap);
+    drag->setPixmap(pixmap.scaledToHeight(40, Qt::SmoothTransformation));
     drag->exec(Qt::CopyAction);
 
     imagePainter.end();

@@ -56,7 +56,7 @@ void cmbNucInputPropertiesWidget::initUI()
   this->HexCore = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
   this->Internal->hexLatticeLayout->addWidget(this->HexCore);
 
-  this->HexAssy = new cmbNucHexLattice(HexLatticeItem::Circle, this);
+  this->HexAssy = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
   this->Internal->hexLatticeAssyLayout->addWidget(this->HexAssy);
 
   this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
@@ -166,6 +166,8 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
   this->Assembly = assyObj;
   this->AssemblyEditor->setAssembly(assyObj);
   this->CoreEditor->setAssembly(assyObj);
+  this->HexCore->setAssembly(assyObj);
+  this->HexAssy->setAssembly(assyObj);
 }
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
@@ -394,6 +396,7 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     this->AssemblyEditor->resetUI(
       this->Assembly->AssyLattice.Grid, actionList);
     this->HexAssy->setActions(actionList);
+    this->HexAssy->rebuild();
     }
 }
 
