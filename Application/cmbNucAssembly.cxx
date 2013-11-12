@@ -162,6 +162,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         {
         std::string mname, mlabel;
         input >> mname >> mlabel;
+        std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
         if(!matColorMap->MaterialColorMap().contains(mname.c_str()))
           {
           matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(),
@@ -207,7 +208,9 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
 
       for(int i = 0; i < count; i++)
         {
+        int lc = i % 10; // Pick a default pin color (for now!)
         PinCell* pincell = new PinCell();
+        std::string firstMaterial;
         int attribute_count = 0;
         input >> pincell->name;
 
@@ -254,7 +257,15 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
             for(int c=0; c < layers; c++)
               {
-              input >> cylinder->materials[c];
+              std::string mname;
+              input >> mname;
+              std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+              // Lets save the first material to use to set the pin's color legend
+              if (firstMaterial == "")
+                {
+                firstMaterial = mname;
+                }
+              cylinder->materials[c] = mname;
               }
 
             // normalize radii
@@ -285,7 +296,15 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
             for(int c=0; c < layers; c++)
               {
-              input >> frustum->materials[c];
+              std::string mname;
+              input >> mname;
+              std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+              // Lets save the first material to use to set the pin's color legend
+              if (firstMaterial == "")
+                {
+                firstMaterial = mname;
+                }
+              frustum->materials[c] = mname;
               }
 
             // normalize radii
@@ -295,6 +314,8 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             pincell->frustums.push_back(frustum);
             }
           }
+        cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+        pincell->SetLegendColor(matColorMap->MaterialColorMap()[firstMaterial.c_str()].second);
         this->AddPinCell(pincell);
         }
       }
