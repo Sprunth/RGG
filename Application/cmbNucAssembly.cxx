@@ -659,7 +659,6 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       }
     else
       {
-      coneSource->Update();
       dataSet->SetBlock(j, coneSource->GetOutput());
       }
     }
@@ -714,8 +713,7 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       }
     else
       {
-      coneSource->Update();
-      dataSet->SetBlock(numCyls+j, normals->GetOutput());
+      dataSet->SetBlock(numCyls+j, coneSource->GetOutput());
       }
     }
 
