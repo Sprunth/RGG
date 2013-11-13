@@ -2,7 +2,6 @@
 #include "cmbNucAssemblyEditor.h"
 
 #include "cmbNucDragLabel.h"
-#include "cmbNucPartDefinition.h"
 #include "cmbNucAssembly.h"
 #include <iostream>
 

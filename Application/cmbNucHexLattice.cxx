@@ -102,6 +102,7 @@ void cmbNucHexLattice::rebuild()
   hexDiameter = squareLength / (double)(2 * numLayers + 1);
   hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
   double layerCorners[6][2];
+  int cornerIndices[6];
 
   for(int i = 0; i < numLayers; i++)
     {
@@ -118,11 +119,13 @@ void cmbNucHexLattice::rebuild()
       for(int c = 0; c < 6; c++)
         {
         //double angle = 30.0*c*vtkMath::Pi()/180.0;
-        double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 0.5);
+        double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
         layerCorners[c][0] = layerRadius * cos(angle);
         layerCorners[c][1] = layerRadius * sin(angle);
         // draw the corner hex
-        this->addCell(layerCorners[c], hexRadius, i, cellIdx++);
+        this->addCell(layerCorners[c], hexRadius, i, cellIdx);
+        cornerIndices[c] = cellIdx;
+        cellIdx = i==1 ? cellIdx+1 : cellIdx+i;
         }
       if(i < 2)
         {
@@ -138,6 +141,7 @@ void cmbNucHexLattice::rebuild()
         deltx = (layerCorners[idxN][0] - layerCorners[c][0]) / numSegs;
         delty = (layerCorners[idxN][1] - layerCorners[c][1]) / numSegs;
 
+        cellIdx = cornerIndices[c] + 1;
         for(int b = 0; b < i - 1; b++)
           {
           centerPos[0] = layerCorners[c][0] + deltx * (b + 1);

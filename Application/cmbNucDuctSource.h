@@ -28,6 +28,7 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 #include "vtkMultiBlockDataSetAlgorithm.h"
 
+#include "cmbNucPartDefinition.h"
 class vtkPolyData;
 
 // The cmbNucDuctSource is a VTK algorithm which produces a multi-block data-set
@@ -51,13 +52,21 @@ public:
   vtkSetVector3Macro(Origin, double)
   vtkGetVectorMacro(Origin, double, 3)
 
-  // Add a new layer with thicknesses x and y. Ducts should be
+  // Add a new layer with thicknesses x and y. For Hexagonal duct,
+  // only one parameter (distance) is needed.  Ducts should be
   // built up starting at the inner most layer and moving to the
   // outermost layer.
   void AddLayer(double x, double y);
+  void AddLayer(double distance) // For Hex duct
+  { this->AddLayer(distance, distance); }
 
   // Returns the number of layers in the duct.
   int GetNumberOfLayers();
+
+  // Description:
+  // Set the type of the duct.
+  vtkSetClampMacro(GeometryType,int,CMBNUC_ASSY_RECT_DUCT,CMBNUC_ASSY_HEX_DUCT)
+  vtkGetMacro(GeometryType,int);
 
 protected:
   cmbNucDuctSource();
@@ -67,11 +76,13 @@ protected:
   int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   vtkPolyData* CreateLayer(int layer);
+  vtkPolyData* CreateHexLayer(int layer);
 
   double Height;
   double Origin[3];
 
   std::vector<double> Layers;
+  int GeometryType;
 
 private:
   cmbNucDuctSource(const cmbNucDuctSource&);  // Not implemented.

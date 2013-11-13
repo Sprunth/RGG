@@ -53,12 +53,21 @@ public:
   // assignment of the ducts and pincells inside this assembly
   void RemoveMaterial(const std::string &name);
 
+  // Check if GeometryType is Hexagonal
+  bool IsHexType();
+
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;
   Lattice AssyLattice;
   std::string label;
   double MeshSize;
+
+  // For Hex geometry
+  double RadialMeshSize;
+  double AxialMeshSize;
+  std::string  RotateDirection;
+  double RotateAngle;
 
   // creates the multiblock used to render the pincell. if cutaway is true the
   // pincell will be cut in half length-wise to show the interior layers.

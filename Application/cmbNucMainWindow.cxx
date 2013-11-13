@@ -261,6 +261,13 @@ void cmbNucMainWindow::openFiles(const QStringList &fileNames)
         }
       }
     }
+
+  if(assemblies.count())
+    {
+    this->PropertyWidget->setGeometryType(
+      assemblies.at(0)->AssyLattice.GetGeometryType());
+    }
+
   // update data colors
   this->updateMaterialColors();
   // render
@@ -358,17 +365,8 @@ void cmbNucMainWindow::updateMaterialColors()
         return;
         }
 
-      std::pair<int, int> dimensions = assy->AssyLattice.GetDimensions();
-
       // count number of pin blocks in the data set
-      int pins = 0;
-      for(int i = 0; i < dimensions.first; i++)
-        {
-        for(int j = 0; j < dimensions.second; j++)
-          {
-          pins += 1;
-          }
-        }
+      int pins = assy->AssyLattice.GetNumberOfCells();
 
       int pin_count = 0;
       int ducts_count = 0;

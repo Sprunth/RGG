@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <QColor>
+#include <sstream>
 
 enum enumNucPartsType
 {
@@ -279,21 +280,25 @@ enum enumGeometryType {
   class Duct : public AssyPartObj
   {
   public:
-    Duct()
+    Duct(enumNucPartsType type=CMBNUC_ASSY_RECT_DUCT)
       {
       x=0.0;y=0.0;z1=0.0;z2=4.0;
       materials.push_back("");
       thicknesses.push_back(18.0);
       thicknesses.push_back(18.0);
+      enType = type;
       }
     enumNucPartsType GetType()
-    { return CMBNUC_ASSY_RECT_DUCT;}
+    { return enType;}
+    void SetType(enumNucPartsType type)
+      { enType = type;}
     bool operator==(const Duct& obj)
       {
       return this->x==obj.x && this->y==obj.y &&
         this->z1==obj.z1 && this->z2==obj.z2 &&
         this->materials==obj.materials &&
-        this->thicknesses==obj.thicknesses;
+        this->thicknesses==obj.thicknesses &&
+        this->enType == obj.enType;
       }
     double x;
     double y;
@@ -301,6 +306,7 @@ enum enumGeometryType {
     double z2;
     std::vector<std::string> materials;
     std::vector<double> thicknesses;
+    enumNucPartsType enType;
   };
 
   class DuctCell : public AssyPartObj
@@ -335,25 +341,65 @@ enum enumGeometryType {
   public:
     Lattice()
       {
+      this->enGeometryType = RECTILINEAR;
       this->SetDimensions(4, 4);
       }
 
     // Sets the dimensions of the cell assembly.
+    // For Hex type, i is number of layers, j will be ignored
     void SetDimensions(int i, int j)
       {
-      this->Grid.resize(i);
-      for(int k = 0; k < i; k++)
+      if(this->enGeometryType == RECTILINEAR)
         {
-        this->Grid[k].resize(j);
+        this->Grid.resize(i);
+        for(int k = 0; k < i; k++)
+          {
+          this->Grid[k].resize(j);
+          }
+        }
+      else if(this->enGeometryType == HEXAGONAL)
+        {
+        int current = this->Grid.size();
+        if(current == i)
+          {
+          return;
+          }
+
+        this->Grid.resize(i);
+
+        if(i>current )
+          {
+          for(int k = current; k < i; k++)
+            {
+            if(k==0)
+              {
+              this->Grid[k].resize(1);
+              }
+            else
+              {
+              // for each layer, we need 6*Layer cells
+              this->Grid[k].resize(6*k);
+              }
+            }
+          }
         }
       }
     // Returns the dimensions of the cell assembly.
+    // For Hex type, first is number of layers, second is set to 6 (for hex)
     std::pair<int, int> GetDimensions() const
       {
-      return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
+      if(this->enGeometryType == RECTILINEAR)
+        {
+        return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
+        }
+      else
+        {
+        return std::make_pair((int)this->Grid.size(), 6);
+        }
       }
 
     // Sets the contents of the cell (i, j) to name.
+    // For Hex type, i is layer/ring index, j is index on that layer
     void SetCell(int i, int j, const std::string &name, const QColor& color)
       {
       this->Grid[i][j].label = name;
@@ -361,6 +407,7 @@ enum enumGeometryType {
       }
 
     // Returns the contents of the cell (i, j).
+    // For Hex type, i is layer/ring index, j is index on that layer
     LatticeCell GetCell(int i, int j) const
       {
       return this->Grid[i][j];
@@ -371,20 +418,67 @@ enum enumGeometryType {
       {
       // Convert to j,k
       int s = (int)this->Grid.size();
-      int j = i / s;
-      int k = i - (j*s);
-      return this->Grid[j][k];
+      // For Hex type, This is different
+      if(this->enGeometryType == HEXAGONAL)
+        {
+        int j = 0, k = 0;
+        int totalNum = 0, preTotal;
+        for(int layer = 0; layer < s; layer++)
+          {
+          preTotal = totalNum;
+          totalNum += (6*layer);
+          if(i < totalNum)
+            {
+            j = layer;
+            k = i-preTotal;
+            break;
+            }
+          }
+        return this->Grid[j][k];
+        }
+      else
+        {
+        int j = i / s;
+        int k = i - (j*s);
+
+        return this->Grid[j][k];
+        }
       }
 
     // Clears the contents of the cell (i, j). This is equivalent
     // to calling SetCell(i, j, "xx").
+    // For Hex type, i is layer/ring index, j is index on that layer
     void ClearCell(int i, int j)
       {
       this->SetCell(i, j, "xx", Qt::white);
       }
     enumNucPartsType GetType()
       { return CMBNUC_ASSY_LATTICE;}
+
+    // get number of cells
+    int GetNumberOfCells()
+      {
+      if(this->Grid.size() == 0)
+        {
+        return 0;
+        }
+      if(this->enGeometryType == HEXAGONAL)
+        {
+        return 1 + 3*(int)this->Grid.size()*((int)this->Grid.size() - 1);
+        }
+      else
+        {
+        return (int)(this->Grid.size()*this->Grid[0].size());
+        }
+      }
+    // get/set Geometry type (hex or rect)
+    void SetGeometryType(enumGeometryType type)
+    { this->enGeometryType = type; }
+    enumGeometryType GetGeometryType()
+    { return this->enGeometryType; }
+
     std::vector<std::vector<LatticeCell> > Grid;
+    enumGeometryType enGeometryType;
     };
 
   class HexMap
@@ -439,7 +533,7 @@ enum enumGeometryType {
         this->Grid[layer][idx] = name;
         }
       // Returns the contents of the cell (i, j).
-      std::string GetCell(int layer, int idx) const
+      std::string GetCell(int layer, int idx)
         {
         return this->Grid[layer][idx];
         }

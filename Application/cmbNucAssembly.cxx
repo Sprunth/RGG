@@ -27,6 +27,12 @@ cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->MeshSize = 2.0;
+
+  this->RadialMeshSize = 0.15;
+  this->AxialMeshSize = 20.0;
+  this->RotateDirection = "Z";
+  this->RotateAngle = -30;
+
 }
 
 cmbNucAssembly::~cmbNucAssembly()
@@ -39,7 +45,9 @@ void cmbNucAssembly::UpdateGrid()
   std::pair<int, int> dim = this->AssyLattice.GetDimensions();
   for(size_t i = 0; i < dim.first; i++)
     {
-    for(size_t j = 0; j < dim.second; j++)
+    size_t layerCells = this->AssyLattice.GetGeometryType() == HEXAGONAL ?
+      6*i : dim.second;
+    for(size_t j = 0; j < layerCells; j++)
       {
       std::string label = this->AssyLattice.GetCell(i, j).label;
       PinCell* pc = this->GetPinCell(label);
@@ -119,6 +127,14 @@ PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
   return 0;
 }
 
+bool cmbNucAssembly::IsHexType()
+{
+  std::string strGeoType = this->GeometryType;
+  std::transform(this->GeometryType.begin(), this->GeometryType.end(),
+    strGeoType.begin(), ::tolower);
+  return strGeoType == "hexagonal";
+}
+
 void cmbNucAssembly::ReadFile(const std::string &FileName)
 {
   std::ifstream input(FileName.c_str());
@@ -151,6 +167,15 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
     else if(value == "geometrytype")
       {
       input >> this->GeometryType;
+      if(this->IsHexType())
+        {
+        this->AssyLattice.SetGeometryType(HEXAGONAL);
+        }
+      else
+        {
+        this->AssyLattice.SetGeometryType(RECTILINEAR);
+        }
+      this->AssyLattice.SetDimensions(0, 0);
       }
     else if(value == "materials")
       {
@@ -187,9 +212,21 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             >> duct->z2;
 
       duct->thicknesses.resize(materials*2);
-      for(int i = 0; i < materials*2; i++)
+      if(this->IsHexType())
         {
-        input >> duct->thicknesses[i];
+        duct->SetType(CMBNUC_ASSY_HEX_DUCT);
+        for(int i = 0; i < materials; i++)
+          {
+          input >> duct->thicknesses[i*2];
+          duct->thicknesses[i*2+1] = duct->thicknesses[i*2];
+          }
+        }
+      else
+        {
+        for(int i = 0; i < materials*2; i++)
+          {
+          input >> duct->thicknesses[i];
+          }
         }
 
       duct->materials.resize(materials);
@@ -204,6 +241,13 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
       {
       int count = 0;
       input >> count;
+      // for Hex type, the pitch is next input.
+      // TODO: Need to handle case that there is no "pitch" here for HEX.
+      double hexPicth = -1.0;
+      if(this->IsHexType())
+        {
+        input >> hexPicth;
+        }
 
       for(int i = 0; i < count; i++)
         {
@@ -221,6 +265,12 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
 
         input >> pincell->label >> attribute_count;
 
+        // initialize for HEX pincell pitch
+        if(hexPicth >= 0.0)
+          {
+          pincell->pitchX=pincell->pitchY=pincell->pitchZ = hexPicth;
+          }
+
         for(int j = 0; j < attribute_count; j++)
           {
           input >> value;
@@ -228,9 +278,19 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
 
           if(value == "pitch")
             {
-            input >> pincell->pitchX
-                  >> pincell->pitchY
-                  >> pincell->pitchZ;
+            // only one field for HEX type
+            if(this->IsHexType())
+              {
+              double dHexPinPitch;
+              input >> dHexPinPitch;
+              pincell->pitchX=pincell->pitchY=pincell->pitchZ = dHexPinPitch;
+              }
+            else
+              {
+              input >> pincell->pitchX
+                >> pincell->pitchY
+                >> pincell->pitchZ;
+              }
             //j--;  // Pitch does not count towards count!
             }
           else if(value == "cylinder")
@@ -300,9 +360,17 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
       }
       else if(value == "assembly")
         {
-        size_t x;
-        size_t y;
-        input >> x >> y;
+        size_t x=0;
+        size_t y=0;
+        if(this->IsHexType())
+          {
+          input >> x;
+          }
+        else
+          {
+          input >> x >> y;
+          }
+
         input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
         this->AssyLattice.SetDimensions(x, y);
@@ -312,20 +380,92 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
           input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           }
 
-        for(size_t i = 0; i < x; i++)
+        if(this->IsHexType())
           {
-          for(size_t j = 0; j < y; j++)
+          // assuming a full hex assembly, NOT partial
+          size_t maxN = 2*x - 1;
+          std::vector<std::vector<std::string> > hexArray;
+          hexArray.resize(maxN);
+          size_t numCols, delta=0;
+
+          for(size_t i = 0; i < maxN; i++)
             {
-            input >> this->AssyLattice.Grid[i][j].label;
-            }
+            if(i<x) // first half of HEX
+              {
+              numCols = i+x;
+              }
+            else // second half of HEX
+              {
+              delta++;
+              numCols = maxN - delta;
+              }
+            hexArray[i].resize(numCols);
+            for(size_t j = 0; j < numCols; j++)
+              {
+              input >> hexArray[i][j];
+              }
             input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+
+          // now we fill the hex Lattice with hexArray,
+          // starting from out most layer and work toward center
+          // for each layer, we have 6*Layer cells, except layer 0.
+          for(int k = x-1; k >= 0; k--) // HEX layers
+            {
+            size_t numRows = 2*k + 1;
+            size_t startRow = x-1-k;
+            size_t startCol = startRow;
+            size_t layerIdx;
+            for(size_t i = startRow; i < numRows+startRow; i++) // array rows
+              {
+              if(i==startRow || i==numRows+startRow - 1) // first row or last row
+                {
+                for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
+                  {
+                  layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
+                  this->AssyLattice.Grid[k][layerIdx].label = hexArray[i][j];
+                  }
+                }
+              else // rows between first and last
+                {
+                // get the first and last column defined by start column
+                layerIdx = 6*k-i;
+                this->AssyLattice.Grid[k][layerIdx].label = hexArray[i][startCol];
+                layerIdx = k+i;
+                size_t colIdx = hexArray[i].size() -1 - startCol;
+                this->AssyLattice.Grid[k][layerIdx].label = hexArray[i][colIdx];
+                }
+              }
+            }
+          }
+        else
+          {
+          for(size_t i = 0; i < x; i++)
+            {
+            for(size_t j = 0; j < y; j++)
+              {
+              input >> this->AssyLattice.Grid[i][j].label;
+              }
+            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
           }
         }
       else if(value == "tetmeshsize")
         {
         input >> this->MeshSize;
         }
-
+      else if(value == "radialmeshsize")
+        {
+        input >> this->RadialMeshSize;
+        }
+      else if(value == "axialmeshsize")
+        {
+        input >> this->AxialMeshSize;
+        }
+      else if(value == "rotate")
+        {
+        input >> this->RotateDirection >> this->RotateAngle;
+        }
     input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 }
@@ -480,7 +620,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   double chamberEnd = innerDuctHeight;
 
   // setup data
-  this->Data->SetNumberOfBlocks(this->AssyLattice.Grid.size() * this->AssyLattice.Grid[0].size() +
+  this->Data->SetNumberOfBlocks(this->AssyLattice.GetNumberOfCells() +
                                 this->AssyDuct.Ducts.size());
 
   double cellLength = (chamberEnd - chamberStart) / this->AssyLattice.Grid.size();
@@ -558,6 +698,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     cmbNucDuctSource *ductSource = cmbNucDuctSource::New();
     ductSource->SetOrigin(duct->x, duct->y, duct->z1);
     ductSource->SetHeight(duct->z2 - duct->z1);
+    ductSource->SetGeometryType(
+      this->AssyLattice.GetGeometryType()== HEXAGONAL ?
+      CMBNUC_ASSY_HEX_DUCT : CMBNUC_ASSY_RECT_DUCT);
 
     for(size_t j = 0; j < duct->thicknesses.size()/2; j++)
       {
