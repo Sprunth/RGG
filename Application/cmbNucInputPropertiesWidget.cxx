@@ -145,7 +145,7 @@ void cmbNucInputPropertiesWidget::updateMaterials()
   QString matLabel;
   foreach(QString material, matColorMap->MaterialColorMap().keys())
     {
-    matLabel = matColorMap->MaterialColorMap()[material].first;
+    matLabel = matColorMap->MaterialColorMap()[material].Label;
     this->Internal->DuctLayerMaterial->addItem(matLabel);
     this->Internal->FrustumMaterial->addItem(matLabel);
     this->Internal->CylinderMaterial->addItem(matLabel);

@@ -171,7 +171,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         else
           {
           // replace the label
-          const QColor &color = matColorMap->MaterialColorMap()[mname.c_str()].second;
+          const QColor &color = matColorMap->MaterialColorMap()[mname.c_str()].Color;
           matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(), color);
           }
         }
@@ -315,7 +315,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             }
           }
         cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-        pincell->SetLegendColor(matColorMap->MaterialColorMap()[firstMaterial.c_str()].second);
+        pincell->SetLegendColor(matColorMap->MaterialColorMap()[firstMaterial.c_str()].Color);
         this->AddPinCell(pincell);
         }
       }

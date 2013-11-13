@@ -154,7 +154,9 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->InputsWidget,
     SIGNAL(materialColorChanged(const QString&)), this,
     SLOT(onObjectModified()));
-
+  QObject::connect(this->InputsWidget,
+    SIGNAL(materialVisibilityChanged(const QString&)), this,
+    SLOT(onObjectModified()));
 }
 
 void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
@@ -323,9 +325,9 @@ void cmbNucMainWindow::updateMaterialColors()
   vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
   this->Mapper->SetInputDataObject(coredata);
   if(!coredata)
-  {
-  return;
-  }
+    {
+    return;
+    }
   unsigned int numCoreBlocks = coredata->GetNumberOfBlocks();
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
@@ -333,10 +335,10 @@ void cmbNucMainWindow::updateMaterialColors()
 
   //vtkDataObjectTreeIterator *coreiter = coredata->NewTreeIterator();
   //coreiter->SetSkipEmptyNodes(false);
-  unsigned int realflatidx=0;
-  for(unsigned int block=0; block<numCoreBlocks; block++)
+  unsigned int realflatidx = 0;
+  for(unsigned int block = 0; block < numCoreBlocks; block++)
     {
-    realflatidx++;// for assembly block
+    realflatidx++; // for assembly block
     if(!coredata->GetBlock(block))
       {
       continue;
@@ -360,22 +362,13 @@ void cmbNucMainWindow::updateMaterialColors()
 
       std::pair<int, int> dimensions = assy->AssyLattice.GetDimensions();
 
-      // count number of pin blocks in the data set
-      int pins = 0;
-      for(int i = 0; i < dimensions.first; i++)
-        {
-        for(int j = 0; j < dimensions.second; j++)
-          {
-          pins += 1;
-          }
-        }
-
+      int pins = dimensions.first * dimensions.second;
       int pin_count = 0;
       int ducts_count = 0;
 
       std::string pinMaterial = "pin";
       int numAssyBlocks = data->GetNumberOfBlocks();
-      for(unsigned int idx=0; idx<numAssyBlocks; idx++)
+      for(unsigned int idx = 0; idx < numAssyBlocks; idx++)
         {
         realflatidx++;
         if(pin_count < pins)
@@ -385,10 +378,9 @@ void cmbNucMainWindow::updateMaterialColors()
 
           if(pinCell)
             {
-//            realflatidx++;
             std::string pinMaterial;
 
-            for(unsigned int idx=0; idx<pinCell->cylinders.size(); idx++)
+            for(unsigned int idx = 0; idx < pinCell->cylinders.size(); idx++)
               {
               realflatidx++; // increase one for this cylinder
               for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
@@ -397,7 +389,7 @@ void cmbNucMainWindow::updateMaterialColors()
                 matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
                 }
               }
-            for(unsigned int idx=0; idx<pinCell->frustums.size(); idx++)
+            for(unsigned int idx = 0; idx < pinCell->frustums.size(); idx++)
               {
               realflatidx++; // increase one for this frustum
               for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
@@ -412,14 +404,14 @@ void cmbNucMainWindow::updateMaterialColors()
         else // ducts need to color by layers
           {
           if(vtkMultiBlockDataSet* ductBlock =
-            vtkMultiBlockDataSet::SafeDownCast(data->GetBlock(idx)))
+             vtkMultiBlockDataSet::SafeDownCast(data->GetBlock(idx)))
             {
             Duct* duct = assy->AssyDuct.Ducts[ducts_count];
             unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
-            for(unsigned int b=0; b<numBlocks; b++)
+            for(unsigned int b = 0; b < numBlocks; b++)
               {
               std::string layerMaterial =
-                (duct && b<duct->materials.size()) ? duct->materials[b] : "duct";
+                (duct && b < duct->materials.size()) ? duct->materials[b] : "duct";
               if(layerMaterial.empty())
                 {
                 layerMaterial = "duct";
