@@ -20,6 +20,7 @@
 #include "vtkPoints.h"
 #include "vtkPolyDataNormals.h"
 #include "vtkNew.h"
+#include "vtkMath.h"
 
 #include <QMap>
 
@@ -610,7 +611,7 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 {
-  if(this->AssyDuct.Ducts.size()==0)
+  if(this->AssyDuct.Ducts.size()==0 || this->AssyLattice.Grid.size() == 0)
     {
     return NULL;
     }
@@ -623,12 +624,30 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   this->Data->SetNumberOfBlocks(this->AssyLattice.GetNumberOfCells() +
                                 this->AssyDuct.Ducts.size());
 
+  // For Hex type
+  Duct *hexDuct = this->AssyDuct.Ducts[0];
+  double layerCorners[6][2], hexRadius, hexDiameter, layerRadius;
+  hexDiameter = hexDuct->thicknesses[0];
+  hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
+  hexRadius = hexRadius / (double)(2*this->AssyLattice.Grid.size()-1);
+
   double cellLength = (chamberEnd - chamberStart) / this->AssyLattice.Grid.size();
 
   for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
     {
-    const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
+    // For hex geometry type, figure out the six corners first
+    if(this->IsHexType() && i>0)
+      {
+      layerRadius = hexRadius * (2 * i);
+      for(int c = 0; c < 6; c++)
+        {
+        double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
+        layerCorners[c][0] = layerRadius * cos(angle);
+        layerCorners[c][1] = layerRadius * sin(angle);
+        }
+      }
 
+    const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
     for(size_t j = 0; j < row.size(); j++)
       {
       const std::string &type = row[j].label;
@@ -663,9 +682,50 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 
               // move the polydata to the correct position
               vtkTransform *transform = vtkTransform::New();
-              transform->Translate(chamberStart + i * cellLength + 0.5 * pincell->pitchX,
-                                   chamberStart + j * cellLength + 0.5 * pincell->pitchY,
-                                   0);
+
+              if(this->IsHexType())
+                {
+                double tX=hexDuct->x, tY=hexDuct->y, tZ=hexDuct->z1;
+                int cornerIdx;
+                if(i == 1)
+                  {
+                  cornerIdx = j%6;
+                  tX += layerCorners[cornerIdx][0];
+                  tY += layerCorners[cornerIdx][1];
+                  }
+                else if( i > 1)
+                  {
+                  cornerIdx = j / i;
+                  int idxOnEdge = j%i;
+                  if(idxOnEdge == 0) // one of the corners
+                    {
+                    tX += layerCorners[cornerIdx][0];
+                    tY += layerCorners[cornerIdx][1];
+                    }
+                  else
+                    {
+                    // for each layer, we should have (numLayers-2) middle hexes
+                    // between the corners
+                    double deltx, delty, numSegs = i, centerPos[2];
+                    int idxNext = cornerIdx==5 ? 0 : cornerIdx+1;
+                    deltx = (layerCorners[idxNext][0] - layerCorners[cornerIdx][0]) / numSegs;
+                    delty = (layerCorners[idxNext][1] - layerCorners[cornerIdx][1]) / numSegs;
+                    centerPos[0] = layerCorners[cornerIdx][0] + deltx * (idxOnEdge);
+                    centerPos[1] = layerCorners[cornerIdx][1] + delty * (idxOnEdge);
+                    tX += centerPos[0];
+                    tY += centerPos[1];
+                    }
+                  }
+
+                transform->Translate(tX, tY, tZ);
+                }
+              else
+                {
+                transform->Translate(chamberStart + i * cellLength + 0.5 * pincell->pitchX,
+                  chamberStart + j * cellLength + 0.5 * pincell->pitchY,
+                  0);
+                }
+
               vtkNew<vtkTransformFilter> filter;
               filter->SetTransform(transform);
               transform->Delete();
