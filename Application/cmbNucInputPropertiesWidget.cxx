@@ -236,11 +236,11 @@ void cmbNucInputPropertiesWidget::onReset()
   switch(selObj->GetType())
     {
     case CMBNUC_CORE:
+      nucCore = dynamic_cast<cmbNucCore*>(selObj);
       if(this->GeometryType == RECTILINEAR)
         {
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageCore);
-        nucCore = dynamic_cast<cmbNucCore*>(selObj);
         }
       else if(this->GeometryType == HEXAGONAL)
         {
