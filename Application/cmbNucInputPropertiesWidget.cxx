@@ -251,20 +251,19 @@ void cmbNucInputPropertiesWidget::onReset()
         }
       break;
     case CMBNUC_ASSEMBLY:
+      assy = dynamic_cast<cmbNucAssembly*>(selObj);
       if(this->GeometryType == RECTILINEAR)
         {
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageAssembly);
-        assy = dynamic_cast<cmbNucAssembly*>(selObj);
-        this->resetAssembly(assy);
-        this->resetLattice(&assy->AssyLattice);
         }
       else if(this->GeometryType == HEXAGONAL)
         {
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageHexAssy);
-        this->HexAssy->rebuild();
         }
+      this->resetAssembly(assy);
+      this->resetLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
       this->Internal->stackedWidget->setCurrentWidget(
@@ -362,12 +361,21 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
 {
-  this->Internal->latticeX->blockSignals(true);
-  this->Internal->latticeY->blockSignals(true);
-  this->Internal->latticeX->setValue(lattice->GetDimensions().first);
-  this->Internal->latticeY->setValue(lattice->GetDimensions().second);
-  this->Internal->latticeX->blockSignals(false);
-  this->Internal->latticeY->blockSignals(false);
+  if(this->GeometryType == RECTILINEAR)
+    {
+    this->Internal->latticeX->blockSignals(true);
+    this->Internal->latticeY->blockSignals(true);
+    this->Internal->latticeX->setValue(lattice->GetDimensions().first);
+    this->Internal->latticeY->setValue(lattice->GetDimensions().second);
+    this->Internal->latticeX->blockSignals(false);
+    this->Internal->latticeY->blockSignals(false);
+    }
+  else if(this->GeometryType == HEXAGONAL)
+    {
+    this->Internal->hexLatticeAssy->blockSignals(true);
+    this->Internal->hexLatticeAssy->setValue(lattice->GetDimensions().first);
+    this->Internal->hexLatticeAssy->blockSignals(false);
+  }
 
   this->resetAssemblyLattice();
 }
@@ -392,11 +400,17 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       PinCell *pincell = this->Assembly->PinCells[i];
       actionList.append(pincell->label.c_str());
       }
-    this->Assembly->UpdateGrid();
-    this->AssemblyEditor->resetUI(
-      this->Assembly->AssyLattice.Grid, actionList);
-    this->HexAssy->setActions(actionList);
-    this->HexAssy->rebuild();
+    if(this->GeometryType == RECTILINEAR)
+      {
+      this->Assembly->UpdateGrid();
+      this->AssemblyEditor->resetUI(
+        this->Assembly->AssyLattice.Grid, actionList);
+      }
+    else if(this->GeometryType == HEXAGONAL)
+      {
+      this->HexAssy->setActions(actionList);
+      this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid);
+      }
     }
 }
 
@@ -545,7 +559,14 @@ void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 {
-  this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
+  if(this->GeometryType == RECTILINEAR)
+    {
+    this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
+    }
+  else if(this->GeometryType == HEXAGONAL)
+    {
+    this->HexAssy->applyToGrid(lattice->Grid);
+    }
   emit this->currentObjectModified(lattice);
 }
 //-----------------------------------------------------------------------------

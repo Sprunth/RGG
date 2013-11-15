@@ -44,6 +44,31 @@ void cmbNucHexLattice::init()
   this->rebuild();
 }
 
+void cmbNucHexLattice::resetWithGrid(std::vector<std::vector<LatticeCell> >& inGrid)
+{
+  this->copyGrid(inGrid, this->HexGrid.Grid);
+  this->rebuild();
+}
+
+void cmbNucHexLattice::applyToGrid(std::vector<std::vector<LatticeCell> >& outGrid)
+{
+  this->copyGrid(this->HexGrid.Grid, outGrid);
+}
+
+void cmbNucHexLattice::copyGrid(std::vector<std::vector<LatticeCell> >& inGrid,
+  std::vector<std::vector<LatticeCell> >& outGrid)
+{
+  outGrid.resize(inGrid.size());
+  for(size_t i = 0; i < inGrid.size(); i++)
+    {
+    outGrid[i].resize(inGrid[i].size());
+    for(size_t j = 0; j < inGrid[i].size(); j++)
+      {
+      outGrid[i][j] = inGrid[i][j];
+      }
+    }
+}
+
 void cmbNucHexLattice::setActions(const QStringList& actions)
 {
   this->ActionList = actions;
