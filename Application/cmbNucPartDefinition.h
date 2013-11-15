@@ -192,6 +192,12 @@ enum enumNucPartsType
       {
       this->removeObj(frustum, this->frustums);
       }
+
+    void SetRadius(int idx, double radius)
+      {
+      this->radii[idx] = radius;
+      }
+
     void SetMaterial(int idx, const std::string& material)
       {
       for(size_t i = 0; i < this->cylinders.size(); i++){
@@ -245,6 +251,7 @@ enum enumNucPartsType
         }
       return 0;
       }
+
     void SetNumberOfLayers(int numLayers)
       {
       for(size_t i = 0; i < this->cylinders.size(); i++){
@@ -255,11 +262,12 @@ enum enumNucPartsType
         }
       size_t curNum = this->radii.size();
       this->radii.resize(numLayers);
-      for(size_t i=curNum; i<numLayers; i++)
+      for(size_t i = curNum; i < numLayers; i++)
         {
         this->radii[i] = 1.0;
         }
       }
+
     std::string name;
     std::string label;
     double pitchX;

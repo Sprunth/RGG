@@ -48,6 +48,9 @@ private slots:
   void tableCellChanged(int row, int col);
   void addComponent();
   void deleteComponent();
+  void addLayerBefore();
+  void addLayerAfter();
+  void deleteLayer();
   void numberOfLayersChanged(int layers);
   void sectionTypeComboBoxChanged(const QString &type);
   void setupMaterialComboBox(QComboBox *comboBox);
@@ -62,6 +65,7 @@ private slots:
 
 private:
   AssyPartObj* getSelectedPiece();
+  void rebuildLayersFromTable();
 
   Ui::cmbNucPinCellEditor *Ui;
   PinCell *PinCellObject;
