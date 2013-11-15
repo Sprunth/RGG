@@ -708,7 +708,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 
               if(this->AssyLattice.GetGeometryType() == HEXAGONAL)
                 {
-                double tX=hexDuct->x, tY=hexDuct->y, tZ=hexDuct->z1;
+                double tX=hexDuct->x, tY=hexDuct->y, tZ=0.0;
                 int cornerIdx;
                 if(i == 1)
                   {
