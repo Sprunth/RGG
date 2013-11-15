@@ -538,7 +538,9 @@ void cmbNucInputListWidget::onMaterialClicked(QTreeWidgetItem* item, int col)
     }
 
   QBrush bgBrush = item->background(col);
-  QColor color = QColorDialog::getColor(bgBrush.color(), this);
+  QColor color = QColorDialog::getColor(bgBrush.color(), this,
+                                        "Select Color for Material",
+                                        QColorDialog::ShowAlphaChannel);
   if(color.isValid() && color != bgBrush.color())
     {
     bgBrush.setColor(color);

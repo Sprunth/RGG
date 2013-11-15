@@ -13,19 +13,16 @@ Pincells 6
 ! Standard fuel cell (1)
 FMOX_43 M1 2
 Pitch  1.26 1.26 365.76 
-Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  MOX_43 Gap Clad                                                                                               
-!
+Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  MOX_43 Gap Clad                                                        !
 !
 ! Standard fuel cell (2)
 FMOX_73 M2 2
 Pitch  1.26 1.26 365.76 
-Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  MOX_73 Gap Clad                                                                                               
-!
+Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  MOX_73 Gap Clad                                                        !
 ! Standard fuel cell (3)
 FMOX_87 M3 2
 Pitch  1.26 1.26 365.76 
-Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  MOX_8 GP Clad                                                                                               
-!
+Cylinder 3 0.0 0.0  0.0 365.76   0.4095 0.4180 0.4750  MOX_87 Gap Clad                                                        !
 !
 ! Standard BA Rod (4)
 BARod1 AA 2

@@ -2,6 +2,7 @@
 
 #include "ui_qNucMainWindow.h"
 #include <vtkActor.h>
+#include <vtkCamera.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -28,6 +29,8 @@
 #include "vtkCompositeDataDisplayAttributes.h"
 #include "vtkDataObjectTreeIterator.h"
 #include "vtkInformation.h"
+#include <vtkInteractorObserver.h>
+#include <vtkEventQtSlotConnect.h>
 #include "vtkCompositeDataPipeline.h"
 #include "vtkAlgorithm.h"
 #include "vtkNew.h"
@@ -49,15 +52,16 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
+  vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
+  renderWindow->AddRenderer(this->Renderer);
+  this->VTKToQt = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
   // setup depth peeling
-  vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
   renderWindow->SetAlphaBitPlanes(1);
   renderWindow->SetMultiSamples(0);
   this->Renderer->SetUseDepthPeeling(1);
   this->Renderer->SetMaximumNumberOfPeels(100);
 
-  renderWindow->AddRenderer(this->Renderer);
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
   this->Mapper->SetScalarVisibility(0);
   this->Actor = vtkSmartPointer<vtkActor>::New();
@@ -90,6 +94,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
   connect(this->ui->actionPreferences, SIGNAL(triggered()), this, SLOT(onShowPreferences()));
   connect(this->ui->actionRunAssygen, SIGNAL(triggered()), this, SLOT(onRunAssygen()));
+  connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
+          this, SLOT(useParallelProjection(bool)));
 
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();
@@ -107,6 +113,15 @@ cmbNucMainWindow::cmbNucMainWindow()
           this->ui->viewScaleSlider, SLOT(setValue(int)));
   connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
           this, SLOT(zScaleChanged(int)));
+
+  //setup camera interaction to render more quickly and less precisely
+  vtkInteractorObserver *iStyle = renderWindow->GetInteractor()->GetInteractorStyle();
+  this->VTKToQt->Connect(
+    iStyle, vtkCommand::StartInteractionEvent,
+    this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
+  this->VTKToQt->Connect(
+    iStyle, vtkCommand::EndInteractionEvent,
+    this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
 }
@@ -473,5 +488,33 @@ void cmbNucMainWindow::zScaleChanged(int value)
 void cmbNucMainWindow::ResetView()
 {
   this->Renderer->ResetCamera();
+  this->ui->qvtkWidget->update();
+}
+
+void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long event)
+{
+  switch (event)
+    {
+    case vtkCommand::StartInteractionEvent:
+      //this->Renderer->UseDepthPeelingOff();
+      this->Renderer->SetMaximumNumberOfPeels(3);
+      break;
+    case vtkCommand::EndInteractionEvent:
+      //this->Renderer->UseDepthPeelingOn();
+      this->Renderer->SetMaximumNumberOfPeels(100);
+      break;
+    }
+}
+
+void cmbNucMainWindow::useParallelProjection(bool val)
+{
+  if (val)
+    {
+    this->Renderer->GetActiveCamera()->ParallelProjectionOn();
+    }
+  else
+    {
+    this->Renderer->GetActiveCamera()->ParallelProjectionOff();
+    }
   this->ui->qvtkWidget->update();
 }

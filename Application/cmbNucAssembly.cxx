@@ -22,6 +22,7 @@
 #include "vtkNew.h"
 #include "vtkMath.h"
 
+#include "vtkXMLMultiBlockDataWriter.h"
 #include <QMap>
 
 cmbNucAssembly::cmbNucAssembly()
