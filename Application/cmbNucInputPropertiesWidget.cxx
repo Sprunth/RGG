@@ -209,6 +209,7 @@ void cmbNucInputPropertiesWidget::onApply()
       this->applyToCylinder(cylin);
       break;
     case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
       duct = dynamic_cast<Duct*>(selObj);
       this->applyToDuct(duct);
       break;
@@ -283,6 +284,7 @@ void cmbNucInputPropertiesWidget::onReset()
       this->resetCylinder(cylin);
       break;
     case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageRectDuct);
       duct = dynamic_cast<Duct*>(selObj);
