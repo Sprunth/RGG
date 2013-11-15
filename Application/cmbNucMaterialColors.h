@@ -9,6 +9,18 @@
 class cmbNucAssembly;
 class vtkCompositeDataDisplayAttributes;
 
+struct cmbNucMaterial
+{
+  cmbNucMaterial()
+    : Visible(true) {}
+  cmbNucMaterial(const QString& label, const QColor& color)
+    : Visible(true), Label(label), Color(color) {}
+
+  QString Label;
+  QColor Color;
+  bool Visible;
+};
+
 class cmbNucMaterialColors
 {
 public:
@@ -19,29 +31,16 @@ public:
   cmbNucMaterialColors();
   virtual ~cmbNucMaterialColors();
 
-  QMap<QString, QPair<QString, QColor> >& MaterialColorMap()
-  {return this->MaterialColors;}
+  QMap<QString, cmbNucMaterial>& MaterialColorMap();
+
   void AddMaterial(const QString& name, const QString& label,
-    const QColor& color)
-    {
-    this->AddMaterial(name, label, color.redF(), color.greenF(),
-      color.blueF(), color.alphaF());
-    }
+                   const QColor& color);
   void AddMaterial(const QString& name, const QString& label,
-    double r, double g, double b, double a)
-  {this->MaterialColors.insert(name, qMakePair(label,
-    QColor::fromRgbF(r, g, b, a)));}
-  void AddMaterial(const QString& name, double r, double g, double b, double a)
-  {this->AddMaterial(name, name, r, g, b, a);}
-  void RemoveMaterial(const QString& name)
-  {
-    QMap<QString, QPair<QString, QColor> >::iterator it =
-      this->MaterialColors.find(name);
-    if(it != this->MaterialColors.end())
-      {
-      this->MaterialColors.erase(it);
-      }
-  }
+                   double r, double g, double b, double a);
+  void AddMaterial(const QString& name, double r, double g, double b, double a);
+  void RemoveMaterial(const QString& name);
+  void SetMaterialVisibility(const QString& name, bool visible);
+
   void GetAssemblyMaterials(
     cmbNucAssembly* assy, QMap<std::string, std::string>& materials);
   void SetBlockMaterialColor(
@@ -58,7 +57,7 @@ private:
 
   static cmbNucMaterialColors* Instance;
   // <Name, <Label, Color> >
-  QMap<QString, QPair<QString, QColor> > MaterialColors;
+  QMap<QString, cmbNucMaterial> MaterialColors;
 };
 
 #endif

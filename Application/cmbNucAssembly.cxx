@@ -188,6 +188,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         {
         std::string mname, mlabel;
         input >> mname >> mlabel;
+        std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
         if(!matColorMap->MaterialColorMap().contains(mname.c_str()))
           {
           matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(),
@@ -196,7 +197,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         else
           {
           // replace the label
-          const QColor &color = matColorMap->MaterialColorMap()[mname.c_str()].second;
+          const QColor &color = matColorMap->MaterialColorMap()[mname.c_str()].Color;
           matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(), color);
           }
         }
@@ -252,7 +253,9 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
 
       for(int i = 0; i < count; i++)
         {
+        int lc = i % 10; // Pick a default pin color (for now!)
         PinCell* pincell = new PinCell();
+        std::string firstMaterial;
         int attribute_count = 0;
         input >> pincell->name;
 
@@ -315,7 +318,15 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
             for(int c=0; c < layers; c++)
               {
-              input >> cylinder->materials[c];
+              std::string mname;
+              input >> mname;
+              std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+              // Lets save the first material to use to set the pin's color legend
+              if (firstMaterial == "")
+                {
+                firstMaterial = mname;
+                }
+              cylinder->materials[c] = mname;
               }
 
             // normalize radii
@@ -346,7 +357,15 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
             for(int c=0; c < layers; c++)
               {
-              input >> frustum->materials[c];
+              std::string mname;
+              input >> mname;
+              std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+              // Lets save the first material to use to set the pin's color legend
+              if (firstMaterial == "")
+                {
+                firstMaterial = mname;
+                }
+              frustum->materials[c] = mname;
               }
 
             // normalize radii
@@ -356,6 +375,8 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
             pincell->frustums.push_back(frustum);
             }
           }
+        cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+        pincell->SetLegendColor(matColorMap->MaterialColorMap()[firstMaterial.c_str()].Color);
         this->AddPinCell(pincell);
         }
       }
@@ -430,9 +451,9 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               else // rows between first and last
                 {
                 // get the first and last column defined by start column
-                layerIdx = 6*k-i;
+                layerIdx = 6*k-(i-startRow);
                 this->AssyLattice.Grid[k][layerIdx].label = hexArray[i][startCol];
-                layerIdx = k+i;
+                layerIdx = k+(i-startRow);
                 size_t colIdx = hexArray[i].size() -1 - startCol;
                 this->AssyLattice.Grid[k][layerIdx].label = hexArray[i][colIdx];
                 }
@@ -647,6 +668,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
         }
       }
 
+    size_t startBlock = this->IsHexType() ?
+      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->AssyLattice.Grid.size());
     const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
     for(size_t j = 0; j < row.size(); j++)
       {
@@ -736,16 +759,16 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
             pinDataSet->SetBlock(block, transdataSet.GetPointer());
             }
           dataSet->Delete();
-          this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, pinDataSet.GetPointer());
+          this->Data->SetBlock(startBlock+j, pinDataSet.GetPointer());
           }
         else
           {
-          this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, NULL);
+          this->Data->SetBlock(startBlock+j, NULL);
           }
         }
       else
         {
-        this->Data->SetBlock(i*this->AssyLattice.Grid.size()+j, NULL);
+        this->Data->SetBlock(startBlock+j, NULL);
         }
       }
     }

@@ -33,6 +33,7 @@ signals:
   void objectSelected(AssyPartObj*, const char* name);
   void objectRemoved();
   void materialColorChanged(const QString& name);
+  void materialVisibilityChanged(const QString& name);
 
   void pinsModified(cmbNucAssembly*);
   void assembliesModified(cmbNucCore*);

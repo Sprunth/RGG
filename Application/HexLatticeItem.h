@@ -29,9 +29,6 @@ public:
     int cellIndex();
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent* event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
     void drawCircle(QPainter* painter);
     void drawText(QPainter* painter);
 

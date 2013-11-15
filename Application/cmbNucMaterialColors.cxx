@@ -88,9 +88,9 @@ void cmbNucMaterialColors::SaveToFile(const QString& name)
   QColor color;
   foreach(QString mat, this->MaterialColors.keys())
     {
-    color = this->MaterialColors[mat].second;
+    color = this->MaterialColors[mat].Color;
     strcolor = QString("%1, %2, %3, %4, %5").arg(
-      this->MaterialColors[mat].first).
+      this->MaterialColors[mat].Label).
       arg(color.redF()).arg(color.greenF()).arg(
       color.blueF()).arg(color.alphaF());
     settings.setValue(settingKey+mat,strcolor);
@@ -116,7 +116,7 @@ void cmbNucMaterialColors::GetAssemblyMaterials(
       if(!strMat.empty() && strMat != " " && !materials.contains(strMat))
         {
         materials[strMat] =
-          this->MaterialColors[strMat.c_str()].first.toStdString();     
+          this->MaterialColors[strMat.c_str()].Label.toStdString();
         }
       }
     }
@@ -134,7 +134,7 @@ void cmbNucMaterialColors::GetAssemblyMaterials(
         if(!strMat.empty() && strMat != " " && !materials.contains(strMat))
           {
           materials[strMat] =
-            this->MaterialColors[strMat.c_str()].first.toStdString();     
+            this->MaterialColors[strMat.c_str()].Label.toStdString();
           }
         }
       }
@@ -148,12 +148,63 @@ void cmbNucMaterialColors::GetAssemblyMaterials(
         if(!strMat.empty() && strMat != " " && !materials.contains(strMat))
           {
           materials[strMat] =
-            this->MaterialColors[strMat.c_str()].first.toStdString();     
+            this->MaterialColors[strMat.c_str()].Label.toStdString();
           }
         }
       }
     }
 }
+
+//-----------------------------------------------------------------------------
+QMap<QString, cmbNucMaterial>& cmbNucMaterialColors::MaterialColorMap()
+{
+  return this->MaterialColors;
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucMaterialColors::AddMaterial(const QString& name,
+  const QString& label, const QColor& color)
+{
+  this->AddMaterial(name, label, color.redF(), color.greenF(),
+    color.blueF(), color.alphaF());
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucMaterialColors::AddMaterial(const QString& name,
+  const QString& label, double r, double g, double b, double a)
+{
+  this->MaterialColors.insert(name, cmbNucMaterial(label,
+    QColor::fromRgbF(r, g, b, a)));
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucMaterialColors::AddMaterial(
+  const QString& name, double r, double g, double b, double a)
+{
+  this->AddMaterial(name, name, r, g, b, a);
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucMaterialColors::RemoveMaterial(const QString& name)
+{
+  QMap<QString, cmbNucMaterial>::iterator it =
+    this->MaterialColors.find(name);
+  if(it != this->MaterialColors.end())
+    {
+    this->MaterialColors.erase(it);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucMaterialColors::SetMaterialVisibility(
+  const QString& name, bool visible)
+{
+  if(this->MaterialColors.contains(name))
+    {
+    this->MaterialColors[name].Visible = visible;
+    }
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucMaterialColors::SetBlockMaterialColor(
   vtkCompositeDataDisplayAttributes *attributes, unsigned int flatIdx,
@@ -162,14 +213,17 @@ void cmbNucMaterialColors::SetBlockMaterialColor(
   QString bMaterial = QString(material.c_str()).toLower();
   if(this->MaterialColors.contains(bMaterial))
     {
-    QColor bColor = this->MaterialColors[bMaterial].second;
+    QColor bColor = this->MaterialColors[bMaterial].Color;
+    bool visible = this->MaterialColors[bMaterial].Visible;
     double color[] = { bColor.redF(), bColor.greenF(), bColor.blueF() };
     attributes->SetBlockColor(flatIdx, color);
     attributes->SetBlockOpacity(flatIdx, bColor.alphaF());
+    attributes->SetBlockVisibility(flatIdx, visible);
     }
   else
     {
     double color[] = { 255, 192, 203 }; // pink
     attributes->SetBlockColor(flatIdx, color);
+    attributes->SetBlockVisibility(flatIdx, true);
     }
 }
