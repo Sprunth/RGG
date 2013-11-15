@@ -317,8 +317,18 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               {
               input >> pincell->radii[c];
               }
+
+            cylinder->r = pincell->radii.back();
+            pincell->cylinders.push_back(cylinder);
+
+            // let alpha be the normalization factor for the layers (outer most would be 1.0)
+            double alpha = 1.0 / cylinder->r;
             for(int c=0; c < layers; c++)
               {
+              // Normalize the layer
+              pincell->radii[c] *= alpha;
+
+              // Get the material of the layer
               std::string mname;
               input >> mname;
               std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
@@ -329,11 +339,6 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
                 }
               cylinder->materials[c] = mname;
               }
-
-            // normalize radii
-            cylinder->r = pincell->radii.back();
-
-            pincell->cylinders.push_back(cylinder);
             }
           else if(value == "frustum")
             {
@@ -356,8 +361,22 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               input >> pincell->radii[c*2+0];
               input >> pincell->radii[c*2+1];
               }
+
+            frustum->r1 = pincell->radii[(2*layers)-1];
+            frustum->r2 = pincell->radii[(2*layers)-2];
+            pincell->frustums.push_back(frustum);
+
+            // let alpha be the normalization factor for the layers (outer most would be 1.0) for first end of the frustrum
+            // let beta be the normalization factor for the layers (outer most would be 1.0) for other end of the frustrum
+            double alpha = 1.0 / frustum->r2;
+            double beta = 1.0 / frustum->r1;
             for(int c=0; c < layers; c++)
               {
+              // Normalize the layer
+              pincell->radii[2*c] *= alpha;
+              pincell->radii[(2*c)+1] *= beta;
+
+              // Get the material of the layer
               std::string mname;
               input >> mname;
               std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
@@ -370,10 +389,6 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               }
 
             // normalize radii
-            frustum->r1 = pincell->radii[layers-1];
-            frustum->r2 = pincell->radii[layers-2];
-
-            pincell->frustums.push_back(frustum);
             }
           }
         cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
