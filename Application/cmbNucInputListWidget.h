@@ -39,7 +39,7 @@ signals:
   void assembliesModified(cmbNucCore*);
 
 public slots:
-  void onNewAssembly();
+  void onNewAssembly(enumGeometryType enType=RECTILINEAR);
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);

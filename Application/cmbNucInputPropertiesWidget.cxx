@@ -241,14 +241,13 @@ void cmbNucInputPropertiesWidget::onReset()
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageCore);
         nucCore = dynamic_cast<cmbNucCore*>(selObj);
-        this->resetCore(nucCore);
         }
       else if(this->GeometryType == HEXAGONAL)
         {
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageHexCore);
-        this->HexCore->rebuild();
         }
+      this->resetCore(nucCore);
       break;
     case CMBNUC_ASSEMBLY:
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
@@ -578,7 +577,15 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
-  this->CoreEditor->updateLatticeWithGrid(nucCore->Grid);
+  if(this->GeometryType == RECTILINEAR)
+    {
+    this->CoreEditor->updateLatticeWithGrid(nucCore->Grid);
+    }
+  else if(this->GeometryType == HEXAGONAL)
+    {
+    this->HexCore->applyToGrid(nucCore->Grid);
+    }
+
   emit this->currentObjectModified(nucCore);
 }
 //-----------------------------------------------------------------------------
@@ -607,9 +614,18 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       cmbNucAssembly *assy = nucCore->GetAssembly(i);
       actionList.append(assy->label.c_str());
       }
-
-    this->CoreEditor->resetUI(nucCore->Grid, actionList);
-    this->HexCore->setActions(actionList);
+    if(this->GeometryType == RECTILINEAR)
+      {
+      this->CoreEditor->resetUI(nucCore->Grid, actionList);
+      }
+    else if(this->GeometryType == HEXAGONAL)
+      {
+      this->Internal->hexLattice->blockSignals(true);
+      this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
+      this->Internal->hexLattice->blockSignals(false);
+      this->HexCore->setActions(actionList);
+      this->HexCore->resetWithGrid(nucCore->Grid);
+      }
     }
 }
 

@@ -32,6 +32,43 @@ cmbNucCore::~cmbNucCore()
   this->Assemblies.clear();
 }
 
+void cmbNucCore::SetDimensions(int i, int j)
+{
+  cmbNucAssembly* assy = this->GetAssembly(0);
+  if(assy && assy->AssyLattice.GetGeometryType() == HEXAGONAL)
+    {
+    int current = this->Grid.size();
+    if(current == i)
+      {
+      return;
+      }
+    this->Grid.resize(i);
+    if(i>current )
+      {
+      for(int k = current; k < i; k++)
+        {
+        if(k==0)
+          {
+          this->Grid[k].resize(1);
+          }
+        else
+          {
+          // for each layer, we need 6*Layer cells
+          this->Grid[k].resize(6*k);
+          }
+        }
+      }
+   }
+  else
+    {
+    this->Grid.resize(i);
+    for(int k = 0; k < i; k++)
+      {
+      this->Grid[k].resize(j);
+      }
+    }
+}
+
 void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 {
   if(this->Assemblies.size()==0)
@@ -59,9 +96,9 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
     }
   // update the Grid
   std::pair<int, int> dim = this->GetDimensions();
-  for(size_t i = 0; i < dim.first; i++)
+  for(size_t i = 0; i < this->Grid.size(); i++)
     {
-    for(size_t j = 0; j < dim.second; j++)
+    for(size_t j = 0; j < this->Grid[i].size(); j++)
       {
       if(this->GetAssemblyLabel(i, j).label == label)
         {

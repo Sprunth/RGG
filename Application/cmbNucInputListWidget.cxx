@@ -224,12 +224,13 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
   this->Internal->Action_DeletePart->setEnabled(val);
 }
 //----------------------------------------------------------------------------
-void cmbNucInputListWidget::onNewAssembly()
+void cmbNucInputListWidget::onNewAssembly(enumGeometryType enType)
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
 
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
+  assembly->AssyLattice.SetGeometryType(enType);
   assembly->label = QString("Assy").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
 

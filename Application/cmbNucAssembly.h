@@ -53,9 +53,6 @@ public:
   // assignment of the ducts and pincells inside this assembly
   void RemoveMaterial(const std::string &name);
 
-  // Check if GeometryType is Hexagonal
-  bool IsHexType();
-
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;
@@ -76,6 +73,10 @@ public:
 private:
   std::string GeometryType;
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
+
+  // Check if GeometryType is Hexagonal
+  bool IsHexType();
+
 };
 
 #endif // cmbNucAssembly_H

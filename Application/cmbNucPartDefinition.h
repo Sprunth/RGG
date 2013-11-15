@@ -374,11 +374,18 @@ enum enumGeometryType {
             if(k==0)
               {
               this->Grid[k].resize(1);
+              this->Grid[k][0].label = "xx";
+              this->Grid[k][0].color = Qt::white;
               }
             else
               {
               // for each layer, we need 6*Layer cells
               this->Grid[k].resize(6*k);
+              for(int j = 0; j < 6 * k; j++)
+                {
+                this->Grid[k][j].label = "xx";
+                this->Grid[k][j].color = Qt::white;
+                }
               }
             }
           }

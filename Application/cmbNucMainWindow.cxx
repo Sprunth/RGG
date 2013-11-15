@@ -200,7 +200,7 @@ void cmbNucMainWindow::onNewDialogAccept()
   this->PropertyWidget->setGeometryType(this->NewDialog->getSelectedGeometry());
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
-  this->InputsWidget->onNewAssembly();
+  this->InputsWidget->onNewAssembly(this->PropertyWidget->getGeometryType());
   this->Renderer->ResetCamera();
   this->Renderer->Render();
 }
@@ -257,7 +257,7 @@ void cmbNucMainWindow::openFiles(const QStringList &fileNames)
     for(int i=0; i<numNewAssy ; i++)
       {
       this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label, Qt::white);
-      for(int j=1; j<numNewAssy ; j++)
+      for(int j=1; j<this->NuclearCore->Grid[i].size() ; j++)
         {
         this->NuclearCore->ClearAssemblyLabel(i, j);
         }

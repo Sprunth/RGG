@@ -82,9 +82,9 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
     }
   // update the Grid
   std::pair<int, int> dim = this->AssyLattice.GetDimensions();
-  for(size_t i = 0; i < dim.first; i++)
+  for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
     {
-    for(size_t j = 0; j < dim.second; j++)
+    for(size_t j = 0; j < this->AssyLattice.Grid[i].size(); j++)
       {
       if(this->AssyLattice.GetCell(i, j).label == label)
         {
@@ -657,7 +657,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
     {
     // For hex geometry type, figure out the six corners first
-    if(this->IsHexType() && i>0)
+    if(this->AssyLattice.GetGeometryType() == HEXAGONAL && i>0)
       {
       layerRadius = hexRadius * (2 * i);
       for(int c = 0; c < 6; c++)
@@ -668,7 +668,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
         }
       }
 
-    size_t startBlock = this->IsHexType() ?
+    size_t startBlock = this->AssyLattice.GetGeometryType() == HEXAGONAL ?
       (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->AssyLattice.Grid.size());
     const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
     for(size_t j = 0; j < row.size(); j++)
@@ -706,7 +706,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
               // move the polydata to the correct position
               vtkTransform *transform = vtkTransform::New();
 
-              if(this->IsHexType())
+              if(this->AssyLattice.GetGeometryType() == HEXAGONAL)
                 {
                 double tX=hexDuct->x, tY=hexDuct->y, tZ=hexDuct->z1;
                 int cornerIdx;
