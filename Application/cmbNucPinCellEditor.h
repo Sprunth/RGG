@@ -55,7 +55,7 @@ private slots:
   void sectionTypeComboBoxChanged(const QString &type);
   void setupMaterialComboBox(QComboBox *comboBox);
   void layerTableCellChanged(int row, int col);
-  void UpdateLayerMaterials(AssyPartObj* objPart);
+  void UpdateLayerMaterials();
   void onPieceSelected();
   AssyPartObj* createComponentObject(int i, double& z);
   void updateComponentObject(int i, double& z);

@@ -193,6 +193,9 @@ enum enumNucPartsType
       this->removeObj(frustum, this->frustums);
       }
 
+    double Radius(int idx) const
+    {return this->radii[idx];}
+
     void SetRadius(int idx, double radius)
       {
       this->radii[idx] = radius;

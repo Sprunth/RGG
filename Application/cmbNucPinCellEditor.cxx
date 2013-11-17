@@ -293,27 +293,51 @@ AssyPartObj* cmbNucPinCellEditor::createComponentObject(int i, double& z)
     vdata.setValue(i); // row
     comboBox->setItemData(1, vdata);
     }
+  this->UpdateLayerMaterials();
   this->Ui->piecesTable->blockSignals(false);
 
   return retObj;
 }
 
-void cmbNucPinCellEditor::UpdateLayerMaterials(AssyPartObj* objPart)
+void cmbNucPinCellEditor::UpdateLayerMaterials()
 {
   // setup materials
   int materials = this->Ui->layersTable->rowCount();
-  for(int i = 0; i < materials; i++)
+
+  AssyPartObj *obj;
+  QComboBox *comboBox;
+  int row, nrows = this->Ui->piecesTable->rowCount();
+  for(row = 0; row < nrows; ++row)
     {
-    QComboBox *comboBox = qobject_cast<QComboBox *>(this->Ui->layersTable->cellWidget(i, 0));
-    if(comboBox && objPart)
+    comboBox = qobject_cast<QComboBox *>
+      (this->Ui->piecesTable->cellWidget(row, 0));
+
+    if(!comboBox)
       {
-      if(objPart->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
+      continue;
+      }
+
+    obj = static_cast<AssyPartObj*>
+      (comboBox->itemData(0).value<void *>());
+    
+    if (!obj)
+      {
+      continue;
+      }
+
+    for(int i = 0; i < materials; i++)
+      {
+      comboBox = qobject_cast<QComboBox *>(this->Ui->layersTable->cellWidget(i, 0));
+      if(comboBox)
         {
-        dynamic_cast<Frustum*>(objPart)->SetMaterial(i, comboBox->currentText().toStdString());
-        }
-      else if(objPart->GetType() == CMBNUC_ASSY_CYLINDER_PIN)
-        {
-        dynamic_cast<Cylinder*>(objPart)->SetMaterial(i, comboBox->currentText().toStdString());
+        if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
+          {
+          dynamic_cast<Frustum*>(obj)->SetMaterial(i, comboBox->currentText().toStdString());
+          }
+        else if(obj->GetType() == CMBNUC_ASSY_CYLINDER_PIN)
+          {
+          dynamic_cast<Cylinder*>(obj)->SetMaterial(i, comboBox->currentText().toStdString());
+          }
         }
       }
     }
@@ -560,7 +584,7 @@ void cmbNucPinCellEditor::sectionTypeComboBoxChanged(const QString &type)
       dynamic_cast<Frustum*>(obj)->z1 :
     dynamic_cast<Cylinder*>(obj)->z1;
     AssyPartObj* objPart = this->createComponentObject(row, z);
-    this->UpdateLayerMaterials(objPart);
+    this->UpdateLayerMaterials();
     this->UpdatePolyData();
     this->PinCellObject->RemoveSection(obj);
     }
@@ -587,7 +611,7 @@ void cmbNucPinCellEditor::layerTableCellChanged(int row, int col)
 
 void cmbNucPinCellEditor::onUpdateLayerMaterial()
 {
-  this->UpdateLayerMaterials(this->getSelectedPiece());
+  this->UpdateLayerMaterials();
   this->UpdatePolyData();
 }
 
@@ -671,7 +695,8 @@ AssyPartObj *cmbNucPinCellEditor::getSelectedPiece()
   QTableWidgetItem* selItem = this->Ui->piecesTable->selectedItems().value(0);
   QComboBox *comboBox = qobject_cast<QComboBox *>(
     this->Ui->piecesTable->cellWidget(selItem->row(), 0));
-  if(!comboBox){
+  if(!comboBox)
+    {
     return NULL;
     }
 
@@ -699,16 +724,17 @@ void cmbNucPinCellEditor::addLayerBefore()
 {
   int row;
   double radius;
-  if(this->Ui->layersTable->selectedItems().count() == 0)
+  if((this->Ui->layersTable->selectedItems().count() == 0) ||
+     (this->Ui->layersTable->selectedItems().value(0)->row() == 0))
     {
     row = 0;
-    radius = 0.0;
+    radius = 0.5 * this->PinCellObject->Radius(0);
     }
   else
     {
     QTableWidgetItem* selItem = this->Ui->layersTable->selectedItems().value(0);
     row = selItem->row();
-    radius = 0.0;
+    radius = 0.5 * (this->PinCellObject->Radius(row) + this->PinCellObject->Radius(row-1));
     }
 
   this->Ui->layersTable->blockSignals(true);
@@ -732,19 +758,36 @@ void cmbNucPinCellEditor::addLayerAfter()
 {
   int row;
   double radius;
-  if(this->Ui->layersTable->selectedItems().count() == 0)
+  this->Ui->layersTable->blockSignals(true);
+
+  // If we are appending to the outer-most layer then the new layer is radius
+  // 1 and the original outer most layer is between it and the previous
+  if((this->Ui->layersTable->selectedItems().count() == 0) || 
+     (this->Ui->layersTable->selectedItems().value(0)->row() ==
+      (this->Ui->layersTable->rowCount()-1)))
     {
     row = this->Ui->layersTable->rowCount();
+    if (row == 1)
+      {
+      // there was only 1 layer so the original layer is now at 0.5
+      this->Ui->layersTable->item(0, 1)->setText("0.5");
+      }
+    else
+      {
+      radius = 0.5 * (this->PinCellObject->Radius(row-1) +
+                      this->PinCellObject->Radius(row-2));
+      this->Ui->layersTable->item(row-1, 1)->setText(QString::number(radius));
+      }
     radius = 1.0;
     }
   else
     {
     QTableWidgetItem* selItem = this->Ui->layersTable->selectedItems().value(0);
     row = selItem->row() + 1;
-    radius = 0.0;
+    radius = 0.5 * (this->PinCellObject->Radius(row-1) +
+                    this->PinCellObject->Radius(row));
     }
 
-  this->Ui->layersTable->blockSignals(true);
   this->Ui->layersTable->insertRow(row);
   QComboBox* comboBox = new QComboBox;
   this->setupMaterialComboBox(comboBox);
@@ -763,12 +806,22 @@ void cmbNucPinCellEditor::addLayerAfter()
 //-----------------------------------------------------------------------------
 void cmbNucPinCellEditor::deleteLayer()
 {
-  if(this->Ui->layersTable->selectedItems().count() == 0)
+  // If no layer is selected or if there is only 1 layer do nothing
+  if((this->Ui->layersTable->selectedItems().count() == 0) ||
+     (this->Ui->layersTable->rowCount() == 1))
     {
     return; // if no layer is selected, don't delete any
     }
   QTableWidgetItem* selItem = this->Ui->layersTable->selectedItems().value(0);
+  int row = selItem->row();
   this->Ui->layersTable->blockSignals(true);
+
+  // If the outer layer is being removed we need to extend the previous layer
+  // to go to 1.0
+  if (row == (this->Ui->layersTable->rowCount() - 1))
+    {
+      this->Ui->layersTable->item(row-1, 1)->setText("1.0");
+    }
   this->Ui->layersTable->removeRow(selItem->row());
   this->Ui->layersTable->blockSignals(false);
   this->rebuildLayersFromTable();
