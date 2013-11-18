@@ -174,6 +174,10 @@ enum enumGeometryType {
 
     enumNucPartsType GetType()
     { return CMBNUC_ASSY_PINCELL;}
+
+    int NumberOfSections() const
+    { return this->cylinders.size() + this->frustums.size();}
+
     void RemoveSection(AssyPartObj* obj)
       {
       if(!obj)
@@ -198,6 +202,15 @@ enum enumGeometryType {
       {
       this->removeObj(frustum, this->frustums);
       }
+
+    double Radius(int idx) const
+    {return this->radii[idx];}
+
+    void SetRadius(int idx, double radius)
+      {
+      this->radii[idx] = radius;
+      }
+
     void SetMaterial(int idx, const std::string& material)
       {
       for(size_t i = 0; i < this->cylinders.size(); i++){
@@ -251,6 +264,7 @@ enum enumGeometryType {
         }
       return 0;
       }
+
     void SetNumberOfLayers(int numLayers)
       {
       for(size_t i = 0; i < this->cylinders.size(); i++){
@@ -261,11 +275,12 @@ enum enumGeometryType {
         }
       size_t curNum = this->radii.size();
       this->radii.resize(numLayers);
-      for(size_t i=curNum; i<numLayers; i++)
+      for(size_t i = curNum; i < numLayers; i++)
         {
         this->radii[i] = 1.0;
         }
       }
+
     std::string name;
     std::string label;
     double pitchX;

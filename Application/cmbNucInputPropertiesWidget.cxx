@@ -270,6 +270,11 @@ void cmbNucInputPropertiesWidget::onReset()
         this->Internal->pagePinCell);
       pincell = dynamic_cast<PinCell*>(selObj);
       this->resetPinCell(pincell);
+
+      // if the pincell is empty bring up the pin cell editor
+      if (pincell->NumberOfSections() == 0)
+        {this->showPinCellEditor();}
+        
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
       this->Internal->stackedWidget->setCurrentWidget(
