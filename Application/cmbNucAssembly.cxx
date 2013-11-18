@@ -647,7 +647,7 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
         clipper->SetActivePlaneId(0);
         clipper->SetClipColor(1.0,1.0,1.0);
         clipper->SetActivePlaneColor(1.0,1.0,0.8);
-        clipper->GenerateOutlineOn();
+        clipper->GenerateOutlineOff();
         clipper->SetInputData(coneLayerData);
         clipper->GenerateFacesOn();
         normals->SetInputConnection(clipper->GetOutputPort());
@@ -700,7 +700,7 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
         clipper->SetActivePlaneId(0);
         clipper->SetClipColor(1.0,1.0,1.0);
         clipper->SetActivePlaneColor(1.0,1.0,0.8);
-        clipper->GenerateOutlineOn();
+        clipper->GenerateOutlineOff();
         clipper->SetInputData(coneLayerData);
         clipper->GenerateFacesOn();
         normals->SetInputConnection(clipper->GetOutputPort());
