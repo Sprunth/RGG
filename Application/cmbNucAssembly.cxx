@@ -856,24 +856,23 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
         {
         vtkPolyData *coneLayerData =
           vtkPolyData::SafeDownCast(coneData->GetBlock(block));
-        vtkSmartPointer<vtkClipClosedSurface> clipper =
-            vtkSmartPointer<vtkClipClosedSurface>::New();
-        vtkSmartPointer<vtkPlaneCollection> clipPlanes =
-          vtkSmartPointer<vtkPlaneCollection>::New();
-        vtkSmartPointer<vtkPlane> plane =
-          vtkSmartPointer<vtkPlane>::New();
+        vtkNew<vtkClipClosedSurface> clipper;
+        vtkNew<vtkPlaneCollection> clipPlanes;
+        vtkNew<vtkPlane> plane;
+        vtkNew<vtkPolyDataNormals> normals;
         plane->SetOrigin(0, 0 + 0.001 * block, 0);
         plane->SetNormal(0, 1, 0);
-        clipPlanes->AddItem(plane);
-        clipper->SetClippingPlanes(clipPlanes);
+        clipPlanes->AddItem(plane.GetPointer());
+        clipper->SetClippingPlanes(clipPlanes.GetPointer());
         clipper->SetActivePlaneId(0);
         clipper->SetClipColor(1.0,1.0,1.0);
         clipper->SetActivePlaneColor(1.0,1.0,0.8);
-        clipper->GenerateOutlineOn();
+        clipper->GenerateOutlineOff();
         clipper->SetInputData(coneLayerData);
         clipper->GenerateFacesOn();
-        clipper->Update();
-        coneData->SetBlock(block, clipper->GetOutput());
+        normals->SetInputConnection(clipper->GetOutputPort());
+        normals->Update();
+        coneData->SetBlock(block, normals->GetOutput());
         }
       dataSet->SetBlock(j, coneData);
       }
@@ -910,24 +909,23 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
         {
         vtkPolyData *coneLayerData =
           vtkPolyData::SafeDownCast(coneData->GetBlock(block));
-        vtkSmartPointer<vtkClipClosedSurface> clipper =
-            vtkSmartPointer<vtkClipClosedSurface>::New();
-        vtkSmartPointer<vtkPlaneCollection> clipPlanes =
-          vtkSmartPointer<vtkPlaneCollection>::New();
-        vtkSmartPointer<vtkPlane> plane =
-          vtkSmartPointer<vtkPlane>::New();
+        vtkNew<vtkClipClosedSurface> clipper;
+        vtkNew<vtkPlaneCollection> clipPlanes;
+        vtkNew<vtkPlane> plane;
+        vtkNew<vtkPolyDataNormals> normals;
         plane->SetOrigin(0, 0 + 0.001 * block, 0);
         plane->SetNormal(0, 1, 0);
-        clipPlanes->AddItem(plane);
-        clipper->SetClippingPlanes(clipPlanes);
+        clipPlanes->AddItem(plane.GetPointer());
+        clipper->SetClippingPlanes(clipPlanes.GetPointer());
         clipper->SetActivePlaneId(0);
         clipper->SetClipColor(1.0,1.0,1.0);
         clipper->SetActivePlaneColor(1.0,1.0,0.8);
-        clipper->GenerateOutlineOn();
+        clipper->GenerateOutlineOff();
         clipper->SetInputData(coneLayerData);
         clipper->GenerateFacesOn();
-        clipper->Update();
-        coneData->SetBlock(block, clipper->GetOutput());
+        normals->SetInputConnection(clipper->GetOutputPort());
+        normals->Update();
+        coneData->SetBlock(block, normals->GetOutput());
         }
       dataSet->SetBlock(numCyls+j, coneData);
       }
