@@ -22,6 +22,7 @@ class cmbNucCore;
 class cmbNucInputPropertiesWidget;
 class cmbNucInputListWidget;
 class cmbNucMaterialColors;
+class cmbNucNewDialog;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -37,6 +38,7 @@ public:
 public slots:
   void onExit();
   void onFileNew();
+  void onNewDialogAccept();
   void onFileOpen();
   void onFileSave();
   void openFiles(const QStringList &fileNames);
@@ -79,6 +81,7 @@ private:
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
 
   cmbNucCore *NuclearCore;
+  cmbNucNewDialog *NewDialog;
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 

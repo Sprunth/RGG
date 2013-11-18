@@ -42,14 +42,7 @@ public:
     {return (int)this->Assemblies.size();}
 
   // Sets the dimensions of the Assembly Core.
-  void SetDimensions(int i, int j)
-    {
-    this->Grid.resize(i);
-    for(int k = 0; k < i; k++)
-      {
-      this->Grid[k].resize(j);
-      }
-    }
+  void SetDimensions(int i, int j);
   // Returns the dimensions of the Assembly Core.
   std::pair<int, int> GetDimensions() const
     {

@@ -21,26 +21,26 @@ PARTICULAR PURPOSE, AND NON-INFRINGEMENT.  THIS SOFTWARE IS PROVIDED ON AN
 PROVIDE
 MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 =========================================================================*/
-#ifndef __cmbNucDuctSource_h
-#define __cmbNucDuctSource_h
+#ifndef __cmbNucHexDuctSource_h
+#define __cmbNucHexDuctSource_h
 
 #include <vector>
 
 #include "vtkMultiBlockDataSetAlgorithm.h"
 
-#include "cmbNucPartDefinition.h"
 class vtkPolyData;
 
-// The cmbNucDuctSource is a VTK algorithm which produces a multi-block data-set
-// containing vtkPolyData for each of the layers in a rectangular duct. The height
-// and origin of the whole duct can be modified. Layers can be added by specifying
-// their thickness in the X and Y directions.
-class cmbNucDuctSource : public vtkMultiBlockDataSetAlgorithm
+class cmbNucHexDuctSource : public vtkMultiBlockDataSetAlgorithm
 {
 public:
-  vtkTypeMacro(cmbNucDuctSource, vtkMultiBlockDataSetAlgorithm);
+  vtkTypeMacro(cmbNucHexDuctSource, vtkMultiBlockDataSetAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
-  static cmbNucDuctSource *New();
+  static cmbNucHexDuctSource *New();
+
+  // Description:
+  // Set/get the pitch of the duct.
+  vtkSetMacro(Pitch, double)
+  vtkGetMacro(Pitch, double)
 
   // Description:
   // Set/get the height of the duct.
@@ -52,43 +52,27 @@ public:
   vtkSetVector3Macro(Origin, double)
   vtkGetVectorMacro(Origin, double, 3)
 
-  // Add a new layer with thicknesses x and y. For Hexagonal duct,
-  // only one parameter (distance) is needed.  Ducts should be
-  // built up starting at the inner most layer and moving to the
-  // outermost layer.
-  void AddLayer(double x, double y);
-  void AddLayer(double distance) // For Hex duct
-  { this->AddLayer(distance, distance); }
-
-  // Returns the number of layers in the duct.
+  void AddLayer(double thickness);
   int GetNumberOfLayers();
 
-  // Description:
-  // Set the type of the duct.
-  vtkSetClampMacro(GeometryType,int,CMBNUC_ASSY_RECT_DUCT,CMBNUC_ASSY_HEX_DUCT)
-  vtkGetMacro(GeometryType,int);
-
 protected:
-  cmbNucDuctSource();
-  ~cmbNucDuctSource();
+  cmbNucHexDuctSource();
+  ~cmbNucHexDuctSource();
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   vtkPolyData* CreateLayer(int layer);
-  vtkPolyData* CreateHexLayer(int layer);
 
+  double Pitch;
   double Height;
   double Origin[3];
 
   std::vector<double> Layers;
-  int GeometryType;
 
 private:
-  cmbNucDuctSource(const cmbNucDuctSource&);  // Not implemented.
-  void operator=(const cmbNucDuctSource&);  // Not implemented.
+  cmbNucHexDuctSource(const cmbNucHexDuctSource&);  // Not implemented.
+  void operator=(const cmbNucHexDuctSource&);  // Not implemented.
 };
 
 #endif
-
-

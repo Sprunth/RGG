@@ -33,9 +33,13 @@ signals:
   void objectSelected(AssyPartObj*, const char* name);
   void objectRemoved();
   void materialColorChanged(const QString& name);
+  void materialVisibilityChanged(const QString& name);
+
+  void pinsModified(cmbNucAssembly*);
+  void assembliesModified(cmbNucCore*);
 
 public slots:
-  void onNewAssembly();
+  void onNewAssembly(enumGeometryType enType=RECTILINEAR);
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -51,7 +55,7 @@ protected:
 
 private slots:
   // Description:
-  // Tree widget interactions related slots 
+  // Tree widget interactions related slots
   virtual void onPartsSelectionChanged();
   virtual void onMaterialSelectionChanged();
   virtual void onMaterialChanged(QTreeWidgetItem*, int col);

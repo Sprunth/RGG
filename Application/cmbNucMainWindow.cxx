@@ -22,6 +22,7 @@
 #include "cmbNucInputPropertiesWidget.h"
 #include "cmbNucInputListWidget.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucNewDialog.h"
 
 #include "vtkAxesActor.h"
 #include "vtkProperty.h"
@@ -44,6 +45,10 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui = new Ui_qNucMainWindow;
   this->ui->setupUi(this);
   this->NuclearCore = new cmbNucCore();
+
+  this->NewDialog = new cmbNucNewDialog(this);
+
+  connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -153,6 +158,10 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->InputsWidget,
     SIGNAL(objectRemoved()), this,
     SLOT(onObjectModified()));
+  QObject::connect(this->InputsWidget, SIGNAL(pinsModified(cmbNucAssembly*)),
+    this->PropertyWidget, SLOT(resetAssemblyEditor(cmbNucAssembly*)));
+  QObject::connect(this->InputsWidget, SIGNAL(assembliesModified(cmbNucCore*)),
+    this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
 
   QObject::connect(this->PropertyWidget,
     SIGNAL(currentObjectModified(AssyPartObj*)), this,
@@ -160,7 +169,9 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->InputsWidget,
     SIGNAL(materialColorChanged(const QString&)), this,
     SLOT(onObjectModified()));
-
+  QObject::connect(this->InputsWidget,
+    SIGNAL(materialVisibilityChanged(const QString&)), this,
+    SLOT(onObjectModified()));
 }
 
 void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
@@ -196,9 +207,15 @@ void cmbNucMainWindow::onExit()
 
 void cmbNucMainWindow::onFileNew()
 {
+  this->NewDialog->show();
+}
+
+void cmbNucMainWindow::onNewDialogAccept()
+{
+  this->PropertyWidget->setGeometryType(this->NewDialog->getSelectedGeometry());
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
-  this->InputsWidget->onNewAssembly();
+  this->InputsWidget->onNewAssembly(this->PropertyWidget->getGeometryType());
   this->Renderer->ResetCamera();
   this->Renderer->Render();
 }
@@ -255,12 +272,19 @@ void cmbNucMainWindow::openFiles(const QStringList &fileNames)
     for(int i=0; i<numNewAssy ; i++)
       {
       this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label, Qt::white);
-      for(int j=1; j<numNewAssy ; j++)
+      for(int j=1; j<this->NuclearCore->Grid[i].size() ; j++)
         {
         this->NuclearCore->ClearAssemblyLabel(i, j);
         }
       }
     }
+
+  if(assemblies.count())
+    {
+    this->PropertyWidget->setGeometryType(
+      assemblies.at(0)->AssyLattice.GetGeometryType());
+    }
+
   // update data colors
   this->updateMaterialColors();
   // render
@@ -323,9 +347,9 @@ void cmbNucMainWindow::updateMaterialColors()
   vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
   this->Mapper->SetInputDataObject(coredata);
   if(!coredata)
-  {
-  return;
-  }
+    {
+    return;
+    }
   unsigned int numCoreBlocks = coredata->GetNumberOfBlocks();
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
@@ -333,10 +357,10 @@ void cmbNucMainWindow::updateMaterialColors()
 
   //vtkDataObjectTreeIterator *coreiter = coredata->NewTreeIterator();
   //coreiter->SetSkipEmptyNodes(false);
-  unsigned int realflatidx=0;
-  for(unsigned int block=0; block<numCoreBlocks; block++)
+  unsigned int realflatidx = 0;
+  for(unsigned int block = 0; block < numCoreBlocks; block++)
     {
-    realflatidx++;// for assembly block
+    realflatidx++; // for assembly block
     if(!coredata->GetBlock(block))
       {
       continue;
@@ -358,24 +382,14 @@ void cmbNucMainWindow::updateMaterialColors()
         return;
         }
 
-      std::pair<int, int> dimensions = assy->AssyLattice.GetDimensions();
-
       // count number of pin blocks in the data set
-      int pins = 0;
-      for(int i = 0; i < dimensions.first; i++)
-        {
-        for(int j = 0; j < dimensions.second; j++)
-          {
-          pins += 1;
-          }
-        }
-
+      int pins = assy->AssyLattice.GetNumberOfCells();
       int pin_count = 0;
       int ducts_count = 0;
 
       std::string pinMaterial = "pin";
       int numAssyBlocks = data->GetNumberOfBlocks();
-      for(unsigned int idx=0; idx<numAssyBlocks; idx++)
+      for(unsigned int idx = 0; idx < numAssyBlocks; idx++)
         {
         realflatidx++;
         if(pin_count < pins)
@@ -385,10 +399,9 @@ void cmbNucMainWindow::updateMaterialColors()
 
           if(pinCell)
             {
-//            realflatidx++;
             std::string pinMaterial;
 
-            for(unsigned int idx=0; idx<pinCell->cylinders.size(); idx++)
+            for(unsigned int idx = 0; idx < pinCell->cylinders.size(); idx++)
               {
               realflatidx++; // increase one for this cylinder
               for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
@@ -397,7 +410,7 @@ void cmbNucMainWindow::updateMaterialColors()
                 matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
                 }
               }
-            for(unsigned int idx=0; idx<pinCell->frustums.size(); idx++)
+            for(unsigned int idx = 0; idx < pinCell->frustums.size(); idx++)
               {
               realflatidx++; // increase one for this frustum
               for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
@@ -412,14 +425,14 @@ void cmbNucMainWindow::updateMaterialColors()
         else // ducts need to color by layers
           {
           if(vtkMultiBlockDataSet* ductBlock =
-            vtkMultiBlockDataSet::SafeDownCast(data->GetBlock(idx)))
+             vtkMultiBlockDataSet::SafeDownCast(data->GetBlock(idx)))
             {
             Duct* duct = assy->AssyDuct.Ducts[ducts_count];
             unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
-            for(unsigned int b=0; b<numBlocks; b++)
+            for(unsigned int b = 0; b < numBlocks; b++)
               {
               std::string layerMaterial =
-                (duct && b<duct->materials.size()) ? duct->materials[b] : "duct";
+                (duct && b < duct->materials.size()) ? duct->materials[b] : "duct";
               if(layerMaterial.empty())
                 {
                 layerMaterial = "duct";

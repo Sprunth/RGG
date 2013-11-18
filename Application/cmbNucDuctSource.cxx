@@ -33,6 +33,8 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include "vtkPolyData.h"
 #include "vtkTransform.h"
 #include "vtkCellArray.h"
+#include "vtkCmbLayeredConeSource.h"
+#include "vtkSmartPointer.h"
 
 #include <math.h>
 
@@ -44,6 +46,7 @@ cmbNucDuctSource::cmbNucDuctSource()
   std::fill(this->Origin, this->Origin + 3, 0.0);
   this->Height = 0.0;
   this->SetNumberOfInputPorts(0);
+  this->GeometryType = CMBNUC_ASSY_RECT_DUCT;
 }
 
 //----------------------------------------------------------------------------
@@ -62,17 +65,49 @@ int cmbNucDuctSource::RequestData(
   // get multi-block data set
   vtkMultiBlockDataSet *output =
     vtkMultiBlockDataSet::SafeDownCast(
-      outInfo->Get(vtkDataObject::DATA_OBJECT())
-    );
+      outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-  // create and add each layer to the output
-  output->SetNumberOfBlocks(this->GetNumberOfLayers());
-
-  for(int i = 0; i < this->GetNumberOfLayers(); i++)
+  // create HEX duct
+  if(this->GeometryType == CMBNUC_ASSY_HEX_DUCT)
     {
-    vtkPolyData *polyData = this->CreateLayer(i);
-    output->SetBlock(i, polyData);
-    polyData->Delete();
+    int numLayers = this->GetNumberOfLayers();
+    // get parameters for the layer
+    double x = this->Origin[0];
+    double y = this->Origin[1];
+    double z = this->Origin[2];
+    z += this->Height * 0.0005;
+    vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
+      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
+    coneSource->SetNumberOfLayers(numLayers);
+    coneSource->SetResolution(6);
+    coneSource->SetBaseCenter(x, y, z);
+    double direction[] = { 0, 0, 1 };
+    coneSource->SetDirection(direction);
+    coneSource->SetHeight(this->Height*0.999);
+    double preDist = 0;
+    for(int k = 0; k < numLayers; k++)
+      {
+      double distance = this->Layers[2*k]/2.0;
+      double radius = distance / (double)(cos(30.0 * vtkMath::Pi() / 180.0));
+
+      coneSource->SetBaseRadius(k, radius);
+      coneSource->SetTopRadius(k, radius);
+      preDist = distance;
+      }
+    coneSource->Update();
+    output->ShallowCopy(coneSource->GetOutput());
+    }
+  else // create Rect duct
+    {
+    // create and add each layer to the output
+    output->SetNumberOfBlocks(this->GetNumberOfLayers());
+
+    for(int i = 0; i < this->GetNumberOfLayers(); i++)
+      {
+      vtkPolyData *polyData = this->CreateLayer(i);
+      output->SetBlock(i, polyData);
+      polyData->Delete();
+      }
     }
 
   return 1;

@@ -33,6 +33,9 @@
        <string>Assemblies</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
+       <property name="margin">
+        <number>1</number>
+       </property>
        <item row="0" column="0" colspan="2">
         <widget class="QTreeWidget" name="PartsList">
          <column>
@@ -49,6 +52,9 @@
        <string>Materials</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
+       <property name="margin">
+        <number>1</number>
+       </property>
        <item row="2" column="2">
         <widget class="QPushButton" name="saveMaterial">
          <property name="text">

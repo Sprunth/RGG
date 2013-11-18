@@ -144,6 +144,9 @@
    <property name="text">
     <string>Open File...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionExit">
    <property name="text">
@@ -178,6 +181,9 @@
    </property>
    <property name="toolTip">
     <string>Create New Assembly</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
   <action name="actionPreferences">

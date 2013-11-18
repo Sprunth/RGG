@@ -9,6 +9,8 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucMainWindow.h"
 
+#include "cmbNucHexLattice.h"
+
 #include <QLabel>
 #include <QPointer>
 #include <QtDebug>
@@ -29,6 +31,7 @@ cmbNucInputPropertiesWidget::cmbNucInputPropertiesWidget(cmbNucMainWindow *mainW
     MainWindow(mainWindow)
 {
   this->Internal = new cmbNucInputPropertiesWidgetInternal;
+  this->GeometryType = RECTILINEAR;
   this->Internal->setupUi(this);
   this->initUI();
   this->CurrentObject = NULL;
@@ -49,6 +52,12 @@ void cmbNucInputPropertiesWidget::initUI()
   this->CoreEditor = new cmbNucAssemblyEditor(this, this->Assembly);
   this->Internal->coreLatticeLayout->addWidget(
     this->CoreEditor);
+
+  this->HexCore = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
+  this->Internal->hexLatticeLayout->addWidget(this->HexCore);
+
+  this->HexAssy = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
+  this->Internal->hexLatticeAssyLayout->addWidget(this->HexAssy);
 
   this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
 
@@ -77,12 +86,28 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onCoreDimensionChanged()));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
     this, SLOT(onCoreDimensionChanged()));
+  QObject::connect(this->Internal->hexLattice, SIGNAL(valueChanged(int)),
+    this, SLOT(onCoreLayersChanged()));
+  QObject::connect(this->Internal->hexLatticeAssy, SIGNAL(valueChanged(int)),
+    this, SLOT(onAssyLayersChanged()));
 
   // pincell related connections
   QObject::connect(this->Internal->advancedButton, SIGNAL(clicked()),
     this, SLOT(showPinCellEditor()));
   QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
     this, SLOT(choosePinLegendColor()));
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::setGeometryType(enumGeometryType g)
+{
+  this->GeometryType = g;
+}
+
+//-----------------------------------------------------------------------------
+enumGeometryType cmbNucInputPropertiesWidget::getGeometryType()
+{
+  return this->GeometryType;
 }
 
 //-----------------------------------------------------------------------------
@@ -120,7 +145,7 @@ void cmbNucInputPropertiesWidget::updateMaterials()
   QString matLabel;
   foreach(QString material, matColorMap->MaterialColorMap().keys())
     {
-    matLabel = matColorMap->MaterialColorMap()[material].first;
+    matLabel = matColorMap->MaterialColorMap()[material].Label;
     this->Internal->DuctLayerMaterial->addItem(matLabel);
     this->Internal->FrustumMaterial->addItem(matLabel);
     this->Internal->CylinderMaterial->addItem(matLabel);
@@ -141,6 +166,8 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
   this->Assembly = assyObj;
   this->AssemblyEditor->setAssembly(assyObj);
   this->CoreEditor->setAssembly(assyObj);
+  this->HexCore->setAssembly(assyObj);
+  this->HexAssy->setAssembly(assyObj);
 }
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
@@ -167,10 +194,7 @@ void cmbNucInputPropertiesWidget::onApply()
     case CMBNUC_ASSEMBLY:
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
       this->applyToAssembly(assy);
-      break;
-    case CMBNUC_ASSY_LATTICE:
-      lattice = dynamic_cast<Lattice*>(selObj);
-      this->applyToLattice(lattice);
+      this->applyToLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
@@ -185,6 +209,7 @@ void cmbNucInputPropertiesWidget::onApply()
       this->applyToCylinder(cylin);
       break;
     case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
       duct = dynamic_cast<Duct*>(selObj);
       this->applyToDuct(duct);
       break;
@@ -197,43 +222,59 @@ void cmbNucInputPropertiesWidget::onApply()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onReset()
 {
-  if(this->CurrentObject==NULL)
+  if(this->CurrentObject == NULL)
     {
     return;
     }
   AssyPartObj* selObj = this->CurrentObject;
-  PinCell* pincell=NULL;
-  Cylinder* cylin=NULL;
-  Frustum* frust=NULL;
-  Duct* duct=NULL;
-  Lattice* lattice=NULL;
-  cmbNucCore* nucCore=NULL;
-  cmbNucAssembly* assy=NULL;
+  PinCell* pincell = NULL;
+  Cylinder* cylin = NULL;
+  Frustum* frust = NULL;
+  Duct* duct = NULL;
+  Lattice* lattice = NULL;
+  cmbNucCore* nucCore = NULL;
+  cmbNucAssembly* assy = NULL;
   switch(selObj->GetType())
     {
     case CMBNUC_CORE:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageCore);
       nucCore = dynamic_cast<cmbNucCore*>(selObj);
+      if(this->GeometryType == RECTILINEAR)
+        {
+        this->Internal->stackedWidget->setCurrentWidget(
+          this->Internal->pageCore);
+        }
+      else if(this->GeometryType == HEXAGONAL)
+        {
+        this->Internal->stackedWidget->setCurrentWidget(
+          this->Internal->pageHexCore);
+        }
       this->resetCore(nucCore);
       break;
     case CMBNUC_ASSEMBLY:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageAssembly);
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      if(this->GeometryType == RECTILINEAR)
+        {
+        this->Internal->stackedWidget->setCurrentWidget(
+          this->Internal->pageAssembly);
+        }
+      else if(this->GeometryType == HEXAGONAL)
+        {
+        this->Internal->stackedWidget->setCurrentWidget(
+          this->Internal->pageHexAssy);
+        }
       this->resetAssembly(assy);
-      break;
-    case CMBNUC_ASSY_LATTICE:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageLattice);
-      lattice = dynamic_cast<Lattice*>(selObj);
-      this->resetLattice(lattice);
+      this->resetLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pagePinCell);
       pincell = dynamic_cast<PinCell*>(selObj);
       this->resetPinCell(pincell);
+
+      // if the pincell is empty bring up the pin cell editor
+      if (pincell->NumberOfSections() == 0)
+        {this->showPinCellEditor();}
+        
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
       this->Internal->stackedWidget->setCurrentWidget(
@@ -248,6 +289,7 @@ void cmbNucInputPropertiesWidget::onReset()
       this->resetCylinder(cylin);
       break;
     case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageRectDuct);
       duct = dynamic_cast<Duct*>(selObj);
@@ -325,13 +367,29 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
 {
-  this->Internal->latticeX->blockSignals(true);
-  this->Internal->latticeY->blockSignals(true);
-  this->Internal->latticeX->setValue(lattice->GetDimensions().first);
-  this->Internal->latticeY->setValue(lattice->GetDimensions().second);
-  this->Internal->latticeX->blockSignals(false);
-  this->Internal->latticeY->blockSignals(false);
+  if(this->GeometryType == RECTILINEAR)
+    {
+    this->Internal->latticeX->blockSignals(true);
+    this->Internal->latticeY->blockSignals(true);
+    this->Internal->latticeX->setValue(lattice->GetDimensions().first);
+    this->Internal->latticeY->setValue(lattice->GetDimensions().second);
+    this->Internal->latticeX->blockSignals(false);
+    this->Internal->latticeY->blockSignals(false);
+    }
+  else if(this->GeometryType == HEXAGONAL)
+    {
+    this->Internal->hexLatticeAssy->blockSignals(true);
+    this->Internal->hexLatticeAssy->setValue(lattice->GetDimensions().first);
+    this->Internal->hexLatticeAssy->blockSignals(false);
+  }
 
+  this->resetAssemblyLattice();
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::resetAssemblyEditor(cmbNucAssembly* assy)
+{
+  this->Assembly = assy;
   this->resetAssemblyLattice();
 }
 
@@ -348,9 +406,17 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       PinCell *pincell = this->Assembly->PinCells[i];
       actionList.append(pincell->label.c_str());
       }
-    this->Assembly->UpdateGrid();
-    this->AssemblyEditor->resetUI(
-      this->Assembly->AssyLattice.Grid, actionList);
+    if(this->GeometryType == RECTILINEAR)
+      {
+      this->Assembly->UpdateGrid();
+      this->AssemblyEditor->resetUI(
+        this->Assembly->AssyLattice.Grid, actionList);
+      }
+    else if(this->GeometryType == HEXAGONAL)
+      {
+      this->HexAssy->setActions(actionList);
+      this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid);
+      }
     }
 }
 
@@ -367,8 +433,8 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
   // add new layers if the number is increased
   if(numLayers > this->Internal->DuctMaterials.count())
     {
-    int nmaterials=this->Internal->DuctMaterials.count();
-    for(int j=nmaterials; j<numLayers; j++)
+    int nmaterials = this->Internal->DuctMaterials.count();
+    for(int j = nmaterials; j<numLayers; j++)
       {
       this->Internal->DuctMaterials.append("");
       this->Internal->DuctThicknesses.append(
@@ -378,7 +444,7 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
   // remove layers if the number is decreased
   else if(numLayers < this->Internal->DuctMaterials.count())
     {
-    for(int j=this->Internal->DuctMaterials.count()-1; j>=numLayers; j--)
+    for(int j = this->Internal->DuctMaterials.count() - 1; j >= numLayers; j--)
       {
       this->Internal->DuctMaterials.removeAt(j);
       this->Internal->DuctThicknesses.removeAt(j);
@@ -386,8 +452,8 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
     }
 
   this->Internal->DuctLayer->blockSignals(false);
-  int currentLayer = previusLayer<numLayers ? previusLayer : 0;
-  this->onCurrentDuctLayerChanged(currentLayer>=0 ? currentLayer : 0);
+  int currentLayer = previusLayer < numLayers ? previusLayer : 0;
+  this->onCurrentDuctLayerChanged(currentLayer >= 0 ? currentLayer : 0);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onCurrentDuctLayerChanged(int idx)
@@ -499,7 +565,14 @@ void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 {
-  this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
+  if(this->GeometryType == RECTILINEAR)
+    {
+    this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
+    }
+  else if(this->GeometryType == HEXAGONAL)
+    {
+    this->HexAssy->applyToGrid(lattice->Grid);
+    }
   emit this->currentObjectModified(lattice);
 }
 //-----------------------------------------------------------------------------
@@ -511,7 +584,15 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
-  this->CoreEditor->updateLatticeWithGrid(nucCore->Grid);
+  if(this->GeometryType == RECTILINEAR)
+    {
+    this->CoreEditor->updateLatticeWithGrid(nucCore->Grid);
+    }
+  else if(this->GeometryType == HEXAGONAL)
+    {
+    this->HexCore->applyToGrid(nucCore->Grid);
+    }
+
   emit this->currentObjectModified(nucCore);
 }
 //-----------------------------------------------------------------------------
@@ -522,24 +603,36 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
 {
-  this->Internal->coreLatticeX->blockSignals(true);
-  this->Internal->coreLatticeY->blockSignals(true);
-  this->Internal->coreLatticeX->setValue(nucCore->GetDimensions().first);
-  this->Internal->coreLatticeY->setValue(nucCore->GetDimensions().second);
-  this->Internal->coreLatticeX->blockSignals(false);
-  this->Internal->coreLatticeY->blockSignals(false);
   if(nucCore)
     {
+    this->Internal->coreLatticeX->blockSignals(true);
+    this->Internal->coreLatticeY->blockSignals(true);
+    this->Internal->coreLatticeX->setValue(nucCore->GetDimensions().first);
+    this->Internal->coreLatticeY->setValue(nucCore->GetDimensions().second);
+    this->Internal->coreLatticeX->blockSignals(false);
+    this->Internal->coreLatticeY->blockSignals(false);
+
     QStringList actionList;
     actionList.append("xx");
+
     // assemblies
     for(int i = 0; i < nucCore->GetNumberOfAssemblies(); i++)
       {
       cmbNucAssembly *assy = nucCore->GetAssembly(i);
       actionList.append(assy->label.c_str());
       }
-
-    this->CoreEditor->resetUI(nucCore->Grid, actionList);
+    if(this->GeometryType == RECTILINEAR)
+      {
+      this->CoreEditor->resetUI(nucCore->Grid, actionList);
+      }
+    else if(this->GeometryType == HEXAGONAL)
+      {
+      this->Internal->hexLattice->blockSignals(true);
+      this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
+      this->Internal->hexLattice->blockSignals(false);
+      this->HexCore->setActions(actionList);
+      this->HexCore->resetWithGrid(nucCore->Grid);
+      }
     }
 }
 
@@ -594,4 +687,12 @@ void cmbNucInputPropertiesWidget::pinCellEditorAccepted()
 
   this->applyToPinCell(editor->GetPinCell());
   //emit this->currentObjectModified(editor->GetPinCell());
+}
+void cmbNucInputPropertiesWidget::onCoreLayersChanged()
+{
+  this->HexCore->setLayers(this->Internal->hexLattice->value());
+}
+void cmbNucInputPropertiesWidget::onAssyLayersChanged()
+{
+  this->HexAssy->setLayers(this->Internal->hexLatticeAssy->value());
 }

@@ -5,6 +5,7 @@
 //#include <QGraphicsView>
 
 #include <QStringList>
+#include "cmbNucPartDefinition.h"
 
 class QDragEnterEvent;
 class QDropEvent;

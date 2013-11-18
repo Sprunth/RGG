@@ -60,6 +60,12 @@ public:
   std::string label;
   double MeshSize;
 
+  // For Hex geometry
+  double RadialMeshSize;
+  double AxialMeshSize;
+  std::string  RotateDirection;
+  double RotateAngle;
+
   // creates the multiblock used to render the pincell. if cutaway is true the
   // pincell will be cut in half length-wise to show the interior layers.
   static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell, bool cutaway = false);
@@ -67,6 +73,10 @@ public:
 private:
   std::string GeometryType;
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
+
+  // Check if GeometryType is Hexagonal
+  bool IsHexType();
+
 };
 
 #endif // cmbNucAssembly_H

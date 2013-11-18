@@ -10,6 +10,7 @@ class cmbNucAssemblyEditor;
 class cmbNucMainWindow;
 class cmbNucAssembly;
 class cmbNucCore;
+class cmbNucHexLattice;
 
 class cmbNucInputPropertiesWidget : public QWidget
 {
@@ -33,10 +34,18 @@ public:
   // Update material lists
   void updateMaterials();
 
+  // Geometry type we are working with (hex or rect)
+  void setGeometryType(enumGeometryType g);
+  enumGeometryType getGeometryType();
+
 signals:
   // Description:
   // Fired when the current object is modified
   void currentObjectModified(AssyPartObj* selObj);
+
+public slots:
+  void resetCore(cmbNucCore* nucCore);
+  void resetAssemblyEditor(cmbNucAssembly* assembly);
 
 protected slots:
   // Invoked when Apply button clicked
@@ -49,8 +58,8 @@ protected slots:
   void resetCylinder(Cylinder* cylin);
   void resetDuct(Duct* duct);
   void resetLattice(Lattice* lattice);
+  void resetAssemblyLattice();
   void resetAssembly(cmbNucAssembly* assy);
-  void resetCore(cmbNucCore* nucCore);
 
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
@@ -72,15 +81,17 @@ protected slots:
   void onLatticeDimensionChanged();
   void onCoreDimensionChanged();
 
-  // reset assembly lattice
-  void resetAssemblyLattice();
-
   void showPinCellEditor();
   void pinCellEditorAccepted();
+
+  void onCoreLayersChanged();
+  void onAssyLayersChanged();
   void choosePinLegendColor();
 
 private:
   cmbNucInputPropertiesWidgetInternal* Internal;
+
+  enumGeometryType GeometryType;
 
   void initUI();
   AssyPartObj* CurrentObject;
@@ -88,5 +99,7 @@ private:
   cmbNucAssemblyEditor *CoreEditor;
   cmbNucAssembly *Assembly;
   cmbNucMainWindow *MainWindow;
+  cmbNucHexLattice* HexCore;
+  cmbNucHexLattice* HexAssy;
 };
 #endif
