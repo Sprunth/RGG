@@ -1,0 +1,40 @@
+! #############################################################################################################
+! ABTR Core
+! #############################################################################################################
+!
+Geometry Volume				 ! 'Geometry' card defines if the meshes are volume or surface
+Symmetry 1 				 ! 'Symmetry' card defines the desired symmetry in the model
+GeometryType HexFlat			 ! 'GeometryType' card can take values Hexagonal Rectangular
+Assemblies 8 14.598			 ! 'Assemblies' card defines the number of assembly mesh files and their pitch
+inner_core.cub        IC				 ! Meshfile name followed by alias 
+secondary_control.cub SC
+shield.cub            SH
+fuel_test.cub         FT
+primary_control.cub   PC
+material_test.cub     MT
+outer_core.cub        OC
+reflector.cub          RF
+Lattice 9                     
+	   	      XX  XX  SH  SH  SH  SH  SH  XX  XX                  &
+                    XX  SH  SH  RF  RF  RF  RF  SH  SH  XX                &   
+                 SH  SH  RF  RF  RF  RF  RF  RF  RF  SH  SH               &  
+               SH  RF  RF  RF  RF  OC  OC  RF  RF  RF  RF  SH             &  
+             SH  RF  RF  RF  OC  OC  PC  OC  OC  RF  RF  RF  SH           &  
+           SH  RF  RF  OC  OC  FT  IC  IC  MT  OC  OC  RF  RF  SH         &
+         SH  RF  RF  OC  PC  IC  IC  FT  IC  IC  PC  OC  RF  RF  SH       &  
+       XX  SH  RF  RF  OC  IC  SC  IC  IC  SC  IC  OC  RF  RF  SH  XX     &
+     XX  SH  RF  RF  OC  MT  IC  IC  PC  IC  IC  FT  OC  RF  RF  SH  XX   &
+       XX  SH  RF  RF  OC  IC  FT  IC  IC  FT  IC  OC  RF  RF  SH  XX     &
+         SH  RF  RF  OC  PC  IC  IC  SC  IC  IC  PC  OC  RF  RF  SH       &
+           SH  RF  RF  OC  OC  FT  IC  IC  MT  OC  OC  RF  RF  SH         &
+             SH  RF  RF  RF  OC  OC  PC  OC  OC  RF  RF  RF  SH           &
+               SH  RF  RF  RF  RF  OC  OC  RF  RF  RF  RF  SH             &
+                 SH  SH  RF  RF  RF  RF  RF  RF  RF  SH  SH               &
+                    XX  SH  SH  RF  RF  RF  RF  SH  SH  XX                &
+	   	      XX  XX  SH  SH  SH  SH  SH  XX  XX
+NeumannSet Top  1                       ! 'NeumannSet' card followed by 'location of NeumannSet'  'Id of NeumannSet'
+NeumannSet Bot  2                       !  Values 'top', 'bot' and 'side' are acceptable for second parameter. 
+OutputFileName abtr_core.h5m
+END		 			 ! 'END' card is a MUST marks the end of file for the file reader	
+END
+    
