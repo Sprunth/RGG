@@ -168,6 +168,10 @@ enum enumNucPartsType
 
     enumNucPartsType GetType()
     { return CMBNUC_ASSY_PINCELL;}
+
+    int NumberOfSections() const
+    { return this->cylinders.size() + this->frustums.size();}
+
     void RemoveSection(AssyPartObj* obj)
       {
       if(!obj)
