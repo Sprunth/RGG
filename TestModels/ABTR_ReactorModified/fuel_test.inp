@@ -1,0 +1,29 @@
+! #############################################################################################################
+! ABTR FT Assembly (cm). 
+! #############################################################################################################
+!
+Geometry Volume
+GeometryType Hexagonal 
+!                                    
+Materials 8 LowerReflector LowerReflector  ActiveCore ActiveCore GasPlenum GasPlenum DuctHandlingSocket DuctHandlingSocket HandlingSocket HandlingSocket SodiumDuct SodiumDuct OuterDuct OuterDuct  InterAssemblyGap InterAssemblyGap 
+!
+Duct	3	0	0	38	80.1	13.598	14.198	14.598	LowerReflector	OuterDuct	InterAssemblyGap
+Duct	3	0	0	80.1	98	13.598	14.198	14.598	LowerReflector	OuterDuct	InterAssemblyGap
+Duct	3	0	0	98	165.2	13.598	14.198	14.598	ActiveCore	OuterDuct	InterAssemblyGap
+Duct	3	0	0	165.2	178	13.598	14.198	14.598	ActiveCore	OuterDuct	InterAssemblyGap
+Duct	3	0	0	178	182	13.598	14.198	14.598	GasPlenum	OuterDuct	InterAssemblyGap
+Duct	3	0	0	182	267	13.598	14.198	14.598	GasPlenum	OuterDuct	InterAssemblyGap
+Duct	3	0	0	267	298	13.598	14.198	14.598	GasPlenum	OuterDuct	InterAssemblyGap
+Duct	3	0	0	298	328	13.598	14.198	14.598	HandlingSocket	DuctHandlingSocket	DuctHandlingSocket
+Duct	3	0	0	328	358	13.598	14.198	14.598	SodiumDuct      SodiumDuct	SodiumDuct
+Assembly 1  
+XX		               
+Center
+Rotate Z 30
+RadialMeshSize 0.1
+AxialMeshSize 2
+EdgeInterval 12
+MaterialSet_StartId 400
+NeumannSet_StartId 400	
+END
+
