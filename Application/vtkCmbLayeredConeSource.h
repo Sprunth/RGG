@@ -24,8 +24,8 @@ public:
   void SetBaseRadius(int layer, double radius);
   double GetBaseRadius(int layer);
 
-  vtkSetMacro(Height, int);
-  vtkGetMacro(Height, int);
+  vtkSetMacro(Height, double);
+  vtkGetMacro(Height, double);
 
   vtkSetMacro(Resolution, int);
   vtkGetMacro(Resolution, int);

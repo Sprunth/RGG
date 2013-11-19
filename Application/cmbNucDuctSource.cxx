@@ -75,7 +75,6 @@ int cmbNucDuctSource::RequestData(
     double x = this->Origin[0];
     double y = this->Origin[1];
     double z = this->Origin[2];
-    z += this->Height * 0.0005;
     vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
       vtkSmartPointer<vtkCmbLayeredConeSource>::New();
     coneSource->SetNumberOfLayers(numLayers);
@@ -83,13 +82,12 @@ int cmbNucDuctSource::RequestData(
     coneSource->SetBaseCenter(x, y, z);
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
-    coneSource->SetHeight(this->Height*0.999);
+    coneSource->SetHeight(this->Height);
     double preDist = 0;
     for(int k = 0; k < numLayers; k++)
       {
       double distance = this->Layers[2*k]/2.0;
       double radius = distance / (double)(cos(30.0 * vtkMath::Pi() / 180.0));
-
       coneSource->SetBaseRadius(k, radius);
       coneSource->SetTopRadius(k, radius);
       preDist = distance;

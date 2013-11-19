@@ -790,13 +790,28 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     }
 
   // setup ducts
-  for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
+  double z, deltaZ, height;
+  size_t numDucts = this->AssyDuct.Ducts.size();
+  for(size_t i = 0; i < numDucts; i++)
     {
     Duct *duct = this->AssyDuct.Ducts[i];
 
     cmbNucDuctSource *ductSource = cmbNucDuctSource::New();
-    ductSource->SetOrigin(duct->x, duct->y, duct->z1);
-    ductSource->SetHeight(duct->z2 - duct->z1);
+    z = duct->z1;
+    height = duct->z2 - duct->z1;
+    double deltaZ = height * 0.0005;
+    if(i == 0) // first duct
+      {
+      z = duct->z1 + deltaZ;
+      height -= deltaZ;
+      }
+    if (i == numDucts - 1) // last duct
+      {
+      height -= 2*deltaZ;
+      }
+
+    ductSource->SetOrigin(duct->x, duct->y, z);
+    ductSource->SetHeight(height);
     ductSource->SetGeometryType(
       this->AssyLattice.GetGeometryType()== HEXAGONAL ?
       CMBNUC_ASSY_HEX_DUCT : CMBNUC_ASSY_RECT_DUCT);
