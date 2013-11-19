@@ -955,34 +955,5 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       }
     }
 
-/*
-  // Now append each layer's polydata together to form a multiblock with
-  // appended layers as blocks. ASSUMING all sections have same layers.
-  for(int layer=0; layer<pincell->GetNumberOfLayers; layer++)
-    {
-    vtkAppendPolyData *merger = vtkAppendPolyData::New();
-    for(size_t j = 0; j <cylinderSrcs.size(); j++)
-      {
-      vtkMultiBlockDataSet *mbds = cylinderSrcs[j]->GetOutput();
-      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
-      }
-    for(int k = 0; k < frustumSrcs.size(); k++)
-      {
-      vtkMultiBlockDataSet *mbds = frustumSrcs[k]->GetOutput();
-      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
-      }
-
-    merger->Update();
-    vtkPolyDataNormals *normals = vtkPolyDataNormals::New();
-    normals->SetInputConnection(merger->GetOutputPort());
-    merger->Delete();
-    normals->Update();
-
-    vtkPolyData *polyData = vtkPolyData::New();
-    polyData->DeepCopy(normals->GetOutput());
-    normals->Delete();
-    polyData->Delete();
-    }
-*/
   return dataSet;
 }

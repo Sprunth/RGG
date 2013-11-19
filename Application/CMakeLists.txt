@@ -20,7 +20,6 @@ SET(CMBNuclear_Srcs
   cmbNucAssemblyEditor.cxx
   cmbNucCore.cxx
   cmbNucDuctSource.cxx
-  cmbNucHexDuctSource.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
   cmbNucNewDialog.cxx
