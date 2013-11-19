@@ -12,7 +12,6 @@
 #include "vtkInformation.h"
 #include "vtkNew.h"
 #include "vtkTransformFilter.h"
-#include "vtkMath.h"
 
 cmbNucCore::cmbNucCore()
 {
@@ -79,7 +78,7 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
   this->Assemblies.push_back(assembly);
   if(this->Assemblies.size() == 1)
     {
-    this->SetAssemblyLabel(0, 0, assembly->label, Qt::white);
+    this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
     }
   // the new assembly need to be in the grid
 }
@@ -96,7 +95,6 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
       }
     }
   // update the Grid
-  std::pair<int, int> dim = this->GetDimensions();
   for(size_t i = 0; i < this->Grid.size(); i++)
     {
     for(size_t j = 0; j < this->Grid[i].size(); j++)
@@ -119,7 +117,7 @@ cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
       }
     }
 
-  return 0;
+  return NULL;
 }
 
 cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
@@ -143,23 +141,17 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
   double startX = this->Assemblies[0]->AssyDuct.Ducts[0]->x;
   double startY = this->Assemblies[0]->AssyDuct.Ducts[0]->y;
   double outerDuctHeight = this->Assemblies[0]->AssyDuct.Ducts[0]->thicknesses.back();
+//  double chamberStart = outerDuctHeight - innerDuctHeight;
+//  double chamberEnd = innerDuctHeight;
 
-  // Is this Hex type?
-  bool isHex = Assemblies[0]->AssyLattice.GetGeometryType() == HEXAGONAL;
 
   // setup data
-  size_t numBlocks = isHex ?
-    (1 + 3*(int)this->Grid.size()*((int)this->Grid.size() - 1)) :
-    this->Grid.size()*this->Grid[0].size();
-
-  this->Data->SetNumberOfBlocks(numBlocks);
+  this->Data->SetNumberOfBlocks(this->Grid.size()*this->Grid[0].size());
 
   for(size_t i = 0; i < this->Grid.size(); i++)
     {
-    size_t startBlock = isHex ?
-      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->Grid.size());
-
     const std::vector<LatticeCell> &row = this->Grid[i];
+
     for(size_t j = 0; j < row.size(); j++)
       {
       const std::string &type = row[j].label;
@@ -169,66 +161,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
         cmbNucAssembly* assembly = this->GetAssembly(type);
         vtkSmartPointer<vtkMultiBlockDataSet> assemblyData = assembly->GetData();
         vtkNew<vtkTransform> transform;
-
-        if(isHex)
-          {
-          Duct *hexDuct = assembly->AssyDuct.Ducts[0];
-          double layerCorners[6][2], hexDiameter, layerRadius;
-          hexDiameter = hexDuct->thicknesses.back();
-
-          // For hex geometry type, figure out the six corners first
-          if(isHex && i>0)
-            {
-            layerRadius = hexDiameter * i;
-            for(int c = 0; c < 6; c++)
-              {
-              // Needs a little more thinking on math here?
-              double angle = 2 * (vtkMath::Pi() / 6.0) * (c+3);
-              layerCorners[c][0] = layerRadius * cos(angle);
-              layerCorners[c][1] = layerRadius * sin(angle);
-              }
-            }
-
-          double tX=startX, tY=startY, tZ=0.0;
-          int cornerIdx;
-          if(i == 1)
-            {
-            cornerIdx = j%6;
-            tX += layerCorners[cornerIdx][0];
-            tY += layerCorners[cornerIdx][1];
-            }
-          else if( i > 1)
-            {
-            cornerIdx = j / i;
-            int idxOnEdge = j%i;
-            if(idxOnEdge == 0) // one of the corners
-              {
-              tX += layerCorners[cornerIdx][0];
-              tY += layerCorners[cornerIdx][1];
-              }
-            else
-              {
-              // for each layer, we should have (numLayers-2) middle hexes
-              // between the corners
-              double deltx, delty, numSegs = i, centerPos[2];
-              int idxNext = cornerIdx==5 ? 0 : cornerIdx+1;
-              deltx = (layerCorners[idxNext][0] - layerCorners[cornerIdx][0]) / numSegs;
-              delty = (layerCorners[idxNext][1] - layerCorners[cornerIdx][1]) / numSegs;
-              centerPos[0] = layerCorners[cornerIdx][0] + deltx * (idxOnEdge);
-              centerPos[1] = layerCorners[cornerIdx][1] + delty * (idxOnEdge);
-              tX += centerPos[0];
-              tY += centerPos[1];
-              }
-            }
-
-          transform->Translate(tX, tY, tZ);
-          }
-        else
-          {
-          transform->Translate(startX + i * (outerDuctHeight+0.5),
-            startY + j * (outerDuctHeight+0.5),
-            0);
-          }
+        transform->Translate(startX + i * (outerDuctHeight+0.5),
+                             startY + j * (outerDuctHeight+0.5),
+                             0);
  // transform block by block --- got to have better ways
         vtkNew<vtkMultiBlockDataSet> blockData;
         blockData->SetNumberOfBlocks(assemblyData->GetNumberOfBlocks());
@@ -286,7 +221,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
             blockData->SetBlock(idx, NULL);
             }
           }
-       this->Data->SetBlock(startBlock+j, blockData.GetPointer());
+       this->Data->SetBlock(i*this->Grid.size()+j, blockData.GetPointer());
 
 /* // The following (better) method is not working ???, even the pipeline is
    // be default compositepipeline
@@ -297,15 +232,62 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
             filter->Update();
         this->Data->SetBlock(i*this->Grid.size()+j, filter->GetOutput());
 */
-        vtkInformation* info = this->Data->GetMetaData(startBlock+j);
+        vtkInformation* info = this->Data->GetMetaData(i*this->Grid.size()+j);
         info->Set(vtkCompositeDataSet::NAME(), assembly->label.c_str());
         }
       else
         {
-        this->Data->SetBlock(startBlock+j, NULL);
+        this->Data->SetBlock(i*this->Grid.size()+j, NULL);
         }
       }
     }
 
   return this->Data;
+}
+
+void cmbNucCore::RebuildGrid()
+{
+  for(size_t i = 0; i < this->Grid.size(); i++)
+    {
+    for(size_t j = 0; j < this->Grid[i].size(); j++)
+      {
+      std::string type = this->Grid[i][j].label;
+
+      if(!type.empty() && type != "xx" && type != "XX")
+        {
+        this->Grid[i][j].color = this->GetAssembly(type)->GetLegendColor();
+        }
+      else
+        {
+        this->Grid[i][j].color = Qt::white;
+        }
+      }
+    }
+}
+
+void cmbNucCore::SetAssemblyLabel(int i, int j, const std::string &name,
+                                  const QColor& color)
+{
+  this->Grid[i][j].label = name;
+  this->Grid[i][j].color = color;
+}
+
+LatticeCell cmbNucCore::GetAssemblyLabel(int i, int j) const
+{
+  return this->Grid[i][j];
+}
+
+void cmbNucCore::ClearAssemblyLabel(int i, int j)
+{
+  this->SetAssemblyLabel(i, j, "xx", Qt::white);
+}
+
+std::pair<int, int> cmbNucCore::GetDimensions() const
+{
+  return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
+}
+
+int cmbNucCore::GetNumberOfAssemblies()
+{
+  return (int)this->Assemblies.size();
 }

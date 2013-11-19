@@ -42,6 +42,7 @@ signals:
   // Description:
   // Fired when the current object is modified
   void currentObjectModified(AssyPartObj* selObj);
+  void currentObjectNameChanged(const QString& name);
 
 public slots:
   void resetCore(cmbNucCore* nucCore);
@@ -87,8 +88,10 @@ protected slots:
   void onCoreLayersChanged();
   void onAssyLayersChanged();
   void choosePinLegendColor();
+  void chooseAssyLegendColor();
 
 private:
+  bool RebuildCoreGrid;
   cmbNucInputPropertiesWidgetInternal* Internal;
 
   enumGeometryType GeometryType;
