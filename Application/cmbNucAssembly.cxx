@@ -800,12 +800,17 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     z = duct->z1;
     height = duct->z2 - duct->z1;
     double deltaZ = height * 0.0005;
+    // For first duct, move the Origin up in z by 0.05 % of the the Height so
+    // that the bottoms of the pins are not covered by duct's bottom
+    // For last duct, Reduce the height by 0.1 % of the Height so
+    // that the tops of the pins are not covered by duct's top
     if(i == 0) // first duct
       {
       z = duct->z1 + deltaZ;
-      height -= deltaZ;
+      // if more than one duct, first duct height need to be reduced by deltaZ
+      height = numDucts > 1 ? height - deltaZ : height - 2*deltaZ;
       }
-    if (i == numDucts - 1) // last duct
+    else if (i == numDucts - 1) // last duct
       {
       height -= 2*deltaZ;
       }

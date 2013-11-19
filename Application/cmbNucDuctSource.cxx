@@ -134,14 +134,6 @@ vtkPolyData* cmbNucDuctSource::CreateLayer(int layer)
   double w = this->Layers[layer*2+0];
   double l = this->Layers[layer*2+1];
   double h = this->Height;
-  if (layer == 0)
-      {
-      // For the inner most layer lets reduce the h by 0.1% so 
-      // we don't completely cover the tops of the pins
-      h *= 0.999;
-      // Move the Origin up in z by 0.05 % of the the Height
-      z += this->Height * 0.0005;
-      }
 
   // adjust layer origin and size based on the sizes of the previous layers
   x += this->Layers[this->Layers.size()-2] - w;
