@@ -62,6 +62,7 @@ void cmbNucInputPropertiesWidget::initUI()
 
   this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
   this->Internal->assyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
+  this->Internal->hexAssyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
 
   QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
     this, SLOT(onApply()));
@@ -100,6 +101,8 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(choosePinLegendColor()));
   QObject::connect(this->Internal->assyColorSelectButton, SIGNAL(clicked()),
     this, SLOT(chooseAssyLegendColor()));
+  QObject::connect(this->Internal->hexAssyColorSelectButton, SIGNAL(clicked()),
+    this, SLOT(chooseHexAssyLegendColor()));
 }
 
 //-----------------------------------------------------------------------------
@@ -170,25 +173,24 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
   this->Assembly = assyObj;
   this->AssemblyEditor->setAssembly(assyObj);
   this->CoreEditor->setAssembly(assyObj);
-  this->HexCore->setAssembly(assyObj);
   this->HexAssy->setAssembly(assyObj);
 }
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onApply()
 {
-  if(this->CurrentObject==NULL)
+  if(this->CurrentObject == NULL)
     {
     return;
     }
   AssyPartObj* selObj = this->CurrentObject;
-  PinCell* pincell=NULL;
-  Cylinder* cylin=NULL;
-  Frustum* frust=NULL;
-  Duct* duct=NULL;
-  Lattice* lattice=NULL;
-  cmbNucCore* nucCore=NULL;
-  cmbNucAssembly* assy=NULL;
+  PinCell* pincell = NULL;
+  Cylinder* cylin = NULL;
+  Frustum* frust = NULL;
+  Duct* duct = NULL;
+  Lattice* lattice = NULL;
+  cmbNucCore* nucCore = NULL;
+  cmbNucAssembly* assy = NULL;
   switch(selObj->GetType())
     {
     case CMBNUC_CORE:
@@ -251,6 +253,7 @@ void cmbNucInputPropertiesWidget::onReset()
         {
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageHexCore);
+        this->HexCore->setCore(nucCore);
         }
       this->resetCore(nucCore);
       break;
@@ -603,10 +606,14 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 {
   this->Internal->MeshSize->setText(QString::number(assy->MeshSize));
+
   // Show color swatch with legendColor
-  QPalette palette = this->Internal->assyColorSwatch->palette();
-  palette.setColor(this->Internal->assyColorSwatch->backgroundRole(), assy->GetLegendColor());
-  this->Internal->assyColorSwatch->setPalette(palette);
+  QLabel* swatch = this->GeometryType == RECTILINEAR ?
+    this->Internal->assyColorSwatch : this->Internal->hexAssyColorSwatch;
+
+  QPalette palette = swatch->palette();
+  palette.setColor(swatch->backgroundRole(), assy->GetLegendColor());
+  swatch->setPalette(palette);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
@@ -708,6 +715,29 @@ void cmbNucInputPropertiesWidget::chooseAssyLegendColor()
     QPalette palette = this->Internal->assyColorSwatch->palette();
     palette.setColor(this->Internal->assyColorSwatch->backgroundRole(), selected);
     this->Internal->assyColorSwatch->setPalette(palette);
+
+    // We set this flag to denote that the grid should be rebuilt the
+    // next time we select the core
+    this->RebuildCoreGrid = true;
+    }
+}
+
+void cmbNucInputPropertiesWidget::chooseHexAssyLegendColor()
+{
+  cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(this->CurrentObject);
+  if(!assy)
+    {
+    std::cerr << "Error: don't have assy" << std::endl;
+    return;
+    }
+  QColor selected = QColorDialog::getColor(assy->GetLegendColor(), this,
+    "Select key color for assembly type");
+  if(selected.isValid())
+    {
+    assy->SetLegendColor(selected);
+    QPalette palette = this->Internal->hexAssyColorSwatch->palette();
+    palette.setColor(this->Internal->hexAssyColorSwatch->backgroundRole(), selected);
+    this->Internal->hexAssyColorSwatch->setPalette(palette);
 
     // We set this flag to denote that the grid should be rebuilt the
     // next time we select the core

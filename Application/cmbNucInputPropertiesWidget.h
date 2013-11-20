@@ -89,6 +89,7 @@ protected slots:
   void onAssyLayersChanged();
   void choosePinLegendColor();
   void chooseAssyLegendColor();
+  void chooseHexAssyLegendColor();
 
 private:
   bool RebuildCoreGrid;
