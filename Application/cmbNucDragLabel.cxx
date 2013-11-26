@@ -40,6 +40,10 @@ void cmbNucDragLabel::paintEvent(QPaintEvent *event)
     {
     palette.setColor(this->backgroundRole(), this->backgroundColor);
     }
+  QColor textColor =
+    this->backgroundColor.lightnessF() < 0.5 ? Qt::white : Qt::black;
+  palette.setColor(this->foregroundRole(), textColor);
+
   this->setPalette(palette);
 }
 
