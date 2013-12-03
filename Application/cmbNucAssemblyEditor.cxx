@@ -3,12 +3,13 @@
 
 #include "cmbNucDragLabel.h"
 #include "cmbNucAssembly.h"
+#include "cmbNucCore.h"
 #include <iostream>
 
 #include <QtGui>
 
 cmbNucAssemblyEditor::cmbNucAssemblyEditor(QWidget *parent, cmbNucAssembly* assy)
-  : QFrame(parent), CurrentAssembly(assy)
+  : QFrame(parent), CurrentAssembly(assy), CurrentCore(NULL)
 {
   setAutoFillBackground(true);
 
@@ -27,6 +28,13 @@ cmbNucAssemblyEditor::~cmbNucAssemblyEditor()
 void cmbNucAssemblyEditor::setAssembly(cmbNucAssembly* assy)
 {
   this->CurrentAssembly = assy;
+  this->CurrentCore = NULL;
+}
+
+void cmbNucAssemblyEditor::setCore(cmbNucCore* core)
+{
+  this->CurrentAssembly = NULL;
+  this->CurrentCore = core;
 }
 
 void cmbNucAssemblyEditor::clearUI(bool updateUI)
@@ -213,6 +221,14 @@ void cmbNucAssemblyEditor::mousePressEvent(QMouseEvent *event)
         {
         PinCell* pc = this->CurrentAssembly->GetPinCell(label);
         QColor color = pc ? pc->GetLegendColor() : Qt::white;
+
+        this->CurrentGrid[child->getX()][child->getY()].color = color;
+        child->setBackgroundColor(color);
+        }
+      else if(this->CurrentCore)
+        {
+        cmbNucAssembly* assy = this->CurrentCore->GetAssembly(label);
+        QColor color = assy ? assy->GetLegendColor() : Qt::white;
 
         this->CurrentGrid[child->getX()][child->getY()].color = color;
         child->setBackgroundColor(color);

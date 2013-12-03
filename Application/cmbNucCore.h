@@ -38,33 +38,23 @@ public:
   cmbNucAssembly* GetAssembly(int idx);
 
   // Return the number of assemblies in the core
-  int GetNumberOfAssemblies()
-    {return (int)this->Assemblies.size();}
+  int GetNumberOfAssemblies();
 
   // Sets the dimensions of the Assembly Core.
   void SetDimensions(int i, int j);
   // Returns the dimensions of the Assembly Core.
-  std::pair<int, int> GetDimensions() const
-    {
-    return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
-    }
+  std::pair<int, int> GetDimensions() const;
+
   // Sets the contents of the Assembly (i, j) to name.
-  void SetAssemblyLabel(int i, int j, const std::string &name, const QColor& color)
-    {
-    this->Grid[i][j].label = name;
-    this->Grid[i][j].color = color;
-    }
+  void SetAssemblyLabel(int i, int j, const std::string &name, const QColor& color);
   // Returns the contents of the Assembly (i, j).
-  LatticeCell GetAssemblyLabel(int i, int j) const
-    {
-    return this->Grid[i][j];
-    }
+  LatticeCell GetAssemblyLabel(int i, int j) const;
   // Clears the contents of the Assembly (i, j). This is equivalent
   // to calling SetAssembly(i, j, "xx", Qt::white).
-  void ClearAssemblyLabel(int i, int j)
-    {
-    this->SetAssemblyLabel(i, j, "xx", Qt::white);
-    }
+  void ClearAssemblyLabel(int i, int j);
+
+  // Rebuild the grid (which for now just updates the colors at each cell)
+  void RebuildGrid();
 
   // Returns a multi-block data set containing the geometry for
   // the core with assemblies. This is used to render the core in 3D.

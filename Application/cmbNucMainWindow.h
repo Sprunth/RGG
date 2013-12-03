@@ -62,6 +62,9 @@ protected slots:
   // updates the block colors based on their materials
   void updateMaterialColors();
 
+  // Change the title on the property dock based on selected object
+  void updatePropertyDockTitle(const QString& title);
+
   // shows the preferences dialog
   void onShowPreferences();
 
