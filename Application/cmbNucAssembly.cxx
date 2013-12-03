@@ -790,13 +790,33 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     }
 
   // setup ducts
-  for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
+  double z, deltaZ, height;
+  size_t numDucts = this->AssyDuct.Ducts.size();
+  for(size_t i = 0; i < numDucts; i++)
     {
     Duct *duct = this->AssyDuct.Ducts[i];
 
     cmbNucDuctSource *ductSource = cmbNucDuctSource::New();
-    ductSource->SetOrigin(duct->x, duct->y, duct->z1);
-    ductSource->SetHeight(duct->z2 - duct->z1);
+    z = duct->z1;
+    height = duct->z2 - duct->z1;
+    double deltaZ = height * 0.0005;
+    // For first duct, move the Origin up in z by 0.05 % of the the Height so
+    // that the bottoms of the pins are not covered by duct's bottom
+    // For last duct, Reduce the height by 0.1 % of the Height so
+    // that the tops of the pins are not covered by duct's top
+    if(i == 0) // first duct
+      {
+      z = duct->z1 + deltaZ;
+      // if more than one duct, first duct height need to be reduced by deltaZ
+      height = numDucts > 1 ? height - deltaZ : height - 2*deltaZ;
+      }
+    else if (i == numDucts - 1) // last duct
+      {
+      height -= 2*deltaZ;
+      }
+
+    ductSource->SetOrigin(duct->x, duct->y, z);
+    ductSource->SetHeight(height);
     ductSource->SetGeometryType(
       this->AssyLattice.GetGeometryType()== HEXAGONAL ?
       CMBNUC_ASSY_HEX_DUCT : CMBNUC_ASSY_RECT_DUCT);
@@ -935,34 +955,5 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       }
     }
 
-/*
-  // Now append each layer's polydata together to form a multiblock with
-  // appended layers as blocks. ASSUMING all sections have same layers.
-  for(int layer=0; layer<pincell->GetNumberOfLayers; layer++)
-    {
-    vtkAppendPolyData *merger = vtkAppendPolyData::New();
-    for(size_t j = 0; j <cylinderSrcs.size(); j++)
-      {
-      vtkMultiBlockDataSet *mbds = cylinderSrcs[j]->GetOutput();
-      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
-      }
-    for(int k = 0; k < frustumSrcs.size(); k++)
-      {
-      vtkMultiBlockDataSet *mbds = frustumSrcs[k]->GetOutput();
-      merger->AddInputData(vtkPolyData::SafeDownCast(mbds->GetBlock(layer)));
-      }
-
-    merger->Update();
-    vtkPolyDataNormals *normals = vtkPolyDataNormals::New();
-    normals->SetInputConnection(merger->GetOutputPort());
-    merger->Delete();
-    normals->Update();
-
-    vtkPolyData *polyData = vtkPolyData::New();
-    polyData->DeepCopy(normals->GetOutput());
-    normals->Delete();
-    polyData->Delete();
-    }
-*/
   return dataSet;
 }

@@ -75,7 +75,6 @@ int cmbNucDuctSource::RequestData(
     double x = this->Origin[0];
     double y = this->Origin[1];
     double z = this->Origin[2];
-    z += this->Height * 0.0005;
     vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
       vtkSmartPointer<vtkCmbLayeredConeSource>::New();
     coneSource->SetNumberOfLayers(numLayers);
@@ -83,13 +82,12 @@ int cmbNucDuctSource::RequestData(
     coneSource->SetBaseCenter(x, y, z);
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);
-    coneSource->SetHeight(this->Height*0.999);
+    coneSource->SetHeight(this->Height);
     double preDist = 0;
     for(int k = 0; k < numLayers; k++)
       {
       double distance = this->Layers[2*k]/2.0;
       double radius = distance / (double)(cos(30.0 * vtkMath::Pi() / 180.0));
-
       coneSource->SetBaseRadius(k, radius);
       coneSource->SetTopRadius(k, radius);
       preDist = distance;
@@ -136,14 +134,6 @@ vtkPolyData* cmbNucDuctSource::CreateLayer(int layer)
   double w = this->Layers[layer*2+0];
   double l = this->Layers[layer*2+1];
   double h = this->Height;
-  if (layer == 0)
-      {
-      // For the inner most layer lets reduce the h by 0.1% so 
-      // we don't completely cover the tops of the pins
-      h *= 0.999;
-      // Move the Origin up in z by 0.05 % of the the Height
-      z += this->Height * 0.0005;
-      }
 
   // adjust layer origin and size based on the sizes of the previous layers
   x += this->Layers[this->Layers.size()-2] - w;

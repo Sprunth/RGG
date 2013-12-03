@@ -80,7 +80,6 @@ protected:
 
   double Height;
   double Origin[3];
-
   std::vector<double> Layers;
   int GeometryType;
 
