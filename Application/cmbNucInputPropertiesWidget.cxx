@@ -586,11 +586,11 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
   if(this->GeometryType == RECTILINEAR)
     {
-    this->CoreEditor->updateLatticeWithGrid(nucCore->Grid);
+    this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
     }
   else if(this->GeometryType == HEXAGONAL)
     {
-    this->HexCore->applyToGrid(nucCore->Grid);
+    this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
 
   emit this->currentObjectModified(nucCore);
@@ -623,7 +623,7 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       }
     if(this->GeometryType == RECTILINEAR)
       {
-      this->CoreEditor->resetUI(nucCore->Grid, actionList);
+      this->CoreEditor->resetUI(nucCore->CoreLattice.Grid, actionList);
       }
     else if(this->GeometryType == HEXAGONAL)
       {
@@ -631,7 +631,7 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
       this->Internal->hexLattice->blockSignals(false);
       this->HexCore->setActions(actionList);
-      this->HexCore->resetWithGrid(nucCore->Grid);
+      this->HexCore->resetWithGrid(nucCore->CoreLattice.Grid);
       }
     }
 }

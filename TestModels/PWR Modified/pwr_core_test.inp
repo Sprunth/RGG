@@ -1,0 +1,21 @@
+! #############################################################################################################
+! Core generation from pwr assemblies - for testing
+! #############################################################################################################
+!
+Geometry Volume  			! 'Geometry' card defines if the meshes are volume or surface
+Symmetry 1			        ! 'Symmetry' card defines the desired symmetry in the model
+GeometryType Rectangular		! 'GeometryType' card can take values Hexagonal Rectangular and Default
+Assemblies 5 5.0 5.0			! 'Assemblies' card defines there is one assembly with pitch  (Note this should takecare of background mesh)
+1_uox1.cub 1_uox1                   	  	! Meshfile name followed by alias 
+2_uox2.cub 2_uox2
+3_uox2.cub 3_uox2
+4_mox1.cub 4_mox1
+5_mox1.cub 5_mox1
+Lattice 2 3 
+! 
+1_uox1 2_uox2 3_uox2    &
+4_mox1 5_mox1 XX 
+! 
+MergeTolerance 1e-3
+end					! 'END' card is a MUST; Marks the end of file for the file reader
+

@@ -89,7 +89,8 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
-  connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
+  connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpenAssembly()));
+  connect(this->ui->actionOpenCoreFile, SIGNAL(triggered()), this, SLOT(onFileOpenCore()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
   connect(this->ui->actionPreferences, SIGNAL(triggered()), this, SLOT(onShowPreferences()));
@@ -220,7 +221,7 @@ void cmbNucMainWindow::onNewDialogAccept()
   this->Renderer->Render();
 }
 
-void cmbNucMainWindow::onFileOpen()
+void cmbNucMainWindow::onFileOpenAssembly()
 {
   // Use cached value for last used directory if there is one,
   // or default to the user's home dir if not.
@@ -240,14 +241,59 @@ void cmbNucMainWindow::onFileOpen()
   QFileInfo info(fileNames[0]);
   settings.setValue("cache/lastDir", info.dir().path());
 
-  this->openFiles(fileNames);
+  this->openAssemblyFiles(fileNames);
 
   // update render view
   this->Renderer->ResetCamera();
   this->Renderer->Render();
 }
 
-void cmbNucMainWindow::openFiles(const QStringList &fileNames)
+void cmbNucMainWindow::onFileOpenCore()
+{
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QStringList fileNames =
+    QFileDialog::getOpenFileNames(this,
+                                 "Open Coregen File...",
+                                 dir.path(),
+                                 "INP Files (*.inp)");
+  if(fileNames.count()==0)
+    {
+    return;
+    }
+
+  this->setCursor(Qt::BusyCursor);
+  // clear old assembly
+  this->PropertyWidget->setObject(NULL, NULL);
+  this->PropertyWidget->setAssembly(NULL);
+
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileNames[0]);
+  settings.setValue("cache/lastDir", info.dir().path());
+
+  this->NuclearCore->ReadFile(fileNames[0].toStdString());
+
+  int numNewAssy = this->NuclearCore->GetNumberOfAssemblies();
+  if(numNewAssy)
+    {
+    this->PropertyWidget->setGeometryType(
+      this->NuclearCore->CoreLattice.GetGeometryType());
+    }
+
+  // update data colors
+  this->updateMaterialColors();
+  this->InputsWidget->updateUI(numNewAssy);
+  this->unsetCursor();
+
+  // update render view
+  this->Renderer->ResetCamera();
+  this->Renderer->Render();
+}
+
+void cmbNucMainWindow::openAssemblyFiles(const QStringList &fileNames)
 {
   this->setCursor(Qt::BusyCursor);
   // clear old assembly
@@ -260,7 +306,11 @@ void cmbNucMainWindow::openFiles(const QStringList &fileNames)
     {
     if(!fileName.isEmpty())
       {
-      cmbNucAssembly* assy = this->loadAssemblyFromFile(fileName);
+      QFileInfo finfo(fileName);
+      std::string label = finfo.baseName().toStdString();
+
+      cmbNucAssembly* assy = this->NuclearCore->loadAssemblyFromFile(
+        fileName.toStdString(), label);
       assemblies.append(assy);
       numNewAssy++;
       }
@@ -272,7 +322,7 @@ void cmbNucMainWindow::openFiles(const QStringList &fileNames)
     for(int i=0; i<numNewAssy ; i++)
       {
       this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label, Qt::white);
-      for(int j=1; j<this->NuclearCore->Grid[i].size() ; j++)
+      for(int j=1; j<this->NuclearCore->CoreLattice.Grid[i].size() ; j++)
         {
         this->NuclearCore->ClearAssemblyLabel(i, j);
         }
@@ -291,19 +341,6 @@ void cmbNucMainWindow::openFiles(const QStringList &fileNames)
   this->InputsWidget->updateUI(numExistingAssy==0 && numNewAssy>1);
 
   this->unsetCursor();
-}
-
-cmbNucAssembly* cmbNucMainWindow::loadAssemblyFromFile(const QString &fileName)
-{
-  // read file and create new assembly
-  QFileInfo finfo(fileName);
-  cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->label = finfo.baseName().toStdString();
-//  assembly->label = QString("Assy").append(
-//    QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
-  this->NuclearCore->AddAssembly(assembly);
-  assembly->ReadFile(fileName.toStdString());
-  return assembly;
 }
 
 void cmbNucMainWindow::onFileSave()

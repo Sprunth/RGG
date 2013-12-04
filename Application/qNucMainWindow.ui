@@ -71,6 +71,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionOpenCoreFile"/>
    <addaction name="actionOpenFile"/>
    <addaction name="actionSaveFile"/>
   </widget>
@@ -80,7 +81,7 @@
      <x>0</x>
      <y>0</y>
      <width>878</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -88,6 +89,7 @@
      <string>File</string>
     </property>
     <addaction name="actionNew"/>
+    <addaction name="actionOpenCoreFile"/>
     <addaction name="actionOpenFile"/>
     <addaction name="actionSaveFile"/>
     <addaction name="actionExit"/>
@@ -142,7 +144,7 @@
      <normaloff>:/CMBNuclear/Icons/qNucOpen32.png</normaloff>:/CMBNuclear/Icons/qNucOpen32.png</iconset>
    </property>
    <property name="text">
-    <string>Open File...</string>
+    <string>Open Assembly File...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -202,6 +204,18 @@
    </property>
    <property name="text">
     <string>Parallel Projection</string>
+   </property>
+  </action>
+  <action name="actionOpenCoreFile">
+   <property name="icon">
+    <iconset resource="qNucResources.qrc">
+     <normaloff>:/CMBNuclear/Icons/qNucOpenCore32.png</normaloff>:/CMBNuclear/Icons/qNucOpenCore32.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open Core File...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Core File</string>
    </property>
   </action>
  </widget>

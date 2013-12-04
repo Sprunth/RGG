@@ -82,17 +82,7 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
       }
     }
   // update the Grid
-  std::pair<int, int> dim = this->AssyLattice.GetDimensions();
-  for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
-    {
-    for(size_t j = 0; j < this->AssyLattice.Grid[i].size(); j++)
-      {
-      if(this->AssyLattice.GetCell(i, j).label == label)
-        {
-        this->AssyLattice.ClearCell(i, j);
-        }
-      }
-    }
+  this->AssyLattice.ClearCell(label);
 }
 
 void cmbNucAssembly::RemoveMaterial(const std::string &name)
