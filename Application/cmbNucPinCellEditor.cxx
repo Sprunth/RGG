@@ -52,6 +52,47 @@ public:
   const AssyPartObj* PartObj;
 };
 
+// We use this class to validate the input to the radius fields for layers
+class RadiusEditorWidget : public QTableWidgetItem
+{
+public:
+  virtual void setData(int role, const QVariant& value)
+    {
+    if (this->tableWidget() != NULL && role == Qt::EditRole)
+      {
+      bool ok;
+      double dval = value.toDouble(&ok);
+
+      // Make sure value is in [0, 1]
+      if (!ok || dval < 0. || dval > 1.)
+        {
+        return;
+        }
+      // Make sure value is greater than previous row
+      if (this->row() > 0)
+        {
+        double prev = this->tableWidget()->item(this->row() - 1, 1)
+                                         ->data(Qt::DisplayRole).toDouble();
+        if (dval < prev)
+          {
+          return;
+          }
+        }
+      // Make sure value is less than next row
+      if (this->row() < this->tableWidget()->rowCount() - 1)
+        {
+        double next = this->tableWidget()->item(this->row() + 1, 1)
+                                         ->data(Qt::DisplayRole).toDouble();
+        if (dval > next)
+          {
+          return;
+          }
+        }
+      }
+    QTableWidgetItem::setData(role, value);
+    }
+};
+
 bool sort_by_z1(const PinCellComponent &a, const PinCellComponent &b)
 {
   return a.z1 < b.z1;
@@ -319,7 +360,7 @@ void cmbNucPinCellEditor::UpdateLayerMaterials()
 
     obj = static_cast<AssyPartObj*>
       (comboBox->itemData(0).value<void *>());
-    
+
     if (!obj)
       {
       continue;
@@ -550,7 +591,7 @@ void cmbNucPinCellEditor::numberOfLayersChanged(int layers)
     QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
       this, SLOT(onUpdateLayerMaterial()));
 
-    QTableWidgetItem *item = new QTableWidgetItem;
+    QTableWidgetItem *item = new RadiusEditorWidget;
     item->setText(QString::number(1.0));
     this->Ui->layersTable->setItem(row, 1, item);
     this->PinCellObject->SetMaterial(row,
@@ -639,7 +680,7 @@ void cmbNucPinCellEditor::onPieceSelected()
       QComboBox *comboBox = new QComboBox;
       this->setupMaterialComboBox(comboBox);
       this->Ui->layersTable->setCellWidget(i, 0, comboBox);
-      this->Ui->layersTable->setItem(i, 0, new QTableWidgetItem);
+      this->Ui->layersTable->setItem(i, 0, new RadiusEditorWidget);
 
       std::string strSelMat;
       if(obj)
@@ -675,7 +716,7 @@ void cmbNucPinCellEditor::onPieceSelected()
         //  dynamic_cast<Cylinder*>(obj)->SetMaterial(i, comboBox->currentText().toStdString());
         //  }
       //  }
-      QTableWidgetItem *item = new QTableWidgetItem;
+      QTableWidgetItem *item = new RadiusEditorWidget;
       item->setText(QString::number(pincell->radii[i]));
       this->Ui->layersTable->setItem(i, 1, item);
 
@@ -745,7 +786,7 @@ void cmbNucPinCellEditor::addLayerBefore()
   QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
       this, SLOT(onUpdateLayerMaterial()));
 
-  QTableWidgetItem* item = new QTableWidgetItem;
+  QTableWidgetItem* item = new RadiusEditorWidget;
   item->setText(QString::number(radius));
   this->Ui->layersTable->setItem(row, 1, item);
   this->Ui->layersTable->blockSignals(false);
@@ -762,7 +803,7 @@ void cmbNucPinCellEditor::addLayerAfter()
 
   // If we are appending to the outer-most layer then the new layer is radius
   // 1 and the original outer most layer is between it and the previous
-  if((this->Ui->layersTable->selectedItems().count() == 0) || 
+  if((this->Ui->layersTable->selectedItems().count() == 0) ||
      (this->Ui->layersTable->selectedItems().value(0)->row() ==
       (this->Ui->layersTable->rowCount()-1)))
     {
@@ -795,7 +836,7 @@ void cmbNucPinCellEditor::addLayerAfter()
   QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
       this, SLOT(onUpdateLayerMaterial()));
 
-  QTableWidgetItem* item = new QTableWidgetItem;
+  QTableWidgetItem* item = new RadiusEditorWidget;
   item->setText(QString::number(radius));
   this->Ui->layersTable->setItem(row, 1, item);
   this->Ui->layersTable->blockSignals(false);
