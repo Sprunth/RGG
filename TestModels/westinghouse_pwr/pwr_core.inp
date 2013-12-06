@@ -1,0 +1,62 @@
+! PWR WestingHouse Model
+!
+! The assembly mesh was created with assygen (except for the reflectors)
+Geometry Surface
+! The reactor sis defined by one quarter core
+Symmetry 1
+!
+! The height of one assembly is 365.76 cm / 18 division should give about 20 cm element height
+Extrude 365.76 18
+!
+! Rectangular geometry
+GeometryType Rectangular
+!
+! Define the assemblies (26 total each is 21.42cm x 21.42cm)
+Assemblies 26 21.42 21.42
+! The UOX assembly (non-rodded)
+uox_4.2_b0.0.cub     01    ! 1
+uox_4.2_b17.5.cub    02    ! 2
+uox_4.2_b22.5.cub    03    ! 4
+uox_4.2_b32.5.cub    04    ! 5
+uox_4.5_b0.0.cub     05    ! 15
+uox_4.5_b17.5.cub    06    ! 16
+uox_4.5_b20.0.cub    07    ! 17
+uox_4.5_b32.5.cub    08    ! 19
+! The UOX assembly (rodded)
+uox_4.2_b17.5_cr.cub 09    ! 9
+uox_4.2_b22.5_cr.cub 10    ! 11
+uox_4.2_b32.5_cr.cub 11    ! 12
+uox_4.2_b35.0_cr.cub 12    ! 13
+uox_4.2_b37.5_cr.cub 13    ! 14
+uox_4.5_b0.0_cr.cub  14    ! 22
+uox_4.5_b20.0_cr.cub 15    ! 24
+uox_4.5_b37.5_cr.cub 16    ! 28
+! The MOX assemblies
+mox_4.0_b0.0.cub     17    ! 29
+mox_4.0_b22.5.cub    18    ! 32
+mox_4.0_b37.5.cub    19    ! 35
+mox_4.3_b0.0.cub     20    ! 36
+mox_4.3_b17.5.cub    21    ! 37
+mox_4.3_b35.0.cub    22    ! 41
+! The reflectors assembly
+baffle_left.cub      23    ! 43
+baffle_ulcorner.cub  24    ! 44
+baffle_topleft.cub   25    ! 45
+baffle_top.cub       26    ! 46
+!
+! The lattice map
+Lattice 9 9
+! 1  2  3  4  5  6  7  8  9
+ 12 01 10 05 16 21 14 04 23 & ! 1
+ 01 02 08 18 01 11 17 06 23 & ! 2
+ 10 08 10 01 03 21 14 22 23 & ! 3
+ 05 18 01 19 01 15 20 07 23 & ! 4
+ 16 01 03 01 13 05 09 25 24 & ! 5
+ 21 11 21 15 05 20 08 23 -1 & ! 6
+ 14 17 14 20 09 08 25 24 -1 & ! 7
+ 04 06 22 07 25 26 24 -1 -1 & ! 8
+ 26 26 26 26 24 -1 -1 -1 -1   ! 9
+!
+! Output to an exodus file
+OutputFileName pwr_core.exo
+END
