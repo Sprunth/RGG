@@ -218,7 +218,8 @@ void cmbNucMainWindow::onNewDialogAccept()
   this->PropertyWidget->setGeometryType(this->NewDialog->getSelectedGeometry());
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
-  this->InputsWidget->onNewAssembly(this->PropertyWidget->getGeometryType());
+  this->InputsWidget->setGeometryType(this->PropertyWidget->getGeometryType());
+  this->InputsWidget->onNewAssembly();
   this->Renderer->ResetCamera();
   this->Renderer->Render();
 }

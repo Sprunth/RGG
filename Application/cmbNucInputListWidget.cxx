@@ -51,8 +51,8 @@ public:
 };
 
 //-----------------------------------------------------------------------------
-cmbNucInputListWidget::cmbNucInputListWidget(
-  QWidget* _p): QWidget(_p)
+cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
+  : QWidget(_p), GeometryType(RECTILINEAR)
 {
   this->Internal = new cmbNucInputListWidgetInternal;
   this->Internal->setupUi(this);
@@ -118,6 +118,19 @@ void cmbNucInputListWidget::setCore(cmbNucCore* core)
     }
   this->NuclearCore = core;
 }
+
+//-----------------------------------------------------------------------------
+void cmbNucInputListWidget::setGeometryType(enumGeometryType geometry)
+{
+  this->GeometryType = geometry;
+}
+
+//-----------------------------------------------------------------------------
+enumGeometryType cmbNucInputListWidget::getGeometryType()
+{
+  return this->GeometryType;
+}
+
 //-----------------------------------------------------------------------------
 cmbNucPartsTreeItem* cmbNucInputListWidget::getDuctCellNode(
   cmbNucPartsTreeItem* assyNode)
@@ -224,17 +237,26 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
   this->Internal->Action_DeletePart->setEnabled(val);
 }
 //----------------------------------------------------------------------------
-void cmbNucInputListWidget::onNewAssembly(enumGeometryType enType)
+void cmbNucInputListWidget::onNewAssembly()
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
 
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->AssyLattice.SetGeometryType(enType);
+  assembly->AssyLattice.SetGeometryType(this->GeometryType);
+  if(this->GeometryType == HEXAGONAL)
+    {
+    assembly->AssyLattice.SetDimensions(2, 0, true);
+    }
   assembly->label = QString("Assy").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
 
   this->NuclearCore->AddAssembly(assembly);
+
+  if(this->GeometryType == HEXAGONAL)
+    {
+    this->NuclearCore->SetDimensions(1, 0);
+    }
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
   emit assembliesModified(this->NuclearCore);
