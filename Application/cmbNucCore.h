@@ -38,12 +38,12 @@ public:
   cmbNucAssembly* GetAssembly(int idx);
 
   // Return the number of assemblies in the core
-  int GetNumberOfAssemblies()
-    {return (int)this->Assemblies.size();}
+  int GetNumberOfAssemblies();
 
   // Sets the dimensions of the Assembly Core.
   void SetDimensions(int i, int j);
   // Returns the dimensions of the Assembly Core.
+
   std::pair<int, int> GetDimensions() const
     {
     return this->CoreLattice.GetDimensions();
@@ -64,6 +64,9 @@ public:
     {
     this->CoreLattice.ClearCell(i, j);
     }
+
+  // Rebuild the grid (which for now just updates the colors at each cell)
+  void RebuildGrid();
 
   // Returns a multi-block data set containing the geometry for
   // the core with assemblies. This is used to render the core in 3D.

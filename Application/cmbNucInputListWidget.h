@@ -27,6 +27,9 @@ public:
   /// the last assembly lattice will be selected by default,
   void updateUI(bool selCore);
 
+  void setGeometryType(enumGeometryType geometry);
+  enumGeometryType getGeometryType();
+
 signals:
   // Description:
   // Fired when a part/material is selected in the tree
@@ -39,7 +42,7 @@ signals:
   void assembliesModified(cmbNucCore*);
 
 public slots:
-  void onNewAssembly(enumGeometryType enType=RECTILINEAR);
+  void onNewAssembly();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -76,6 +79,7 @@ private slots:
 
 private:
   cmbNucInputListWidgetInternal* Internal;
+  enumGeometryType GeometryType;
 
   /// clear UI
   void initUI();

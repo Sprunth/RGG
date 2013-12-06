@@ -14,6 +14,7 @@ class QGridLayout;
 class QFrame;
 class cmbNucDragLabel;
 class cmbNucAssembly;
+class cmbNucCore;
 class LatticeCell;
 
 class cmbNucAssemblyEditor : public QFrame
@@ -32,11 +33,12 @@ public:
     std::vector<std::vector<LatticeCell> >& Grid);
 
   void setAssembly(cmbNucAssembly* assy);
-
+  void setCore(cmbNucCore* core);
 protected:
   void mousePressEvent(QMouseEvent *event);
 
 private:
+  cmbNucCore* CurrentCore;
   cmbNucAssembly* CurrentAssembly;
 
   QGridLayout* LatticeLayout;

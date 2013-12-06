@@ -9,6 +9,7 @@
 
 class QMouseEvent;
 class cmbNucAssembly;
+class cmbNucCore;
 
 class cmbNucHexLattice : public QGraphicsView {
   Q_OBJECT
@@ -31,6 +32,7 @@ public:
   void setActions(const QStringList& actions);
   void setItemShape(HexLatticeItem::ShapeStyle shapetype);
   void setAssembly(cmbNucAssembly* assy);
+  void setCore(cmbNucCore* core);
 
 protected:
   virtual void mousePressEvent(QMouseEvent* event);
@@ -46,6 +48,7 @@ private slots:
 
 private:
   cmbNucAssembly* CurrentAssembly;
+  cmbNucCore* CurrentCore;
   QGraphicsScene Canvas;
   HexMap HexGrid;
 

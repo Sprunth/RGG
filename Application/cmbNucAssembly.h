@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <QColor>
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
@@ -45,6 +46,11 @@ public:
   // Writes the assembly to a ".inp" file.
   void WriteFile(const std::string &FileName);
 
+  // The color to use to represent this assembly type in the lattice editor
+  QColor GetLegendColor() const;
+  void SetLegendColor(const QColor& color);
+
+
   // Returns a multi-block data set containing the geometry for
   // the assembly. This is used to render the assembly in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
@@ -73,6 +79,7 @@ public:
 private:
   std::string GeometryType;
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
+  QColor LegendColor;
 
   // Check if GeometryType is Hexagonal
   bool IsHexType();

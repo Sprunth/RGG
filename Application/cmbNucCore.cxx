@@ -56,7 +56,7 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
   this->Assemblies.push_back(assembly);
   if(this->Assemblies.size() == 1)
     {
-    this->SetAssemblyLabel(0, 0, assembly->label, Qt::white);
+    this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
     }
   // the new assembly need to be in the grid
 }
@@ -86,7 +86,7 @@ cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
       }
     }
 
-  return 0;
+  return NULL;
 }
 
 cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
@@ -114,6 +114,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
   // Is this Hex type?
   bool isHex = Assemblies[0]->AssyLattice.GetGeometryType() == HEXAGONAL;
 
+
   // setup data
   size_t numBlocks = isHex ?
     (1 + 3*(int)this->CoreLattice.Grid.size()*((int)this->CoreLattice.Grid.size() - 1)) :
@@ -127,6 +128,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
       (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->CoreLattice.Grid.size());
 
     const std::vector<LatticeCell> &row = this->CoreLattice.Grid[i];
+
     for(size_t j = 0; j < row.size(); j++)
       {
       const std::string &type = row[j].label;
@@ -512,4 +514,29 @@ cmbNucAssembly* cmbNucCore::loadAssemblyFromFile(
   assembly->ReadFile(fileName);
   this->AddAssembly(assembly);
   return assembly;
+}
+
+void cmbNucCore::RebuildGrid()
+{
+  for(size_t i = 0; i < this->Grid.size(); i++)
+    {
+    for(size_t j = 0; j < this->Grid[i].size(); j++)
+      {
+      std::string type = this->Grid[i][j].label;
+
+      if(!type.empty() && type != "xx" && type != "XX")
+        {
+        this->Grid[i][j].color = this->GetAssembly(type)->GetLegendColor();
+        }
+      else
+        {
+        this->Grid[i][j].color = Qt::white;
+        }
+      }
+    }
+}
+
+int cmbNucCore::GetNumberOfAssemblies()
+{
+  return (int)this->Assemblies.size();
 }

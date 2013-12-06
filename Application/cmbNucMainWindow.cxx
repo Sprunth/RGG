@@ -167,6 +167,9 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->PropertyWidget,
     SIGNAL(currentObjectModified(AssyPartObj*)), this,
     SLOT(onObjectModified(AssyPartObj*)));
+  QObject::connect(this->PropertyWidget,
+    SIGNAL(currentObjectNameChanged(const QString&)), this,
+    SLOT(updatePropertyDockTitle(const QString&)));
   QObject::connect(this->InputsWidget,
     SIGNAL(materialColorChanged(const QString&)), this,
     SLOT(onObjectModified()));
@@ -216,7 +219,8 @@ void cmbNucMainWindow::onNewDialogAccept()
   this->PropertyWidget->setGeometryType(this->NewDialog->getSelectedGeometry());
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
-  this->InputsWidget->onNewAssembly(this->PropertyWidget->getGeometryType());
+  this->InputsWidget->setGeometryType(this->PropertyWidget->getGeometryType());
+  this->InputsWidget->onNewAssembly();
   this->Renderer->ResetCamera();
   this->Renderer->Render();
 }
@@ -554,4 +558,16 @@ void cmbNucMainWindow::useParallelProjection(bool val)
     this->Renderer->GetActiveCamera()->ParallelProjectionOff();
     }
   this->ui->qvtkWidget->update();
+}
+
+void cmbNucMainWindow::updatePropertyDockTitle(const QString& title)
+{
+  if (title == "")
+    {
+    this->ui->PropertyDock->setWindowTitle("Properties");
+    }
+  else
+    {
+    this->ui->PropertyDock->setWindowTitle(title);
+    }
 }

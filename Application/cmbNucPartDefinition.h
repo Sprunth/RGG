@@ -361,8 +361,9 @@ enum enumGeometryType {
       }
 
     // Sets the dimensions of the cell assembly.
-    // For Hex type, i is number of layers, j will be ignored
-    void SetDimensions(int i, int j)
+    // For Hex type, i is number of layers, j will be ignored.
+    // To force a resize of all layers, pass reset=true
+    void SetDimensions(int i, int j, bool reset = false)
       {
       if(this->enGeometryType == RECTILINEAR)
         {
@@ -374,7 +375,7 @@ enum enumGeometryType {
         }
       else if(this->enGeometryType == HEXAGONAL)
         {
-        int current = this->Grid.size();
+        int current = reset ? 0 : this->Grid.size();
         if(current == i)
           {
           return;
@@ -382,11 +383,11 @@ enum enumGeometryType {
 
         this->Grid.resize(i);
 
-        if(i>current )
+        if(i > current)
           {
           for(int k = current; k < i; k++)
             {
-            if(k==0)
+            if(k == 0)
               {
               this->Grid[k].resize(1);
               this->Grid[k][0].label = "xx";
@@ -395,7 +396,7 @@ enum enumGeometryType {
             else
               {
               // for each layer, we need 6*Layer cells
-              this->Grid[k].resize(6*k);
+              this->Grid[k].resize(6 * k);
               for(int j = 0; j < 6 * k; j++)
                 {
                 this->Grid[k][j].label = "xx";
