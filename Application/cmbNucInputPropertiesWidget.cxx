@@ -48,17 +48,16 @@ cmbNucInputPropertiesWidget::~cmbNucInputPropertiesWidget()
 void cmbNucInputPropertiesWidget::initUI()
 {
   this->AssemblyEditor = new cmbNucAssemblyEditor(this, this->Assembly);
-  this->Internal->latticecontainerLayout->addWidget(
-    this->AssemblyEditor);
+  this->Internal->assemblyLatticeContainer->setWidget(this->AssemblyEditor);
+
   this->CoreEditor = new cmbNucAssemblyEditor(this, NULL);
-  this->Internal->coreLatticeLayout->addWidget(
-    this->CoreEditor);
+  this->Internal->coreLatticeContainer->setWidget(this->CoreEditor);
 
   this->HexCore = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
-  this->Internal->hexLatticeLayout->addWidget(this->HexCore);
+  this->Internal->hexLatticeContainer->addWidget(this->HexCore);
 
   this->HexAssy = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
-  this->Internal->hexLatticeAssyLayout->addWidget(this->HexAssy);
+  this->Internal->hexLatticeAssyContainer->addWidget(this->HexAssy);
 
   this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
   this->Internal->assyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);

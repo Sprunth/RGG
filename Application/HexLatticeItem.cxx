@@ -50,9 +50,11 @@ void HexLatticeItem::drawText(QPainter *painter)
   QRectF textRect = boundingRect();
   int flags = Qt::AlignCenter | Qt::AlignCenter | Qt::TextWordWrap;
 
+  QColor textColor = this->m_color.lightnessF() < 0.5 ? Qt::white : Qt::black;
+
   QFont font;
   font.setPixelSize(12);
-  painter->setPen(Qt::black);
+  painter->setPen(textColor);
   painter->setFont(font);
   painter->drawText(textRect, flags, m_text);
 }

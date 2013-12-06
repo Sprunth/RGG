@@ -155,7 +155,8 @@ void cmbNucHexLattice::rebuild()
 
   double centerPos[2], hexRadius, hexDiameter, layerRadius;
   int squareLength = std::min(this->width(), this->height());
-  hexDiameter = squareLength / (double)(2 * numLayers + 1);
+  hexDiameter = squareLength / (double)(3 * numLayers + 1);
+  hexDiameter = std::max(hexDiameter, 20.0); // Enforce minimum size for hexes
   hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
   double layerCorners[6][2];
   int cornerIndices[6];
@@ -207,7 +208,8 @@ void cmbNucHexLattice::rebuild()
         }
       }
     }
-  this->fitInView(scene()->sceneRect(), Qt::KeepAspectRatio);
+  scene()->setSceneRect(scene()->itemsBoundingRect());
+  this->repaint();
 }
 
 void cmbNucHexLattice::showContextMenu(
