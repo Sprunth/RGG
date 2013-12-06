@@ -518,19 +518,19 @@ cmbNucAssembly* cmbNucCore::loadAssemblyFromFile(
 
 void cmbNucCore::RebuildGrid()
 {
-  for(size_t i = 0; i < this->Grid.size(); i++)
+  for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
     {
-    for(size_t j = 0; j < this->Grid[i].size(); j++)
+    for(size_t j = 0; j < this->CoreLattice.Grid[i].size(); j++)
       {
-      std::string type = this->Grid[i][j].label;
+      std::string type = this->CoreLattice.Grid[i][j].label;
 
       if(!type.empty() && type != "xx" && type != "XX")
         {
-        this->Grid[i][j].color = this->GetAssembly(type)->GetLegendColor();
+        this->CoreLattice.Grid[i][j].color = this->GetAssembly(type)->GetLegendColor();
         }
       else
         {
-        this->Grid[i][j].color = Qt::white;
+        this->CoreLattice.Grid[i][j].color = Qt::white;
         }
       }
     }
