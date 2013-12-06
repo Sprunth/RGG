@@ -29,6 +29,7 @@ cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->MeshSize = 2.0;
+  this->LegendColor = Qt::white;
 
   this->RadialMeshSize = 0.15;
   this->AxialMeshSize = 20.0;
@@ -40,6 +41,16 @@ cmbNucAssembly::cmbNucAssembly()
 cmbNucAssembly::~cmbNucAssembly()
 {
   AssyPartObj::deleteObjs(this->PinCells);
+}
+
+QColor cmbNucAssembly::GetLegendColor() const
+{
+  return this->LegendColor;
+}
+
+void cmbNucAssembly::SetLegendColor(const QColor& color)
+{
+  this->LegendColor = color;
 }
 
 void cmbNucAssembly::UpdateGrid()

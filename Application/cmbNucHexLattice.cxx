@@ -13,10 +13,12 @@
 
 #include "vtkMath.h"
 #include "cmbNucAssembly.h"
+#include "cmbNucCore.h"
 
 cmbNucHexLattice::cmbNucHexLattice(HexLatticeItem::ShapeStyle shape,
     QWidget* parent, Qt::WindowFlags f)
-      : QGraphicsView(parent), ItemShape(shape), CurrentAssembly(NULL)
+      : QGraphicsView(parent), ItemShape(shape), CurrentAssembly(NULL),
+        CurrentCore(NULL)
 {
   setScene(&this->Canvas);
   setInteractive(true);
@@ -97,6 +99,13 @@ void cmbNucHexLattice::setItemShape(HexLatticeItem::ShapeStyle shapetype)
 void cmbNucHexLattice::setAssembly(cmbNucAssembly* assy)
 {
   this->CurrentAssembly = assy;
+  this->CurrentCore = NULL;
+}
+
+void cmbNucHexLattice::setCore(cmbNucCore* core)
+{
+  this->CurrentAssembly = NULL;
+  this->CurrentCore = core;
 }
 
 void cmbNucHexLattice::addCell(
@@ -121,6 +130,11 @@ void cmbNucHexLattice::addCell(
     {
     PinCell* pc = this->CurrentAssembly->GetPinCell(lc.label);
     color = pc ? pc->GetLegendColor() : Qt::white;
+    }
+  else if(this->CurrentCore)
+    {
+    cmbNucAssembly* assy = this->CurrentCore->GetAssembly(lc.label);
+    color = assy ? assy->GetLegendColor() : Qt::white;
     }
   // update color in hex map
   this->HexGrid.SetCell(layer, cellIdx, lc.label, lc.color);
@@ -225,6 +239,13 @@ void cmbNucHexLattice::showContextMenu(
 
       hexitem->setColor(color);
       }
+    else if(this->CurrentCore)
+      {
+      cmbNucAssembly* assy = this->CurrentCore->GetAssembly(hexitem->text().toStdString());
+      color = assy ? assy->GetLegendColor() : Qt::white;
+
+      hexitem->setColor(color);
+      }
     this->HexGrid.SetCell(hexitem->layer(), hexitem->cellIndex(),
       assignAct->text().toStdString(), color);
     }
@@ -244,6 +265,13 @@ void cmbNucHexLattice::dropEvent(QDropEvent* event)
     {
     PinCell* pc = this->CurrentAssembly->GetPinCell(dest->text().toStdString());
     color = pc ? pc->GetLegendColor() : Qt::white;
+
+    dest->setColor(color);
+    }
+  else if(this->CurrentCore)
+    {
+    cmbNucAssembly* assy = this->CurrentCore->GetAssembly(dest->text().toStdString());
+    color = assy ? assy->GetLegendColor() : Qt::white;
 
     dest->setColor(color);
     }
