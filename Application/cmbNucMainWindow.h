@@ -39,12 +39,11 @@ public slots:
   void onExit();
   void onFileNew();
   void onNewDialogAccept();
-  void onFileOpen();
+  void onFileOpenAssembly();
+  void onFileOpenCore();
   void onFileSave();
-  void openFiles(const QStringList &fileNames);
+  void openAssemblyFiles(const QStringList &fileNames);
   void saveFile(const QString &fileName);
-  // read file and return a new Assembly
-  cmbNucAssembly* loadAssemblyFromFile(const QString &fileName);
   void ResetView();
   void onInteractionTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);

@@ -14,10 +14,14 @@
 #include "vtkTransformFilter.h"
 #include "vtkMath.h"
 
+#include <QFileInfo>
+#include <QDir>
+
 cmbNucCore::cmbNucCore()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
+  this->HexSymmetry = 1;
 }
 
 cmbNucCore::~cmbNucCore()
@@ -35,45 +39,18 @@ cmbNucCore::~cmbNucCore()
 
 void cmbNucCore::SetDimensions(int i, int j)
 {
-  cmbNucAssembly* assy = this->GetAssembly(0);
-  if(assy && assy->AssyLattice.GetGeometryType() == HEXAGONAL)
-    {
-    int current = this->Grid.size();
-    if(current == i)
-      {
-      return;
-      }
-    this->Grid.resize(i);
-    if(i>current )
-      {
-      for(int k = current; k < i; k++)
-        {
-        if(k==0)
-          {
-          this->Grid[k].resize(1);
-          }
-        else
-          {
-          // for each layer, we need 6*Layer cells
-          this->Grid[k].resize(6*k);
-          }
-        }
-      }
-   }
-  else
-    {
-    this->Grid.resize(i);
-    for(int k = 0; k < i; k++)
-      {
-      this->Grid[k].resize(j);
-      }
-    }
+  this->CoreLattice.SetDimensions(i, j);
 }
 
 void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 {
   if(this->Assemblies.size()==0)
     {
+    if(assembly)
+      {
+      this->CoreLattice.SetGeometryType(
+        assembly->AssyLattice.GetGeometryType());
+      }
     this->SetDimensions(1, 1);
     }
   this->Assemblies.push_back(assembly);
@@ -96,16 +73,7 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
       }
     }
   // update the Grid
-  for(size_t i = 0; i < this->Grid.size(); i++)
-    {
-    for(size_t j = 0; j < this->Grid[i].size(); j++)
-      {
-      if(this->GetAssemblyLabel(i, j).label == label)
-        {
-        this->ClearAssemblyLabel(i, j);
-        }
-      }
-    }
+  this->CoreLattice.ClearCell(label);
 }
 
 cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
@@ -128,8 +96,8 @@ cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 {
-  if(this->Assemblies.size()==0 || this->Grid.size()==0
-    || this->Grid[0].size()==0)
+  if(this->Assemblies.size()==0 || this->CoreLattice.Grid.size()==0
+    || this->CoreLattice.Grid[0].size()==0)
     {
     return NULL;
     }
@@ -149,17 +117,17 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 
   // setup data
   size_t numBlocks = isHex ?
-    (1 + 3*(int)this->Grid.size()*((int)this->Grid.size() - 1)) :
-    this->Grid.size()*this->Grid[0].size();
+    (1 + 3*(int)this->CoreLattice.Grid.size()*((int)this->CoreLattice.Grid.size() - 1)) :
+    this->CoreLattice.Grid.size()*this->CoreLattice.Grid[0].size();
 
   this->Data->SetNumberOfBlocks(numBlocks);
 
-  for(size_t i = 0; i < this->Grid.size(); i++)
+  for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
     {
     size_t startBlock = isHex ?
-      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->Grid.size());
+      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->CoreLattice.Grid.size());
 
-    const std::vector<LatticeCell> &row = this->Grid[i];
+    const std::vector<LatticeCell> &row = this->CoreLattice.Grid[i];
 
     for(size_t j = 0; j < row.size(); j++)
       {
@@ -168,6 +136,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
       if(!type.empty() && type != "xx" && type != "XX")
         {
         cmbNucAssembly* assembly = this->GetAssembly(type);
+        if(!assembly)
+          {
+          continue;
+          }
         vtkSmartPointer<vtkMultiBlockDataSet> assemblyData = assembly->GetData();
         vtkNew<vtkTransform> transform;
 
@@ -311,46 +283,258 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
   return this->Data;
 }
 
-void cmbNucCore::RebuildGrid()
+bool cmbNucCore::IsHexType()
 {
-  for(size_t i = 0; i < this->Grid.size(); i++)
-    {
-    for(size_t j = 0; j < this->Grid[i].size(); j++)
-      {
-      std::string type = this->Grid[i][j].label;
+  std::string strGeoType = this->GeometryType;
+  std::transform(this->GeometryType.begin(), this->GeometryType.end(),
+    strGeoType.begin(), ::tolower);
+  return strGeoType == "hexflat" || strGeoType == "hexvertex";
+}
 
-      if(!type.empty() && type != "xx" && type != "XX")
+void cmbNucCore::ReadFile(const std::string &FileName)
+{
+  std::ifstream input(FileName.c_str());
+  if(!input.is_open())
+    {
+    std::cerr << "failed to open input file" << std::endl;
+    return;
+    }
+  QFileInfo info(FileName.c_str());
+  std::string strPath = info.dir().path().toStdString();
+
+  while(!input.eof())
+    {
+    std::string value;
+    input >> value;
+
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+    if(input.eof())
+      {
+      break;
+      }
+    else if(value == "end")
+      {
+      break;
+      }
+    else if(value.empty())
+      {
+      input.clear();
+      continue;
+      }
+    else if(value == "geometrytype")
+      {
+      input >> this->GeometryType;
+      if(this->IsHexType())
         {
-        this->Grid[i][j].color = this->GetAssembly(type)->GetLegendColor();
+        this->CoreLattice.SetGeometryType(HEXAGONAL);
         }
       else
         {
-        this->Grid[i][j].color = Qt::white;
+        this->CoreLattice.SetGeometryType(RECTILINEAR);
+        }
+      this->CoreLattice.SetDimensions(0, 0);
+      }
+    else if(value == "symmetry")
+      {
+      input >> this->HexSymmetry;
+      }
+    else if(value == "assemblies")
+      {
+      int count;
+      input >> count;
+      if(this->IsHexType()) // just one pitch
+        {
+        input >> this->AssyemblyPitchX;
+        this->AssyemblyPitchY = this->AssyemblyPitchX;
+        }
+      else
+        {
+        input >> this->AssyemblyPitchX >> this->AssyemblyPitchY;
+        }
+
+      input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      // read in assembly files
+      for(int i = 0; i < count; i++)
+        {
+        // skip the comment line
+        if(input.peek() == '!')
+          {
+          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          }
+
+        std::string assyfilename, assylabel, tmpPath = strPath;
+        input >> assyfilename >> assylabel;
+        tmpPath.append("/").append(assyfilename);
+        QFileInfo tmpInfo(tmpPath.c_str());
+        tmpPath = strPath + "/" + tmpInfo.completeBaseName ().toStdString() + ".inp";
+        QFileInfo assyInfo(tmpPath.c_str());
+        if(assyInfo.exists())
+          {
+          this->loadAssemblyFromFile(tmpPath, assylabel);
+          }
+        if(i != count - 1)
+          {
+          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          }
         }
       }
+    else if(value == "lattice")
+      {
+      size_t x=0;
+      size_t y=0;
+      if(this->IsHexType())
+        {
+        input >> x;
+        y = x;
+        }
+      else
+        {
+        // the lattice 2d grid use y as rows, x as columns
+        input >> y >> x;
+        }
+
+      input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+      this->CoreLattice.SetDimensions(x, y);
+
+      if(input.peek() == '!')
+        {
+        input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+
+      if(this->IsHexType())
+        {
+        if(this->HexSymmetry == 1)
+          {
+          // a full hex assembly, NOT partial
+          size_t maxN = 2*x - 1;
+          std::vector<std::vector<std::string> > hexArray;
+          hexArray.resize(maxN);
+          size_t numCols, delta=0;
+
+          for(size_t i = 0; i < maxN; i++)
+            {
+            if(i<x) // first half of HEX
+              {
+              numCols = i+x;
+              }
+            else // second half of HEX
+              {
+              delta++;
+              numCols = maxN - delta;
+              }
+            hexArray[i].resize(numCols);
+            for(size_t j = 0; j < numCols; j++)
+              {
+              input >> hexArray[i][j];
+              }
+            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+
+          // now we fill the hex Lattice with hexArray,
+          // starting from out most layer and work toward center
+          // for each layer, we have 6*Layer cells, except layer 0.
+          for(int k = x-1; k >= 0; k--) // HEX layers
+            {
+            size_t numRows = 2*k + 1;
+            size_t startRow = x-1-k;
+            size_t startCol = startRow;
+            size_t layerIdx;
+            for(size_t i = startRow; i < numRows+startRow; i++) // array rows
+              {
+              if(i==startRow || i==numRows+startRow - 1) // first row or last row
+                {
+                for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
+                  {
+                  layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
+                  this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][j];
+                  }
+                }
+              else // rows between first and last
+                {
+                // get the first and last column defined by start column
+                layerIdx = 6*k-(i-startRow);
+                this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][startCol];
+                layerIdx = k+(i-startRow);
+                size_t colIdx = hexArray[i].size() -1 - startCol;
+                this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][colIdx];
+                }
+              }
+            }
+          }
+        else if(this->HexSymmetry == 6 || this->HexSymmetry == 12)
+          {
+          std::string tmpVal;
+          for(size_t i = 0; i < x; i++)
+            {
+            size_t cols = i + 1;
+            if(this->HexSymmetry == 12)
+              {
+              cols = i%2 ? (i+1)/2 :(i+2)/2;
+              }
+            for( size_t j = 0; j < cols; j++)
+              {
+              input >> tmpVal;
+              if(tmpVal == "&")
+                {
+                break;
+                }
+              this->CoreLattice.Grid[i][j].label = tmpVal;
+              }
+            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+          }
+        }
+      else
+        {
+        for(size_t j = 0; j < y; j++)
+          {
+          for(size_t i = 0; i < x; i++)
+            {
+            input >> this->CoreLattice.Grid[i][j].label;
+            }
+          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          }
+        }
+      }
+    else if(value == "background")
+      {
+      input >> this->BackgroudMeshFile;
+      }
+    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 }
 
-void cmbNucCore::SetAssemblyLabel(int i, int j, const std::string &name,
-                                  const QColor& color)
+cmbNucAssembly* cmbNucCore::loadAssemblyFromFile(
+  const std::string &fileName, const std::string &assyLabel)
 {
-  this->Grid[i][j].label = name;
-  this->Grid[i][j].color = color;
+  // read file and create new assembly
+  cmbNucAssembly* assembly = new cmbNucAssembly;
+  assembly->label = assyLabel;
+  assembly->ReadFile(fileName);
+  this->AddAssembly(assembly);
+  return assembly;
 }
 
-LatticeCell cmbNucCore::GetAssemblyLabel(int i, int j) const
+void cmbNucCore::RebuildGrid()
 {
-  return this->Grid[i][j];
-}
+  for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
+    {
+    for(size_t j = 0; j < this->CoreLattice.Grid[i].size(); j++)
+      {
+      std::string type = this->CoreLattice.Grid[i][j].label;
 
-void cmbNucCore::ClearAssemblyLabel(int i, int j)
-{
-  this->SetAssemblyLabel(i, j, "xx", Qt::white);
-}
-
-std::pair<int, int> cmbNucCore::GetDimensions() const
-{
-  return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
+      if(!type.empty() && type != "xx" && type != "XX")
+        {
+        this->CoreLattice.Grid[i][j].color = this->GetAssembly(type)->GetLegendColor();
+        }
+      else
+        {
+        this->CoreLattice.Grid[i][j].color = Qt::white;
+        }
+      }
+    }
 }
 
 int cmbNucCore::GetNumberOfAssemblies()

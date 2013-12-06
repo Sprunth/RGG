@@ -1,0 +1,29 @@
+! #############################################################################################################
+! PWR 1/4 Core Model Geometry
+! #############################################################################################################
+!
+ProblemType Mesh
+Geometry Volume				 ! 'Geometry' card defines if the meshes are volume or surface
+Symmetry 1 					 ! 'Symmetry' card defines the desired symmetry in the model
+GeometryType Rectangular				 ! 'GeometryType' card can take values Hexagonal Rectangular
+Assemblies 10 21.42  21.42				 ! 'Assemblies' card defines the number of assembly mesh files and their pitch
+1_uox1.cub   1
+2_uox2.cub   2
+3_uox2.cub   3
+4_mox1.cub   4
+5_mox1.cub  5
+6.cub   6
+7.cub   7
+8.cub   8
+9.cub   9
+10.cub  10
+Lattice 5 5 					 ! 'Lattice' card defines arrangement of assemblies in core
+!
+3  2  4  1  9   &
+2  5  2  1  9   &
+4  2  1  8  7   &
+1  1  8  7  10  &
+6  6  7  10 10 
+OutputFileName pwr_core_mesh.h5m
+END		 				 ! 'END' card is a MUST marks the end of file for the file reader
+

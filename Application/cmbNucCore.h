@@ -43,15 +43,27 @@ public:
   // Sets the dimensions of the Assembly Core.
   void SetDimensions(int i, int j);
   // Returns the dimensions of the Assembly Core.
-  std::pair<int, int> GetDimensions() const;
 
+  std::pair<int, int> GetDimensions() const
+    {
+    return this->CoreLattice.GetDimensions();
+    }
   // Sets the contents of the Assembly (i, j) to name.
-  void SetAssemblyLabel(int i, int j, const std::string &name, const QColor& color);
+  void SetAssemblyLabel(int i, int j, const std::string &name, const QColor& color)
+    {
+    this->CoreLattice.SetCell(i, j, name, color);
+    }
   // Returns the contents of the Assembly (i, j).
-  LatticeCell GetAssemblyLabel(int i, int j) const;
+  LatticeCell GetAssemblyLabel(int i, int j) const
+    {
+    return this->CoreLattice.GetCell(i, j);
+    }
   // Clears the contents of the Assembly (i, j). This is equivalent
   // to calling SetAssembly(i, j, "xx", Qt::white).
-  void ClearAssemblyLabel(int i, int j);
+  void ClearAssemblyLabel(int i, int j)
+    {
+    this->CoreLattice.ClearCell(i, j);
+    }
 
   // Rebuild the grid (which for now just updates the colors at each cell)
   void RebuildGrid();
@@ -60,10 +72,27 @@ public:
   // the core with assemblies. This is used to render the core in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
 
+  // Reads a core from a ".inp" file.
+  void ReadFile(const std::string &FileName);
+
+  // Writes the core to a ".inp" file.
+  void WriteFile(const std::string &FileName){;}
+
+  // Check if GeometryType is Hexagonal
+  bool IsHexType();
+
+  // read file and return a new Assembly
+  cmbNucAssembly* loadAssemblyFromFile(
+     const std::string &fileName, const std::string &assyLabel);
+
   // Get/Set Assembly pitch
   double AssyemblyPitchX;
   double AssyemblyPitchY;
-  std::vector<std::vector<LatticeCell> > Grid;
+
+  Lattice CoreLattice;
+  std::string BackgroudMeshFile;
+  std::string GeometryType;
+  int HexSymmetry;
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;

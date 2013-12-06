@@ -1,0 +1,73 @@
+! ###############################################################################
+! Square PWR Assembly Definition without CellMaterials (Prism) around Pins
+! ###############################################################################
+!
+GeometryType Rectangular 
+Geometry Surface
+!
+Materials 9 &
+mox4.3_lf_b0.0     LF &
+mox4.3_mf_b0.0     MF &
+mox4.3_hf_b0.0     HF &
+mox4.3_wb_b0.0     WB &
+cladding           CLD &
+moderator          MOD &
+moderator_pin1     MP1 &
+moderator_pin2     MP2 &
+gap                AIR
+!
+!
+DUCT 1 0.0 0.0 0 365.76 21.42 21.42 MOD 
+!
+Pincells 5 
+!
+! MOX LF (2.5%) fuel cell (1)
+LFuelCell LF 2
+Pitch  1.26 1.26 365.76 
+Cylinder 4 0.0 0.0  0.0 365.76   0.3951 0.4010 0.4583 0.5500  LF AIR CLD MP2
+!
+! MOX MF (3.0%) fuel cell (2)
+MFuelCell MF 2
+Pitch  1.26 1.26 365.76 
+Cylinder 4 0.0 0.0  0.0 365.76   0.3951 0.4010 0.4583 0.5500  MF AIR CLD MP2
+!
+! MOX HF (4.5%) fuel cell (3)
+HFuelCell HF 2
+Pitch  1.26 1.26 365.76 
+Cylinder 4 0.0 0.0  0.0 365.76   0.3951 0.4010 0.4583 0.5500  HF AIR CLD MP2
+!
+! MOX WB fuel cell (3)
+WBFuelCell WB 2
+Pitch  1.26 1.26 365.76 
+Cylinder 6 0.0 0.0  0.0 365.76   0.2858 0.3531 0.4039 0.4839 0.5624 0.6032   MP1 CLD WB CLD MP2 CLD
+!
+! Guide Tube pin-cell (3)
+GuideTube GT 2
+Pitch  1.26 1.26 365.76 
+Cylinder 2 0.0 0.0  0.0 365.76   0.5624  0.6032  MP1 CLD
+!
+Assembly 17 17
+! 1  2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17
+LF  LF  MF  MF  MF  MF  MF  MF  MF  MF  MF  MF  MF  MF  MF  LF  LF  !  1
+LF  MF  MF  HF  HF  MF  HF  HF  MF  HF  HF  MF  HF  HF  MF  MF  LF  !  2
+MF  MF  HF  HF  HF  WB  HF  HF  WB  HF  HF  WB  HF  HF  HF  MF  MF  !  3
+MF  HF  HF  WB  HF  HF  HF  HF  HF  HF  HF  HF  HF  WB  HF  HF  MF  !  4
+MF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  MF  !  5
+MF  MF  WB  HF  HF  WB  HF  HF  WB  HF  HF  WB  HF  HF  WB  MF  MF  !  6
+MF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  MF  !  7
+MF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  MF  !  8
+MF  MF  WB  HF  HF  WB  HF  HF  GT  HF  HF  WB  HF  HF  WB  MF  MF  !  9
+MF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  MF  ! 10
+MF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  MF  ! 11
+MF  MF  WB  HF  HF  WB  HF  HF  WB  HF  HF  WB  HF  HF  WB  MF  MF  ! 12
+MF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  HF  MF  ! 13
+MF  HF  HF  WB  HF  HF  HF  HF  HF  HF  HF  HF  HF  WB  HF  HF  MF  ! 14
+MF  MF  HF  HF  HF  WB  HF  HF  WB  HF  HF  WB  HF  HF  HF  MF  MF  ! 15
+LF  MF  MF  HF  HF  MF  HF  HF  MF  HF  HF  MF  HF  HF  MF  MF  LF  ! 16
+LF  LF  MF  MF  MF  MF  MF  MF  MF  MF  MF  MF  MF  MF  MF  LF  LF  ! 17
+center
+MaterialSet_StartId 141
+NeumannSet_StartId 141
+RadialMeshSize 0.05
+AxialMeshSize 10
+END     ! This is a must                  

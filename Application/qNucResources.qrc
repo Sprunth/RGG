@@ -3,5 +3,6 @@
     <file>Icons/qNucResetCamera32.png</file>
     <file>Icons/qNucOpen32.png</file>
     <file>Icons/qNucSave32.png</file>
+    <file>Icons/qNucOpenCore32.png</file>
   </qresource>
 </RCC>
