@@ -21,6 +21,7 @@ cmbNucCore::cmbNucCore()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
+  this->HexSymmetry = 1;
 }
 
 cmbNucCore::~cmbNucCore()
@@ -332,6 +333,10 @@ void cmbNucCore::ReadFile(const std::string &FileName)
         }
       this->CoreLattice.SetDimensions(0, 0);
       }
+    else if(value == "symmetry")
+      {
+      input >> this->HexSymmetry;
+      }
     else if(value == "assemblies")
       {
       int count;
@@ -398,60 +403,84 @@ void cmbNucCore::ReadFile(const std::string &FileName)
 
       if(this->IsHexType())
         {
-        // assuming a full hex assembly, NOT partial
-        size_t maxN = 2*x - 1;
-        std::vector<std::vector<std::string> > hexArray;
-        hexArray.resize(maxN);
-        size_t numCols, delta=0;
-
-        for(size_t i = 0; i < maxN; i++)
+        if(this->HexSymmetry == 1)
           {
-          if(i<x) // first half of HEX
-            {
-            numCols = i+x;
-            }
-          else // second half of HEX
-            {
-            delta++;
-            numCols = maxN - delta;
-            }
-          hexArray[i].resize(numCols);
-          for(size_t j = 0; j < numCols; j++)
-            {
-            input >> hexArray[i][j];
-            }
-          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-          }
+          // a full hex assembly, NOT partial
+          size_t maxN = 2*x - 1;
+          std::vector<std::vector<std::string> > hexArray;
+          hexArray.resize(maxN);
+          size_t numCols, delta=0;
 
-        // now we fill the hex Lattice with hexArray,
-        // starting from out most layer and work toward center
-        // for each layer, we have 6*Layer cells, except layer 0.
-        for(int k = x-1; k >= 0; k--) // HEX layers
-          {
-          size_t numRows = 2*k + 1;
-          size_t startRow = x-1-k;
-          size_t startCol = startRow;
-          size_t layerIdx;
-          for(size_t i = startRow; i < numRows+startRow; i++) // array rows
+          for(size_t i = 0; i < maxN; i++)
             {
-            if(i==startRow || i==numRows+startRow - 1) // first row or last row
+            if(i<x) // first half of HEX
               {
-              for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
+              numCols = i+x;
+              }
+            else // second half of HEX
+              {
+              delta++;
+              numCols = maxN - delta;
+              }
+            hexArray[i].resize(numCols);
+            for(size_t j = 0; j < numCols; j++)
+              {
+              input >> hexArray[i][j];
+              }
+            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+
+          // now we fill the hex Lattice with hexArray,
+          // starting from out most layer and work toward center
+          // for each layer, we have 6*Layer cells, except layer 0.
+          for(int k = x-1; k >= 0; k--) // HEX layers
+            {
+            size_t numRows = 2*k + 1;
+            size_t startRow = x-1-k;
+            size_t startCol = startRow;
+            size_t layerIdx;
+            for(size_t i = startRow; i < numRows+startRow; i++) // array rows
+              {
+              if(i==startRow || i==numRows+startRow - 1) // first row or last row
                 {
-                layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
-                this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][j];
+                for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
+                  {
+                  layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
+                  this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][j];
+                  }
+                }
+              else // rows between first and last
+                {
+                // get the first and last column defined by start column
+                layerIdx = 6*k-(i-startRow);
+                this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][startCol];
+                layerIdx = k+(i-startRow);
+                size_t colIdx = hexArray[i].size() -1 - startCol;
+                this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][colIdx];
                 }
               }
-            else // rows between first and last
-              {
-              // get the first and last column defined by start column
-              layerIdx = 6*k-(i-startRow);
-              this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][startCol];
-              layerIdx = k+(i-startRow);
-              size_t colIdx = hexArray[i].size() -1 - startCol;
-              this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][colIdx];
-              }
             }
+          }
+        else if(this->HexSymmetry == 6)
+          {
+          std::string tmpVal;
+          for(size_t i = 0; i < x; i++)
+            {
+            size_t layer = x-1-i;
+            for( size_t j = 0; j < i+1; j++)
+              {
+              input >> tmpVal;
+              if(tmpVal == "&")
+                {
+                break;
+                }
+              this->CoreLattice.Grid[layer+j][j].label = tmpVal;
+              }
+            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+          }
+        else if(this->HexSymmetry == 12)
+          {
           }
         }
       else

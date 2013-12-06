@@ -89,6 +89,7 @@ public:
   Lattice CoreLattice;
   std::string BackgroudMeshFile;
   std::string GeometryType;
+  int HexSymmetry;
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
