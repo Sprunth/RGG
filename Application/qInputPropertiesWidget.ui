@@ -94,7 +94,25 @@
         </widget>
        </item>
        <item row="1" column="0" colspan="4">
-        <layout class="QVBoxLayout" name="coreLatticeLayout"/>
+        <layout class="QVBoxLayout" name="coreLatticeLayout">
+         <item>
+          <widget class="QScrollArea" name="coreLatticeContainer">
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>207</width>
+              <height>254</height>
+             </rect>
+            </property>
+           </widget>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -121,7 +139,7 @@
         </widget>
        </item>
        <item row="1" column="0" colspan="2">
-        <layout class="QVBoxLayout" name="hexLatticeLayout"/>
+        <layout class="QVBoxLayout" name="hexLatticeContainer"/>
        </item>
       </layout>
      </widget>
@@ -135,7 +153,7 @@
         </widget>
        </item>
        <item row="2" column="0" rowspan="2" colspan="2">
-        <layout class="QVBoxLayout" name="hexLatticeAssyLayout"/>
+        <layout class="QVBoxLayout" name="hexLatticeAssyContainer"/>
        </item>
        <item row="1" column="0" colspan="2">
         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -281,7 +299,25 @@
           </layout>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="latticecontainerLayout"/>
+          <layout class="QVBoxLayout" name="latticecontainerLayout">
+           <item>
+            <widget class="QScrollArea" name="assemblyLatticeContainer">
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <widget class="QWidget" name="scrollAreaWidgetContents_2">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>205</width>
+                <height>217</height>
+               </rect>
+              </property>
+             </widget>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
