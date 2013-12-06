@@ -133,6 +133,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
       if(!type.empty() && type != "xx" && type != "XX")
         {
         cmbNucAssembly* assembly = this->GetAssembly(type);
+        if(!assembly)
+          {
+          continue;
+          }
         vtkSmartPointer<vtkMultiBlockDataSet> assemblyData = assembly->GetData();
         vtkNew<vtkTransform> transform;
 
@@ -346,11 +350,17 @@ void cmbNucCore::ReadFile(const std::string &FileName)
       // read in assembly files
       for(int i = 0; i < count; i++)
         {
+        // skip the comment line
+        if(input.peek() == '!')
+          {
+          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+          }
+
         std::string assyfilename, assylabel, tmpPath = strPath;
         input >> assyfilename >> assylabel;
         tmpPath.append("/").append(assyfilename);
         QFileInfo tmpInfo(tmpPath.c_str());
-        tmpPath = strPath + "/" + tmpInfo.baseName().toStdString() + ".inp";
+        tmpPath = strPath + "/" + tmpInfo.completeBaseName ().toStdString() + ".inp";
         QFileInfo assyInfo(tmpPath.c_str());
         if(assyInfo.exists())
           {
