@@ -463,20 +463,24 @@ void cmbNucCore::ReadFile(const std::string &FileName)
               }
             }
           }
-        else if(this->HexSymmetry == 6)
+        else if(this->HexSymmetry == 6 || this->HexSymmetry == 12)
           {
           std::string tmpVal;
           for(size_t i = 0; i < x; i++)
             {
-            size_t layer = x-1-i;
-            for( size_t j = 0; j < i+1; j++)
+            size_t cols = i + 1;
+            if(this->HexSymmetry == 12)
+              {
+              cols = i%2 ? (i+1)/2 :(i+2)/2;
+              }
+            for( size_t j = 0; j < cols; j++)
               {
               input >> tmpVal;
               if(tmpVal == "&")
                 {
                 break;
                 }
-              this->CoreLattice.Grid[layer+j][j].label = tmpVal;
+              this->CoreLattice.Grid[i][j].label = tmpVal;
               }
             input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
