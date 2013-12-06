@@ -485,9 +485,6 @@ void cmbNucCore::ReadFile(const std::string &FileName)
             input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
           }
-        else if(this->HexSymmetry == 12)
-          {
-          }
         }
       else
         {
