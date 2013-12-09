@@ -191,13 +191,20 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
       for(int i = 0; i < count; i++)
         {
         std::string mname;
-        input >> mname >> mlabel;
+        input >> mname;
+        // Skip'&' is there is one
+        if (mname == "&")
+          {
+          input >> mname;
+          }
+
+        input >> mlabel;
+
         materialLabelMap[mlabel] = mname;
         std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
         if(!matColorMap->MaterialColorMap().contains(mname.c_str()))
           {
-          matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(),
-            1.0, 1.0, 1.0, 1.0);
+          matColorMap->AddMaterial(mname.c_str(), mlabel.c_str());
           }
         else
           {

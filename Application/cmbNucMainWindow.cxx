@@ -311,8 +311,15 @@ void cmbNucMainWindow::openAssemblyFiles(const QStringList &fileNames)
     if(!fileName.isEmpty())
       {
       QFileInfo finfo(fileName);
-      std::string label = finfo.baseName().toStdString();
+      QString s =  finfo.fileName();
+       // Now remove the .inp suffix
+      int index = s.lastIndexOf(".inp", -1, Qt::CaseInsensitive);
+      if (index != -1)
+        {
+        s.remove(index, 4);
+        }
 
+     std::string label = s.toStdString();
       cmbNucAssembly* assy = this->NuclearCore->loadAssemblyFromFile(
         fileName.toStdString(), label);
       assemblies.append(assy);

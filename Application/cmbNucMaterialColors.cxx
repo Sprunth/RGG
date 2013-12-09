@@ -6,6 +6,7 @@
 #include "cmbNucAssembly.h"
 #include "cmbNucPartDefinition.h"
 #include "vtkCompositeDataDisplayAttributes.h"
+#include "vtkMath.h"
 
 // QSettings material Group name
 #define GROUP_MATERIAL "MaterialColors"
@@ -19,7 +20,7 @@ cmbNucMaterialColors* cmbNucMaterialColors::instance()
 }
 
 //-----------------------------------------------------------------------------
-cmbNucMaterialColors::cmbNucMaterialColors()
+cmbNucMaterialColors::cmbNucMaterialColors(): Llimit(0.1), Ulimit(0.9)
 {
   if (!cmbNucMaterialColors::Instance)
     {
@@ -226,4 +227,30 @@ void cmbNucMaterialColors::SetBlockMaterialColor(
     attributes->SetBlockColor(flatIdx, color);
     attributes->SetBlockVisibility(flatIdx, true);
     }
+}
+
+//----------------------------------------------------------------------------
+void cmbNucMaterialColors::CalcRGB(double &r, double &g, double &b)
+{
+  double l;
+  while(1)
+    {
+    r = vtkMath::Random(0.0, 1.0);
+    g = vtkMath::Random(0.0, 1.0);
+    b = vtkMath::Random(0.0, 1.0);
+
+    l = (0.11 *b) + (0.3 *r) + (0.59*g);
+    if ((l >= this->Llimit) && ( l <= this->Ulimit))
+      {
+      return;
+      }
+    }
+}
+//----------------------------------------------------------------------------
+void cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label)
+{
+  double r, g, b;
+  this->CalcRGB(r, g, b);
+  this->MaterialColors.insert(name, cmbNucMaterial(label,
+    QColor::fromRgbF(r, g, b, 1.0)));
 }
