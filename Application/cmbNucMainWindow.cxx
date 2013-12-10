@@ -35,6 +35,52 @@
 #include "vtkAlgorithm.h"
 #include "vtkNew.h"
 #include "vtkCmbLayeredConeSource.h"
+int numAssemblyDefaultColors = 42;
+int defaultAssemblyColors[][3] = 
+{
+  {66,146,198},
+  {241,105,19},
+  {65,171,93},
+  {239,59,44},
+  {128,125,186},
+  {115,115,115},  
+  {198,219,239},
+  {253,208,162},
+  {199,233,192},
+  {252,187,161},
+  {218,218,235},
+  {217,217,217}, 
+  {8,81,156},
+  {166,54,3},
+  {0,109,44},
+  {165,15,21},
+  {84,39,143},
+  {37,37,37},  
+  {158,202,225},
+  {253,174,107},
+  {161,217,155},
+  {252,146,114},
+  {188,189,220},
+  {189,189,189},  
+  {33,113,181},
+  {217,72,1},
+  {35,139,69},
+  {203,24,29},
+  {106,81,163},
+  {82,82,82},  
+  {107,174,214},
+  {253,141,60},
+  {116,196,118},
+  {251,106,74},
+  {158,154,200},
+  {150,150,150}, 
+  {8,48,10},
+  {127,39,4},
+  {0,68,27},
+  {103,0,13},
+  {63,0,125},
+  {0,0,0}
+};
 
 // Constructor
 cmbNucMainWindow::cmbNucMainWindow()
@@ -60,7 +106,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   renderWindow->SetAlphaBitPlanes(1);
   renderWindow->SetMultiSamples(0);
   this->Renderer->SetUseDepthPeeling(1);
-  this->Renderer->SetMaximumNumberOfPeels(100);
+  this->Renderer->SetMaximumNumberOfPeels(5);
 
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
   this->Mapper->SetScalarVisibility(0);
@@ -246,6 +292,8 @@ void cmbNucMainWindow::onFileOpenAssembly()
   settings.setValue("cache/lastDir", info.dir().path());
 
   this->openAssemblyFiles(fileNames);
+  // In case the loaded assembly adds new materials
+  this->PropertyWidget->updateMaterials();
 
   // update render view
   this->Renderer->ResetCamera();
@@ -278,7 +326,8 @@ void cmbNucMainWindow::onFileOpenCore()
   QFileInfo info(fileNames[0]);
   settings.setValue("cache/lastDir", info.dir().path());
 
-  this->NuclearCore->ReadFile(fileNames[0].toStdString());
+  this->NuclearCore->ReadFile(fileNames[0].toStdString(), numAssemblyDefaultColors,
+                              defaultAssemblyColors);
 
   int numNewAssy = this->NuclearCore->GetNumberOfAssemblies();
   if(numNewAssy)
@@ -289,6 +338,9 @@ void cmbNucMainWindow::onFileOpenCore()
 
   // update data colors
   this->updateMaterialColors();
+
+  // In case the loaded core adds new materials
+  this->PropertyWidget->updateMaterials();
   this->InputsWidget->updateUI(numNewAssy);
   this->unsetCursor();
 
@@ -311,17 +363,16 @@ void cmbNucMainWindow::openAssemblyFiles(const QStringList &fileNames)
     if(!fileName.isEmpty())
       {
       QFileInfo finfo(fileName);
-      QString s =  finfo.fileName();
-       // Now remove the .inp suffix
-      int index = s.lastIndexOf(".inp", -1, Qt::CaseInsensitive);
-      if (index != -1)
-        {
-        s.remove(index, 4);
-        }
-
-     std::string label = s.toStdString();
+      std::string label = finfo.completeBaseName().toStdString();
       cmbNucAssembly* assy = this->NuclearCore->loadAssemblyFromFile(
         fileName.toStdString(), label);
+      int acolorIndex = numExistingAssy + assemblies.size() % numAssemblyDefaultColors;
+      std::cerr << "a color index = " << acolorIndex << "\n";
+
+      QColor acolor(defaultAssemblyColors[acolorIndex][0],
+                    defaultAssemblyColors[acolorIndex][1],
+                    defaultAssemblyColors[acolorIndex][2]);
+      assy->SetLegendColor(acolor);
       assemblies.append(assy);
       numNewAssy++;
       }
@@ -332,7 +383,8 @@ void cmbNucMainWindow::openAssemblyFiles(const QStringList &fileNames)
     this->NuclearCore->SetDimensions(numNewAssy, numNewAssy);
     for(int i=0; i<numNewAssy ; i++)
       {
-      this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label, Qt::white);
+      this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label, assemblies.at(i)->GetLegendColor());
+      std::cerr << "Setting color!\n";
       for(int j=1; j<this->NuclearCore->CoreLattice.Grid[i].size() ; j++)
         {
         this->NuclearCore->ClearAssemblyLabel(i, j);
