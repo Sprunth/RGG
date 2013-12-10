@@ -38,6 +38,7 @@ public:
   void AddMaterial(const QString& name, const QString& label,
                    double r, double g, double b, double a);
   void AddMaterial(const QString& name, double r, double g, double b, double a);
+  void AddMaterial(const QString& name, const QString& label);
   void RemoveMaterial(const QString& name);
   void SetMaterialVisibility(const QString& name, bool visible);
 
@@ -53,11 +54,13 @@ public:
   // save materials to a file
   void SaveToFile(const QString& name);
 
+  void CalcRGB(double &r, double &g, double &b);
 private:
 
   static cmbNucMaterialColors* Instance;
   // <Name, <Label, Color> >
   QMap<QString, cmbNucMaterial> MaterialColors;
+  double Ulimit, Llimit;  // luminance range when creating colors
 };
 
 #endif

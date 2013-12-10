@@ -73,7 +73,8 @@ public:
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
 
   // Reads a core from a ".inp" file.
-  void ReadFile(const std::string &FileName);
+  void ReadFile(const std::string &FileName,
+                int numDefaultColors, int defaultColors[][3]);
 
   // Writes the core to a ".inp" file.
   void WriteFile(const std::string &FileName){;}

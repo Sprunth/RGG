@@ -151,7 +151,8 @@ void cmbNucInputPropertiesWidget::updateMaterials()
   QString matLabel;
   foreach(QString material, matColorMap->MaterialColorMap().keys())
     {
-    matLabel = matColorMap->MaterialColorMap()[material].Label;
+//    matLabel = matColorMap->MaterialColorMap()[material].Label;
+    matLabel = material;
     this->Internal->DuctLayerMaterial->addItem(matLabel);
     this->Internal->FrustumMaterial->addItem(matLabel);
     this->Internal->CylinderMaterial->addItem(matLabel);
@@ -466,9 +467,8 @@ void cmbNucInputPropertiesWidget::onCurrentDuctLayerChanged(int idx)
 {
   if(idx < this->Internal->DuctMaterials.count())
     {
-    this->Internal->DuctLayerMaterial->setCurrentIndex(
-      this->Internal->DuctLayerMaterial->findText(
-      this->Internal->DuctMaterials.value(idx)));
+    this->Internal->DuctLayerMaterial->
+      setCurrentIndex(this->Internal->DuctLayerMaterial->findText(this->Internal->DuctMaterials.value(idx).toLower()));
     this->Internal->DuctThick1->setText(QString::number(
       this->Internal->DuctThicknesses.value(idx).first));
     this->Internal->DuctThick2->setText(QString::number(

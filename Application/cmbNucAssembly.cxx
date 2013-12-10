@@ -141,6 +141,8 @@ bool cmbNucAssembly::IsHexType()
 void cmbNucAssembly::ReadFile(const std::string &FileName)
 {
   std::ifstream input(FileName.c_str());
+  std::map<std::string, std::string> materialLabelMap;
+  std::string mlabel;
   if(!input.is_open())
     {
     std::cerr << "failed to open input file" << std::endl;
@@ -188,13 +190,21 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
       cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
       for(int i = 0; i < count; i++)
         {
-        std::string mname, mlabel;
-        input >> mname >> mlabel;
+        std::string mname;
+        input >> mname;
+        // Skip'&' is there is one
+        if (mname == "&")
+          {
+          input >> mname;
+          }
+
+        input >> mlabel;
+
+        materialLabelMap[mlabel] = mname;
         std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
         if(!matColorMap->MaterialColorMap().contains(mname.c_str()))
           {
-          matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(),
-            1.0, 1.0, 1.0, 1.0);
+          matColorMap->AddMaterial(mname.c_str(), mlabel.c_str());
           }
         else
           {
@@ -236,7 +246,8 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
       duct->materials.resize(materials);
       for(int i = 0; i < materials; i++)
         {
-        input >> duct->materials[i];
+        input >> mlabel;
+        duct->materials[i] = materialLabelMap[mlabel];
         }
 
       this->AssyDuct.Ducts.push_back(duct);
@@ -329,9 +340,11 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               // Normalize the layer
               pincell->radii[c] *= alpha;
 
-              // Get the material of the layer
+              // Get the material of the layer - note that we read in the material label that
+              // maps to the actual material
               std::string mname;
-              input >> mname;
+              input >> mlabel;
+              mname = materialLabelMap[mlabel];
               std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
               // Lets save the first material to use to set the pin's color legend
               if (firstMaterial == "")
@@ -377,9 +390,11 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
               pincell->radii[2*c] *= alpha;
               pincell->radii[(2*c)+1] *= beta;
 
-              // Get the material of the layer
+              // Get the material of the layer - note that we read in the material label that
+              // maps to the actual material
               std::string mname;
-              input >> mname;
+              input >> mlabel;
+              mname = materialLabelMap[mlabel];
               std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
               // Lets save the first material to use to set the pin's color legend
               if (firstMaterial == "")

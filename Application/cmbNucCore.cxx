@@ -291,7 +291,8 @@ bool cmbNucCore::IsHexType()
   return strGeoType == "hexflat" || strGeoType == "hexvertex";
 }
 
-void cmbNucCore::ReadFile(const std::string &FileName)
+void cmbNucCore::ReadFile(const std::string &FileName,
+                          int numDefaultColors, int defaultColors[][3])
 {
   std::ifstream input(FileName.c_str());
   if(!input.is_open())
@@ -342,6 +343,7 @@ void cmbNucCore::ReadFile(const std::string &FileName)
     else if(value == "assemblies")
       {
       int count;
+      cmbNucAssembly *subAssembly;
       input >> count;
       if(this->IsHexType()) // just one pitch
         {
@@ -371,7 +373,15 @@ void cmbNucCore::ReadFile(const std::string &FileName)
         QFileInfo assyInfo(tmpPath.c_str());
         if(assyInfo.exists())
           {
-          this->loadAssemblyFromFile(tmpPath, assylabel);
+          subAssembly = this->loadAssemblyFromFile(tmpPath, assylabel);
+          if (subAssembly)
+            {
+            int acolorIndex = i  % numDefaultColors;
+            QColor acolor(defaultColors[acolorIndex][0],
+                          defaultColors[acolorIndex][1],
+                          defaultColors[acolorIndex][2]);
+            subAssembly->SetLegendColor(acolor);
+            }
           }
         if(i != count - 1)
           {
@@ -492,7 +502,17 @@ void cmbNucCore::ReadFile(const std::string &FileName)
           {
           for(size_t i = 0; i < x; i++)
             {
-            input >> this->CoreLattice.Grid[i][j].label;
+            std::string assemblyLabel;
+            input >> assemblyLabel;
+            this->CoreLattice.Grid[i][j].label = assemblyLabel;
+            if(!(assemblyLabel.empty() || assemblyLabel == "xx" || assemblyLabel == "XX"))
+              {
+              cmbNucAssembly* assembly = this->GetAssembly(assemblyLabel);
+              if (assembly != NULL)
+                {
+                this->CoreLattice.Grid[i][j].color = assembly->GetLegendColor();
+                }
+              }
             }
           input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
           }
@@ -525,7 +545,7 @@ void cmbNucCore::RebuildGrid()
       {
       std::string type = this->CoreLattice.Grid[i][j].label;
 
-      if(!type.empty() && type != "xx" && type != "XX")
+      if(!(type.empty() || type == "xx" || type == "XX"))
         {
         this->CoreLattice.Grid[i][j].color = this->GetAssembly(type)->GetLegendColor();
         }
