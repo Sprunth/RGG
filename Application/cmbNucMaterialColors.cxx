@@ -11,6 +11,54 @@
 // QSettings material Group name
 #define GROUP_MATERIAL "MaterialColors"
 
+#define numInitialNewMaterialColors 42
+
+static int initialNewMaterialColors[][3] = 
+{
+  {66,146,198},
+  {241,105,19},
+  {65,171,93},
+  {239,59,44},
+  {128,125,186},
+  {115,115,115},  
+  {198,219,239},
+  {253,208,162},
+  {199,233,192},
+  {252,187,161},
+  {218,218,235},
+  {217,217,217}, 
+  {8,81,156},
+  {166,54,3},
+  {0,109,44},
+  {165,15,21},
+  {84,39,143},
+  {37,37,37},  
+  {158,202,225},
+  {253,174,107},
+  {161,217,155},
+  {252,146,114},
+  {188,189,220},
+  {189,189,189},  
+  {33,113,181},
+  {217,72,1},
+  {35,139,69},
+  {203,24,29},
+  {106,81,163},
+  {82,82,82},  
+  {107,174,214},
+  {253,141,60},
+  {116,196,118},
+  {251,106,74},
+  {158,154,200},
+  {150,150,150}, 
+  {8,48,10},
+  {127,39,4},
+  {0,68,27},
+  {103,0,13},
+  {63,0,125},
+  {0,0,0}
+};
+
 //----------------------------------------------------------------------------
 cmbNucMaterialColors* cmbNucMaterialColors::Instance = 0;
 
@@ -20,7 +68,7 @@ cmbNucMaterialColors* cmbNucMaterialColors::instance()
 }
 
 //-----------------------------------------------------------------------------
-cmbNucMaterialColors::cmbNucMaterialColors(): Llimit(0.1), Ulimit(0.9)
+cmbNucMaterialColors::cmbNucMaterialColors(): Llimit(0.1), Ulimit(0.9), numNewMaterials(0)
 {
   if (!cmbNucMaterialColors::Instance)
     {
@@ -249,6 +297,15 @@ void cmbNucMaterialColors::CalcRGB(double &r, double &g, double &b)
 //----------------------------------------------------------------------------
 void cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label)
 {
+  if (this->numNewMaterials < numInitialNewMaterialColors)
+    {
+    QColor color(initialNewMaterialColors[this->numNewMaterials][0],
+                 initialNewMaterialColors[this->numNewMaterials][1],
+                 initialNewMaterialColors[this->numNewMaterials][2]);
+    ++this->numNewMaterials;
+    this->MaterialColors.insert(name, cmbNucMaterial(label, color));
+    return;
+    }
   double r, g, b;
   this->CalcRGB(r, g, b);
   this->MaterialColors.insert(name, cmbNucMaterial(label,

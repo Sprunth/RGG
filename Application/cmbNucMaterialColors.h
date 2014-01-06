@@ -61,6 +61,7 @@ private:
   // <Name, <Label, Color> >
   QMap<QString, cmbNucMaterial> MaterialColors;
   double Ulimit, Llimit;  // luminance range when creating colors
+  int numNewMaterials;
 };
 
 #endif
