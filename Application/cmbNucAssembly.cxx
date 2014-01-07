@@ -662,7 +662,85 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
   output << "end\n";
 }
 
+void cmbNucAssembly::updateMaterialColors(
+  unsigned int& realflatidx,
+  vtkCompositeDataDisplayAttributes *attributes)
+{
+// count number of pin blocks in the data set
+int pins = this->AssyLattice.GetNumberOfCells();
+int pin_count = 0;
+int ducts_count = 0;
+cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+
+std::string pinMaterial = "pin";
+int numAssyBlocks = this->Data->GetNumberOfBlocks();
+for(unsigned int idx = 0; idx < numAssyBlocks; idx++)
+  {
+  realflatidx++;
+  if(pin_count < pins)
+    {
+    std::string label = this->AssyLattice.GetCell(pin_count).label;
+    PinCell* pinCell = this->GetPinCell(label);
+
+    if(pinCell)
+      {
+      std::string pinMaterial;
+
+      for(unsigned int cidx = 0; cidx < pinCell->cylinders.size(); cidx++)
+        {
+        realflatidx++; // increase one for this cylinder
+        for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
+          {
+          pinMaterial = pinCell->cylinders[cidx]->materials[k];
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
+          }
+        }
+      for(unsigned int fidx = 0; fidx < pinCell->frustums.size(); fidx++)
+        {
+        realflatidx++; // increase one for this frustum
+        for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
+          {
+          pinMaterial = pinCell->frustums[fidx]->materials[k];
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
+          }
+        }
+      }
+    pin_count++;
+    }
+  else // ducts need to color by layers
+    {
+    if(vtkMultiBlockDataSet* ductBlock =
+      vtkMultiBlockDataSet::SafeDownCast(this->Data->GetBlock(idx)))
+      {
+      Duct* duct = this->AssyDuct.Ducts[ducts_count];
+      unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
+      for(unsigned int b = 0; b < numBlocks; b++)
+        {
+        std::string layerMaterial =
+          (duct && b < duct->materials.size()) ? duct->materials[b] : "duct";
+        if(layerMaterial.empty())
+          {
+          layerMaterial = "duct";
+          }
+        layerMaterial = QString(layerMaterial.c_str()).toLower().toStdString();
+        matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, layerMaterial);
+        }
+      ducts_count++;
+      }
+    }
+  }
+}
+
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
+{
+  if(this->Data->GetNumberOfBlocks() > 0)
+    {
+    return this->Data;
+    }
+  return this->CreateData();
+}
+
+vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 {
   if(this->AssyDuct.Ducts.size()==0 || this->AssyLattice.Grid.size() == 0)
     {

@@ -235,12 +235,26 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
   this->ui->PropertyDock->setEnabled(1);
   this->PropertyWidget->setAssembly(this->InputsWidget->getCurrentAssembly());
   this->PropertyWidget->setObject(selObj, name);
+
+  // update RenderWindow for Core or selected Assembly.
+  // Eventually, the pin editor will also be replaced using MainWindow's
+  // UI panel and render window.
+  if(selObj->GetType() == CMBNUC_CORE)
+    {
+    this->updateCoreMaterialColors();
+    this->ResetView();
+    }
+  else if(selObj->GetType() == CMBNUC_ASSEMBLY)
+    {
+    this->updateAssyMaterialColors(dynamic_cast<cmbNucAssembly*>(selObj));
+    this->ResetView();
+    }
 }
 
 void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
 {
   // update material colors
-  this->updateMaterialColors();
+  this->updateCoreMaterialColors();
 
   if(obj && obj->GetType() == CMBNUC_CORE)
     {
@@ -265,7 +279,8 @@ void cmbNucMainWindow::onNewDialogAccept()
   this->PropertyWidget->setGeometryType(this->NewDialog->getSelectedGeometry());
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
-  this->InputsWidget->setGeometryType(this->PropertyWidget->getGeometryType());
+  this->NuclearCore->CoreLattice.SetGeometryType(
+    this->PropertyWidget->getGeometryType());
   this->InputsWidget->onNewAssembly();
   this->Renderer->ResetCamera();
   this->Renderer->Render();
@@ -337,7 +352,7 @@ void cmbNucMainWindow::onFileOpenCore()
     }
 
   // update data colors
-  this->updateMaterialColors();
+  this->updateCoreMaterialColors();
 
   // In case the loaded core adds new materials
   this->PropertyWidget->updateMaterials();
@@ -399,7 +414,7 @@ void cmbNucMainWindow::openAssemblyFiles(const QStringList &fileNames)
     }
 
   // update data colors
-  this->updateMaterialColors();
+  this->updateCoreMaterialColors();
   // render
   this->InputsWidget->updateUI(numExistingAssy==0 && numNewAssy>1);
 
@@ -441,7 +456,28 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
   this->InputsWidget->getCurrentAssembly()->WriteFile(fileName.toStdString());
 }
 
-void cmbNucMainWindow::updateMaterialColors()
+void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
+{
+  if(!assy)
+    {
+    return;
+    }
+
+  // regenerate core and assembly view
+  vtkSmartPointer<vtkMultiBlockDataSet> assydata = assy->GetData();
+  this->Mapper->SetInputDataObject(assydata);
+  if(!assydata)
+    {
+    return;
+    }
+  vtkCompositeDataDisplayAttributes *attributes =
+    this->Mapper->GetCompositeDataDisplayAttributes();
+
+  unsigned int realflatidx = 0;
+  assy->updateMaterialColors(realflatidx, attributes);
+}
+
+void cmbNucMainWindow::updateCoreMaterialColors()
 {
   // regenerate core and assembly view
   vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
@@ -453,10 +489,7 @@ void cmbNucMainWindow::updateMaterialColors()
   unsigned int numCoreBlocks = coredata->GetNumberOfBlocks();
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
 
-  //vtkDataObjectTreeIterator *coreiter = coredata->NewTreeIterator();
-  //coreiter->SetSkipEmptyNodes(false);
   unsigned int realflatidx = 0;
   for(unsigned int block = 0; block < numCoreBlocks; block++)
     {
@@ -482,68 +515,7 @@ void cmbNucMainWindow::updateMaterialColors()
         return;
         }
 
-      // count number of pin blocks in the data set
-      int pins = assy->AssyLattice.GetNumberOfCells();
-      int pin_count = 0;
-      int ducts_count = 0;
-
-      std::string pinMaterial = "pin";
-      int numAssyBlocks = data->GetNumberOfBlocks();
-      for(unsigned int idx = 0; idx < numAssyBlocks; idx++)
-        {
-        realflatidx++;
-        if(pin_count < pins)
-          {
-          std::string label = assy->AssyLattice.GetCell(pin_count).label;
-          PinCell* pinCell = assy->GetPinCell(label);
-
-          if(pinCell)
-            {
-            std::string pinMaterial;
-
-            for(unsigned int idx = 0; idx < pinCell->cylinders.size(); idx++)
-              {
-              realflatidx++; // increase one for this cylinder
-              for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
-                {
-                pinMaterial = pinCell->cylinders[idx]->materials[k];
-                matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
-                }
-              }
-            for(unsigned int idx = 0; idx < pinCell->frustums.size(); idx++)
-              {
-              realflatidx++; // increase one for this frustum
-              for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
-                {
-                pinMaterial = pinCell->frustums[idx]->materials[k];
-                matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
-                }
-              }
-            }
-          pin_count++;
-          }
-        else // ducts need to color by layers
-          {
-          if(vtkMultiBlockDataSet* ductBlock =
-             vtkMultiBlockDataSet::SafeDownCast(data->GetBlock(idx)))
-            {
-            Duct* duct = assy->AssyDuct.Ducts[ducts_count];
-            unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
-            for(unsigned int b = 0; b < numBlocks; b++)
-              {
-              std::string layerMaterial =
-                (duct && b < duct->materials.size()) ? duct->materials[b] : "duct";
-              if(layerMaterial.empty())
-                {
-                layerMaterial = "duct";
-                }
-              layerMaterial = QString(layerMaterial.c_str()).toLower().toStdString();
-              matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, layerMaterial);
-              }
-            ducts_count++;
-            }
-          }
-        }
+      assy->updateMaterialColors(realflatidx, attributes);
       }
     }
 }

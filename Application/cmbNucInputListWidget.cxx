@@ -52,7 +52,7 @@ public:
 
 //-----------------------------------------------------------------------------
 cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
-  : QWidget(_p), GeometryType(RECTILINEAR)
+  : QWidget(_p)
 {
   this->Internal = new cmbNucInputListWidgetInternal;
   this->Internal->setupUi(this);
@@ -120,18 +120,6 @@ void cmbNucInputListWidget::setCore(cmbNucCore* core)
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputListWidget::setGeometryType(enumGeometryType geometry)
-{
-  this->GeometryType = geometry;
-}
-
-//-----------------------------------------------------------------------------
-enumGeometryType cmbNucInputListWidget::getGeometryType()
-{
-  return this->GeometryType;
-}
-
-//-----------------------------------------------------------------------------
 cmbNucPartsTreeItem* cmbNucInputListWidget::getDuctCellNode(
   cmbNucPartsTreeItem* assyNode)
 {
@@ -151,6 +139,19 @@ cmbNucPartsTreeItem* cmbNucInputListWidget::getDuctCellNode(
     }
   return NULL;
 }
+
+//-----------------------------------------------------------------------------
+AssyPartObj* cmbNucInputListWidget::getSelectedPart()
+{
+  cmbNucPartsTreeItem* selItem = this->getSelectedItem(
+    this->Internal->PartsList);
+  if(!selItem || !selItem->getPartObject())
+    {
+    return NULL;
+    }
+  return selItem->getPartObject();
+}
+
 //-----------------------------------------------------------------------------
 cmbNucPartsTreeItem* cmbNucInputListWidget::getCurrentAssemblyNode()
 {
@@ -243,8 +244,9 @@ void cmbNucInputListWidget::onNewAssembly()
 
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->AssyLattice.SetGeometryType(this->GeometryType);
-  if(this->GeometryType == HEXAGONAL)
+  assembly->AssyLattice.SetGeometryType(
+    this->NuclearCore->CoreLattice.GetGeometryType());
+  if(this->NuclearCore->CoreLattice.GetGeometryType() == HEXAGONAL)
     {
     assembly->AssyLattice.SetDimensions(2, 0, true);
     }
@@ -253,7 +255,7 @@ void cmbNucInputListWidget::onNewAssembly()
 
   this->NuclearCore->AddAssembly(assembly);
 
-  if(this->GeometryType == HEXAGONAL)
+  if(this->NuclearCore->CoreLattice.GetGeometryType() == HEXAGONAL)
     {
     this->NuclearCore->SetDimensions(1, 0);
     }
