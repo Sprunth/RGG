@@ -1,12 +1,25 @@
 #include "cmbNucMainWindow.h"
 
 #include "ui_qNucMainWindow.h"
+
 #include <vtkActor.h>
+#include <vtkAlgorithm.h>
+#include <vtkAxesActor.h>
 #include <vtkCamera.h>
+#include <vtkCompositeDataDisplayAttributes.h>
+#include <vtkCompositePolyDataMapper2.h>
+#include <vtkCompositeDataPipeline.h>
+#include <vtkDataObjectTreeIterator.h>
+#include <vtkEventQtSlotConnect.h>
+#include <vtkInformation.h>
+#include <vtkInteractorObserver.h>
+#include <vtkNew.h>
+#include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkCompositePolyDataMapper2.h>
+#include <vtkXMLMultiBlockDataWriter.h>
+
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QStringList>
@@ -23,18 +36,8 @@
 #include "cmbNucInputListWidget.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucNewDialog.h"
-
-#include "vtkAxesActor.h"
-#include "vtkProperty.h"
-#include "vtkCompositeDataDisplayAttributes.h"
-#include "vtkDataObjectTreeIterator.h"
-#include "vtkInformation.h"
-#include <vtkInteractorObserver.h>
-#include <vtkEventQtSlotConnect.h>
-#include "vtkCompositeDataPipeline.h"
-#include "vtkAlgorithm.h"
-#include "vtkNew.h"
 #include "vtkCmbLayeredConeSource.h"
+
 int numAssemblyDefaultColors = 42;
 int defaultAssemblyColors[][3] = 
 {
@@ -416,7 +419,7 @@ void cmbNucMainWindow::onFileSave()
     QFileDialog::getSaveFileName(this,
                                  "Save Assygen File...",
                                  dir.path(),
-                                 "INP Files (*.inp)");
+                                 "INP Files (*.inp);; vtk Files (*.vtm)");
   if(!fileName.isEmpty())
     {
     // Cache the directory for the next time the dialog is opened
@@ -424,7 +427,18 @@ void cmbNucMainWindow::onFileSave()
     settings.setValue("cache/lastDir", info.dir().path());
 
     this->setCursor(Qt::BusyCursor);
-    this->saveFile(fileName);
+
+    QString ext = info.suffix();
+    if (ext == QString("vtm"))
+      {
+      cerr <<  "YEAH" << endl;
+      this->exportVTKFile(fileName);
+      }
+    else
+      {
+      cerr << "NO" << endl;
+      this->saveFile(fileName);
+      }
     this->unsetCursor();
     }
 
@@ -439,6 +453,22 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
     }
 
   this->InputsWidget->getCurrentAssembly()->WriteFile(fileName.toStdString());
+}
+
+void cmbNucMainWindow::exportVTKFile(const QString &fileName)
+{
+  if(!this->InputsWidget->getCurrentAssembly())
+    {
+    qDebug() << "no assembly to save";
+    return;
+    }
+
+  vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
+  vtkSmartPointer<vtkXMLMultiBlockDataWriter> writer =
+    vtkSmartPointer<vtkXMLMultiBlockDataWriter>::New();
+  writer->SetInputData(coredata);
+  writer->SetFileName(fileName.toLocal8Bit().data());
+  writer->Write();
 }
 
 void cmbNucMainWindow::updateMaterialColors()
