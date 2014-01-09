@@ -44,6 +44,7 @@ public slots:
   void onFileSave();
   void openAssemblyFiles(const QStringList &fileNames);
   void saveFile(const QString &fileName);
+  void exportVTKFile(const QString &fileName);
   void ResetView();
   void onInteractionTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);
