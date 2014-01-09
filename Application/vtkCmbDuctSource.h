@@ -21,8 +21,8 @@ PARTICULAR PURPOSE, AND NON-INFRINGEMENT.  THIS SOFTWARE IS PROVIDED ON AN
 PROVIDE
 MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 =========================================================================*/
-#ifndef __cmbNucDuctSource_h
-#define __cmbNucDuctSource_h
+#ifndef __vtkCmbDuctSource_h
+#define __vtkCmbDuctSource_h
 
 #include <vector>
 
@@ -31,16 +31,16 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include "cmbNucPartDefinition.h"
 class vtkPolyData;
 
-// The cmbNucDuctSource is a VTK algorithm which produces a multi-block data-set
+// The vtkCmbDuctSource is a VTK algorithm which produces a multi-block data-set
 // containing vtkPolyData for each of the layers in a rectangular duct. The height
 // and origin of the whole duct can be modified. Layers can be added by specifying
 // their thickness in the X and Y directions.
-class cmbNucDuctSource : public vtkMultiBlockDataSetAlgorithm
+class vtkCmbDuctSource : public vtkMultiBlockDataSetAlgorithm
 {
 public:
-  vtkTypeMacro(cmbNucDuctSource, vtkMultiBlockDataSetAlgorithm);
+  vtkTypeMacro(vtkCmbDuctSource, vtkMultiBlockDataSetAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
-  static cmbNucDuctSource *New();
+  static vtkCmbDuctSource *New();
 
   // Description:
   // Set/get the height of the duct.
@@ -69,8 +69,8 @@ public:
   vtkGetMacro(GeometryType,int);
 
 protected:
-  cmbNucDuctSource();
-  ~cmbNucDuctSource();
+  vtkCmbDuctSource();
+  ~vtkCmbDuctSource();
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
@@ -84,10 +84,8 @@ protected:
   int GeometryType;
 
 private:
-  cmbNucDuctSource(const cmbNucDuctSource&);  // Not implemented.
-  void operator=(const cmbNucDuctSource&);  // Not implemented.
+  vtkCmbDuctSource(const vtkCmbDuctSource&);  // Not implemented.
+  void operator=(const vtkCmbDuctSource&);  // Not implemented.
 };
 
 #endif
-
-

@@ -6,7 +6,7 @@
 #include <fstream>
 #include <limits>
 
-#include "cmbNucDuctSource.h"
+#include "vtkCmbDuctSource.h"
 #include "cmbNucMaterialColors.h"
 #include "vtkCmbConeSource.h"
 #include "vtkCmbLayeredConeSource.h"
@@ -812,7 +812,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
     {
     Duct *duct = this->AssyDuct.Ducts[i];
 
-    cmbNucDuctSource *ductSource = cmbNucDuctSource::New();
+    vtkCmbDuctSource *ductSource = vtkCmbDuctSource::New();
     z = duct->z1;
     height = duct->z2 - duct->z1;
     double deltaZ = height * 0.0005;
