@@ -431,12 +431,10 @@ void cmbNucMainWindow::onFileSave()
     QString ext = info.suffix();
     if (ext == QString("vtm"))
       {
-      cerr <<  "YEAH" << endl;
       this->exportVTKFile(fileName);
       }
     else
       {
-      cerr << "NO" << endl;
       this->saveFile(fileName);
       }
     this->unsetCursor();
