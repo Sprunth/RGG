@@ -41,7 +41,7 @@ public:
 signals:
   // Description:
   // Fired when the current object is modified
-  void currentObjectModified(AssyPartObj* selObj);
+  void objGeometryChanged(AssyPartObj* selObj);
   void currentObjectNameChanged(const QString& name);
 
 public slots:

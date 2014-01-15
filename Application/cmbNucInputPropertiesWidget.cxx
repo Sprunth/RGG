@@ -497,7 +497,7 @@ void cmbNucInputPropertiesWidget::onDuctThicknessChanged()
 void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 {
   pincell->label = this->Internal->PinCellLabel->text().toStdString();
-  emit this->currentObjectModified(pincell);
+  emit this->objGeometryChanged(pincell);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToFrustum(Frustum* frust)
@@ -510,7 +510,7 @@ void cmbNucInputPropertiesWidget::applyToFrustum(Frustum* frust)
   frust->r2 = this->Internal->FrustumRadius2->text().toDouble();
 
   //frust->material = this->Internal->FrustumMaterial->currentText().toStdString();
-  emit this->currentObjectModified(frust);
+  emit this->objGeometryChanged(frust);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
@@ -522,7 +522,7 @@ void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
   cylin->r = this->Internal->CylinderRadius->text().toDouble();
 
   //cylin->material = this->Internal->CylinderMaterial->currentText().toStdString();
-  emit this->currentObjectModified(cylin);
+  emit this->objGeometryChanged(cylin);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
@@ -549,7 +549,7 @@ void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
     duct->thicknesses.push_back(this->Internal->DuctThicknesses.value(i).second);
     }
 
-  emit this->currentObjectModified(duct);
+  emit this->objGeometryChanged(duct);
 }
 
 //-----------------------------------------------------------------------------
@@ -579,13 +579,13 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
     {
     this->HexAssy->applyToGrid(lattice->Grid);
     }
-  emit this->currentObjectModified(lattice);
+  emit this->objGeometryChanged(lattice);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
   assy->MeshSize = this->Internal->MeshSize->text().toDouble();
-  emit this->currentObjectModified(assy);
+  emit this->objGeometryChanged(assy);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
@@ -599,7 +599,7 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
 
-  emit this->currentObjectModified(nucCore);
+  emit this->objGeometryChanged(nucCore);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)

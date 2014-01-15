@@ -83,6 +83,8 @@ protected :
   std::string  RotateDirection;
   double RotateAngle;
 
+  friend class cmbNucMainWindow;
+
   vtkSmartPointer<vtkMultiBlockDataSet> CreateData();
 
 private:

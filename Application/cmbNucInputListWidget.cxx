@@ -175,6 +175,7 @@ cmbNucPartsTreeItem* cmbNucInputListWidget::getCurrentAssemblyNode()
     case CMBNUC_ASSY_FRUSTUM_PIN:
     case CMBNUC_ASSY_CYLINDER_PIN:
     case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
       pItem = selItem->parent()->parent();
       break;
     case CMBNUC_ASSEMBLY:

@@ -211,8 +211,8 @@ void cmbNucMainWindow::initPanels()
     this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
 
   QObject::connect(this->PropertyWidget,
-    SIGNAL(currentObjectModified(AssyPartObj*)), this,
-    SLOT(onObjectModified(AssyPartObj*)));
+    SIGNAL(objGeometryChanged(AssyPartObj*)), this,
+    SLOT(onObjectGeometryChanged(AssyPartObj*)));
   QObject::connect(this->PropertyWidget,
     SIGNAL(currentObjectNameChanged(const QString&)), this,
     SLOT(updatePropertyDockTitle(const QString&)));
@@ -244,10 +244,35 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
     this->updateCoreMaterialColors();
     this->ResetView();
     }
-  else if(selObj->GetType() == CMBNUC_ASSEMBLY)
+  else
     {
-    this->updateAssyMaterialColors(dynamic_cast<cmbNucAssembly*>(selObj));
+    cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
+    this->updateAssyMaterialColors(assy);
     this->ResetView();
+    }
+}
+
+void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
+{
+  if(!obj)
+    {
+    return;
+    }
+
+  if(obj->GetType() != CMBNUC_CORE)
+    {
+    // recreate Assembly geometry.
+    cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
+    if(assy)
+      {
+      assy->CreateData();
+      this->updateAssyMaterialColors(assy);
+      this->ui->qvtkWidget->update();
+      }
+    }
+  else
+    {
+    this->onObjectModified(obj);
     }
 }
 
