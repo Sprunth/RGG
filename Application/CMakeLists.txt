@@ -19,13 +19,13 @@ SET(CMBNuclear_Srcs
   cmbNucAssembly.cxx
   cmbNucAssemblyEditor.cxx
   cmbNucCore.cxx
-  cmbNucDuctSource.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
   cmbNucNewDialog.cxx
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
+  vtkCmbDuctSource.cxx
   vtkCmbLayeredConeSource.cxx
   cmbNucPartsTreeItem.cxx
   cmbNucDragLabel.cxx

@@ -21,7 +21,7 @@ PARTICULAR PURPOSE, AND NON-INFRINGEMENT.  THIS SOFTWARE IS PROVIDED ON AN
 PROVIDE
 MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 =========================================================================*/
-#include "cmbNucDuctSource.h"
+#include "vtkCmbDuctSource.h"
 
 #include "vtkMultiBlockDataSet.h"
 #include "vtkDoubleArray.h"
@@ -38,10 +38,10 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 #include <math.h>
 
-vtkStandardNewMacro(cmbNucDuctSource);
+vtkStandardNewMacro(vtkCmbDuctSource);
 
 //----------------------------------------------------------------------------
-cmbNucDuctSource::cmbNucDuctSource()
+vtkCmbDuctSource::vtkCmbDuctSource()
 {
   std::fill(this->Origin, this->Origin + 3, 0.0);
   this->Height = 0.0;
@@ -50,12 +50,12 @@ cmbNucDuctSource::cmbNucDuctSource()
 }
 
 //----------------------------------------------------------------------------
-cmbNucDuctSource::~cmbNucDuctSource()
+vtkCmbDuctSource::~vtkCmbDuctSource()
 {
 }
 
 //----------------------------------------------------------------------------
-int cmbNucDuctSource::RequestData(
+int vtkCmbDuctSource::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
@@ -112,7 +112,7 @@ int cmbNucDuctSource::RequestData(
 }
 
 //----------------------------------------------------------------------------
-int cmbNucDuctSource::RequestInformation(
+int vtkCmbDuctSource::RequestInformation(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
@@ -123,7 +123,7 @@ int cmbNucDuctSource::RequestInformation(
 }
 
 //----------------------------------------------------------------------------
-vtkPolyData* cmbNucDuctSource::CreateLayer(int layer)
+vtkPolyData* vtkCmbDuctSource::CreateLayer(int layer)
 {
   // get parameters for the layer
   double x = this->Origin[0];
@@ -231,20 +231,20 @@ vtkPolyData* cmbNucDuctSource::CreateLayer(int layer)
 }
 
 //----------------------------------------------------------------------------
-void cmbNucDuctSource::AddLayer(double x, double y)
+void vtkCmbDuctSource::AddLayer(double x, double y)
 {
   this->Layers.push_back(x);
   this->Layers.push_back(y);
 }
 
 //----------------------------------------------------------------------------
-int cmbNucDuctSource::GetNumberOfLayers()
+int vtkCmbDuctSource::GetNumberOfLayers()
 {
   return this->Layers.size() / 2;
 }
 
 //----------------------------------------------------------------------------
-void cmbNucDuctSource::PrintSelf(ostream& os, vtkIndent indent)
+void vtkCmbDuctSource::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
