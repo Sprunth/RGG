@@ -29,6 +29,7 @@ public:
   void updateUI(bool selCore);
   /// get selected part object
   AssyPartObj* getSelectedPart();
+  cmbNucPartsTreeItem* getSelectedPartNode();
 
 signals:
   // Description:

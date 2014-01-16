@@ -23,6 +23,7 @@ public:
 
   QStringList DuctMaterials; // size is the number of layers
   QList<QPair<double, double> > DuctThicknesses; //size is twice the number of layers
+  QPointer <cmbNucPinCellEditor> PinCellEditor;
 };
 
 //-----------------------------------------------------------------------------
@@ -94,8 +95,6 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onAssyLayersChanged()));
 
   // pincell related connections
-  QObject::connect(this->Internal->advancedButton, SIGNAL(clicked()),
-    this, SLOT(showPinCellEditor()));
   QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
     this, SLOT(choosePinLegendColor()));
   QObject::connect(this->Internal->assyColorSelectButton, SIGNAL(clicked()),
@@ -273,14 +272,14 @@ void cmbNucInputPropertiesWidget::onReset()
       this->resetLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pagePinCell);
       pincell = dynamic_cast<PinCell*>(selObj);
       this->resetPinCell(pincell);
-
+      this->Internal->stackedWidget->setCurrentWidget(
+        this->Internal->pagePinCell);
+      this->showPinCellEditor();
       // if the pincell is empty bring up the pin cell editor
-      if (pincell->NumberOfSections() == 0)
-        {this->showPinCellEditor();}
+      // if (pincell->NumberOfSections() == 0)
+      //  {this->showPinCellEditor();}
 
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
@@ -311,8 +310,6 @@ void cmbNucInputPropertiesWidget::onReset()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
 {
-  this->Internal->PinCellLabel->setText(pincell->label.c_str());
-
   // Show color swatch with legendColor
   QPalette palette = this->Internal->colorSwatch->palette();
   palette.setColor(this->Internal->colorSwatch->backgroundRole(), pincell->GetLegendColor());
@@ -496,7 +493,7 @@ void cmbNucInputPropertiesWidget::onDuctThicknessChanged()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 {
-  pincell->label = this->Internal->PinCellLabel->text().toStdString();
+  this->Internal->PinCellEditor->Apply();
   emit this->objGeometryChanged(pincell);
 }
 //-----------------------------------------------------------------------------
@@ -663,18 +660,19 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
   PinCell* pincell = dynamic_cast<PinCell*>(this->CurrentObject);
   if(!pincell)
     {
-    std::cerr << "Error: don't have pincell" << std::endl;
+//    std::cerr << "Error: don't have pincell" << std::endl;
     return;
     }
-
-  cmbNucPinCellEditor *editor = new cmbNucPinCellEditor(this);
-  editor->SetPinCell(pincell);
-  editor->setZScale(this->MainWindow->getZScale());
-  editor->setWindowFlags(Qt::Dialog);
-  connect(editor, SIGNAL(accepted()), this, SLOT(pinCellEditorAccepted()));
-  connect(this->MainWindow, SIGNAL(updateGlobalZScale(double)),
-          editor, SLOT(setZScale(double)));
-  editor->show();
+  if(!this->Internal->PinCellEditor)
+    {
+    this->Internal->PinCellEditor = new cmbNucPinCellEditor(this);
+    this->Internal->pinEditorContainer->addWidget(
+      this->Internal->PinCellEditor);
+    QObject::connect(this->Internal->PinCellEditor,
+      SIGNAL(pincellModified(AssyPartObj*)),
+      this, SIGNAL(objGeometryChanged(AssyPartObj*)));
+    }
+  this->Internal->PinCellEditor->SetPinCell(pincell);
 }
 
 void cmbNucInputPropertiesWidget::choosePinLegendColor()
@@ -744,17 +742,6 @@ void cmbNucInputPropertiesWidget::chooseHexAssyLegendColor()
     }
 }
 
-void cmbNucInputPropertiesWidget::pinCellEditorAccepted()
-{
-  cmbNucPinCellEditor *editor = qobject_cast<cmbNucPinCellEditor *>(sender());
-  if(!editor)
-    {
-    return;
-    }
-
-  this->applyToPinCell(editor->GetPinCell());
-  //emit this->currentObjectModified(editor->GetPinCell());
-}
 void cmbNucInputPropertiesWidget::onCoreLayersChanged()
 {
   this->HexCore->setLayers(this->Internal->hexLattice->value());

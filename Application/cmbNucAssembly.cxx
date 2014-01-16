@@ -791,7 +791,12 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
         if(pincell && (pincell->cylinders.size()+pincell->frustums.size())>0)
           {
           // create polydata for the pincell
-          vtkMultiBlockDataSet *dataSet = this->CreatePinCellMultiBlock(pincell);
+          if(!pincell->CachedData)
+            {
+            pincell->CachedData.TakeReference(
+              cmbNucAssembly::CreatePinCellMultiBlock(pincell));
+            }
+          vtkMultiBlockDataSet *dataSet = pincell->CachedData;
           vtkNew<vtkMultiBlockDataSet> pinDataSet;
           pinDataSet->SetNumberOfBlocks(dataSet->GetNumberOfBlocks());
           for(int block=0; block<dataSet->GetNumberOfBlocks(); block++)
@@ -868,7 +873,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
               }
             pinDataSet->SetBlock(block, transdataSet.GetPointer());
             }
-          dataSet->Delete();
+//          dataSet->Delete();
           this->Data->SetBlock(startBlock+j, pinDataSet.GetPointer());
           }
         else

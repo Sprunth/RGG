@@ -62,6 +62,7 @@ protected slots:
   // updates the block colors based on their materials
   void updateCoreMaterialColors();
   void updateAssyMaterialColors(cmbNucAssembly* assy);
+  void updatePinCellMaterialColors(PinCell*);
 
   // Change the title on the property dock based on selected object
   void updatePropertyDockTitle(const QString& title);

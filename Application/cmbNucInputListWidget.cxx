@@ -151,6 +151,11 @@ AssyPartObj* cmbNucInputListWidget::getSelectedPart()
     }
   return selItem->getPartObject();
 }
+//-----------------------------------------------------------------------------
+cmbNucPartsTreeItem* cmbNucInputListWidget::getSelectedPartNode()
+{
+  return this->getSelectedItem(this->Internal->PartsList);
+}
 
 //-----------------------------------------------------------------------------
 cmbNucPartsTreeItem* cmbNucInputListWidget::getCurrentAssemblyNode()

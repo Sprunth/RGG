@@ -5,6 +5,9 @@
 #include <QColor>
 #include <sstream>
 
+#include <vtkSmartPointer.h>
+#include "vtkMultiBlockDataSet.h"
+
 enum enumNucPartsType
 {
   CMBNUC_CORE,
@@ -152,6 +155,7 @@ enum enumGeometryType {
   // Pin cells also have names (strings) and labels (usually two character
   // strings). In other parts of the code (e.g. cmbNucAssembly) pin cells
   // are refered to by their label.
+
   class PinCell : public AssyPartObj
   {
   public:
@@ -164,6 +168,7 @@ enum enumGeometryType {
       name=label="p1";
       radii[0] = 1.0;
       legendColor = Qt::white;
+      cutaway = false;
       }
 
     ~PinCell()
@@ -290,6 +295,9 @@ enum enumGeometryType {
     std::vector<Frustum*> frustums;
     std::vector<double> radii;
     QColor legendColor;
+    vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
+    bool cutaway;
+
   };
 
   class Duct : public AssyPartObj

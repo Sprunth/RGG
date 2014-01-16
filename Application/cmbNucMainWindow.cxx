@@ -23,6 +23,7 @@
 #include "cmbNucInputListWidget.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucNewDialog.h"
+#include "cmbNucPartsTreeItem.h"
 
 #include "vtkAxesActor.h"
 #include "vtkProperty.h"
@@ -244,7 +245,31 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
     this->updateCoreMaterialColors();
     this->ResetView();
     }
-  else
+  else if( selObj->GetType() == CMBNUC_ASSY_PINCELL ||
+          selObj->GetType() == CMBNUC_ASSY_CYLINDER_PIN ||
+          selObj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN )
+    {
+    PinCell* selPin = NULL;
+    if(selObj->GetType() == CMBNUC_ASSY_PINCELL)
+      {
+      selPin = dynamic_cast<PinCell*>(selObj);
+      }
+    else
+      {
+      cmbNucPartsTreeItem* selItem = this->InputsWidget->getSelectedPartNode();
+      cmbNucPartsTreeItem* pItem = dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent());
+      if(pItem && pItem->getPartObject())
+        {
+        selPin = dynamic_cast<PinCell*>(pItem->getPartObject());
+        }
+      }
+    if(selPin)
+      {
+      this->updatePinCellMaterialColors(selPin);
+      this->ResetView();
+      }
+    }
+  else // assemblies or ducts
     {
     cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
     this->updateAssyMaterialColors(assy);
@@ -259,7 +284,20 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
     return;
     }
 
-  if(obj->GetType() != CMBNUC_CORE)
+  if(obj->GetType() == CMBNUC_CORE)
+    {
+    this->onObjectModified(obj);
+    }
+  else if( obj->GetType() == CMBNUC_ASSY_PINCELL)
+    {
+    PinCell* selPin = dynamic_cast<PinCell*>(obj);
+    if(selPin)
+      {
+      this->updatePinCellMaterialColors(selPin);
+      this->ui->qvtkWidget->update();
+      }
+    }
+  else
     {
     // recreate Assembly geometry.
     cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
@@ -269,10 +307,6 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
       this->updateAssyMaterialColors(assy);
       this->ui->qvtkWidget->update();
       }
-    }
-  else
-    {
-    this->onObjectModified(obj);
     }
 }
 
@@ -479,6 +513,48 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
     }
 
   this->InputsWidget->getCurrentAssembly()->WriteFile(fileName.toStdString());
+}
+
+void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
+{
+  if(!pin)
+    {
+    return;
+    }
+  vtkMultiBlockDataSet *data_set = pin->CachedData;
+
+  this->Mapper->SetInputDataObject(data_set);
+  vtkCompositeDataDisplayAttributes *attributes =
+    this->Mapper->GetCompositeDataDisplayAttributes();
+
+  size_t numCyls = pin->cylinders.size();
+  size_t numFrus = pin->frustums.size();
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  unsigned int flat_index = 1; // start from first child
+  for(unsigned int idx=0; idx<data_set->GetNumberOfBlocks(); idx++)
+    {
+    std::string pinMaterial;
+    vtkMultiBlockDataSet* aSection = vtkMultiBlockDataSet::SafeDownCast(
+      data_set->GetBlock(idx));
+    if(idx < numCyls)
+      {
+      flat_index++; // increase one for this cylinder
+      for(int k = 0; k < pin->GetNumberOfLayers(); k++)
+        {
+        pinMaterial = pin->cylinders[idx]->materials[k];
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++, pinMaterial);
+        }
+      }
+    else
+      {
+      flat_index++; // increase one for this frustum
+      for(int k = 0; k < pin->GetNumberOfLayers(); k++)
+        {
+        pinMaterial = pin->frustums[idx-numCyls]->materials[k];
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++, pinMaterial);
+        }
+      }
+    }
 }
 
 void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
