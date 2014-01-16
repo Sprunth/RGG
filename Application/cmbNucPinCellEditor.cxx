@@ -590,10 +590,10 @@ void cmbNucPinCellEditor::sectionTypeComboBoxChanged(const QString &type)
     double z = (obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN) ?
       dynamic_cast<Frustum*>(obj)->z1 :
     dynamic_cast<Cylinder*>(obj)->z1;
+    this->PinCellObject->RemoveSection(obj);
     AssyPartObj* objPart = this->createComponentObject(row, z);
     this->UpdateLayerMaterials();
     this->UpdateData();
-    this->PinCellObject->RemoveSection(obj);
     }
 }
 

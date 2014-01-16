@@ -669,6 +669,11 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     pinNode->setFlags(itemFlags); // not editable
     pinNode->setChildIndicatorPolicy(
       QTreeWidgetItem::DontShowIndicatorWhenChildless);
+
+    /// don't need this anymore, since the PinCellEditor is integrated into
+    /// Main UI panels
+
+/*
     for(size_t j = 0; j < pincell->cylinders.size(); j++)
       {
       Cylinder *cylin = pincell->cylinders[j];
@@ -684,6 +689,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
       fNode->setText(0, QString("frustum").append(QString::number(j+1)));
       fNode->setFlags(itemFlags);
       }
+*/
     }
 
   this->Internal->PartsList->blockSignals(false);
