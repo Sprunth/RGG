@@ -126,29 +126,12 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
 {
   this->Ui->setupUi(this);
 
-  this->resize(1200, 700);
-  this->Ui->splitter->setSizes(QList<int>() << 400 << 1200 - 400);
-
-  this->Renderer = vtkSmartPointer<vtkRenderer>::New();
-  this->Ui->qvtkWidget->GetRenderWindow()->AddRenderer(this->Renderer);
-  this->Actor = vtkSmartPointer<vtkActor>::New();
-  this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
-  this->Actor->SetMapper(this->Mapper);
-  this->Renderer->AddActor(this->Actor);
-
-  vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
-  this->Mapper->SetCompositeDataDisplayAttributes(attributes);
-  attributes->Delete();
-
   this->Ui->layersTable->setRowCount(0);
   this->Ui->layersTable->setColumnCount(2);
   this->Ui->layersTable->horizontalHeader()->setStretchLastSection(true);
   this->Ui->layersTable->setHorizontalHeaderLabels(
     QStringList() << "Material" << "Radius (normalized)"
   );
-
-  connect(this->Ui->acceptButton, SIGNAL(clicked()), this, SLOT(Apply()));
-  connect(this->Ui->rejectButton, SIGNAL(clicked()), this, SLOT(close()));
 
   connect(this->Ui->addButton, SIGNAL(clicked()), this, SLOT(addComponent()));
   connect(this->Ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteComponent()));
@@ -177,6 +160,10 @@ cmbNucPinCellEditor::~cmbNucPinCellEditor()
 
 void cmbNucPinCellEditor::SetPinCell(PinCell *pincell)
 {
+  if(this->PinCellObject == pincell)
+    {
+    return;
+    }
   this->PinCellObject = pincell;
 
   this->Ui->nameLineEdit->setText(pincell->name.c_str());
@@ -237,7 +224,7 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell)
     selItem->setSelected(true);
     }
 
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 PinCell* cmbNucPinCellEditor::GetPinCell()
@@ -248,9 +235,6 @@ PinCell* cmbNucPinCellEditor::GetPinCell()
 void cmbNucPinCellEditor::Apply()
 {
   this->UpdatePinCell();
-
-  emit this->accepted();
-  this->close();
 }
 
 void cmbNucPinCellEditor::UpdatePinCell()
@@ -405,52 +389,13 @@ void cmbNucPinCellEditor::UpdateLayerMaterials()
     }
 }
 
-void cmbNucPinCellEditor::UpdatePolyData()
+void cmbNucPinCellEditor::UpdateData()
 {
   bool cutaway = this->Ui->cutAwayViewCheckBox->isChecked();
-  vtkMultiBlockDataSet *data_set =
-    cmbNucAssembly::CreatePinCellMultiBlock(this->PinCellObject, cutaway);
-
-  this->Mapper->SetInputDataObject(data_set);
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-
-  size_t numCyls = this->PinCellObject->cylinders.size();
-  size_t numFrus = this->PinCellObject->frustums.size();
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  unsigned int flat_index = 1; // start from first child
-  for(unsigned int idx=0; idx<data_set->GetNumberOfBlocks(); idx++)
-    {
-    std::string pinMaterial;
-    vtkMultiBlockDataSet* aSection = vtkMultiBlockDataSet::SafeDownCast(
-      data_set->GetBlock(idx));
-    if(idx < numCyls)
-      {
-      flat_index++; // increase one for this cylinder
-      for(int k = 0; k < this->PinCellObject->GetNumberOfLayers(); k++)
-        {
-        pinMaterial = this->PinCellObject->cylinders[idx]->materials[k];
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++, pinMaterial);
-        }
-      }
-    else
-      {
-      flat_index++; // increase one for this frustum
-      for(int k = 0; k < this->PinCellObject->GetNumberOfLayers(); k++)
-        {
-        pinMaterial = this->PinCellObject->frustums[idx-numCyls]->materials[k];
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++, pinMaterial);
-        }
-      }
-    }
-  data_set->Delete();
-  this->UpdateRenderView();
-}
-
-void cmbNucPinCellEditor::UpdateRenderView()
-{
-  this->Renderer->ResetCamera();
-  this->Ui->qvtkWidget->update();
+  this->PinCellObject->cutaway = cutaway;
+  this->PinCellObject->CachedData.TakeReference(
+    cmbNucAssembly::CreatePinCellMultiBlock(this->PinCellObject, cutaway));
+  emit this->pincellModified(this->PinCellObject);
 }
 
 void cmbNucPinCellEditor::addComponent()
@@ -484,7 +429,7 @@ void cmbNucPinCellEditor::addComponent()
 
   // update view
   this->UpdatePinCell();
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 void cmbNucPinCellEditor::createComponentItem(
@@ -533,7 +478,7 @@ void cmbNucPinCellEditor::deleteComponent()
 
   // update view
   this->UpdatePinCell();
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 void cmbNucPinCellEditor::tableCellChanged(int row, int col)
@@ -593,7 +538,7 @@ void cmbNucPinCellEditor::tableCellChanged(int row, int col)
 
   // update pin cell and render view
   this->UpdatePinCell();
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 void cmbNucPinCellEditor::numberOfLayersChanged(int layers)
@@ -619,7 +564,7 @@ void cmbNucPinCellEditor::numberOfLayersChanged(int layers)
       comboBox->currentText().toStdString());
     }
   this->Ui->layersTable->blockSignals(false);
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 void cmbNucPinCellEditor::sectionTypeComboBoxChanged(const QString &type)
@@ -645,10 +590,10 @@ void cmbNucPinCellEditor::sectionTypeComboBoxChanged(const QString &type)
     double z = (obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN) ?
       dynamic_cast<Frustum*>(obj)->z1 :
     dynamic_cast<Cylinder*>(obj)->z1;
+    this->PinCellObject->RemoveSection(obj);
     AssyPartObj* objPart = this->createComponentObject(row, z);
     this->UpdateLayerMaterials();
-    this->UpdatePolyData();
-    this->PinCellObject->RemoveSection(obj);
+    this->UpdateData();
     }
 }
 
@@ -668,13 +613,13 @@ void cmbNucPinCellEditor::layerTableCellChanged(int row, int col)
       this->PinCellObject->radii[row] = item->text().toDouble();
       }
     }
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 void cmbNucPinCellEditor::onUpdateLayerMaterial()
 {
   this->UpdateLayerMaterials();
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 void cmbNucPinCellEditor::onPieceSelected()
@@ -770,15 +715,7 @@ AssyPartObj *cmbNucPinCellEditor::getSelectedPiece()
 //-----------------------------------------------------------------------------
 void cmbNucPinCellEditor::onCutAwayCheckBoxToggled(bool state)
 {
-  this->UpdatePolyData();
-  this->UpdateRenderView();
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucPinCellEditor::setZScale(double scale)
-{
-    this->Actor->SetScale(1, 1, scale);
-    this->UpdateRenderView();
+  this->UpdateData();
 }
 
 //-----------------------------------------------------------------------------
@@ -812,7 +749,7 @@ void cmbNucPinCellEditor::addLayerBefore()
   this->Ui->layersTable->setItem(row, 1, item);
   this->Ui->layersTable->blockSignals(false);
   this->rebuildLayersFromTable();
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 //-----------------------------------------------------------------------------
@@ -862,7 +799,7 @@ void cmbNucPinCellEditor::addLayerAfter()
   this->Ui->layersTable->setItem(row, 1, item);
   this->Ui->layersTable->blockSignals(false);
   this->rebuildLayersFromTable();
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 //-----------------------------------------------------------------------------
@@ -887,7 +824,7 @@ void cmbNucPinCellEditor::deleteLayer()
   this->Ui->layersTable->removeRow(selItem->row());
   this->Ui->layersTable->blockSignals(false);
   this->rebuildLayersFromTable();
-  this->UpdatePolyData();
+  this->UpdateData();
 }
 
 //-----------------------------------------------------------------------------

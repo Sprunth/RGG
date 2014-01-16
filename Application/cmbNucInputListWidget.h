@@ -6,6 +6,7 @@
 
 class cmbNucAssembly;
 class cmbNucCore;
+class AssyPartObj;
 class cmbNucInputListWidgetInternal;
 class QTreeWidget;
 class QTreeWidgetItem;
@@ -26,9 +27,9 @@ public:
   /// update UI and if selCore is not set,
   /// the last assembly lattice will be selected by default,
   void updateUI(bool selCore);
-
-  void setGeometryType(enumGeometryType geometry);
-  enumGeometryType getGeometryType();
+  /// get selected part object
+  AssyPartObj* getSelectedPart();
+  cmbNucPartsTreeItem* getSelectedPartNode();
 
 signals:
   // Description:
@@ -79,7 +80,6 @@ private slots:
 
 private:
   cmbNucInputListWidgetInternal* Internal;
-  enumGeometryType GeometryType;
 
   /// clear UI
   void initUI();

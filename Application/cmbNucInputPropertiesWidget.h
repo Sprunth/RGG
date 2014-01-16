@@ -41,7 +41,7 @@ public:
 signals:
   // Description:
   // Fired when the current object is modified
-  void currentObjectModified(AssyPartObj* selObj);
+  void objGeometryChanged(AssyPartObj* selObj);
   void currentObjectNameChanged(const QString& name);
 
 public slots:
@@ -83,7 +83,6 @@ protected slots:
   void onCoreDimensionChanged();
 
   void showPinCellEditor();
-  void pinCellEditorAccepted();
 
   void onCoreLayersChanged();
   void onAssyLayersChanged();

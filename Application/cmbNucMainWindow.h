@@ -58,9 +58,12 @@ protected:
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
   void onObjectModified(AssyPartObj* obj=NULL);
+  void onObjectGeometryChanged(AssyPartObj* obj);
 
   // updates the block colors based on their materials
-  void updateMaterialColors();
+  void updateCoreMaterialColors();
+  void updateAssyMaterialColors(cmbNucAssembly* assy);
+  void updatePinCellMaterialColors(PinCell*);
 
   // Change the title on the property dock based on selected object
   void updatePropertyDockTitle(const QString& title);

@@ -2,11 +2,8 @@
 #define __cmbNucPinCellEditor_h
 
 #include <QWidget>
-#include <vtkActor.h>
-#include <vtkCompositePolyDataMapper2.h>
-#include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
-#include <vtkClipClosedSurface.h>
+#include "vtkMultiBlockDataSet.h"
 
 #include "ui_cmbNucPinCellEditor.h"
 
@@ -32,17 +29,14 @@ public:
 
   void SetAssembly(cmbNucAssembly *assembly) { this->AssemblyObject = assembly; }
 
+signals:
+  void pincellModified(AssyPartObj*);
+
 public slots:
   void Apply();
   void UpdatePinCell();
-  void UpdatePolyData();
-  void UpdateRenderView();
+  void UpdateData();
   void onUpdateLayerMaterial();
-  void setZScale(double scale);
-
-signals:
-  void accepted();
-  void rejected();
 
 private slots:
   void tableCellChanged(int row, int col);
@@ -70,9 +64,7 @@ private:
   Ui::cmbNucPinCellEditor *Ui;
   PinCell *PinCellObject;
   cmbNucAssembly *AssemblyObject;
-  vtkSmartPointer<vtkActor> Actor;
-  vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
-  vtkSmartPointer<vtkRenderer> Renderer;
+
 };
 
 #endif // __cmbNucPinCellEditor_h

@@ -10,6 +10,8 @@
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
 
+class vtkCompositeDataDisplayAttributes;
+
 // Represents an assembly. Assemblies are composed of pin cells (cmbNucPinCell)
 // and the surrounding ducting. Assemblies can be loaded and stored to files
 // with the ReadFile() and Write() file methods. Assemblies are grouped together
@@ -50,6 +52,9 @@ public:
   QColor GetLegendColor() const;
   void SetLegendColor(const QColor& color);
 
+  // updates the block colors based on their materials
+  void updateMaterialColors(unsigned int& realflatidx,
+    vtkCompositeDataDisplayAttributes *attributes);
 
   // Returns a multi-block data set containing the geometry for
   // the assembly. This is used to render the assembly in 3D.
@@ -59,6 +64,10 @@ public:
   // assignment of the ducts and pincells inside this assembly
   void RemoveMaterial(const std::string &name);
 
+  // creates the multiblock used to render the pincell. if cutaway is true the
+  // pincell will be cut in half length-wise to show the interior layers.
+  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell, bool cutaway = false);
+
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;
@@ -66,15 +75,17 @@ public:
   std::string label;
   double MeshSize;
 
+protected :
+
   // For Hex geometry
   double RadialMeshSize;
   double AxialMeshSize;
   std::string  RotateDirection;
   double RotateAngle;
 
-  // creates the multiblock used to render the pincell. if cutaway is true the
-  // pincell will be cut in half length-wise to show the interior layers.
-  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell, bool cutaway = false);
+  friend class cmbNucMainWindow;
+
+  vtkSmartPointer<vtkMultiBlockDataSet> CreateData();
 
 private:
   std::string GeometryType;

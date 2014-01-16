@@ -23,6 +23,7 @@ public:
 
   QStringList DuctMaterials; // size is the number of layers
   QList<QPair<double, double> > DuctThicknesses; //size is twice the number of layers
+  QPointer <cmbNucPinCellEditor> PinCellEditor;
 };
 
 //-----------------------------------------------------------------------------
@@ -94,8 +95,6 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onAssyLayersChanged()));
 
   // pincell related connections
-  QObject::connect(this->Internal->advancedButton, SIGNAL(clicked()),
-    this, SLOT(showPinCellEditor()));
   QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
     this, SLOT(choosePinLegendColor()));
   QObject::connect(this->Internal->assyColorSelectButton, SIGNAL(clicked()),
@@ -273,14 +272,14 @@ void cmbNucInputPropertiesWidget::onReset()
       this->resetLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pagePinCell);
       pincell = dynamic_cast<PinCell*>(selObj);
       this->resetPinCell(pincell);
-
+      this->Internal->stackedWidget->setCurrentWidget(
+        this->Internal->pagePinCell);
+      this->showPinCellEditor();
       // if the pincell is empty bring up the pin cell editor
-      if (pincell->NumberOfSections() == 0)
-        {this->showPinCellEditor();}
+      // if (pincell->NumberOfSections() == 0)
+      //  {this->showPinCellEditor();}
 
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
@@ -311,8 +310,6 @@ void cmbNucInputPropertiesWidget::onReset()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
 {
-  this->Internal->PinCellLabel->setText(pincell->label.c_str());
-
   // Show color swatch with legendColor
   QPalette palette = this->Internal->colorSwatch->palette();
   palette.setColor(this->Internal->colorSwatch->backgroundRole(), pincell->GetLegendColor());
@@ -496,8 +493,8 @@ void cmbNucInputPropertiesWidget::onDuctThicknessChanged()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 {
-  pincell->label = this->Internal->PinCellLabel->text().toStdString();
-  emit this->currentObjectModified(pincell);
+  this->Internal->PinCellEditor->Apply();
+  emit this->objGeometryChanged(pincell);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToFrustum(Frustum* frust)
@@ -510,7 +507,7 @@ void cmbNucInputPropertiesWidget::applyToFrustum(Frustum* frust)
   frust->r2 = this->Internal->FrustumRadius2->text().toDouble();
 
   //frust->material = this->Internal->FrustumMaterial->currentText().toStdString();
-  emit this->currentObjectModified(frust);
+  emit this->objGeometryChanged(frust);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
@@ -522,7 +519,7 @@ void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
   cylin->r = this->Internal->CylinderRadius->text().toDouble();
 
   //cylin->material = this->Internal->CylinderMaterial->currentText().toStdString();
-  emit this->currentObjectModified(cylin);
+  emit this->objGeometryChanged(cylin);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
@@ -549,7 +546,7 @@ void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
     duct->thicknesses.push_back(this->Internal->DuctThicknesses.value(i).second);
     }
 
-  emit this->currentObjectModified(duct);
+  emit this->objGeometryChanged(duct);
 }
 
 //-----------------------------------------------------------------------------
@@ -579,13 +576,13 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
     {
     this->HexAssy->applyToGrid(lattice->Grid);
     }
-  emit this->currentObjectModified(lattice);
+  emit this->objGeometryChanged(lattice);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
   assy->MeshSize = this->Internal->MeshSize->text().toDouble();
-  emit this->currentObjectModified(assy);
+  emit this->objGeometryChanged(assy);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
@@ -599,7 +596,7 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
 
-  emit this->currentObjectModified(nucCore);
+  emit this->objGeometryChanged(nucCore);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
@@ -663,18 +660,19 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
   PinCell* pincell = dynamic_cast<PinCell*>(this->CurrentObject);
   if(!pincell)
     {
-    std::cerr << "Error: don't have pincell" << std::endl;
+//    std::cerr << "Error: don't have pincell" << std::endl;
     return;
     }
-
-  cmbNucPinCellEditor *editor = new cmbNucPinCellEditor(this);
-  editor->SetPinCell(pincell);
-  editor->setZScale(this->MainWindow->getZScale());
-  editor->setWindowFlags(Qt::Dialog);
-  connect(editor, SIGNAL(accepted()), this, SLOT(pinCellEditorAccepted()));
-  connect(this->MainWindow, SIGNAL(updateGlobalZScale(double)),
-          editor, SLOT(setZScale(double)));
-  editor->show();
+  if(!this->Internal->PinCellEditor)
+    {
+    this->Internal->PinCellEditor = new cmbNucPinCellEditor(this);
+    this->Internal->pinEditorContainer->addWidget(
+      this->Internal->PinCellEditor);
+    QObject::connect(this->Internal->PinCellEditor,
+      SIGNAL(pincellModified(AssyPartObj*)),
+      this, SIGNAL(objGeometryChanged(AssyPartObj*)));
+    }
+  this->Internal->PinCellEditor->SetPinCell(pincell);
 }
 
 void cmbNucInputPropertiesWidget::choosePinLegendColor()
@@ -744,17 +742,6 @@ void cmbNucInputPropertiesWidget::chooseHexAssyLegendColor()
     }
 }
 
-void cmbNucInputPropertiesWidget::pinCellEditorAccepted()
-{
-  cmbNucPinCellEditor *editor = qobject_cast<cmbNucPinCellEditor *>(sender());
-  if(!editor)
-    {
-    return;
-    }
-
-  this->applyToPinCell(editor->GetPinCell());
-  //emit this->currentObjectModified(editor->GetPinCell());
-}
 void cmbNucInputPropertiesWidget::onCoreLayersChanged()
 {
   this->HexCore->setLayers(this->Internal->hexLattice->value());
