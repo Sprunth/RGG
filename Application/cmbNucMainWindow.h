@@ -23,6 +23,7 @@ class cmbNucInputPropertiesWidget;
 class cmbNucInputListWidget;
 class cmbNucMaterialColors;
 class cmbNucNewDialog;
+class cmbNucExportDialog;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -74,6 +75,9 @@ protected slots:
   // runs assygen
   void onRunAssygen();
 
+  // Runs Assygen, Cubit, and CoreGen
+  void exportRGG();
+
   // called when the z-scale slider or spin box changes
   void zScaleChanged(int value);
 
@@ -88,6 +92,7 @@ private:
 
   cmbNucCore *NuclearCore;
   cmbNucNewDialog *NewDialog;
+  cmbNucExportDialog *ExportDialog;
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 

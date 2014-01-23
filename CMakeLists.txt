@@ -128,6 +128,11 @@ FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})  # include UseQt4.cmake
 
 #-----------------------------------------------------------------------------
+# Require Remus for exporting
+find_package(Remus REQUIRED)
+include_directories(${Remus_INCLUDE_DIR})
+
+#-----------------------------------------------------------------------------
 # Libs
 #
 # add_subdirectory(Libs)

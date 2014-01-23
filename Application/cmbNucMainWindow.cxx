@@ -36,7 +36,9 @@
 #include "cmbNucInputListWidget.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucNewDialog.h"
+#include "cmbNucExportDialog.h"
 #include "cmbNucPartsTreeItem.h"
+#include "cmbNucExport.h"
 
 #include "vtkCmbLayeredConeSource.h"
 
@@ -98,6 +100,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->NuclearCore = new cmbNucCore();
 
   this->NewDialog = new cmbNucNewDialog(this);
+  this->ExportDialog = new cmbNucExportDialog(this);
 
   connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
@@ -146,6 +149,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
   connect(this->ui->actionPreferences, SIGNAL(triggered()), this, SLOT(onShowPreferences()));
   connect(this->ui->actionRunAssygen, SIGNAL(triggered()), this, SLOT(onRunAssygen()));
+  connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
   connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
           this, SLOT(useParallelProjection(bool)));
 
@@ -656,9 +660,33 @@ void cmbNucMainWindow::onShowPreferences()
 {
 }
 
+void cmbNucMainWindow::exportRGG()
+{
+  this->ExportDialog->show();
+}
+
 void cmbNucMainWindow::onRunAssygen()
 {
+#if 0
+  std::vector<std::string> assygenInput;
+  assygenInput.push_back("/Users/jacobbecker/Documents/sixth_hexflatcore/a1");
+  assygenInput.push_back("/Users/jacobbecker/Documents/sixth_hexflatcore/a2");
+  assygenInput.push_back("/Users/jacobbecker/Documents/sixth_hexflatcore/a3");
+  std::string coregenInput = "/Users/jacobbecker/Documents/sixth_hexflatcore/sixth_hexflatcore";
+  std::string assygenExe = "/Users/jacobbecker/Programing/SiMBA/build/meshkit/install/bin/assygen";
+  std::string cubitExe = "/Applications/Cubit-13.1/Cubit.app/Contents/MacOS/Cubit";
+  std::string coregenExe = "/Users/jacobbecker/Programing/SiMBA/build/meshkit/install/bin/coregen";
+  std::string em;
+  qDebug() << "EXPORT!";
+  if(!cmbNucExport::cmbNucExport(assygenExe,cubitExe,coregenExe,assygenInput,coregenInput,em))
+    {
+    qDebug() << QString(em.c_str());
+    }
+  else
+    qDebug() << QString("Successfully RAN");
   // write input file
+#endif
+#if 0
   QTemporaryFile file("XXXXXX.inp");
   file.setAutoRemove(false);
   file.open();
@@ -678,6 +706,7 @@ void cmbNucMainWindow::onRunAssygen()
   proc.waitForFinished(-1);
   qDebug() << proc.readAllStandardOutput();
   qDebug() << proc.readAllStandardError();
+#endif
 }
 
 void cmbNucMainWindow::zScaleChanged(int value)
