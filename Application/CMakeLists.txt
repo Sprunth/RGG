@@ -6,6 +6,10 @@ INCLUDE(${VTK_USE_FILE}) # include UseVTK.cmake
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})  # include UseQt4.cmake
 
+FIND_PACKAGE(Remus REQUIRED)
+INCLUDE(${Remus_INCLUDE_DIR})
+message("${Remus_INCLUDE_DIR}")
+
 # support for out-of-source build
 INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_BINARY_DIR} #this is where ui_qNucMainWindow.h is generated
@@ -32,6 +36,9 @@ SET(CMBNuclear_Srcs
   cmbNucPinCellEditor.cxx
   cmbNucHexLattice.cxx
   HexLatticeItem.cxx
+  cmbNucExport.cxx
+  cmbNucExportDialog.cxx
+  cmbNucPreferencesDialog.cxx
 )
 
 SET(CMBNuclear_UI
@@ -40,6 +47,9 @@ SET(CMBNuclear_UI
   qInputListWidget.ui
   qInputPropertiesWidget.ui
   cmbNucPinCellEditor.ui
+  qExporterDialog.ui
+  qProgress.ui
+  Preferences.ui
 )
 
 SET(CMBNuclear_Headers
@@ -53,6 +63,9 @@ SET(CMBNuclear_Headers
   cmbNucPinCellEditor.h
   cmbNucHexLattice.h
   HexLatticeItem.h
+  cmbNucExport.h
+  cmbNucExportDialog.h
+  cmbNucPreferencesDialog.h
 )
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})
@@ -69,7 +82,7 @@ SOURCE_GROUP("Generated" FILES
 )
 
 ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES})
-TARGET_LINK_LIBRARIES( CMBNuclear ${QT_LIBRARIES} ${VTK_LIBRARIES} )
+TARGET_LINK_LIBRARIES( CMBNuclear RemusClient RemusWorker RemusServer ${QT_LIBRARIES} ${VTK_LIBRARIES} )
 
 # The initial material color file
 set (materialColorsName "materialcolors")

@@ -23,6 +23,8 @@ class cmbNucInputPropertiesWidget;
 class cmbNucInputListWidget;
 class cmbNucMaterialColors;
 class cmbNucNewDialog;
+class cmbNucExportDialog;
+class cmbNucPreferencesDialog;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -68,11 +70,11 @@ protected slots:
   // Change the title on the property dock based on selected object
   void updatePropertyDockTitle(const QString& title);
 
-  // shows the preferences dialog
-  void onShowPreferences();
-
   // runs assygen
   void onRunAssygen();
+
+  // Runs Assygen, Cubit, and CoreGen
+  void exportRGG();
 
   // called when the z-scale slider or spin box changes
   void zScaleChanged(int value);
@@ -88,6 +90,8 @@ private:
 
   cmbNucCore *NuclearCore;
   cmbNucNewDialog *NewDialog;
+  cmbNucExportDialog *ExportDialog;
+  cmbNucPreferencesDialog *Preferences;
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 
