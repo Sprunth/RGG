@@ -60,6 +60,7 @@ void cmbNucExportDialog::exportFile(cmbNucCore * core)
   this->ui->cubitExecutable->setText(cubitexe);
   CoregenFile = core->FileName.c_str();
   this->ui->coregenInputFile->setText(CoregenFile);
+  this->AssygenFileList.clear();
   for (size_t i = 0; i < core->numberOfAssemblies(); ++i)
     {
     this->AssygenFileList.append(QString(core->GetAssembly(i)->FileName.c_str()));
