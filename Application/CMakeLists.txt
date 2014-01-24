@@ -38,6 +38,7 @@ SET(CMBNuclear_Srcs
   HexLatticeItem.cxx
   cmbNucExport.cxx
   cmbNucExportDialog.cxx
+  cmbNucPreferencesDialog.cxx
 )
 
 SET(CMBNuclear_UI
@@ -48,6 +49,7 @@ SET(CMBNuclear_UI
   cmbNucPinCellEditor.ui
   qExporterDialog.ui
   qProgress.ui
+  Preferences.ui
 )
 
 SET(CMBNuclear_Headers
@@ -63,6 +65,7 @@ SET(CMBNuclear_Headers
   HexLatticeItem.h
   cmbNucExport.h
   cmbNucExportDialog.h
+  cmbNucPreferencesDialog.h
 )
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})

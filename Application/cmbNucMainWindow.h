@@ -24,6 +24,7 @@ class cmbNucInputListWidget;
 class cmbNucMaterialColors;
 class cmbNucNewDialog;
 class cmbNucExportDialog;
+class cmbNucPreferencesDialog;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -69,9 +70,6 @@ protected slots:
   // Change the title on the property dock based on selected object
   void updatePropertyDockTitle(const QString& title);
 
-  // shows the preferences dialog
-  void onShowPreferences();
-
   // runs assygen
   void onRunAssygen();
 
@@ -93,6 +91,7 @@ private:
   cmbNucCore *NuclearCore;
   cmbNucNewDialog *NewDialog;
   cmbNucExportDialog *ExportDialog;
+  cmbNucPreferencesDialog *Preferences;
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 

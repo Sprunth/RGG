@@ -294,12 +294,14 @@ bool cmbNucCore::IsHexType()
 void cmbNucCore::ReadFile(const std::string &FileName,
                           int numDefaultColors, int defaultColors[][3])
 {
+  this->FileName = "";
   std::ifstream input(FileName.c_str());
   if(!input.is_open())
     {
     std::cerr << "failed to open input file" << std::endl;
     return;
     }
+  this->FileName = FileName;
   QFileInfo info(FileName.c_str());
   std::string strPath = info.dir().path().toStdString();
 

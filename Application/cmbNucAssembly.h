@@ -74,6 +74,7 @@ public:
   Lattice AssyLattice;
   std::string label;
   double MeshSize;
+  std::string FileName;
 
 protected :
 

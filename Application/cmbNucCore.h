@@ -93,7 +93,11 @@ public:
   Lattice CoreLattice;
   std::string BackgroudMeshFile;
   std::string GeometryType;
+  std::string FileName;
   int HexSymmetry;
+
+  size_t numberOfAssemblies() const
+  { return Assemblies.size(); }
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;

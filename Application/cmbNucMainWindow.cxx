@@ -39,6 +39,7 @@
 #include "cmbNucExportDialog.h"
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
+#include "cmbNucPreferencesDialog.h"
 
 #include "vtkCmbLayeredConeSource.h"
 
@@ -101,6 +102,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->NewDialog = new cmbNucNewDialog(this);
   this->ExportDialog = new cmbNucExportDialog(this);
+  this->Preferences = new cmbNucPreferencesDialog(this);
 
   connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
@@ -147,7 +149,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionOpenCoreFile, SIGNAL(triggered()), this, SLOT(onFileOpenCore()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
-  connect(this->ui->actionPreferences, SIGNAL(triggered()), this, SLOT(onShowPreferences()));
+  connect(this->ui->actionPreferences, SIGNAL(triggered()),
+          this->Preferences, SLOT(setPreferences()));
   connect(this->ui->actionRunAssygen, SIGNAL(triggered()), this, SLOT(onRunAssygen()));
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
   connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
@@ -656,13 +659,9 @@ void cmbNucMainWindow::updateCoreMaterialColors()
     }
 }
 
-void cmbNucMainWindow::onShowPreferences()
-{
-}
-
 void cmbNucMainWindow::exportRGG()
 {
-  this->ExportDialog->show();
+  this->ExportDialog->exportFile(NuclearCore);
 }
 
 void cmbNucMainWindow::onRunAssygen()

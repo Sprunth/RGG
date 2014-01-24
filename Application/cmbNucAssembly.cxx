@@ -140,6 +140,7 @@ bool cmbNucAssembly::IsHexType()
 
 void cmbNucAssembly::ReadFile(const std::string &FileName)
 {
+  this->FileName = "";
   std::ifstream input(FileName.c_str());
   std::map<std::string, std::string> materialLabelMap;
   std::string mlabel;
@@ -148,6 +149,7 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
     std::cerr << "failed to open input file" << std::endl;
     return;
     }
+  this->FileName = FileName;
 
   while(!input.eof())
     {
