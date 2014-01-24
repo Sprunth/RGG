@@ -28,11 +28,11 @@ struct ExporterInput
   }
   ExporterInput(std::string exeDir, std::string fun, std::string file)
   :ExeDir(exeDir), Function(fun),FileArg(file)
-  {}
+  {  }
   ExporterInput(QString exeDir, QString fun, QString file)
-  :ExeDir(exeDir.toStdString()), Function(fun.toStdString()),
-   FileArg(file.toStdString())
-  {}
+  :ExeDir(exeDir.trimmed().toStdString()), Function(fun.trimmed().toStdString()),
+   FileArg(file.trimmed().toStdString())
+  {  }
   ExporterInput(const remus::worker::Job& job)
   {
     std::stringstream ss(job.details());
@@ -130,12 +130,20 @@ void cmbNucExporterWorker::run()
 
     //make a cleaned up path with no relative
     std::vector<std::string> args;
-    args.push_back(input.FileArg);
     for( std::vector<std::string>::const_iterator i = ExtraArgs.begin();
         i < ExtraArgs.end(); ++i )
     {
       args.push_back(*i);
     }
+    args.push_back(input.FileArg);
+
+    qDebug() << "FUNCTION: " << input.Function.c_str();
+    for( std::vector<std::string>::const_iterator i = args.begin();
+        i < args.end(); ++i )
+    {
+      qDebug() << "Arg: \"" << i->c_str() << "\"";
+    }
+
 
     remus::common::ExecuteProcess* process = new remus::common::ExecuteProcess( input.Function, args);
 
@@ -313,6 +321,7 @@ void cmbNucExport::run( const QString assygenExe,
 
     qDebug() << "cubit";
     emit currentProcess("cubit " + name + ".jou");
+    qDebug() <<pass + ".jou";
     lr = ce.getOutput(ExporterInput(path, cubitExe, pass + ".jou"));
     current++;
     emit progress(static_cast<int>(current/total_number_of_file*100));
@@ -351,20 +360,18 @@ void cmbNucExport::run( const QString assygenExe,
   workerThread[1].quit();
    qDebug() << "stoping thread 3";
   workerThread[2].quit();
+  qDebug() << "waiting thread 1";
   workerThread[0].wait();
+  qDebug() << "waiting thread 2";
   workerThread[1].wait();
+  qDebug() << "waiting thread 3";
   workerThread[2].wait();
-#if 0 //do we need to delete memory???
   qDebug() << "DELETING WORKER 1";
-  assygenWorker->moveToThread(QThread::currentThread());
   delete assygenWorker;
   qDebug() << "DELETING WORKER 2";
-  coregenWorker->moveToThread(QThread::currentThread());
   delete coregenWorker;
   qDebug() << "DELETING WORKER 3";
-  cubitWorker->moveToThread(QThread::currentThread());
   delete cubitWorker;
-#endif
   current++;
   emit progress(static_cast<int>(current/total_number_of_file*100));
   qDebug() << "finish";

@@ -28,7 +28,7 @@ public:
     CubitWorker(std::vector<std::string> extra_args = std::vector<std::string>(),
                 remus::worker::ServerConnection const& connection = remus::worker::ServerConnection());
 
-  public slots:
+public slots:
   void start()
   { this->run(); }
   //void stop();
