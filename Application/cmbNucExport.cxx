@@ -7,11 +7,15 @@
 
 #include <remus/server/Server.h>
 #include <remus/server/WorkerFactory.h>
+#include <remus/common/MeshTypes.h>
+#include <remus/common/ExecuteProcess.h>
+#include <remus/client/JobResult.h>
 
 #include <QDebug>
 #include <QFileInfo>
 #include <QStringList>
 #include <QDir>
+#include <iostream>
 
 #include "cmbNucExport.h"
 
@@ -109,16 +113,25 @@ cmbNucExporterWorker
 
 void cmbNucExporterWorker::run()
 {
-  for(;;)
+  bool running = true;
+  while(running)
   {
     qDebug("waiting for job");
     remus::worker::Job job = this->getJob();
 
     if(!job.valid())
     {
-      qDebug("job invalid");
-      emit errorMessage("JOB NOT VALID");
-      break;
+      switch(job.validityReason())
+      {
+        case remus::worker::Job::INVALID:
+          qDebug("job invalid");
+          emit errorMessage("JOB NOT VALID");
+          continue;
+        case remus::worker::Job::TERMINATE_WORKER:
+          running = false;
+          qDebug("job invalid: Terminating");
+          continue;
+      }
     }
     qDebug("got a job");
 

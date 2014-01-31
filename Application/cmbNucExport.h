@@ -8,10 +8,15 @@
 #include <QThread>
 
 #include <remus/client/ServerConnection.h>
-#include <remus/client/JobResult.h>
-#include <remus/common/MeshTypes.h>
 #include <remus/worker/Worker.h>
-#include <remus/common/ExecuteProcess.h>
+
+namespace remus
+{
+namespace common
+{
+class ExecuteProcess;
+}
+}
 
 class cmbNucExporterWorker: public QObject, public remus::worker::Worker
 {
