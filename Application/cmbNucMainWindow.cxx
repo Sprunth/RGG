@@ -159,6 +159,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
   connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
           this, SLOT(useParallelProjection(bool)));
+  connect(this->ExportDialog, SIGNAL(finished(QString)),
+          this->CoreGenDialog, SLOT(openFile(QString)));
 
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();

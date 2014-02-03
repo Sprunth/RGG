@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QDebug>
 #include <QSettings>
+#include <QFileInfo>
 
 #include "cmbNucMainWindow.h"
 
@@ -21,9 +22,12 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
 
   connect( this->Exporter, SIGNAL(progress(int)),
            this->Progress->ui->status, SLOT(setValue(int)));
+  connect( this->Exporter, SIGNAL(successful()),
+           this, SLOT(done()));
   connect( this->Exporter, SIGNAL(currentProcess(QString)),
            this->Progress->ui->command, SLOT(setText(const QString &)));
-  //connect( );
+  connect( this->Progress->ui->cancel, SIGNAL(clicked()),
+           this, SLOT(cancel()));
   connect( this->ui->buttonBox, SIGNAL(accepted()),
            this, SLOT(sendSignalToProcess() ));
   connect( this, SIGNAL(process( const QString, const QStringList &,
@@ -124,10 +128,14 @@ void cmbNucExportDialog::cancel()
 {
   Exporter->cancel();
   this->Progress->hide();
-
 }
 
 void cmbNucExportDialog::done()
 {
-
+  this->Progress->hide();
+  QFileInfo fi(CoregenFile);
+  QString path = fi.absolutePath();
+  QString name = fi.completeBaseName();
+  QString pass = path + '/' + name + ".h5m";
+  emit(finished(pass));
 }

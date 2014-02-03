@@ -117,9 +117,8 @@ void cmbNucExporterWorker::run()
 {
   {
     QMutexLocker locker(&Mutex);
-    StillRunning = false;
+    StillRunning = true;
   }
-  bool running = true;
   while(stillRunning())
   {
     remus::worker::Job job = this->getJob();
@@ -132,7 +131,9 @@ void cmbNucExporterWorker::run()
           emit errorMessage("JOB NOT VALID");
           continue;
         case remus::worker::Job::TERMINATE_WORKER:
-          running = false;
+          {
+          this->stop();
+          }
           continue;
       }
     }
@@ -197,7 +198,7 @@ bool cmbNucExporterWorker
   while(process->isAlive()&& validExection && this->stillRunning())
   {
     //poll till we have a data, waiting for-ever!
-    ProcessPipe data = process->poll(5);
+    ProcessPipe data = process->poll(-1);
     if(data.type == ProcessPipe::STDOUT)
     {
       //we have something on the output pipe
