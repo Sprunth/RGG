@@ -40,8 +40,11 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
 #include "cmbNucPreferencesDialog.h"
+#include "cmbNucCoregen.h"
 
 #include "vtkCmbLayeredConeSource.h"
+
+#include "vtk_moab_reader/vtkMoabReader.h"
 
 int numAssemblyDefaultColors = 42;
 int defaultAssemblyColors[][3] = 
@@ -103,6 +106,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->NewDialog = new cmbNucNewDialog(this);
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
+  this->CoreGenDialog = new cmbNucCoregen(this);
 
   connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
@@ -147,11 +151,11 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpenAssembly()));
   connect(this->ui->actionOpenCoreFile, SIGNAL(triggered()), this, SLOT(onFileOpenCore()));
+  connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
           this->Preferences, SLOT(setPreferences()));
-  connect(this->ui->actionRunAssygen, SIGNAL(triggered()), this, SLOT(onRunAssygen()));
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
   connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
           this, SLOT(useParallelProjection(bool)));
@@ -436,6 +440,23 @@ void cmbNucMainWindow::onFileOpenCore()
   this->Renderer->Render();
 }
 
+void cmbNucMainWindow::onFileOpenMoab()
+{
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QStringList fileNames =
+  QFileDialog::getOpenFileNames(this,
+                                "Open MOAB File...",
+                                dir.path(),
+                                "H5M Files (*.h5m)");
+  if(fileNames.count()==0)
+  {
+    return;
+  }
+  CoreGenDialog->openFile(fileNames.first());
+}
+
 void cmbNucMainWindow::openAssemblyFiles(const QStringList &fileNames)
 {
   this->setCursor(Qt::BusyCursor);
@@ -662,50 +683,6 @@ void cmbNucMainWindow::updateCoreMaterialColors()
 void cmbNucMainWindow::exportRGG()
 {
   this->ExportDialog->exportFile(NuclearCore);
-}
-
-void cmbNucMainWindow::onRunAssygen()
-{
-#if 0
-  std::vector<std::string> assygenInput;
-  assygenInput.push_back("/Users/jacobbecker/Documents/sixth_hexflatcore/a1");
-  assygenInput.push_back("/Users/jacobbecker/Documents/sixth_hexflatcore/a2");
-  assygenInput.push_back("/Users/jacobbecker/Documents/sixth_hexflatcore/a3");
-  std::string coregenInput = "/Users/jacobbecker/Documents/sixth_hexflatcore/sixth_hexflatcore";
-  std::string assygenExe = "/Users/jacobbecker/Programing/SiMBA/build/meshkit/install/bin/assygen";
-  std::string cubitExe = "/Applications/Cubit-13.1/Cubit.app/Contents/MacOS/Cubit";
-  std::string coregenExe = "/Users/jacobbecker/Programing/SiMBA/build/meshkit/install/bin/coregen";
-  std::string em;
-  qDebug() << "EXPORT!";
-  if(!cmbNucExport::cmbNucExport(assygenExe,cubitExe,coregenExe,assygenInput,coregenInput,em))
-    {
-    qDebug() << QString(em.c_str());
-    }
-  else
-    qDebug() << QString("Successfully RAN");
-  // write input file
-#endif
-#if 0
-  QTemporaryFile file("XXXXXX.inp");
-  file.setAutoRemove(false);
-  file.open();
-  file.close();
-  saveFile(file.fileName());
-
-  QString input_file_name = file.fileName();
-  input_file_name.chop(4); // remove '.inp' suffix
-
-  QString assygen = "/home/kyle/SiMBA/meshkit/build/meshkit/src/meshkit-build/rgg/assygen";
-  QStringList args;
-  args.append(input_file_name);
-  QProcess proc;
-  proc.start(assygen, args);
-  qDebug() << "ran: " << assygen << input_file_name;
-
-  proc.waitForFinished(-1);
-  qDebug() << proc.readAllStandardOutput();
-  qDebug() << proc.readAllStandardError();
-#endif
 }
 
 void cmbNucMainWindow::zScaleChanged(int value)

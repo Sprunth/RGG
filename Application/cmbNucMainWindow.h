@@ -25,6 +25,7 @@ class cmbNucMaterialColors;
 class cmbNucNewDialog;
 class cmbNucExportDialog;
 class cmbNucPreferencesDialog;
+class cmbNucCoregen;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -43,6 +44,7 @@ public slots:
   void onNewDialogAccept();
   void onFileOpenAssembly();
   void onFileOpenCore();
+  void onFileOpenMoab();
   void onFileSave();
   void openAssemblyFiles(const QStringList &fileNames);
   void saveFile(const QString &fileName);
@@ -70,9 +72,6 @@ protected slots:
   // Change the title on the property dock based on selected object
   void updatePropertyDockTitle(const QString& title);
 
-  // runs assygen
-  void onRunAssygen();
-
   // Runs Assygen, Cubit, and CoreGen
   void exportRGG();
 
@@ -92,6 +91,7 @@ private:
   cmbNucNewDialog *NewDialog;
   cmbNucExportDialog *ExportDialog;
   cmbNucPreferencesDialog *Preferences;
+  cmbNucCoregen *CoreGenDialog;
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 

@@ -40,6 +40,7 @@ SET(CMBNuclear_Srcs
   cmbNucExport.cxx
   cmbNucExportDialog.cxx
   cmbNucPreferencesDialog.cxx
+  cmbNucCoregen.cxx
 )
 
 SET(CMBNuclear_UI
@@ -50,6 +51,7 @@ SET(CMBNuclear_UI
   cmbNucPinCellEditor.ui
   qExporterDialog.ui
   qProgress.ui
+  qCoregenModel.ui
   Preferences.ui
 )
 
@@ -67,6 +69,7 @@ SET(CMBNuclear_Headers
   cmbNucExport.h
   cmbNucExportDialog.h
   cmbNucPreferencesDialog.h
+  cmbNucCoregen.h
 )
 
 SET(CMBNuclear_other_headers )
