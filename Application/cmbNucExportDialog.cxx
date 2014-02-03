@@ -23,7 +23,7 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
            this->Progress->ui->status, SLOT(setValue(int)));
   connect( this->Exporter, SIGNAL(currentProcess(QString)),
            this->Progress->ui->command, SLOT(setText(const QString &)));
-  connect( );
+  //connect( );
   connect( this->ui->buttonBox, SIGNAL(accepted()),
            this, SLOT(sendSignalToProcess() ));
   connect( this, SIGNAL(process( const QString, const QStringList &,
@@ -122,7 +122,7 @@ void cmbNucExportDialog::sendSignalToProcess()
 
 void cmbNucExportDialog::cancel()
 {
-  Exporter->cancel()
+  Exporter->cancel();
   this->Progress->hide();
 
 }
