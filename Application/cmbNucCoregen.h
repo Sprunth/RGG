@@ -17,6 +17,7 @@ class vtkRenderer;
 class QVTKWidget;
 class cmbNucMainWindow;
 class vtkMoabReader;
+class vtkGeometryFilter;
 
 class cmbNucCoregen : public QDialog
 {
@@ -37,6 +38,7 @@ private:
   Ui_qCoregenModel *ui;
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
+  vtkSmartPointer<vtkGeometryFilter> GeoFilt;
   vtkSmartPointer<vtkActor> Actor;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
 };

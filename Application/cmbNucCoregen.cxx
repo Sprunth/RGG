@@ -19,6 +19,7 @@
 #include <vtkXMLMultiBlockDataWriter.h>
 #include "vtk_moab_reader/vtkMoabReader.h"
 #include "vtkCmbLayeredConeSource.h"
+#include "vtkGeometryFilter.h"
 #include <iostream>
 #include <QDebug>
 
@@ -35,11 +36,12 @@ cmbNucCoregen::cmbNucCoregen(cmbNucMainWindow* mainWindow)
 
   renderWindow->SetAlphaBitPlanes(1);
   renderWindow->SetMultiSamples(0);
-  this->Renderer->SetUseDepthPeeling(1);
-  this->Renderer->SetMaximumNumberOfPeels(5);
+  //this->Renderer->SetUseDepthPeeling(1);
+  //this->Renderer->SetMaximumNumberOfPeels(5);
+  this->Renderer->SetBackground(0.1,0.2,0.5);
 
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
-  this->Mapper->SetScalarVisibility(0);
+  //this->Mapper->SetScalarVisibility(0);
   this->Actor = vtkSmartPointer<vtkActor>::New();
   this->Actor->SetMapper(this->Mapper.GetPointer());
   this->Actor->GetProperty()->SetShading(1);
@@ -47,13 +49,9 @@ cmbNucCoregen::cmbNucCoregen(cmbNucMainWindow* mainWindow)
   this->Renderer->AddActor(this->Actor);
 
   MoabReader = vtkMoabReader::New();
-
-  vtkCmbLayeredConeSource *cone = vtkCmbLayeredConeSource::New();
-  cone->SetNumberOfLayers(3);
-  cone->SetHeight(20.0);
-  cone->Update();
-  this->Mapper->SetInputConnection(MoabReader->GetOutputPort());
-  cone->Delete();
+  this->GeoFilt = vtkGeometryFilter::New();
+  this->GeoFilt->SetInputConnection(MoabReader->GetOutputPort());
+  this->Mapper->SetInputConnection(GeoFilt->GetOutputPort());
 
   vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
   this->Mapper->SetCompositeDataDisplayAttributes(attributes);
@@ -70,21 +68,25 @@ void cmbNucCoregen::openFile(QString file)
 {
   qDebug() <<file;
   MoabReader->SetFileName(file.toStdString().c_str());
-  vtkMultiBlockDataSet * mesh =	MoabReader->GetOutput();
-  this->Renderer->ResetCamera();
-  this->Renderer->Render();
-  this->ui->qvtkWidget->update();
-  mesh =	MoabReader->GetOutput();
-  this->Mapper->SetInputDataObject(mesh);
+  //vtkMultiBlockDataSet * mesh =	MoabReader->GetOutput();
+  MoabReader->Update();
+  GeoFilt->Update();
+  //mesh =	MoabReader->GetOutput();
+  //this->Mapper->SetInputDataObject(mesh);
+  /*qDebug() << "number of pieces: " << this->Mapper->GetNumberOfPieces();
+  qDebug() << this->Mapper->GetScalarRange()[0] << " " << this->Mapper->GetScalarRange()[1];
   qDebug() << mesh->GetNumberOfBlocks();
   for(unsigned int i = 0; i < mesh->GetNumberOfBlocks(); ++i)
   {
     vtkDataObject * dobj = mesh->GetBlock(i);
     dobj->PrintSelf(std::cout, vtkIndent());
-  }
+  }*/
 
+  //this->Renderer->ResetCamera();
+  //this->Renderer->Render();
+  //this->ui->qvtkWidget->update();
+  this->show();
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->ui->qvtkWidget->update();
-  this->show();
 }
