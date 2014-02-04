@@ -126,7 +126,9 @@ void cmbNucExportDialog::sendSignalToProcess()
 
 void cmbNucExportDialog::cancel()
 {
+  qDebug() << "CANCELING";
   Exporter->cancel();
+  qDebug() << "Canceling done";
   this->Progress->hide();
 }
 

@@ -9,12 +9,14 @@
 #include "vtkInformationVector.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkUnstructuredGrid.h"
+#include <QDebug>
 
 
 vtkStandardNewMacro(vtkMoabReader)
 //------------------------------------------------------------------------------
 vtkMoabReader::vtkMoabReader()
   {
+  qDebug() << "Creating moab reader Information";
   this->SetNumberOfInputPorts(0);
   this->FileName = NULL;
   }
@@ -29,7 +31,7 @@ int vtkMoabReader::RequestInformation(vtkInformation *request,
                        vtkInformationVector **inputVector,
                        vtkInformationVector *outputVector)
 {
-
+  qDebug() << "Requesting Information";
   //todo. Walk the file and display all the 2d and 3d elements that the users
   //could possibly want to load
   return this->Superclass::RequestInformation(request,inputVector,outputVector);
@@ -40,6 +42,7 @@ int vtkMoabReader::RequestData(vtkInformation *vtkNotUsed(request),
                 vtkInformationVector **vtkNotUsed(inputVector),
                 vtkInformationVector *outputVector)
 {
+  qDebug() << "Requesting data";
   //First pass is lets load in all 3d elements in a block called Volumes,
   //and load all 2d elements in a block called Surfaces
 
@@ -95,6 +98,7 @@ void vtkMoabReader::CreateSubBlocks(vtkNew<vtkMultiBlockDataSet> & root,
                                     smoab::Tag const* parentTag,
                                     smoab::Tag const* extractTag)
 {
+  qDebug() << "Create subblocks";
   if(!extractTag)
     {
     extractTag = parentTag;
@@ -142,5 +146,6 @@ void vtkMoabReader::CreateSubBlocks(vtkNew<vtkMultiBlockDataSet> & root,
 //------------------------------------------------------------------------------
 void vtkMoabReader::PrintSelf(ostream& os, vtkIndent indent)
 {
+qDebug() << "Print self";
   this->Superclass::PrintSelf(os,indent);
 }

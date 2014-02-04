@@ -154,29 +154,36 @@ void cmbNucExporterWorker::run()
     args.push_back(input.FileArg);
 
     remus::common::ExecuteProcess* process = new remus::common::ExecuteProcess( input.Function, args);
+    qDebug() << QString((input.Function + "  " + input.FileArg).c_str());
 
     //actually launch the new process
     process->execute(remus::common::ExecuteProcess::Attached);
+    qDebug() << "processed launched";
 
     //Wait for finish
     if(pollStatus(process, job))
     {
+      qDebug() << "poll success";
       remus::worker::JobResult results(job.id(),"DUMMY FOR NOW;");
       this->returnMeshResults(results);
     }
     else
     {
+      qDebug() << "poll fail";
       remus::worker::JobStatus status(job.id(),remus::FAILED);
       updateStatus(status);
     }
     QDir::setCurrent( current );
+    qDebug() << "deleting process";
     delete process;
+    qDebug() << "done deleting process";
   }
 }
 
 void cmbNucExporterWorker::stop()
 {
   QMutexLocker locker(&Mutex);
+  qDebug() << "Worker stopping";
   StillRunning = false;
 }
 
@@ -198,13 +205,17 @@ bool cmbNucExporterWorker
   while(process->isAlive()&& validExection && this->stillRunning())
   {
     //poll till we have a data, waiting for-ever!
-    ProcessPipe data = process->poll(-1);
+    ProcessPipe data = process->poll(2);
     if(data.type == ProcessPipe::STDOUT)
     {
       //we have something on the output pipe
       status.Progress.setMessage(data.text);
       this->updateStatus(status);
     }
+  }
+  if(process->isAlive())
+  {
+    process->kill();
   }
 
   //verify we exited normally, not segfault or numeric exception
@@ -320,6 +331,7 @@ void cmbNucExport::run( const QString assygenExe,
       emit errorMessage("Assygen failed");
       emit currentProcess("assygen " + name + " FAILED");
       emit done();
+      b.stopBrokering();
       this->deleteWorkers();
       return;
     }
@@ -393,7 +405,9 @@ void cmbNucExport::run( const QString assygenExe,
 void cmbNucExport::cancel()
 {
   setKeepGoing(false);
-  emit endWorkers();
+  assygenWorker->stop();
+  coregenWorker->stop();
+  cubitWorker->stop();
   this->deleteWorkers();
   emit cancelled();
 }

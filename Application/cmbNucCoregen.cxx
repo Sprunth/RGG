@@ -20,6 +20,7 @@
 #include "vtk_moab_reader/vtkMoabReader.h"
 #include "vtkCmbLayeredConeSource.h"
 #include <iostream>
+#include <QDebug>
 
 cmbNucCoregen::cmbNucCoregen(cmbNucMainWindow* mainWindow)
 : QDialog(mainWindow)
@@ -51,7 +52,7 @@ cmbNucCoregen::cmbNucCoregen(cmbNucMainWindow* mainWindow)
   cone->SetNumberOfLayers(3);
   cone->SetHeight(20.0);
   cone->Update();
-  this->Mapper->SetInputDataObject(MoabReader->GetOutput());
+  this->Mapper->SetInputConnection(MoabReader->GetOutputPort());
   cone->Delete();
 
   vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
@@ -67,21 +68,23 @@ cmbNucCoregen::~cmbNucCoregen()
 
 void cmbNucCoregen::openFile(QString file)
 {
-  //std::cout <<file.toStdString().c_str() << std::endl;
+  qDebug() <<file;
   MoabReader->SetFileName(file.toStdString().c_str());
   vtkMultiBlockDataSet * mesh =	MoabReader->GetOutput();
-  std::cout << mesh << std::endl;
-  //this->Mapper->SetInputDataObject(mesh);
   this->Renderer->ResetCamera();
   this->Renderer->Render();
   this->ui->qvtkWidget->update();
-  /*this->PropertyWidget->setGeometryType(this->NewDialog->getSelectedGeometry());
-  this->PropertyWidget->setObject(NULL, NULL);
-  this->PropertyWidget->setAssembly(NULL);
-  this->NuclearCore->CoreLattice.SetGeometryType(
-                                               this->PropertyWidget->getGeometryType());
-  this->InputsWidget->onNewAssembly();
+  mesh =	MoabReader->GetOutput();
+  this->Mapper->SetInputDataObject(mesh);
+  qDebug() << mesh->GetNumberOfBlocks();
+  for(unsigned int i = 0; i < mesh->GetNumberOfBlocks(); ++i)
+  {
+    vtkDataObject * dobj = mesh->GetBlock(i);
+    dobj->PrintSelf(std::cout, vtkIndent());
+  }
+
   this->Renderer->ResetCamera();
-  this->Renderer->Render();*/
+  this->Renderer->Render();
+  this->ui->qvtkWidget->update();
   this->show();
 }
