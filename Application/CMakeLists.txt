@@ -3,7 +3,7 @@ PROJECT(CMBNuclear)
 FIND_PACKAGE(VTK)
 INCLUDE(${VTK_USE_FILE}) # include UseVTK.cmake
 
-FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui)
+FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})  # include UseQt4.cmake
 INCLUDE_DIRECTORIES(${QT_INCLUDE_DIR})
 
@@ -103,8 +103,7 @@ SOURCE_GROUP("Generated" FILES
   ${MOCSrcs}
 )
 
-ADD_EXECUTABLE( CMBNuclear ${CMBNuclear_Srcs} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES})
-message(${QT_LIBRARIES})
+ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES})
 TARGET_LINK_LIBRARIES( CMBNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} )
 
 # The initial material color file
