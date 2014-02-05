@@ -48,6 +48,9 @@ cmbNucCoregen::cmbNucCoregen(cmbNucMainWindow* mainWindow)
   this->Actor->GetProperty()->SetInterpolationToPhong();
   this->Renderer->AddActor(this->Actor);
 
+  vtkProperty* property = this->Actor->GetProperty();
+  property->SetEdgeVisibility(1);
+
   MoabReader = vtkMoabReader::New();
   this->GeoFilt = vtkGeometryFilter::New();
   this->GeoFilt->SetInputConnection(MoabReader->GetOutputPort());
@@ -68,23 +71,9 @@ void cmbNucCoregen::openFile(QString file)
 {
   qDebug() <<file;
   MoabReader->SetFileName(file.toStdString().c_str());
-  //vtkMultiBlockDataSet * mesh =	MoabReader->GetOutput();
   MoabReader->Update();
   GeoFilt->Update();
-  //mesh =	MoabReader->GetOutput();
-  //this->Mapper->SetInputDataObject(mesh);
-  /*qDebug() << "number of pieces: " << this->Mapper->GetNumberOfPieces();
-  qDebug() << this->Mapper->GetScalarRange()[0] << " " << this->Mapper->GetScalarRange()[1];
-  qDebug() << mesh->GetNumberOfBlocks();
-  for(unsigned int i = 0; i < mesh->GetNumberOfBlocks(); ++i)
-  {
-    vtkDataObject * dobj = mesh->GetBlock(i);
-    dobj->PrintSelf(std::cout, vtkIndent());
-  }*/
 
-  //this->Renderer->ResetCamera();
-  //this->Renderer->Render();
-  //this->ui->qvtkWidget->update();
   this->show();
   this->Renderer->ResetCamera();
   this->Renderer->Render();
