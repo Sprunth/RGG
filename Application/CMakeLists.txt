@@ -39,6 +39,7 @@ SET(CMBNuclear_Srcs
   cmbNucExport.cxx
   cmbNucExportDialog.cxx
   cmbNucPreferencesDialog.cxx
+  cmbAssyParametersWidget.cxx
 )
 
 SET(CMBNuclear_UI
@@ -50,6 +51,7 @@ SET(CMBNuclear_UI
   qExporterDialog.ui
   qProgress.ui
   Preferences.ui
+  qAssyParameters.ui
 )
 
 SET(CMBNuclear_Headers
@@ -66,6 +68,7 @@ SET(CMBNuclear_Headers
   cmbNucExport.h
   cmbNucExportDialog.h
   cmbNucPreferencesDialog.h
+  cmbAssyParametersWidget.h
 )
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})

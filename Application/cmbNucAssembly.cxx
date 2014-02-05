@@ -28,19 +28,14 @@
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-  this->MeshSize = 2.0;
   this->LegendColor = Qt::white;
-
-  this->RadialMeshSize = 0.15;
-  this->AxialMeshSize = 20.0;
-  this->RotateDirection = "Z";
-  this->RotateAngle = -30;
-
+  this->Parameters = new cmbAssyParameters;
 }
 
 cmbNucAssembly::~cmbNucAssembly()
 {
   AssyPartObj::deleteObjs(this->PinCells);
+  delete this->Parameters;
 }
 
 QColor cmbNucAssembly::GetLegendColor() const
@@ -508,19 +503,19 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
         }
       else if(value == "tetmeshsize")
         {
-        input >> this->MeshSize;
+        input >> this->Parameters->TetMeshSize;
         }
       else if(value == "radialmeshsize")
         {
-        input >> this->RadialMeshSize;
+        input >> this->Parameters->RadialMeshSize;
         }
       else if(value == "axialmeshsize")
         {
-        input >> this->AxialMeshSize;
+        input >> this->Parameters->AxialMeshSize;
         }
       else if(value == "rotate")
         {
-        input >> this->RotateDirection >> this->RotateAngle;
+        input >> this->Parameters->RotateXYZ >> this->Parameters->RotateAngle;
         }
     input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
@@ -651,7 +646,7 @@ void cmbNucAssembly::WriteFile(const std::string &FileName)
     output << "\n";
     }
 
-  output << "tetmeshsize " << this->MeshSize << "\n";
+  output << "tetmeshsize " << this->Parameters->TetMeshSize << "\n";
 
   // other parameters
   //output << "tetmeshsize 2.0\n";

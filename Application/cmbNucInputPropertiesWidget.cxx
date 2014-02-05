@@ -581,7 +581,7 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
-  assy->MeshSize = this->Internal->MeshSize->text().toDouble();
+  //assy->MeshSize = this->Internal->MeshSize->text().toDouble();
   emit this->objGeometryChanged(assy);
 }
 //-----------------------------------------------------------------------------
@@ -601,7 +601,7 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 {
-  this->Internal->MeshSize->setText(QString::number(assy->MeshSize));
+  //this->Internal->MeshSize->setText(QString::number(assy->MeshSize));
 
   // Show color swatch with legendColor
   QLabel* swatch = this->GeometryType == RECTILINEAR ?
