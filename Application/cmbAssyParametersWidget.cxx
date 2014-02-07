@@ -111,7 +111,7 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 {
   bool ok = false;
   cmbAssyParameters* parameters = assy->GetParameters();
-  parameters->TetMeshSize = QString::number
+  //parameters->TetMeshSize = QString::number
   this->Internal->TetMeshSize->setText(
     parameters->isValueSet(parameters->TetMeshSize) ?
     QString::number(parameters->TetMeshSize) : "");
@@ -147,9 +147,9 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
   this->Internal->MoveXYZ->setCurrentIndex(
     this->Internal->RotateXYZ->findText(parameters->MoveXYZ.c_str()));
   this->Internal->CreateSideSetYesNo->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->CreateSideSetYesNo.c_str()));
+    this->Internal->RotateXYZ->findText(parameters->CreateSideset.c_str()));
   this->Internal->InfoOnOff->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->InfoOnOff.c_str()));
+    this->Internal->RotateXYZ->findText(parameters->Info.c_str()));
   this->Internal->SectionXYZ->setCurrentIndex(
     this->Internal->RotateXYZ->findText(parameters->SectionXYZ.c_str()));
   this->Internal->SectionOffset->setText(
@@ -197,9 +197,9 @@ void cmbAssyParametersWidget::resetAssembly(cmbNucAssembly* assy)
   this->Internal->MoveXYZ->setCurrentIndex(
     this->Internal->RotateXYZ->findText(parameters->MoveXYZ.c_str()));
   this->Internal->CreateSideSetYesNo->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->CreateSideSetYesNo.c_str()));
+    this->Internal->RotateXYZ->findText(parameters->CreateSideset.c_str()));
   this->Internal->InfoOnOff->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->InfoOnOff.c_str()));
+    this->Internal->RotateXYZ->findText(parameters->Info.c_str()));
   this->Internal->SectionXYZ->setCurrentIndex(
     this->Internal->RotateXYZ->findText(parameters->SectionXYZ.c_str()));
   this->Internal->SectionOffset->setText(

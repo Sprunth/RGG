@@ -13,6 +13,8 @@
 #include <QStringList>
 #include <QDir>
 
+#include <iostream>
+
 #include "cmbNucExport.h"
 
 struct ExporterInput

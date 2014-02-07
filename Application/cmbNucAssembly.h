@@ -11,6 +11,9 @@
 #include "vtkPolyData.h"
 
 class vtkCompositeDataDisplayAttributes;
+class inpFileReader;
+class inpFileHelper;
+class inpFileWriter;
 
 #define ASSY_NOT_SET_VALUE -100001
 #define ASSY_NOT_SET_KEY "NotSet"
@@ -20,9 +23,9 @@ class cmbAssyParameters
 public:
   cmbAssyParameters()
   {
-  this->Geometry =  this->GeometryType = this->GeomEngine = this->MeshType
-    = this->RotateXYZ = this->CenterXYZ = this->CreateSideSetYesNo
-    = this->InfoOnOff = this->SectionXYZ = this->MoveXYZ = ASSY_NOT_SET_KEY;
+  this->Geometry = this->MeshType = this->GeometryType = this->MeshType
+    = this->RotateXYZ = this->CenterXYZ = this->CreateSideset = this->HBlock
+    = this->Info = this->SectionXYZ = this->MoveXYZ = ASSY_NOT_SET_KEY;
   this->RotateAngle = this->RadialMeshSize = this->AxialMeshSize
     = this->TetMeshSize = this->NeumannSet_StartId = this->MaterialSet_StartId
     = this->EdgeInterval = this->MergeTolerance = this->CreateFiles
@@ -32,6 +35,8 @@ public:
 
   static bool isKeySet(const std::string& key)
   { return key != ASSY_NOT_SET_KEY; }
+  static bool isValueSet(const std::string& val)
+  { return val != ASSY_NOT_SET_KEY; }
   template<typename T> static bool isValueSet(const T& val)
   { return val != ASSY_NOT_SET_VALUE; }
 
@@ -39,8 +44,6 @@ public:
   std::string Geometry;
   // GeometryType {Hexagonal | Rectangular}
   std::string GeometryType;
-  // GeomEngine   {ACIS | OCC}
-  std::string GeomEngine;
   // MeshType     {Hex | Tet}
   std::string MeshType;
 
@@ -64,9 +67,9 @@ public:
   // [MergeTolerance <value>]
   double MergeTolerance;
   // [CreateSideSet {Yes | No}]
-  std::string CreateSideSetYesNo;
+  std::string CreateSideset;
   // [Info {On | off}]
-  std::string InfoOnOff;
+  std::string Info;
   // [CreateFiles <block-number-shifted>]
   int CreateFiles;
   // [Section {x | y | z} <offset> [reverse] ]
@@ -75,6 +78,8 @@ public:
   bool SectionReverse;
   // [Move <x> <y> <z> ]
   std::string MoveXYZ;
+  // HBlock
+  std::string HBlock;
 };
 
 // Represents an assembly. Assemblies are composed of pin cells (cmbNucPinCell)
@@ -84,6 +89,10 @@ public:
 class cmbNucAssembly : public AssyPartObj
 {
 public:
+
+  friend class inpFileReader;
+  friend class inpFileHelper;
+  friend class inpFileWriter;
 
   // Creates an empty assembly.
   cmbNucAssembly();
