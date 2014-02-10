@@ -1,5 +1,6 @@
 
 #include "cmbNucCore.h"
+#include "inpFileIO.h"
 
 #include <iostream>
 #include <algorithm>
@@ -296,236 +297,31 @@ void cmbNucCore::ReadFile(const std::string &FileName,
 {
   this->FileName = "";
   std::ifstream input(FileName.c_str());
-  if(!input.is_open())
-    {
-    std::cerr << "failed to open input file" << std::endl;
+  inpFileReader freader;
+  if(!freader.open(FileName))
+  {
     return;
-    }
-  this->FileName = FileName;
-  QFileInfo info(FileName.c_str());
-  std::string strPath = info.dir().path().toStdString();
+  }
+  freader.read(*this);
 
-  while(!input.eof())
+  this->SetLegendColorToAssemblies(numDefaultColors, defaultColors);
+}
+
+void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3])
+{
+  for(unsigned int i = 0; i < this->Assemblies.size(); ++i)
     {
-    std::string value;
-    input >> value;
-
-    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-
-    if(input.eof())
-      {
-      break;
-      }
-    else if(value == "end")
-      {
-      break;
-      }
-    else if(value.empty())
-      {
-      input.clear();
-      continue;
-      }
-    else if(value == "geometrytype")
-      {
-      input >> this->GeometryType;
-      if(this->IsHexType())
+      cmbNucAssembly * subAssembly = this->Assemblies[i];
+      if (subAssembly)
         {
-        this->CoreLattice.SetGeometryType(HEXAGONAL);
+        int acolorIndex = i  % numDefaultColors;
+        QColor acolor(defaultColors[acolorIndex][0],
+                      defaultColors[acolorIndex][1],
+                      defaultColors[acolorIndex][2]);
+        subAssembly->SetLegendColor(acolor);
         }
-      else
-        {
-        this->CoreLattice.SetGeometryType(RECTILINEAR);
-        }
-      this->CoreLattice.SetDimensions(0, 0);
-      }
-    else if(value == "symmetry")
-      {
-      input >> this->HexSymmetry;
-      }
-    else if(value == "assemblies")
-      {
-      int count;
-      cmbNucAssembly *subAssembly;
-      input >> count;
-      if(this->IsHexType()) // just one pitch
-        {
-        input >> this->AssyemblyPitchX;
-        this->AssyemblyPitchY = this->AssyemblyPitchX;
-        }
-      else
-        {
-        input >> this->AssyemblyPitchX >> this->AssyemblyPitchY;
-        }
-
-      input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-      // read in assembly files
-      for(int i = 0; i < count; i++)
-        {
-        // skip the comment line
-        if(input.peek() == '!')
-          {
-          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-          }
-
-        std::string assyfilename, assylabel, tmpPath = strPath;
-        input >> assyfilename >> assylabel;
-        tmpPath.append("/").append(assyfilename);
-        QFileInfo tmpInfo(tmpPath.c_str());
-        tmpPath = strPath + "/" + tmpInfo.completeBaseName ().toStdString() + ".inp";
-        QFileInfo assyInfo(tmpPath.c_str());
-        if(assyInfo.exists())
-          {
-          subAssembly = this->loadAssemblyFromFile(tmpPath, assylabel);
-          if (subAssembly)
-            {
-            int acolorIndex = i  % numDefaultColors;
-            QColor acolor(defaultColors[acolorIndex][0],
-                          defaultColors[acolorIndex][1],
-                          defaultColors[acolorIndex][2]);
-            subAssembly->SetLegendColor(acolor);
-            }
-          }
-        if(i != count - 1)
-          {
-          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-          }
-        }
-      }
-    else if(value == "lattice")
-      {
-      size_t x=0;
-      size_t y=0;
-      if(this->IsHexType())
-        {
-        input >> x;
-        y = x;
-        }
-      else
-        {
-        // the lattice 2d grid use y as rows, x as columns
-        input >> y >> x;
-        }
-
-      input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-      this->CoreLattice.SetDimensions(x, y);
-
-      if(input.peek() == '!')
-        {
-        input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        }
-
-      if(this->IsHexType())
-        {
-        if(this->HexSymmetry == 1)
-          {
-          // a full hex assembly, NOT partial
-          size_t maxN = 2*x - 1;
-          std::vector<std::vector<std::string> > hexArray;
-          hexArray.resize(maxN);
-          size_t numCols, delta=0;
-
-          for(size_t i = 0; i < maxN; i++)
-            {
-            if(i<x) // first half of HEX
-              {
-              numCols = i+x;
-              }
-            else // second half of HEX
-              {
-              delta++;
-              numCols = maxN - delta;
-              }
-            hexArray[i].resize(numCols);
-            for(size_t j = 0; j < numCols; j++)
-              {
-              input >> hexArray[i][j];
-              }
-            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            }
-
-          // now we fill the hex Lattice with hexArray,
-          // starting from out most layer and work toward center
-          // for each layer, we have 6*Layer cells, except layer 0.
-          for(int k = x-1; k >= 0; k--) // HEX layers
-            {
-            size_t numRows = 2*k + 1;
-            size_t startRow = x-1-k;
-            size_t startCol = startRow;
-            size_t layerIdx;
-            for(size_t i = startRow; i < numRows+startRow; i++) // array rows
-              {
-              if(i==startRow || i==numRows+startRow - 1) // first row or last row
-                {
-                for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
-                  {
-                  layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
-                  this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][j];
-                  }
-                }
-              else // rows between first and last
-                {
-                // get the first and last column defined by start column
-                layerIdx = 6*k-(i-startRow);
-                this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][startCol];
-                layerIdx = k+(i-startRow);
-                size_t colIdx = hexArray[i].size() -1 - startCol;
-                this->CoreLattice.Grid[k][layerIdx].label = hexArray[i][colIdx];
-                }
-              }
-            }
-          }
-        else if(this->HexSymmetry == 6 || this->HexSymmetry == 12)
-          {
-          std::string tmpVal;
-          for(size_t i = 0; i < x; i++)
-            {
-            size_t cols = i + 1;
-            if(this->HexSymmetry == 12)
-              {
-              cols = i%2 ? (i+1)/2 :(i+2)/2;
-              }
-            for( size_t j = 0; j < cols; j++)
-              {
-              input >> tmpVal;
-              if(tmpVal == "&")
-                {
-                break;
-                }
-              this->CoreLattice.Grid[i][j].label = tmpVal;
-              }
-            input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            }
-          }
-        }
-      else
-        {
-        for(size_t j = 0; j < y; j++)
-          {
-          for(size_t i = 0; i < x; i++)
-            {
-            std::string assemblyLabel;
-            input >> assemblyLabel;
-            this->CoreLattice.Grid[i][j].label = assemblyLabel;
-            if(!(assemblyLabel.empty() || assemblyLabel == "xx" || assemblyLabel == "XX"))
-              {
-              cmbNucAssembly* assembly = this->GetAssembly(assemblyLabel);
-              if (assembly != NULL)
-                {
-                this->CoreLattice.Grid[i][j].color = assembly->GetLegendColor();
-                }
-              }
-            }
-          input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-          }
-        }
-      }
-    else if(value == "background")
-      {
-      input >> this->BackgroudMeshFile;
-      }
-    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
+  this->RebuildGrid();
 }
 
 cmbNucAssembly* cmbNucCore::loadAssemblyFromFile(

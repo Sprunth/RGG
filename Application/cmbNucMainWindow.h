@@ -44,8 +44,10 @@ public slots:
   void onFileOpenAssembly();
   void onFileOpenCore();
   void onFileSave();
+  void onCoreFileSave();
   void openAssemblyFiles(const QStringList &fileNames);
   void saveFile(const QString &fileName);
+  void saveCoreFile(const QString &fileName);
   void exportVTKFile(const QString &fileName);
   void ResetView();
   void onInteractionTransition(vtkObject *, unsigned long event);

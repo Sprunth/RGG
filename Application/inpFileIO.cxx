@@ -12,59 +12,8 @@
 
 #include <QDebug>
 #include <QMap>
-/*
-#define ASSEMBLY_KEYWORD 0x01000
-#define CORE_KEYWORD 0x02000
-#define BOTH_KEYWORD (ASSEMBLY_KEYWORD & CORE_KEYWORD)
-
-#define both_keywords_macro() \
-  fun( GeometryType) \
-  fun( GeomEngine) \
-  fun( Geometry)\
-  fun( MergeTolerance) \
-  fun( End) \
-  fun( Info)
-
-#define assembly_keywords_macro() \
-  fun(Materials) \
-  fun(StartPinId ) \
-  fun(MeshType ) \
-  fun(Duct ) \
-  fun(Dimensions ) \
-  fun(Pincells ) \
-  fun(Cylinder ) \
-  fun(Frustum ) \
-  fun(CellMaterial ) \
-  fun(HBlock ) \
-  fun(MaterialSet_StartId ) \
-  fun(Neumannset_StartId ) \
-  fun(Section ) \
-  fun(Center ) \
-  fun(Move ) \
-  fun(Rotate ) \
-  fun(CreateSideset ) \
-  fun(CreateFiles ) \
-  fun(CreateMatFiles ) \
-  fun(Save_Exodus ) \
-  fun(RadialMeshSize ) \
-  fun(TetMeshSize ) \
-  fun(AxialMeshSize ) \
-  fun(EdgeInterval ) \
-  fun(List_NeumannSet_StartId ) \
-  fun(List_MaterialSet_StartId ) \
-  fun(NumSuperBlocks ) \
-  fun(SuperBlocks )
-
-#define core_keywords_macro() \
- fun( ProblemType ) \
- fun( Symmetry  ) \
- fun( SaveParallel  ) \
- fun( MeshInfo  ) \
- fun( NeumannSet  ) \
- fun( Extrude  ) \
- fun( Background  ) \
- fun( OutputFileName  )
-*/
+#include <QFileInfo>
+#include <QDir>
 
 class inpFileHelper
 {
@@ -88,16 +37,20 @@ public:
 
   void readLattice( std::stringstream & input, bool isHex,
                     int hexSymmetry, Lattice &lat);
-  void readMaterials( std::stringstream & input, cmbNucAssembly & assembly );
-  void readDuct( std::stringstream & input, cmbNucAssembly & assembly );
-  void readPincell( std::stringstream & input, cmbNucAssembly & assembly );
+  void readMaterials( std::stringstream & input, cmbNucAssembly &assembly );
+  void readDuct( std::stringstream & input, cmbNucAssembly &assembly );
+  void readPincell( std::stringstream & input, cmbNucAssembly &assembly );
+  void readAssemblies( std::stringstream & input, cmbNucCore &core,
+                       std::string strPath );
 
   void writeHeader( std::ofstream &output, std::string type );
-  void writeMaterials( std::ofstream &output, cmbNucAssembly & assembly );
-  void writeDuct( std::ofstream &output, cmbNucAssembly & assembly );
-  void writePincell( std::ofstream &output, cmbNucAssembly & assembly );
+  void writeMaterials( std::ofstream &output, cmbNucAssembly &assembly );
+  void writeDuct( std::ofstream &output, cmbNucAssembly &assembly );
+  void writePincell( std::ofstream &output, cmbNucAssembly &assembly );
   void writeLattice( std::ofstream &output, std::string key, bool isHex,
                      int hexSymmetry, Lattice &lat );
+  void writeAssemblies( std::ofstream &output, std::string outFileName,
+                        cmbNucCore &core );
 };
 
 //============================================================================
@@ -257,8 +210,57 @@ bool inpFileReader
 bool inpFileReader
 ::read(cmbNucCore & core)
 {
-  if(Type != ASSEMBLY)
+  if(Type != CORE)
     return false;
+  QFileInfo info(FileName.c_str());
+  std::string strPath = info.dir().path().toStdString();
+
+  inpFileHelper helper;
+  core.FileName = FileName;
+  std::stringstream input(CleanFile);
+  while(!input.eof())
+  {
+    std::string value;
+    input >> value;
+
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+    qDebug() << value.c_str();
+
+    if(input.eof())
+      {
+      break;
+      }
+    else if(value == "end")
+      {
+      break;
+      }
+    else if(value.empty())
+      {
+      input.clear();
+      continue;
+      }
+    else if(value == "geometrytype")
+      {
+      helper.readGeometryType( input, core, core.CoreLattice );
+      }
+    else if(value == "symmetry")
+      {
+      input >> core.HexSymmetry;
+      }
+    else if(value == "assemblies")
+      {
+      helper.readAssemblies( input, core, strPath );
+      }
+    else if(value == "lattice")
+      {
+      helper.readLattice( input, core.IsHexType(), core.HexSymmetry, core.CoreLattice );
+      }
+    else if(value == "background")
+      {
+      input >> core.BackgroudMeshFile;
+      }
+    }
   return true;
 }
 
@@ -339,11 +341,35 @@ bool inpFileWriter::write(std::string fname,
 
   return true;
 }
+#undef WRITE_PARAM_VALUE
+
+
 
 bool inpFileWriter::write(std::string fname,
                           cmbNucCore & core,
                           bool updateFname)
 {
+  inpFileHelper helper;
+  std::ofstream output(fname.c_str());
+  if(!output.is_open())
+    {
+    return false;
+    }
+  if(updateFname)
+    {
+    core.FileName = fname;
+    }
+  helper.writeHeader(output,"Assembly");
+  output << "GeometryType " << core.GeometryType << "\n";
+  output << "Symmetry "  << core.HexSymmetry << "\n";
+  helper.writeAssemblies( output, fname, core );
+  helper.writeLattice( output, "Lattice", core.IsHexType(),
+                       core.HexSymmetry, core.CoreLattice );
+  output << "Background " << core.BackgroudMeshFile << "\n";
+
+  output << "End\n";
+  output.close();
+
   return true;
 }
 
@@ -367,13 +393,14 @@ void inpFileHelper::writeMaterials( std::ofstream &output,
   output << "Materials " << materials.count();
   foreach(std::string name, materials.keys())
     {
+    qDebug() << "Material write: " << name.c_str();
     std::string material_name = materials[name];
     if(material_name.empty())
       {
       material_name = name;
       }
 
-    output << " " << name << " " << material_name;
+    output << " " << material_name << " " << name;
     }
   output << "\n";
 }
@@ -391,6 +418,7 @@ void inpFileHelper::readMaterials( std::stringstream & input,
     std::string mname;
     input >> mname;
     input >> mlabel;
+    qDebug() << "Material " << mname.c_str() << " " << mlabel.c_str();
 
     materialLabelMap[mlabel] = mname;
     std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
@@ -779,6 +807,10 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool i
         output << "\n";
         }
       }
+    else if(hexSymmetry == 6 || hexSymmetry == 12)
+      {
+      std::cout << "TODO" << std::endl;
+      }
     }
   else
     {
@@ -906,5 +938,88 @@ void inpFileHelper::readLattice( std::stringstream & input,
         lattice.Grid[i][j].label = label;
         }
       }
+    }
+}
+
+void inpFileHelper::readAssemblies( std::stringstream &input,
+                                    cmbNucCore &core,
+                                    std::string strPath )
+{
+  int count;
+  cmbNucAssembly *subAssembly;
+  input >> count;
+  input >> core.AssyemblyPitchX;
+  if(core.IsHexType()) // just one pitch
+  {
+    core.AssyemblyPitchY = core.AssyemblyPitchX;
+  }
+  else
+  {
+    input >> core.AssyemblyPitchY;
+  }
+
+  // read in assembly files
+  for(int i = 0; i < count; i++)
+    {
+
+    std::string assyfilename, assylabel, tmpPath = strPath;
+    input >> assyfilename >> assylabel;
+    tmpPath.append("/").append(assyfilename);
+    QFileInfo tmpInfo(tmpPath.c_str());
+    tmpPath = strPath + "/" + tmpInfo.completeBaseName().toStdString() + ".inp";
+    QFileInfo assyInfo(tmpPath.c_str());
+    if(assyInfo.exists())
+      {
+      subAssembly = core.loadAssemblyFromFile(tmpPath, assylabel);
+      }
+    }
+}
+
+void inpFileHelper::writeAssemblies( std::ofstream &output,
+                                     std::string outFileName,
+                                     cmbNucCore &core )
+{
+  QFileInfo info(outFileName.c_str());
+  std::string strPath = info.dir().path().toStdString();
+  std::string coreName = info.fileName().toStdString();
+
+  output << "Assemblies " << core.Assemblies.size();
+  output << " " << core.AssyemblyPitchX;
+  if(!core.IsHexType())
+  {
+    output << " " << core.AssyemblyPitchY;
+  }
+  output << "\n";
+  qDebug() << "There are " << core.Assemblies.size() << " assemblies.";
+  qDebug() << "There are " << core.GetNumberOfAssemblies() << " assemblies.";
+  for(unsigned int i = 0; i < core.Assemblies.size(); ++i)
+    {
+    //construct assemply file name
+    //Look to see if it already has a fname
+    cmbNucAssembly & assembly = *(core.Assemblies[i]);
+    std::string assemblyName = assembly.FileName;
+    if(assemblyName.empty())
+      {
+      //construct a name
+      assemblyName = "assembly_"+assembly.label;
+      if(assemblyName + ".inp" == coreName)
+        {
+        assemblyName = "assembly_a_"+assembly.label;
+        }
+      }
+    else
+      {
+      QFileInfo temp(assemblyName.c_str());
+      assemblyName = temp.completeBaseName().toStdString();
+      if(assemblyName + ".inp" == coreName)
+        {
+        assemblyName = "assembly_"+info.completeBaseName().toStdString();
+        }
+
+      }
+    std::string tmpPath = strPath;
+    tmpPath.append("/").append(assemblyName).append(".inp");
+    output << assemblyName << " " << assembly.label << "\n";
+    assembly.WriteFile(tmpPath);
     }
 }

@@ -10,12 +10,19 @@
 #include "vtkSmartPointer.h"
 
 class cmbNucAssembly;
+class inpFileReader;
+class inpFileHelper;
+class inpFileWriter;
 
 // Represents the core which is composed of multiple assemblies
 // (cmbNucAssembly). Assemblies are layed out on a lattice.
 class cmbNucCore : public AssyPartObj
 {
 public:
+
+  friend class inpFileReader;
+  friend class inpFileHelper;
+  friend class inpFileWriter;
 
   // Creates an empty Core.
   cmbNucCore();
@@ -75,6 +82,8 @@ public:
   // Reads a core from a ".inp" file.
   void ReadFile(const std::string &FileName,
                 int numDefaultColors, int defaultColors[][3]);
+
+  void SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3]);
 
   // Writes the core to a ".inp" file.
   void WriteFile(const std::string &FileName){;}

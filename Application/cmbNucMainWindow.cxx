@@ -40,6 +40,7 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
 #include "cmbNucPreferencesDialog.h"
+#include "inpFileIO.h"
 
 #include "vtkCmbLayeredConeSource.h"
 
@@ -148,6 +149,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpenAssembly()));
   connect(this->ui->actionOpenCoreFile, SIGNAL(triggered()), this, SLOT(onFileOpenCore()));
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
+  connect(this->ui->saveCoreFile, SIGNAL(triggered()), this, SLOT(onCoreFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
           this->Preferences, SLOT(setPreferences()));
@@ -526,6 +528,30 @@ void cmbNucMainWindow::onFileSave()
 
 }
 
+void cmbNucMainWindow::onCoreFileSave()
+{
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+  QString fileName =
+  QFileDialog::getSaveFileName(this,
+                               "Save Assygen File...",
+                               dir.path(),
+                               "INP Files (*.inp)");
+  if(!fileName.isEmpty())
+  {
+    // Cache the directory for the next time the dialog is opened
+    QFileInfo info(fileName);
+    settings.setValue("cache/lastDir", info.dir().path());
+
+    this->setCursor(Qt::BusyCursor);
+    this->saveCoreFile(fileName);
+    this->unsetCursor();
+  }
+
+}
+
 void cmbNucMainWindow::saveFile(const QString &fileName)
 {
   if(!this->InputsWidget->getCurrentAssembly())
@@ -535,6 +561,11 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
     }
 
   this->InputsWidget->getCurrentAssembly()->WriteFile(fileName.toStdString());
+}
+
+void cmbNucMainWindow::saveCoreFile(const QString &fileName)
+{
+  inpFileWriter::write(fileName.toStdString(), *NuclearCore);
 }
 
 void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
