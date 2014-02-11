@@ -61,7 +61,7 @@ void cmbNucExportDialog::exportFile(cmbNucCore * core)
   CoregenFile = core->FileName.c_str();
   this->ui->coregenInputFile->setText(CoregenFile);
   this->AssygenFileList.clear();
-  for (size_t i = 0; i < core->numberOfAssemblies(); ++i)
+  for (size_t i = 0; i < core->GetNumberOfAssemblies(); ++i)
     {
     this->AssygenFileList.append(QString(core->GetAssembly(i)->FileName.c_str()));
     }

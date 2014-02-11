@@ -56,6 +56,7 @@ SET(CMBNuclear_UI
 )
 
 SET(CMBNuclear_Headers
+  cmbNucCore.h
   cmbNucMainWindow.h
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
@@ -70,7 +71,6 @@ SET(CMBNuclear_Headers
   cmbNucExportDialog.h
   cmbNucPreferencesDialog.h
   cmbAssyParametersWidget.h
-  inpFileIO.h
 )
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})

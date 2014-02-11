@@ -15,6 +15,10 @@
 #include <QFileInfo>
 #include <QDir>
 
+typedef cmbNucCoreParams::ExtrudeStruct ExtrudedType;
+typedef cmbNucCoreParams::NeumannSetStruct NeumannSetType;
+typedef std::vector<NeumannSetType> NeumannSetTypeVec;
+
 class inpFileHelper
 {
 public:
@@ -42,6 +46,13 @@ public:
   void readPincell( std::stringstream & input, cmbNucAssembly &assembly );
   void readAssemblies( std::stringstream & input, cmbNucCore &core,
                        std::string strPath );
+  template<class TYPE> void read( std::stringstream & input,
+                                  bool /*isHex*/,
+                                  std::string /*mesg*/,
+                                  TYPE &destination )
+  {
+    input >> destination;
+  }
 
   void writeHeader( std::ofstream &output, std::string type );
   void writeMaterials( std::ofstream &output, cmbNucAssembly &assembly );
@@ -51,12 +62,95 @@ public:
                      int hexSymmetry, Lattice &lat );
   void writeAssemblies( std::ofstream &output, std::string outFileName,
                         cmbNucCore &core );
+
+  template<class TYPE> void write( std::ofstream &output,
+                                   std::string key,
+                                   bool /*isHex*/,
+                                   std::string /*mesg*/,
+                                   TYPE &value )
+  {
+    output << key << " " << value << "\n";
+  }
 };
+
+template<>
+void inpFileHelper
+::read<ExtrudedType>( std::stringstream & input,
+                        bool /*isHex*/,
+                        std::string /*mesg*/,
+                        ExtrudedType &extrude )
+{
+  input >> extrude.Size >> extrude.Divisions;
+}
+
+template<>
+void inpFileHelper
+::read<NeumannSetTypeVec>( std::stringstream & input,
+                             bool /*isHex*/,
+                             std::string /*mesg*/,
+                             NeumannSetTypeVec &extrude )
+{
+  NeumannSetType nst;
+  input >> nst.Side >> nst.Id;
+  std::getline(input, nst.Equation);
+  extrude.push_back(nst);
+}
+
+template<>
+void inpFileHelper
+::read<bool>( std::stringstream & input,
+                bool /*isHex*/,
+                std::string mesg,
+                bool &destination )
+{
+  std::string v;
+  input >> v;
+  std::transform(v.begin(), v.end(), v.begin(), ::tolower);
+  destination = v == mesg;
+}
+
+
+template<>
+void inpFileHelper::
+write<ExtrudedType>( std::ofstream &output,
+                     std::string key,
+                     bool /*isHex*/,
+                     std::string /*mesg*/,
+                     ExtrudedType &extrude )
+{
+  output << key << " " << extrude.Size << " " << extrude.Divisions << "\n";
+}
+
+template<>
+void inpFileHelper::
+write<NeumannSetTypeVec>( std::ofstream &output,
+                          std::string key,
+                          bool /*isHex*/,
+                          std::string /*mesg*/,
+                          NeumannSetTypeVec &nvect )
+{
+  for(unsigned int i = 0; i <nvect.size(); ++i )
+  {
+    output << key << " " << nvect[i].Side << " " << nvect[i].Id << " " << nvect[i].Equation << "\n";
+  }
+}
+
+template<>
+void inpFileHelper::
+write<bool>( std::ofstream &output,
+             std::string key,
+             bool /*isHex*/,
+             std::string mesg,
+             bool &/*d*/ )
+{
+  output << key << " " << mesg << "\n";
+}
+
+
 
 //============================================================================
 //READING
 //============================================================================
-
 
 inpFileReader
 ::inpFileReader()
@@ -260,6 +354,15 @@ bool inpFileReader
       {
       input >> core.BackgroudMeshFile;
       }
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
+      else if( value == #Key) \
+      {\
+        helper.read(input, core.IsHexType(), MSG, core.Params.Var);\
+      }
+#define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
+      EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+#undef FUN_STRUCT
     }
   return true;
 }
@@ -343,8 +446,6 @@ bool inpFileWriter::write(std::string fname,
 }
 #undef WRITE_PARAM_VALUE
 
-
-
 bool inpFileWriter::write(std::string fname,
                           cmbNucCore & core,
                           bool updateFname)
@@ -366,6 +467,18 @@ bool inpFileWriter::write(std::string fname,
   helper.writeLattice( output, "Lattice", core.IsHexType(),
                        core.HexSymmetry, core.CoreLattice );
   output << "Background " << core.BackgroudMeshFile << "\n";
+
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
+  if( core.Params.Var##IsSet() ) \
+    {\
+    helper.write(output, #Key, core.IsHexType(), MSG, core.Params.Var); \
+    }
+#define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
+
+  EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+#undef FUN_STRUCT
+
 
   output << "End\n";
   output.close();
