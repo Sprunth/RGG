@@ -54,6 +54,14 @@ public:
     input >> destination;
   }
 
+  void readUnknown( std::stringstream &input, std::string value,
+                   std::vector<std::string> &unknowns)
+  {
+    std::string restOfLine;
+    std::getline(input, restOfLine);
+    unknowns.push_back(value + " "+restOfLine);
+  }
+
   void writeHeader( std::ofstream &output, std::string type );
   void writeMaterials( std::ofstream &output, cmbNucAssembly &assembly );
   void writeDuct( std::ofstream &output, cmbNucAssembly &assembly );
@@ -70,6 +78,15 @@ public:
                                    TYPE &value )
   {
     output << key << " " << value << "\n";
+  }
+
+  void writeUnknown( std::ofstream &output,
+                     std::vector<std::string> &unknowns )
+  {
+    for(unsigned int i = 0; i < unknowns.size(); ++i)
+      {
+      output << unknowns[i] << "\n";
+      }
   }
 };
 
@@ -170,6 +187,7 @@ inpFileReader
     close();
     return ERROR;
     }
+  bool had_amp = false;
   while(!input.eof())
     {
     std::string line("");
@@ -202,16 +220,21 @@ inpFileReader
         return ERROR;
         }
       }
-    bool has_amp = line.find_first_of('&') != std::string::npos;
-    if(has_amp)
+    bool found_amp = line.find_first_of('&') != std::string::npos;
+    if(found_amp)
       {
       std::replace(line.begin(), line.end(), '&', ' ');
+      }
+
+    if(had_amp)
+      {
       CleanFile += " " + line;
       }
     else
       {
       CleanFile += "\n" + line;
       }
+    had_amp = found_amp;
     }
   return Type;
 }
@@ -355,7 +378,7 @@ bool inpFileReader
       input >> core.BackgroudMeshFile;
       }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
-      else if( value == #Key) \
+    else if( value == #Key) \
       {\
         helper.read(input, core.IsHexType(), MSG, core.Params.Var);\
       }
@@ -363,6 +386,10 @@ bool inpFileReader
       EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
 #undef FUN_STRUCT
+    else //unknown
+      {
+        helper.readUnknown(input, value, core.Params.UnknownKeyWords);
+      }
     }
   return true;
 }
@@ -479,6 +506,7 @@ bool inpFileWriter::write(std::string fname,
 #undef FUN_SIMPLE
 #undef FUN_STRUCT
 
+  helper.writeUnknown(output, core.Params.UnknownKeyWords);
 
   output << "End\n";
   output.close();

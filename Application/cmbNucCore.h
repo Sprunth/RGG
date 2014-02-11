@@ -82,6 +82,8 @@ public:
 #undef FUN_STRUCT
   }
 
+  std::vector<std::string> UnknownKeyWords;
+
 private:
 
   void convert(QString qw, std::string & result) const
