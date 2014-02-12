@@ -355,6 +355,15 @@ void cmbNucMainWindow::onNewDialogAccept()
   this->PropertyWidget->setAssembly(NULL);
   this->NuclearCore->CoreLattice.SetGeometryType(
     this->PropertyWidget->getGeometryType());
+  switch(this->NewDialog->getSelectedGeometry())
+    {
+    case RECTILINEAR:
+      NuclearCore->GeometryType = "Rectangular";
+      break;
+    case HEXAGONAL:
+      NuclearCore->GeometryType = "HexFlat";
+      break;
+    }
   this->InputsWidget->onNewAssembly();
   this->Renderer->ResetCamera();
   this->Renderer->Render();

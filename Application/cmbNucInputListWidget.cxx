@@ -250,11 +250,13 @@ void cmbNucInputListWidget::onNewAssembly()
 
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
+  assembly->GeometryType = "Rectangular";
   assembly->AssyLattice.SetGeometryType(
     this->NuclearCore->CoreLattice.GetGeometryType());
   if(this->NuclearCore->CoreLattice.GetGeometryType() == HEXAGONAL)
     {
     assembly->AssyLattice.SetDimensions(2, 0, true);
+    assembly->GeometryType = "Hexagonal";
     }
   assembly->label = QString("Assy").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();

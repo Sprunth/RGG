@@ -45,7 +45,7 @@ void cmbNucCore::SetDimensions(int i, int j)
 
 void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 {
-  if(this->Assemblies.size()==0)
+    if(this->Assemblies.size()==0)
     {
     if(assembly)
       {

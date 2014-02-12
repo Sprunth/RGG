@@ -377,6 +377,12 @@ bool inpFileReader
       {
       input >> core.BackgroudMeshFile;
       }
+    else if(value == "outputfilename")
+      {
+      //we are ingnoring this
+      std::string dk;
+      getline(input, dk);
+      }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     else if( value == #Key) \
       {\
@@ -488,12 +494,13 @@ bool inpFileWriter::write(std::string fname,
     core.FileName = fname;
     }
   helper.writeHeader(output,"Assembly");
-  output << "GeometryType " << core.GeometryType << "\n";
   output << "Symmetry "  << core.HexSymmetry << "\n";
+  output << "GeometryType " << core.GeometryType << "\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", core.IsHexType(),
                        core.HexSymmetry, core.CoreLattice );
-  output << "Background " << core.BackgroudMeshFile << "\n";
+  if(!core.BackgroudMeshFile.empty())
+    output << "Background " << core.BackgroudMeshFile << "\n";
 
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
   if( core.Params.Var##IsSet() ) \
@@ -505,6 +512,9 @@ bool inpFileWriter::write(std::string fname,
   EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
 #undef FUN_STRUCT
+
+  output << "outputfilename "
+         << QFileInfo(fname.c_str()).completeBaseName().toStdString() << ".h5m\n";
 
   helper.writeUnknown(output, core.Params.UnknownKeyWords);
 
@@ -669,6 +679,10 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
       {
       output << " " << pincell->pitchY << " " << pincell->pitchZ;
       }
+    else
+      {
+      output << " " << pincell->pitchZ;
+      }
     output << "\n";
 
     for(size_t j = 0; j < pincell->cylinders.size(); j++)
@@ -760,8 +774,8 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         if(assembly.IsHexType())
           {
           double dHexPinPitch;
-          input >> dHexPinPitch;
-          pincell->pitchX=pincell->pitchY=pincell->pitchZ = dHexPinPitch;
+          input >> dHexPinPitch >> pincell->pitchZ;
+          pincell->pitchX=pincell->pitchY = dHexPinPitch;
           }
         else
           {
@@ -945,6 +959,8 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool i
             }
           output << label << " ";
           }
+        if(i < hexArray.size()-1)
+          output << "&";
         output << "\n";
         }
       }
@@ -1160,7 +1176,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       }
     std::string tmpPath = strPath;
     tmpPath.append("/").append(assemblyName).append(".inp");
-    output << assemblyName << " " << assembly.label << "\n";
+    output << assemblyName << ".cub " << assembly.label << "\n";
     assembly.WriteFile(tmpPath);
     }
 }

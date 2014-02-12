@@ -152,6 +152,8 @@ public:
 
   std::string FileName;
 
+  std::string GeometryType;
+
 protected :
 
   cmbAssyParameters *Parameters;
@@ -161,7 +163,6 @@ protected :
   vtkSmartPointer<vtkMultiBlockDataSet> CreateData();
 
 private:
-  std::string GeometryType;
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
   QColor LegendColor;
 
