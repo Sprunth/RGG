@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>247</width>
-    <height>390</height>
+    <width>385</width>
+    <height>496</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -48,98 +48,182 @@
    </item>
    <item row="0" column="0" colspan="2">
     <widget class="QStackedWidget" name="stackedWidget">
+     <property name="minimumSize">
+      <size>
+       <width>220</width>
+       <height>0</height>
+      </size>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
      <widget class="QWidget" name="pageCore">
       <layout class="QGridLayout" name="gridLayout_13">
        <item row="0" column="0">
-        <widget class="QLabel" name="label_30">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="minimumSize">
+          <size>
+           <width>220</width>
+           <height>300</height>
+          </size>
          </property>
-         <property name="text">
-          <string>X:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QSpinBox" name="coreLatticeX">
-         <property name="minimum">
+         <property name="currentIndex">
           <number>1</number>
          </property>
+         <widget class="QWidget" name="tab_2">
+          <attribute name="title">
+           <string>Lattice</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_12">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_30">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>X:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="coreLatticeX">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLabel" name="label_29">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Y:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QSpinBox" name="coreLatticeY">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="4">
+            <layout class="QVBoxLayout" name="coreLatticeLayout">
+             <item>
+              <widget class="QScrollArea" name="coreLatticeContainer">
+               <property name="widgetResizable">
+                <bool>true</bool>
+               </property>
+               <widget class="QWidget" name="scrollAreaWidgetContents">
+                <property name="geometry">
+                 <rect>
+                  <x>0</x>
+                  <y>0</y>
+                  <width>299</width>
+                  <height>331</height>
+                 </rect>
+                </property>
+                <zorder></zorder>
+               </widget>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+          <zorder>coreLatticeY</zorder>
+          <zorder>label_29</zorder>
+          <zorder>coreLatticeX</zorder>
+          <zorder>label_30</zorder>
+          <zorder>coreLatticeY</zorder>
+          <zorder>coreLatticeX</zorder>
+          <zorder>label_30</zorder>
+          <zorder>coreLatticeY</zorder>
+          <zorder>label_29</zorder>
+          <zorder>coreLatticeX</zorder>
+          <zorder>label_30</zorder>
+          <zorder></zorder>
+         </widget>
+         <widget class="QWidget" name="rectCoreConfig">
+          <attribute name="title">
+           <string>Configure</string>
+          </attribute>
+         </widget>
         </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="label_29">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Y:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QSpinBox" name="coreLatticeY">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0" colspan="4">
-        <layout class="QVBoxLayout" name="coreLatticeLayout">
-         <item>
-          <widget class="QScrollArea" name="coreLatticeContainer">
-           <property name="widgetResizable">
-            <bool>true</bool>
-           </property>
-           <widget class="QWidget" name="scrollAreaWidgetContents">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>207</width>
-              <height>279</height>
-             </rect>
-            </property>
-           </widget>
-          </widget>
-         </item>
-        </layout>
        </item>
       </layout>
      </widget>
      <widget class="QWidget" name="pageHexCore">
       <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="0">
-        <widget class="QLabel" name="label_32">
+        <widget class="QTabWidget" name="HexCore">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="text">
-          <string>Number Of Layers</string>
+         <property name="minimumSize">
+          <size>
+           <width>220</width>
+           <height>300</height>
+          </size>
          </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QSpinBox" name="hexLattice">
-         <property name="minimum">
+         <property name="currentIndex">
           <number>1</number>
          </property>
+         <widget class="QWidget" name="tab">
+          <attribute name="title">
+           <string>Lattice</string>
+          </attribute>
+          <layout class="QGridLayout" name="gridLayout_10">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_32">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Number Of Layers</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="hexLattice">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <layout class="QVBoxLayout" name="hexLatticeContainer"/>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="hexCoreConfig">
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <attribute name="title">
+           <string>Configure</string>
+          </attribute>
+         </widget>
         </widget>
-       </item>
-       <item row="1" column="0" colspan="2">
-        <layout class="QVBoxLayout" name="hexLatticeContainer"/>
        </item>
       </layout>
      </widget>
@@ -322,8 +406,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>205</width>
-                <height>199</height>
+                <width>343</width>
+                <height>250</height>
                </rect>
               </property>
              </widget>

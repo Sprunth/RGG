@@ -8,6 +8,7 @@
 #include "cmbNucPinCellEditor.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucMainWindow.h"
+#include "cmbCoreParametersWidget.h"
 
 #include "cmbNucHexLattice.h"
 
@@ -53,6 +54,11 @@ void cmbNucInputPropertiesWidget::initUI()
 
   this->CoreEditor = new cmbNucAssemblyEditor(this, NULL);
   this->Internal->coreLatticeContainer->setWidget(this->CoreEditor);
+
+  this->HexCoreProperties = new cmbCoreParametersWidget(this->Internal->hexCoreConfig);
+  this->RectCoreProperties = new cmbCoreParametersWidget(this->Internal->rectCoreConfig);
+  //this->CoreProperties->hide();
+  //todo::add thins
 
   this->HexCore = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
   this->Internal->hexLatticeContainer->addWidget(this->HexCore);
@@ -589,10 +595,12 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
   if(this->GeometryType == RECTILINEAR)
     {
+    this->RectCoreProperties->applyToCore(nucCore);
     this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
     }
   else if(this->GeometryType == HEXAGONAL)
     {
+    this->HexCoreProperties->applyToCore(nucCore);
     this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
 
@@ -617,6 +625,10 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
   if(nucCore)
     {
     this->CoreEditor->setCore(nucCore);
+    this->HexCoreProperties->setCore(nucCore);
+    this->HexCoreProperties->resetCore(nucCore);
+    this->RectCoreProperties->setCore(nucCore);
+    this->RectCoreProperties->resetCore(nucCore);
     this->Internal->coreLatticeX->blockSignals(true);
     this->Internal->coreLatticeY->blockSignals(true);
     this->Internal->coreLatticeX->setValue(nucCore->GetDimensions().first);
