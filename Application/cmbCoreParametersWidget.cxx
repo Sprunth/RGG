@@ -101,6 +101,11 @@ void convert(QString qw, std::string & result)
 
 void convert(QString qw, double & result)
 {
+  if(qw.isEmpty())
+  {
+    result = -1e23;
+    return;
+  }
   bool ok;
   double previous = result;
   result = qw.toDouble(&ok);
@@ -141,13 +146,21 @@ void setValue(QComboBox * to, std::string &from)
 
 void setValue(double &to, QLineEdit * from)
 {
-  if(from->text().isEmpty()) return;
+  if(from->text().isEmpty())
+  {
+    to = -1e23;
+    return;
+  }
   convert(from->text(), to);
 }
 
 void setValue(int &to, QLineEdit * from)
 {
-  if(from->text().isEmpty()) return;
+  if(from->text().isEmpty())
+  {
+    to = -100;
+    return;
+  }
   convert(from->text(), to);
 }
 

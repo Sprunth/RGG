@@ -28,7 +28,7 @@ public slots:
   // Invoked when Reset button clicked
   void onReset();
 
-protected slots:  // reset property panel with given object
+public slots:  // reset property panel with given object
   void resetAssembly(cmbNucAssembly* assy);
 
   // apply property panel to given object

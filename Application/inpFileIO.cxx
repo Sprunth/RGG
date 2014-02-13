@@ -320,6 +320,26 @@ bool inpFileReader
       {
       input >> assembly.Parameters->Geometry;
       }
+    else if(value == "center")
+      {
+      std::string tmp;
+      std::getline(input, tmp);
+      if(!tmp.empty())
+        {
+        assembly.Parameters->CenterXYZ = tmp;
+        }
+      }
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK)\
+    else if(value == #Key)\
+      { \
+      std::getline(input, assembly.Parameters->Var);\
+      }
+    ASSYGEN_EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+    else
+      {
+      helper.readUnknown(input, value, assembly.Parameters->UnknownParams);
+      }
     }
   return true;
 }
@@ -441,8 +461,6 @@ bool inpFileWriter::write(std::string fname,
   WRITE_PARAM_VALUE(TetMeshSize, TetMeshSize);
   WRITE_PARAM_VALUE(EdgeInterval, EdgeInterval);
   WRITE_PARAM_VALUE(RadialMeshSize, RadialMeshSize);
-  WRITE_PARAM_VALUE(MaterialSet_StartId, MaterialSet_StartId);
-  WRITE_PARAM_VALUE(NeumannSet_StartId, NeumannSet_StartId);
   WRITE_PARAM_VALUE(Move, MoveXYZ);
 
   output << "Center";
@@ -471,6 +489,17 @@ bool inpFileWriter::write(std::string fname,
   WRITE_PARAM_VALUE(CreateSideset, CreateSideset);
   WRITE_PARAM_VALUE(MergeTolerance, MergeTolerance);
   WRITE_PARAM_VALUE(HBlock, HBlock);
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK)\
+if(params->isValueSet(params->Var))\
+  output << #Key << " " << params->Var << "\n";
+  ASSYGEN_EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+
+  for(unsigned int i = 0; i < assembly.Parameters->UnknownParams.size(); ++i)
+  {
+    output << assembly.Parameters->UnknownParams[i] << "\n";
+  }
+
   // end
   output << "end\n";
   output.close();

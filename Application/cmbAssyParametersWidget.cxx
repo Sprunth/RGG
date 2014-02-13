@@ -34,44 +34,6 @@ cmbAssyParametersWidget::~cmbAssyParametersWidget()
 //-----------------------------------------------------------------------------
 void cmbAssyParametersWidget::initUI()
 {
-/*
-  QObject::connect(this->Internal->TetMeshSize, SIGNAL(editingFinished()),
-    this, SLOT(onTetMeshSizeChanged()));
-  QObject::connect(this->Internal->RadialMeshSize, SIGNAL(editingFinished()),
-    this, SLOT(onRadialMeshSizeChanged()));
-  QObject::connect(this->Internal->AxialMeshSize, SIGNAL(editingFinished()),
-    this, SLOT(onAxialMeshSizeChanged()));
-  QObject::connect(this->Internal->NeumannSet_StartId, SIGNAL(editingFinished()),
-    this, SLOT(onNeumannSetStartIdChanged()));
-  QObject::connect(this->Internal->MaterialSet_StartId, SIGNAL(editingFinished()),
-    this, SLOT(onMaterialSetStartIdChanged()));
-  QObject::connect(this->Internal->EdgeInterval, SIGNAL(editingFinished()),
-    this, SLOT(onEdgeIntervalChanged()));
-  QObject::connect(this->Internal->MergeTolerance, SIGNAL(editingFinished()),
-    this, SLOT(onMergeToleranceChanged()));
-  QObject::connect(this->Internal->CreateFiles, SIGNAL(editingFinished()),
-    this, SLOT(onCreateFilesChanged()));
-
-  QObject::connect(this->Internal->RotateXYZ, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onRotateXYZChanged(int)));
-  QObject::connect(this->Internal->RotateAngle, SIGNAL(editingFinished()),
-    this, SLOT(onRotateAngleChanged()));
-
-  QObject::connect(this->Internal->CenterXYZ, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onCenterXYZChanged(int)));
-  QObject::connect(this->Internal->MoveXYZ, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onMoveXYZChanged(int)));
-  QObject::connect(this->Internal->CreateSideSetYesNo, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onCreateSideSetChanged(int)));
-  QObject::connect(this->Internal->InfoOnOff, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onInfoOnOffChanged(int)));
-  QObject::connect(this->Internal->SectionXYZ, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onSectionXYZChanged(int)));
-  QObject::connect(this->Internal->SectionOffset, SIGNAL(editingFinished()),
-    this, SLOT(onSectionOffsetChanged()));
-  QObject::connect(this->Internal->SectionReverse, SIGNAL(toggled(bool)),
-    this, SLOT(onSectionReverseChanged(bool)));
-*/
 }
 
 //-----------------------------------------------------------------------------
@@ -106,105 +68,194 @@ void cmbAssyParametersWidget::onReset()
   this->resetAssembly(this->Assembly);
 }
 
+//Helpers
+namespace
+{
+
+void convert(QString qw, std::string & result)
+{
+  result = qw.toStdString();
+}
+
+void convert(QString qw, double & result)
+{
+  if(qw.isEmpty())
+  {
+    result = ASSY_NOT_SET_VALUE;
+  }
+  bool ok;
+  double previous = result;
+  result = qw.toDouble(&ok);
+  if(!ok)
+  {
+    result = previous;
+  }
+}
+
+void convert(QString qw, int & result)
+{
+  bool ok;
+  int previous = result;
+  result = qw.toInt(&ok);
+  if(!ok)
+  {
+    result = previous;
+  }
+}
+
+void convert(bool qw, bool & result)
+{
+  result = qw;
+}
+
+void setValue(std::string &to, QComboBox * from)
+{
+  QString tmp = from->currentText();
+  convert(tmp, to);
+}
+
+void setValue(QComboBox * to, std::string &from)
+{
+  QString tmp(from.c_str());
+  tmp = tmp.simplified();
+  qDebug() << "Settign combo box: " << tmp;
+  to->setCurrentIndex(to->findText(tmp, Qt::MatchFixedString));
+}
+
+void setValue(double &to, QLineEdit * from)
+{
+  if(from->text().isEmpty())
+  {
+    to = ASSY_NOT_SET_VALUE;
+    return;
+  }
+  convert(from->text(), to);
+}
+
+void setValue(int &to, QLineEdit * from)
+{
+  if(from->text().isEmpty())
+  {
+    to = ASSY_NOT_SET_VALUE;
+    return;
+  }
+  convert(from->text(), to);
+}
+
+void setValue(std::string &to, QLineEdit * from)
+{
+  if(from->text().isEmpty())
+  {
+    to = ASSY_NOT_SET_KEY;
+    return;
+  }
+  convert(from->text(), to);
+}
+
+void setValue(QLineEdit * to, std::string &from)
+{
+  if(from == ASSY_NOT_SET_KEY)
+  {
+    to->setText("");
+    return;
+  }
+  QString tmp(from.c_str());
+  to->setText(tmp);
+}
+
+void setValue(QLineEdit * to, double &from)
+{
+  if(from == ASSY_NOT_SET_VALUE)
+  {
+    to->setText("");
+    return;
+  }
+  QString tmp = QString::number(from);
+  to->setText(tmp);
+}
+
+void setValue(QLineEdit * to, int &from)
+{
+  if(from == ASSY_NOT_SET_VALUE)
+  {
+    to->setText("");
+    return;
+  }
+  QString tmp = QString::number(from);
+  to->setText(tmp);
+}
+
+void setValue(bool &to, QCheckBox * from)
+{
+  to = from->isChecked();
+}
+
+void setValue(QCheckBox * to, bool &from)
+{
+  to->setChecked(from);
+}
+}
+
+#define EASY_ASSY_PARAMS_MACRO()\
+  FUN(TetMeshSize) \
+  FUN(RadialMeshSize) \
+  FUN(AxialMeshSize) \
+  FUN(NeumannSet_StartId) \
+  FUN(MaterialSet_StartId) \
+  FUN(EdgeInterval)\
+  FUN(MergeTolerance) \
+  FUN(CreateFiles) \
+  FUN(RotateXYZ) \
+  FUN(RotateAngle) \
+  FUN(CenterXYZ) \
+  FUN(Info) \
+  FUN(SectionXYZ) \
+  FUN(SectionOffset) \
+  FUN(StartPinId) \
+  FUN(CellMaterial) \
+  FUN(CreateMatFiles) \
+  FUN(Save_Exodus) \
+  FUN(List_NeumannSet_StartId) \
+  FUN(List_MaterialSet_StartId) \
+  FUN(NumSuperBlocks) \
+  FUN(SuperBlocks) \
+  FUN(MeshType)
+
+
+
 //-----------------------------------------------------------------------------
 void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 {
-  bool ok = false;
+  qDebug() << QString::number(reinterpret_cast<unsigned long>(assy),16) << " " << assy->label.c_str();
   cmbAssyParameters* parameters = assy->GetParameters();
-  //parameters->TetMeshSize = QString::number
-  this->Internal->TetMeshSize->setText(
-    parameters->isValueSet(parameters->TetMeshSize) ?
-    QString::number(parameters->TetMeshSize) : "");
-  this->Internal->RadialMeshSize->setText(
-    parameters->isValueSet(parameters->RadialMeshSize) ?
-    QString::number(parameters->RadialMeshSize) : "");
-  this->Internal->AxialMeshSize->setText(
-    parameters->isValueSet(parameters->AxialMeshSize) ?
-    QString::number(parameters->AxialMeshSize) : "");
-  this->Internal->NeumannSet_StartId->setText(
-    parameters->isValueSet(parameters->NeumannSet_StartId) ?
-    QString::number(parameters->NeumannSet_StartId) : "");
-  this->Internal->MaterialSet_StartId->setText(
-    parameters->isValueSet(parameters->MaterialSet_StartId) ?
-    QString::number(parameters->MaterialSet_StartId) : "");
-  this->Internal->EdgeInterval->setText(
-    parameters->isValueSet(parameters->EdgeInterval) ?
-    QString::number(parameters->EdgeInterval) : "");
-  this->Internal->MergeTolerance->setText(
-    parameters->isValueSet(parameters->MergeTolerance) ?
-    QString::number(parameters->MergeTolerance) : "");
-  this->Internal->CreateFiles->setText(
-    parameters->isValueSet(parameters->CreateFiles) ?
-    QString::number(parameters->CreateFiles) : "");
-
-  this->Internal->RotateXYZ->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->RotateXYZ.c_str()));
-  this->Internal->RotateAngle->setText(
-    parameters->isValueSet(parameters->RotateAngle) ?
-    QString::number(parameters->RotateAngle) : "");
-  this->Internal->CenterXYZ->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->CenterXYZ.c_str()));
-  this->Internal->MoveXYZ->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->MoveXYZ.c_str()));
-  this->Internal->CreateSideSetYesNo->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->CreateSideset.c_str()));
-  this->Internal->InfoOnOff->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->Info.c_str()));
-  this->Internal->SectionXYZ->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->SectionXYZ.c_str()));
-  this->Internal->SectionOffset->setText(
-    parameters->isValueSet(parameters->SectionOffset) ?
-    QString::number(parameters->SectionOffset) : "");
-  this->Internal->SectionReverse->setChecked(parameters->SectionReverse);
+#define FUN(X) setValue(parameters->X, this->Internal->X);
+  EASY_ASSY_PARAMS_MACRO()
+#undef FUN
+  std::stringstream ss(Internal->Unknown->toPlainText().toStdString().c_str());
+  std::string line;
+  parameters->UnknownParams.clear();
+  while( std::getline(ss, line))
+  {
+    qDebug() << line.c_str();
+    parameters->UnknownParams.push_back(line);
+    line.clear();
+  }
+  qDebug() << "extracted: " << parameters->UnknownParams.size();
 }
 
 //-----------------------------------------------------------------------------
 void cmbAssyParametersWidget::resetAssembly(cmbNucAssembly* assy)
 {
+  qDebug() << QString::number(reinterpret_cast<unsigned long>(assy),16) << " " << assy->label.c_str();
   cmbAssyParameters* parameters = assy->GetParameters();
-  this->Internal->TetMeshSize->setText(
-    parameters->isValueSet(parameters->TetMeshSize) ?
-    QString::number(parameters->TetMeshSize) : "");
-  this->Internal->RadialMeshSize->setText(
-    parameters->isValueSet(parameters->RadialMeshSize) ?
-    QString::number(parameters->RadialMeshSize) : "");
-  this->Internal->AxialMeshSize->setText(
-    parameters->isValueSet(parameters->AxialMeshSize) ?
-    QString::number(parameters->AxialMeshSize) : "");
-  this->Internal->NeumannSet_StartId->setText(
-    parameters->isValueSet(parameters->NeumannSet_StartId) ?
-    QString::number(parameters->NeumannSet_StartId) : "");
-  this->Internal->MaterialSet_StartId->setText(
-    parameters->isValueSet(parameters->MaterialSet_StartId) ?
-    QString::number(parameters->MaterialSet_StartId) : "");
-  this->Internal->EdgeInterval->setText(
-    parameters->isValueSet(parameters->EdgeInterval) ?
-    QString::number(parameters->EdgeInterval) : "");
-  this->Internal->MergeTolerance->setText(
-    parameters->isValueSet(parameters->MergeTolerance) ?
-    QString::number(parameters->MergeTolerance) : "");
-  this->Internal->CreateFiles->setText(
-    parameters->isValueSet(parameters->CreateFiles) ?
-    QString::number(parameters->CreateFiles) : "");
-
-  this->Internal->RotateXYZ->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->RotateXYZ.c_str()));
-  this->Internal->RotateAngle->setText(
-    parameters->isValueSet(parameters->RotateAngle) ?
-    QString::number(parameters->RotateAngle) : "");
-  this->Internal->CenterXYZ->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->CenterXYZ.c_str()));
-  this->Internal->MoveXYZ->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->MoveXYZ.c_str()));
-  this->Internal->CreateSideSetYesNo->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->CreateSideset.c_str()));
-  this->Internal->InfoOnOff->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->Info.c_str()));
-  this->Internal->SectionXYZ->setCurrentIndex(
-    this->Internal->RotateXYZ->findText(parameters->SectionXYZ.c_str()));
-  this->Internal->SectionOffset->setText(
-    parameters->isValueSet(parameters->SectionOffset) ?
-    QString::number(parameters->SectionOffset) : "");
-  this->Internal->SectionReverse->setChecked(parameters->SectionReverse);
-
+#define FUN(X) setValue(this->Internal->X, parameters->X);
+  EASY_ASSY_PARAMS_MACRO()
+#undef FUN
+  qDebug() << "Number of knowns: " << parameters->UnknownParams.size();
+  std::string unknowns;
+  for(unsigned int i = 0; i < parameters->UnknownParams.size(); ++i)
+  {
+    unknowns += parameters->UnknownParams[i] + "\n";
+  }
+  Internal->Unknown->setPlainText(QString::fromStdString(unknowns));
 }
