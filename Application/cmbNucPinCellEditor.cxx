@@ -224,6 +224,7 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell)
     selItem->setSelected(true);
     }
 
+  this->onPieceSelected();
   this->UpdateData();
 }
 
