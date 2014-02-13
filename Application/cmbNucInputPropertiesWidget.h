@@ -11,6 +11,8 @@ class cmbNucMainWindow;
 class cmbNucAssembly;
 class cmbNucCore;
 class cmbNucHexLattice;
+class cmbCoreParametersWidget;
+class cmbAssyParametersWidget;
 
 class cmbNucInputPropertiesWidget : public QWidget
 {
@@ -104,5 +106,9 @@ private:
   cmbNucMainWindow *MainWindow;
   cmbNucHexLattice* HexCore;
   cmbNucHexLattice* HexAssy;
+  cmbCoreParametersWidget* HexCoreProperties;
+  cmbCoreParametersWidget* RectCoreProperties;
+  cmbAssyParametersWidget* HexAssyConf;
+  cmbAssyParametersWidget* RectAssyConf;
 };
 #endif

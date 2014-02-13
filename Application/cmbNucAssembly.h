@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <QColor>
+#include <QDebug>
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
@@ -11,6 +12,92 @@
 #include "vtkPolyData.h"
 
 class vtkCompositeDataDisplayAttributes;
+class inpFileReader;
+class inpFileHelper;
+class inpFileWriter;
+
+#define ASSY_NOT_SET_VALUE -100001
+#define ASSY_NOT_SET_KEY "NotSet"
+
+#define ASSYGEN_EXTRA_VARABLE_MACRO() \
+FUN_SIMPLE(std::string, QString, StartPinId,               startpinid,               ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, MeshType,                 meshtype,                 ASSY_NOT_SET_KEY, "")\
+FUN_SIMPLE(std::string, QString, CellMaterial,             cellmaterial,             ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, CreateMatFiles,           creatematfiles,           ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, Save_Exodus,              save_exodus,              ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, NeumannSet_StartId,       neumannset_startid,       ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, List_NeumannSet_StartId,  list_neumannset_startid,  ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, MaterialSet_StartId,      materialset_startid,      ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, List_MaterialSet_StartId, list_materialset_startid, ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, NumSuperBlocks,           numsuperblocks,           ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, SuperBlocks,              superblocks,              ASSY_NOT_SET_KEY, "")
+
+
+
+class cmbAssyParameters
+{
+public:
+  cmbAssyParameters()
+  {
+  this->Geometry = this->GeometryType = this->MeshType
+    = this->RotateXYZ = this->CenterXYZ = this->CreateSideset = this->HBlock
+    = this->Info = this->SectionXYZ = this->MoveXYZ = ASSY_NOT_SET_KEY;
+  this->RotateAngle = this->RadialMeshSize = this->AxialMeshSize
+    = this->TetMeshSize = this->EdgeInterval = this->MergeTolerance = this->CreateFiles
+    = this->SectionOffset = ASSY_NOT_SET_VALUE;
+  this->SectionReverse = false;
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) Var = DEFAULT;
+    ASSYGEN_EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+  }
+
+  static bool isKeySet(const std::string& key)
+  { return key != ASSY_NOT_SET_KEY; }
+  static bool isValueSet(const std::string& val)
+  { return val != ASSY_NOT_SET_KEY; }
+  template<typename T> static bool isValueSet(const T& val)
+  { return val != ASSY_NOT_SET_VALUE; }
+
+  // Geometry     {Volume | Surface}
+  std::string Geometry;
+  // GeometryType {Hexagonal | Rectangular}
+  std::string GeometryType;
+
+  // [TetMeshSize <size>]
+  double TetMeshSize;
+  // [RadialMeshSize <size>]
+  double RadialMeshSize;
+  // [AxialMeshSize <size>]
+  double AxialMeshSize;
+  // [Rotate {x | y | z} <angle>]
+  std::string RotateXYZ;
+  double RotateAngle;
+  // [Center] {x | y | z}
+  std::string CenterXYZ;
+  // [EdgeInterval <value>]
+  int EdgeInterval;
+  // [MergeTolerance <value>]
+  double MergeTolerance;
+  // [CreateSideSet {Yes | No}]
+  std::string CreateSideset;
+  // [Info {On | off}]
+  std::string Info;
+  // [CreateFiles <block-number-shifted>]
+  int CreateFiles;
+  // [Section {x | y | z} <offset> [reverse] ]
+  std::string SectionXYZ;
+  int SectionOffset;
+  bool SectionReverse;
+  // [Move <x> <y> <z> ]
+  std::string MoveXYZ;
+  // HBlock
+  std::string HBlock;
+
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) TYPE Var;
+  ASSYGEN_EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+  std::vector<std::string> UnknownParams;
+};
 
 // Represents an assembly. Assemblies are composed of pin cells (cmbNucPinCell)
 // and the surrounding ducting. Assemblies can be loaded and stored to files
@@ -19,6 +106,10 @@ class vtkCompositeDataDisplayAttributes;
 class cmbNucAssembly : public AssyPartObj
 {
 public:
+
+  friend class inpFileReader;
+  friend class inpFileHelper;
+  friend class inpFileWriter;
 
   // Creates an empty assembly.
   cmbNucAssembly();
@@ -68,28 +159,27 @@ public:
   // pincell will be cut in half length-wise to show the interior layers.
   static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell, bool cutaway = false);
 
+  cmbAssyParameters* GetParameters() {return this->Parameters;}
+
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;
   Lattice AssyLattice;
   std::string label;
-  double MeshSize;
+
   std::string FileName;
+
+  std::string GeometryType;
 
 protected :
 
-  // For Hex geometry
-  double RadialMeshSize;
-  double AxialMeshSize;
-  std::string  RotateDirection;
-  double RotateAngle;
+  cmbAssyParameters *Parameters;
 
   friend class cmbNucMainWindow;
 
   vtkSmartPointer<vtkMultiBlockDataSet> CreateData();
 
 private:
-  std::string GeometryType;
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
   QColor LegendColor;
 

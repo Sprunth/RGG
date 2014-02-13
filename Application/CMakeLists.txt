@@ -40,6 +40,9 @@ SET(CMBNuclear_Srcs
   cmbNucExport.cxx
   cmbNucExportDialog.cxx
   cmbNucPreferencesDialog.cxx
+  cmbAssyParametersWidget.cxx
+  inpFileIO.cxx
+  cmbCoreParametersWidget.cxx
   cmbNucCoregen.cxx
 )
 
@@ -53,9 +56,12 @@ SET(CMBNuclear_UI
   qProgress.ui
   qCoregenModel.ui
   Preferences.ui
+  qAssyParameters.ui
+  qCoreParameters.ui
 )
 
 SET(CMBNuclear_Headers
+  cmbNucCore.h
   cmbNucMainWindow.h
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
@@ -69,6 +75,8 @@ SET(CMBNuclear_Headers
   cmbNucExport.h
   cmbNucExportDialog.h
   cmbNucPreferencesDialog.h
+  cmbAssyParametersWidget.h
+  cmbCoreParametersWidget.h
   cmbNucCoregen.h
 )
 

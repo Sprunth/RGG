@@ -8,6 +8,8 @@
 #include "cmbNucPinCellEditor.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucMainWindow.h"
+#include "cmbCoreParametersWidget.h"
+#include "cmbAssyParametersWidget.h"
 
 #include "cmbNucHexLattice.h"
 
@@ -53,6 +55,15 @@ void cmbNucInputPropertiesWidget::initUI()
 
   this->CoreEditor = new cmbNucAssemblyEditor(this, NULL);
   this->Internal->coreLatticeContainer->setWidget(this->CoreEditor);
+
+  this->HexCoreProperties = new cmbCoreParametersWidget(this->Internal->hexCoreConfig);
+  this->RectCoreProperties = new cmbCoreParametersWidget(this->Internal->rectCoreConfig);
+
+  this->HexAssyConf = new cmbAssyParametersWidget(this->Internal->HexAssyConf);
+  this->RectAssyConf = new cmbAssyParametersWidget(this->Internal->RectAssyConf);
+
+  //this->CoreProperties->hide();
+  //todo::add thins
 
   this->HexCore = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
   this->Internal->hexLatticeContainer->addWidget(this->HexCore);
@@ -173,6 +184,8 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
   this->AssemblyEditor->setAssembly(assyObj);
   this->CoreEditor->setAssembly(assyObj);
   this->HexAssy->setAssembly(assyObj);
+  HexAssyConf->setAssembly(assyObj);
+  RectAssyConf->setAssembly(assyObj);
 }
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
@@ -581,7 +594,16 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
-  assy->MeshSize = this->Internal->MeshSize->text().toDouble();
+  //assy->MeshSize = this->Internal->MeshSize->text().toDouble();
+  if(this->GeometryType == RECTILINEAR)
+  {
+    this->RectAssyConf->applyToAssembly(assy);
+  }
+  else if(this->GeometryType == HEXAGONAL)
+  {
+    this->HexAssyConf->applyToAssembly(assy);
+  }
+
   emit this->objGeometryChanged(assy);
 }
 //-----------------------------------------------------------------------------
@@ -589,10 +611,12 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
   if(this->GeometryType == RECTILINEAR)
     {
+    this->RectCoreProperties->applyToCore(nucCore);
     this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
     }
   else if(this->GeometryType == HEXAGONAL)
     {
+    this->HexCoreProperties->applyToCore(nucCore);
     this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
 
@@ -601,7 +625,9 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 {
-  this->Internal->MeshSize->setText(QString::number(assy->MeshSize));
+  //this->Internal->MeshSize->setText(QString::number(assy->MeshSize));
+  this->HexAssyConf->resetAssembly(assy);
+  this->RectAssyConf->resetAssembly(assy);
 
   // Show color swatch with legendColor
   QLabel* swatch = this->GeometryType == RECTILINEAR ?
@@ -617,6 +643,10 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
   if(nucCore)
     {
     this->CoreEditor->setCore(nucCore);
+    this->HexCoreProperties->setCore(nucCore);
+    this->HexCoreProperties->resetCore(nucCore);
+    this->RectCoreProperties->setCore(nucCore);
+    this->RectCoreProperties->resetCore(nucCore);
     this->Internal->coreLatticeX->blockSignals(true);
     this->Internal->coreLatticeY->blockSignals(true);
     this->Internal->coreLatticeX->setValue(nucCore->GetDimensions().first);

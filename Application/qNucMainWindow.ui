@@ -91,6 +91,7 @@
     <addaction name="actionNew"/>
     <addaction name="actionOpenCoreFile"/>
     <addaction name="actionOpenFile"/>
+    <addaction name="saveCoreFile"/>
     <addaction name="actionSaveFile"/>
     <addaction name="actionExit"/>
     <addaction name="actionOpenMOABFile"/>
@@ -172,7 +173,7 @@
      <normaloff>:/CMBNuclear/Icons/qNucSave32.png</normaloff>:/CMBNuclear/Icons/qNucSave32.png</iconset>
    </property>
    <property name="text">
-    <string>Save File...</string>
+    <string>Save Current Assemby to File...</string>
    </property>
    <property name="toolTip">
     <string>Save File</string>
@@ -222,6 +223,11 @@
   <action name="actionExport">
    <property name="text">
     <string>Export</string>
+   </property>
+  </action>
+  <action name="saveCoreFile">
+   <property name="text">
+    <string>Save Current Core file and Assembies to file...</string>
    </property>
   </action>
   <action name="actionOpenMOABFile">
