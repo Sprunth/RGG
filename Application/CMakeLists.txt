@@ -5,6 +5,7 @@ INCLUDE(${VTK_USE_FILE}) # include UseVTK.cmake
 
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})  # include UseQt4.cmake
+INCLUDE_DIRECTORIES(${QT_INCLUDE_DIR})
 
 FIND_PACKAGE(Remus REQUIRED)
 INCLUDE(${Remus_INCLUDE_DIR})
@@ -39,6 +40,7 @@ SET(CMBNuclear_Srcs
   cmbNucExport.cxx
   cmbNucExportDialog.cxx
   cmbNucPreferencesDialog.cxx
+  cmbNucCoregen.cxx
 )
 
 SET(CMBNuclear_UI
@@ -49,6 +51,7 @@ SET(CMBNuclear_UI
   cmbNucPinCellEditor.ui
   qExporterDialog.ui
   qProgress.ui
+  qCoregenModel.ui
   Preferences.ui
 )
 
@@ -66,7 +69,26 @@ SET(CMBNuclear_Headers
   cmbNucExport.h
   cmbNucExportDialog.h
   cmbNucPreferencesDialog.h
+  cmbNucCoregen.h
 )
+
+SET(CMBNuclear_other_headers )
+
+OPTION( VTK_MOAB_SUPPORT "Build with VTK MOAB support"  OFF )
+IF(VTK_MOAB_SUPPORT)
+  FIND_PACKAGE(MOAB)
+  message(${MOAB_INCLUDE_DIR})
+  INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
+  SET(CMBNuclear_other_headers ${CMBNuclear_other_headers}
+                               vtk_moab_reader/SimpleMoab.h
+                               vtk_moab_reader/CellTypeToType.h
+                               vtk_moab_reader/DataSetConverter.h
+                               vtk_moab_reader/MixedCellConnectivity.h
+                               vtk_moab_reader/vtkMoabReader.h )
+  SET(CMBNuclear_Srcs ${CMBNuclear_Srcs}
+                      vtk_moab_reader/vtkMoabReader.cxx)
+  SET(MOAB_LIB MOAB)
+ENDIF()
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})
 QT4_WRAP_CPP(MOCSrcs ${CMBNuclear_Headers} )
@@ -82,7 +104,7 @@ SOURCE_GROUP("Generated" FILES
 )
 
 ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES})
-TARGET_LINK_LIBRARIES( CMBNuclear RemusClient RemusWorker RemusServer ${QT_LIBRARIES} ${VTK_LIBRARIES} )
+TARGET_LINK_LIBRARIES( CMBNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} )
 
 # The initial material color file
 set (materialColorsName "materialcolors")

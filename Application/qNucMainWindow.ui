@@ -93,6 +93,7 @@
     <addaction name="actionOpenFile"/>
     <addaction name="actionSaveFile"/>
     <addaction name="actionExit"/>
+    <addaction name="actionOpenMOABFile"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -105,7 +106,6 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionRunAssygen"/>
     <addaction name="actionExport"/>
    </widget>
    <addaction name="menuFile"/>
@@ -222,6 +222,11 @@
   <action name="actionExport">
    <property name="text">
     <string>Export</string>
+   </property>
+  </action>
+  <action name="actionOpenMOABFile">
+   <property name="text">
+    <string>Open MOAB File</string>
    </property>
   </action>
  </widget>

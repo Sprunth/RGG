@@ -20,7 +20,7 @@ class cmbProgressDialog: public QDialog
 public:
   Ui_qProgress *ui;
   cmbProgressDialog(QDialog * d)
-  : QDialog(d)
+  : QDialog(d, Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint)
   {
     ui = new Ui_qProgress;
     ui->setupUi(this);
@@ -41,12 +41,17 @@ public slots:
 
 protected slots:
   void sendSignalToProcess();
+  void cancel();
+  void done();
 
 signals:
   void process( const QString, const QStringList &,
                 const QString, const QString,
                 const QString);
+public:
+signals:
   void error(QString);
+  void finished(QString);
 
 private:
   // Designer form
