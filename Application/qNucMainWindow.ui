@@ -94,6 +94,7 @@
     <addaction name="saveCoreFile"/>
     <addaction name="actionSaveFile"/>
     <addaction name="actionExit"/>
+    <addaction name="actionOpenMOABFile"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -106,7 +107,6 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionRunAssygen"/>
     <addaction name="actionExport"/>
    </widget>
    <addaction name="menuFile"/>
@@ -228,6 +228,11 @@
   <action name="saveCoreFile">
    <property name="text">
     <string>Save Current Core file and Assembies to file...</string>
+   </property>
+  </action>
+  <action name="actionOpenMOABFile">
+   <property name="text">
+    <string>Open MOAB File</string>
    </property>
   </action>
  </widget>

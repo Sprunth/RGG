@@ -7,11 +7,17 @@
 
 #include <remus/server/Server.h>
 #include <remus/server/WorkerFactory.h>
+#include <remus/common/MeshTypes.h>
+#include <remus/common/ExecuteProcess.h>
+#include <remus/client/JobResult.h>
 
 #include <QDebug>
 #include <QFileInfo>
 #include <QStringList>
 #include <QDir>
+#include <QMutexLocker>
+
+#include <iostream>
 
 #include <iostream>
 
@@ -111,18 +117,28 @@ cmbNucExporterWorker
 
 void cmbNucExporterWorker::run()
 {
-  for(;;)
   {
-    qDebug("waiting for job");
+    QMutexLocker locker(&Mutex);
+    StillRunning = true;
+  }
+  while(stillRunning())
+  {
     remus::worker::Job job = this->getJob();
 
     if(!job.valid())
     {
-      qDebug("job invalid");
-      emit errorMessage("JOB NOT VALID");
-      break;
+      switch(job.validityReason())
+      {
+        case remus::worker::Job::INVALID:
+          emit errorMessage("JOB NOT VALID");
+          continue;
+        case remus::worker::Job::TERMINATE_WORKER:
+          {
+          this->stop();
+          }
+          continue;
+      }
     }
-    qDebug("got a job");
 
     ExporterInput input(job);
 
@@ -139,35 +155,44 @@ void cmbNucExporterWorker::run()
     }
     args.push_back(input.FileArg);
 
-    qDebug() << "FUNCTION: " << input.Function.c_str();
-    for( std::vector<std::string>::const_iterator i = args.begin();
-        i < args.end(); ++i )
-    {
-      qDebug() << "Arg: \"" << i->c_str() << "\"";
-    }
-
-
     remus::common::ExecuteProcess* process = new remus::common::ExecuteProcess( input.Function, args);
+    qDebug() << QString((input.Function + "  " + input.FileArg).c_str());
 
     //actually launch the new process
     process->execute(remus::common::ExecuteProcess::Attached);
+    qDebug() << "processed launched";
 
     //Wait for finish
     if(pollStatus(process, job))
     {
-      std::cout << "success" << std::endl;
+      qDebug() << "poll success";
       remus::worker::JobResult results(job.id(),"DUMMY FOR NOW;");
       this->returnMeshResults(results);
     }
     else
     {
+      qDebug() << "poll fail";
       remus::worker::JobStatus status(job.id(),remus::FAILED);
       updateStatus(status);
     }
     QDir::setCurrent( current );
+    qDebug() << "deleting process";
     delete process;
+    qDebug() << "done deleting process";
   }
-  qDebug() << "FINISH RUNNING WORKER";
+}
+
+void cmbNucExporterWorker::stop()
+{
+  QMutexLocker locker(&Mutex);
+  qDebug() << "Worker stopping";
+  StillRunning = false;
+}
+
+bool cmbNucExporterWorker::stillRunning()
+{
+  QMutexLocker locker(&Mutex);
+  return StillRunning;
 }
 
 bool cmbNucExporterWorker
@@ -179,16 +204,20 @@ bool cmbNucExporterWorker
   //poll on STDOUT and STDERRR only
   bool validExection=true;
   remus::worker::JobStatus status(job.id(),remus::IN_PROGRESS);
-  while(process->isAlive()&& validExection )
+  while(process->isAlive()&& validExection && this->stillRunning())
   {
     //poll till we have a data, waiting for-ever!
-    ProcessPipe data = process->poll(-1);
+    ProcessPipe data = process->poll(2);
     if(data.type == ProcessPipe::STDOUT)
     {
       //we have something on the output pipe
       status.Progress.setMessage(data.text);
       this->updateStatus(status);
     }
+  }
+  if(process->isAlive())
+  {
+    process->kill();
   }
 
   //verify we exited normally, not segfault or numeric exception
@@ -244,6 +273,7 @@ void cmbNucExport::run( const QString assygenExe,
                         const QString coregenExe,
                         const QString coregenFile)
 {
+  this->setKeepGoing(true);
   emit currentProcess("Started setting up");
   //pop up progress bar
   double total_number_of_file = 2.0*assygenFile.count() + 6;
@@ -267,34 +297,12 @@ void cmbNucExport::run( const QString assygenExe,
     emit done();
     return;
   }
-  qDebug() << "Valid server";
-  qDebug() << "waiting for server to start";
   b.waitForBrokeringToStart();
   current++;
   emit progress(static_cast<int>(current/total_number_of_file*100));
-  qDebug() << "Sever started!";
 
   emit currentProcess("Starting Workers");
-  QThread workerThread[3];
-  cmbNucExporterWorker * assygenWorker = cmbNucExporterWorker::AssygenWorker();
-  assygenWorker->moveToThread(&(workerThread[0]));
-  connect( this, SIGNAL(startWorkers()),
-           assygenWorker, SLOT(start()));
-  cmbNucExporterWorker * coregenWorker = cmbNucExporterWorker::CoregenWorker();
-  coregenWorker->moveToThread(&(workerThread[1]));
-  connect( this, SIGNAL(startWorkers()),
-           coregenWorker, SLOT(start()));
-  std::vector<std::string> args;
-  args.push_back("-nographics");
-  args.push_back("-batch");
-  cmbNucExporterWorker * cubitWorker = cmbNucExporterWorker::CubitWorker(args);
-  cubitWorker->moveToThread(&workerThread[2]);
-  connect( this, SIGNAL(startWorkers()),
-           cubitWorker, SLOT(start()));
-  workerThread[0].start();
-  workerThread[1].start();
-  workerThread[2].start();
-  emit startWorkers();
+  this->constructWorkers();
   current += 3;
   emit progress(static_cast<int>(current/total_number_of_file*100));
 
@@ -304,12 +312,19 @@ void cmbNucExport::run( const QString assygenExe,
   for (QStringList::const_iterator i = assygenFile.constBegin();
        i != assygenFile.constEnd(); ++i)
   {
+    if(!keepGoing())
+    {
+      emit currentProcess("CANCELED");
+      emit done();
+      b.stopBrokering();
+      this->deleteWorkers();
+      return;
+    }
     QFileInfo fi(*i);
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
     QString pass = path + '/' + name;
     emit currentProcess("assygen " + name);
-    qDebug() << "assygen";
     ExporterOutput lr = ae.getOutput(ExporterInput(path, assygenExe, pass));
     current++;
     emit progress(static_cast<int>(current/total_number_of_file*100));
@@ -318,12 +333,18 @@ void cmbNucExport::run( const QString assygenExe,
       emit errorMessage("Assygen failed");
       emit currentProcess("assygen " + name + " FAILED");
       emit done();
+      b.stopBrokering();
+      this->deleteWorkers();
+      return;
+    }
+    if(!keepGoing())
+    {
+      emit currentProcess("CANCELED");
+      emit done();
       return;
     }
 
-    qDebug() << "cubit";
     emit currentProcess("cubit " + name + ".jou");
-    qDebug() <<pass + ".jou";
     lr = ce.getOutput(ExporterInput(path, cubitExe, pass + ".jou"));
     current++;
     emit progress(static_cast<int>(current/total_number_of_file*100));
@@ -332,15 +353,32 @@ void cmbNucExport::run( const QString assygenExe,
       emit errorMessage("Cubit failed");
       emit currentProcess("cubit " + name + ".jou FAILED");
       emit done();
+      b.stopBrokering();
+      this->deleteWorkers();
+      return;
+    }
+    if(!keepGoing())
+    {
+      emit currentProcess("CANCELED");
+      emit done();
+      b.stopBrokering();
+      this->deleteWorkers();
       return;
     }
   }
   {
+    if(!keepGoing())
+    {
+      emit currentProcess("CANCELED");
+      emit done();
+      b.stopBrokering();
+      this->deleteWorkers();
+      return;
+    }
     QFileInfo fi(coregenFile);
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
     QString pass = path + '/' + name;
-    qDebug() << "core";
     emit currentProcess("coregen " + name + ".jou");
     CoregenExporter coreExport;
     ExporterOutput r = coreExport.getOutput(ExporterInput(path, coregenExe, pass));
@@ -351,34 +389,89 @@ void cmbNucExport::run( const QString assygenExe,
       emit errorMessage("ERROR: Curegen failed");
       emit currentProcess("coregen " + name + ".jou FAILED");
       emit done();
+      b.stopBrokering();
+      this->deleteWorkers();
       return;
     }
+    emit sendCoreResult(pass + ".h5m");
   }
-  emit currentProcess("Finishing up export");
   b.stopBrokering();
-  qDebug() << "stoping thread 1";
-  workerThread[0].quit();
-   qDebug() << "stoping thread 2";
-  workerThread[1].quit();
-   qDebug() << "stoping thread 3";
-  workerThread[2].quit();
-  qDebug() << "waiting thread 1";
-  workerThread[0].wait();
-  qDebug() << "waiting thread 2";
-  workerThread[1].wait();
-  qDebug() << "waiting thread 3";
-  workerThread[2].wait();
-  qDebug() << "DELETING WORKER 1";
-  delete assygenWorker;
-  qDebug() << "DELETING WORKER 2";
-  delete coregenWorker;
-  qDebug() << "DELETING WORKER 3";
-  delete cubitWorker;
+  this->deleteWorkers();
   current++;
   emit progress(static_cast<int>(current/total_number_of_file*100));
-  qDebug() << "finish";
   emit currentProcess("Finished");
   emit done();
+  emit successful();
 }
+
+void cmbNucExport::cancel()
+{
+  setKeepGoing(false);
+  assygenWorker->stop();
+  coregenWorker->stop();
+  cubitWorker->stop();
+  this->deleteWorkers();
+  emit cancelled();
+}
+
+bool cmbNucExport::keepGoing() const
+{
+  QMutexLocker locker(&Mutex);
+  return KeepGoing;
+}
+
+void cmbNucExport::setKeepGoing(bool b)
+{
+  QMutexLocker locker(&Mutex);
+  KeepGoing = b;
+}
+
+void cmbNucExport::constructWorkers()
+{
+  QMutexLocker locker(&Memory);
+  assygenWorker = cmbNucExporterWorker::AssygenWorker();
+  assygenWorker->moveToThread(&(WorkerThreads[0]));
+  connect( this, SIGNAL(startWorkers()),
+           assygenWorker, SLOT(start()));
+  connect( this, SIGNAL(endWorkers()),
+          assygenWorker, SLOT(stop()));
+  coregenWorker = cmbNucExporterWorker::CoregenWorker();
+  coregenWorker->moveToThread(&(WorkerThreads[1]));
+  connect( this, SIGNAL(startWorkers()),
+           coregenWorker, SLOT(start()));
+  connect( this, SIGNAL(endWorkers()),
+          coregenWorker, SLOT(stop()));
+  std::vector<std::string> args;
+  args.push_back("-nographics");
+  args.push_back("-batch");
+  cubitWorker = cmbNucExporterWorker::CubitWorker(args);
+  cubitWorker->moveToThread(&WorkerThreads[2]);
+  connect( this, SIGNAL(startWorkers()),
+          cubitWorker, SLOT(start()));
+  connect( this, SIGNAL(endWorkers()),
+          cubitWorker, SLOT(stop()));
+  WorkerThreads[0].start();
+  WorkerThreads[1].start();
+  WorkerThreads[2].start();
+  emit startWorkers();
+}
+
+void cmbNucExport::deleteWorkers()
+{
+  QMutexLocker locker(&Memory);
+  WorkerThreads[0].quit();
+  WorkerThreads[1].quit();
+  WorkerThreads[2].quit();
+  WorkerThreads[0].wait();
+  WorkerThreads[1].wait();
+  WorkerThreads[2].wait();
+  delete assygenWorker;
+  assygenWorker = NULL;
+  delete coregenWorker;
+  coregenWorker = NULL;
+  delete cubitWorker;
+  cubitWorker = NULL;
+}
+
 
 #endif //#ifndef cmbNucExport_cxx
