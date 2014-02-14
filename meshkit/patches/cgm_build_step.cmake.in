@@ -1,0 +1,25 @@
+message("Building cgm")
+
+#set up the LD_LIBRARY_PATH
+if(APPLE)
+  set(ENV{LIBRARY_PATH} "ENV{LIBRARY_PATH}:@oce_path@")
+elseif(UNIX)
+  set(ENV{LIBRARY_PATH} "ENV{LIBRARY_PATH}:@oce_path@")
+elseif(WIN32)
+  set(ENV{PATH} "ENV{PATH};@oce_path@")
+endif()
+
+
+if(APPLE)
+  set(ENV{CFLAGS} "-arch x86_64 -arch i386 -mmacosx-version-min=@CMAKE_OSX_DEPLOYMENT_TARGET@ -isysroot @CMAKE_OSX_SYSROOT@")
+endif()
+
+execute_process(
+  COMMAND @CMAKE_MAKE_PROGRAM@
+  WORKING_DIRECTORY "@cgm_binary@"
+  RESULT_VARIABLE res)
+
+if(NOT ${res} EQUAL 0)
+  message(FATAL_ERROR "Error in build of cgm")
+endif()
+message("cgm build worked.")

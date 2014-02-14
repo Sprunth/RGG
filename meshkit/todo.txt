@@ -1,0 +1,3 @@
+ToDO:
+1. Use system libraries
+2. Use install_name_tool to fix paths for OCE libs on Mac OS X.
