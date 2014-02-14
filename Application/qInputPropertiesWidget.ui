@@ -41,7 +41,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pageCore">
       <layout class="QGridLayout" name="gridLayout_13">
@@ -54,7 +54,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_2">
           <attribute name="title">
@@ -141,7 +141,11 @@
           <attribute name="title">
            <string>Configure</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout_20"/>
+          <layout class="QGridLayout" name="gridLayout_20">
+           <item row="0" column="0">
+            <layout class="QVBoxLayout" name="rectCoreConfLayout"/>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
@@ -167,7 +171,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab">
           <attribute name="title">
@@ -209,7 +213,11 @@
           <attribute name="title">
            <string>Configure</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout_21"/>
+          <layout class="QGridLayout" name="gridLayout_21">
+           <item row="0" column="0">
+            <layout class="QVBoxLayout" name="hexCoreConfLayout"/>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
@@ -295,7 +303,11 @@
           <attribute name="title">
            <string>Configure</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout_19"/>
+          <layout class="QGridLayout" name="gridLayout_19">
+           <item row="0" column="0">
+            <layout class="QVBoxLayout" name="HexAssyConfLayout"/>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>
@@ -439,7 +451,11 @@
             <attribute name="title">
              <string>Configure</string>
             </attribute>
-            <layout class="QGridLayout" name="gridLayout_18"/>
+            <layout class="QGridLayout" name="gridLayout_18">
+             <item row="0" column="0">
+              <layout class="QVBoxLayout" name="RectAssyConfLayout"/>
+             </item>
+            </layout>
            </widget>
           </widget>
          </item>
