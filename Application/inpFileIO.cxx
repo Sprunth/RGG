@@ -67,7 +67,7 @@ public:
   void writeDuct( std::ofstream &output, cmbNucAssembly &assembly );
   void writePincell( std::ofstream &output, cmbNucAssembly &assembly );
   void writeLattice( std::ofstream &output, std::string key, bool isHex,
-                     int hexSymmetry, Lattice &lat );
+                     int hexSymmetry, bool useAmp, Lattice &lat );
   void writeAssemblies( std::ofstream &output, std::string outFileName,
                         cmbNucCore &core );
 
@@ -455,7 +455,8 @@ bool inpFileWriter::write(std::string fname,
   helper.writeDuct( output, assembly );
   helper.writePincell( output, assembly );
   helper.writeLattice( output, "Assembly",
-                       assembly.IsHexType(), 1,
+                       assembly.IsHexType(),
+                       1, false,
                        assembly.AssyLattice );
   //Other Parameters
   WRITE_PARAM_VALUE(TetMeshSize, TetMeshSize);
@@ -527,7 +528,7 @@ bool inpFileWriter::write(std::string fname,
   output << "GeometryType " << core.GeometryType << "\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", core.IsHexType(),
-                       core.HexSymmetry, core.CoreLattice );
+                       core.HexSymmetry, true, core.CoreLattice );
   if(!core.BackgroudMeshFile.empty())
     output << "Background " << core.BackgroudMeshFile << "\n";
 
@@ -917,7 +918,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 }
 
 void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool isHex,
-                                 int hexSymmetry, Lattice &lat )
+                                 int hexSymmetry, bool useAmp, Lattice &lat )
 {
   output << key << " " << lat.Grid.size();
   if(!isHex)
@@ -988,7 +989,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool i
             }
           output << label << " ";
           }
-        if(i < hexArray.size()-1)
+        if(i < hexArray.size()-1 && useAmp)
           output << "&";
         output << "\n";
         }
