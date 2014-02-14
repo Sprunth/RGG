@@ -56,11 +56,15 @@ void cmbNucInputPropertiesWidget::initUI()
   this->CoreEditor = new cmbNucAssemblyEditor(this, NULL);
   this->Internal->coreLatticeContainer->setWidget(this->CoreEditor);
 
-  this->HexCoreProperties = new cmbCoreParametersWidget(this->Internal->hexCoreConfig);
-  this->RectCoreProperties = new cmbCoreParametersWidget(this->Internal->rectCoreConfig);
+  this->HexCoreProperties = new cmbCoreParametersWidget(this);
+  this->Internal->hexCoreConfLayout->addWidget(this->HexCoreProperties);
+  this->RectCoreProperties = new cmbCoreParametersWidget(this);
+  this->Internal->rectCoreConfLayout->addWidget(this->RectCoreProperties);
 
-  this->HexAssyConf = new cmbAssyParametersWidget(this->Internal->HexAssyConf);
-  this->RectAssyConf = new cmbAssyParametersWidget(this->Internal->RectAssyConf);
+  this->HexAssyConf = new cmbAssyParametersWidget(this);
+  this->Internal->HexAssyConfLayout->addWidget(this->HexAssyConf);
+  this->RectAssyConf = new cmbAssyParametersWidget(this);
+  this->Internal->RectAssyConfLayout->addWidget(this->RectAssyConf);
 
   //this->CoreProperties->hide();
   //todo::add thins
