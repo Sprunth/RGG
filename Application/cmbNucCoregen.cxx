@@ -79,3 +79,10 @@ void cmbNucCoregen::openFile(QString file)
   this->Renderer->Render();
   this->ui->qvtkWidget->update();
 }
+
+void cmbNucCoregen::zScaleChanged(double z)
+{
+  this->Actor->SetScale(1, 1, z);
+  this->Renderer->ResetCamera();
+  this->ui->qvtkWidget->update();
+}

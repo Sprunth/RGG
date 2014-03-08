@@ -29,6 +29,7 @@ public:
 
 public slots:
   void openFile(QString file);
+  void zScaleChanged(double z);
 
 signals:
   void error(QString);
