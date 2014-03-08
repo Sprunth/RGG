@@ -111,6 +111,9 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
+  connect(this, SIGNAL(updateGlobalZScale(double)),
+          this->CoreGenDialog, SLOT(zScaleChanged(double)));
+
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
   vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
