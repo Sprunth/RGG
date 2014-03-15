@@ -25,7 +25,7 @@ class cmbNucMaterialColors;
 class cmbNucNewDialog;
 class cmbNucExportDialog;
 class cmbNucPreferencesDialog;
-class cmbNucCoregen;
+class NucMainInternal;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -93,7 +93,9 @@ private:
   cmbNucNewDialog *NewDialog;
   cmbNucExportDialog *ExportDialog;
   cmbNucPreferencesDialog *Preferences;
-  cmbNucCoregen *CoreGenDialog;
+
+  NucMainInternal *Internal;
+
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
 

@@ -43,7 +43,6 @@ SET(CMBNuclear_Srcs
   cmbAssyParametersWidget.cxx
   inpFileIO.cxx
   cmbCoreParametersWidget.cxx
-  cmbNucCoregen.cxx
 )
 
 SET(CMBNuclear_UI
@@ -77,7 +76,6 @@ SET(CMBNuclear_Headers
   cmbNucPreferencesDialog.h
   cmbAssyParametersWidget.h
   cmbCoreParametersWidget.h
-  cmbNucCoregen.h
 )
 
 SET(CMBNuclear_other_headers )
@@ -87,15 +85,20 @@ IF(VTK_MOAB_SUPPORT)
   FIND_PACKAGE(MOAB)
   message(${MOAB_INCLUDE_DIR})
   INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
+  SET(CMBNuclear_Headers ${CMBNuclear_Headers} cmbNucCoregen.h)
   SET(CMBNuclear_other_headers ${CMBNuclear_other_headers}
                                vtk_moab_reader/SimpleMoab.h
                                vtk_moab_reader/CellTypeToType.h
                                vtk_moab_reader/DataSetConverter.h
                                vtk_moab_reader/MixedCellConnectivity.h
-                               vtk_moab_reader/vtkMoabReader.h )
+                               vtk_moab_reader/vtkMoabReader.h)
   SET(CMBNuclear_Srcs ${CMBNuclear_Srcs}
-                      vtk_moab_reader/vtkMoabReader.cxx)
+                      vtk_moab_reader/vtkMoabReader.cxx
+                      cmbNucCoregen.cxx )
   SET(MOAB_LIB MOAB)
+  SET_SOURCE_FILES_PROPERTIES(cmbNucMainWindow.cxx cmbNucMainWindow.h
+                              PROPERTIES
+                              COMPILE_FLAGS "-DBUILD_WITH_MOAB")
 ENDIF()
 
 QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})
