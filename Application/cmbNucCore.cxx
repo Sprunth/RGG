@@ -342,10 +342,11 @@ void cmbNucCore::RebuildGrid()
     for(size_t j = 0; j < this->CoreLattice.Grid[i].size(); j++)
       {
       std::string type = this->CoreLattice.Grid[i][j].label;
-
-      if(!(type.empty() || type == "xx" || type == "XX"))
+      cmbNucAssembly* assembly = NULL;
+      if(!(type.empty() || type == "xx" || type == "XX" ||
+          (assembly = this->GetAssembly(type)) == NULL))
         {
-        this->CoreLattice.Grid[i][j].color = this->GetAssembly(type)->GetLegendColor();
+        this->CoreLattice.Grid[i][j].color = assembly->GetLegendColor();
         }
       else
         {
