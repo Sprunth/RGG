@@ -41,11 +41,21 @@
 #include "cmbNucExport.h"
 #include "cmbNucPreferencesDialog.h"
 #include "inpFileIO.h"
-#include "cmbNucCoregen.h"
 
 #include "vtkCmbLayeredConeSource.h"
 
+#ifdef BUILD_WITH_MOAB
 #include "vtk_moab_reader/vtkMoabReader.h"
+#include "cmbNucCoregen.h"
+#endif
+
+class NucMainInternal
+{
+public:
+#ifdef BUILD_WITH_MOAB
+  cmbNucCoregen *CoreGenDialog;
+#endif
+};
 
 int numAssemblyDefaultColors = 42;
 int defaultAssemblyColors[][3] = 
@@ -107,12 +117,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->NewDialog = new cmbNucNewDialog(this);
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
-  this->CoreGenDialog = new cmbNucCoregen(this);
+  Internal = new NucMainInternal();
+#ifdef BUILD_WITH_MOAB
+  this->Internal->CoreGenDialog = new cmbNucCoregen(this);
+#endif
 
   connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
-  connect(this, SIGNAL(updateGlobalZScale(double)),
-          this->CoreGenDialog, SLOT(zScaleChanged(double)));
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -155,7 +166,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpenAssembly()));
   connect(this->ui->actionOpenCoreFile, SIGNAL(triggered()), this, SLOT(onFileOpenCore()));
+#ifdef BUILD_WITH_MOAB
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
+  connect(this->ExportDialog, SIGNAL(finished(QString)),
+          this->Internal->CoreGenDialog, SLOT(openFile(QString)));
+#else
+  this->ui->actionOpenMOABFile->setVisible(false);
+#endif
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->saveCoreFile, SIGNAL(triggered()), this, SLOT(onCoreFileSave()));
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
@@ -164,8 +181,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
   connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
           this, SLOT(useParallelProjection(bool)));
-  connect(this->ExportDialog, SIGNAL(finished(QString)),
-          this->CoreGenDialog, SLOT(openFile(QString)));
 
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();
@@ -183,6 +198,11 @@ cmbNucMainWindow::cmbNucMainWindow()
           this->ui->viewScaleSlider, SLOT(setValue(int)));
   connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
           this, SLOT(zScaleChanged(int)));
+
+#ifdef BUILD_WITH_MOAB
+  connect(this, SIGNAL(updateGlobalZScale(double)),
+          this->Internal->CoreGenDialog, SLOT(zScaleChanged(double)));
+#endif
 
   //setup camera interaction to render more quickly and less precisely
   vtkInteractorObserver *iStyle = renderWindow->GetInteractor()->GetInteractorStyle();
@@ -458,6 +478,7 @@ void cmbNucMainWindow::onFileOpenCore()
 
 void cmbNucMainWindow::onFileOpenMoab()
 {
+#ifdef BUILD_WITH_MOAB
   QSettings settings("CMBNuclear", "CMBNuclear");
   QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
 
@@ -470,7 +491,8 @@ void cmbNucMainWindow::onFileOpenMoab()
   {
     return;
   }
-  CoreGenDialog->openFile(fileNames.first());
+  Internal->CoreGenDialog->openFile(fileNames.first());
+#endif
 }
 
 void cmbNucMainWindow::openAssemblyFiles(const QStringList &fileNames)
