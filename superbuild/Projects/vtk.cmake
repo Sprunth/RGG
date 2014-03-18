@@ -12,6 +12,9 @@ endif()
 add_external_project(vtk
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    -DVTK_Group_Qt:bool=ON
+    -DModule_vtkGUISupportQt:bool=ON
+    -DModule_vtkGUISupportQtOpenGL:bool=ON
+    -DModule_vtkRenderingQt:bool=ON
+    -DModule_vtkViewsQt:bool=ON
   ${suppress_build_out}
 )
