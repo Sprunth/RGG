@@ -119,6 +119,7 @@ TARGET_LINK_LIBRARIES( CMBNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB
 
 # The initial material color file
 set (materialColorsName "materialcolors")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if(WIN32)
   #quick work around since we don't know what build type we are doing on windows
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
@@ -135,16 +136,19 @@ if(WIN32)
     ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${materialColorsName}.ini)
 
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
+  install(TARGETS CMBNuclear DESTINATION bin)
 elseif(APPLE)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
              ${EXECUTABLE_OUTPUT_PATH}/CMBNuclear.app/Contents/MacOS/${materialColorsName}.ini
              @ONLY)
   #on the mac the marterialcolor file needs to be installed into the CMBNuclear app
-  install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION
-          ${CMAKE_INSTALL_PREFIX}/CMBNuclear.app/Contents/MacOS)
+  install (FILES ${EXECUTABLE_OUTPUT_PATH}/CMBNuclear.app/Contents/MacOS/${materialColorsName}.ini DESTINATION
+          ${CMAKE_INSTALL_PREFIX}/Applications/CMBNuclear.app/Contents/MacOS)
+  install(TARGETS CMBNuclear DESTINATION ${CMAKE_INSTALL_PREFIX}/Applications)
 else()
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
              ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
              @ONLY)
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
+  install(TARGETS CMBNuclear DESTINATION bin)
 endif()
