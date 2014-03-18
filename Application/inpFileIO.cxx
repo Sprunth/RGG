@@ -171,7 +171,7 @@ write<bool>( std::ofstream &output,
 
 inpFileReader
 ::inpFileReader()
-:Type(UNKNOWN)
+:Type(UNKNOWN_TYPE)
 {
 }
 
@@ -185,7 +185,7 @@ inpFileReader
   if(!input.is_open())
     {
     close();
-    return ERROR;
+    return ERROR_TYPE;
     }
   bool had_amp = false;
   while(!input.eof())
@@ -198,26 +198,26 @@ inpFileReader
     std::string tag;
     ss >> tag;
     std::transform(tag.begin(), tag.end(), tag.begin(), ::tolower);
-    if(tag == "assembly" && Type == UNKNOWN)
+    if(tag == "assembly" && Type == UNKNOWN_TYPE)
       {
-      if(Type == UNKNOWN)
-        Type = ASSEMBLY;
-      else if( Type == CORE )
+      if(Type == UNKNOWN_TYPE)
+        Type = ASSEMBLY_TYPE;
+      else if( Type == CORE_TYPE )
         {
         std::cerr << "Cannot distinguish file" << std::endl;
         close();
-        return ERROR;
+        return ERROR_TYPE;
         }
       }
     else if( tag == "assemblies" )
       {
-      if(Type == UNKNOWN)
-        Type = CORE;
-      else if( Type == ASSEMBLY )
+      if(Type == UNKNOWN_TYPE)
+        Type = CORE_TYPE;
+      else if( Type == ASSEMBLY_TYPE )
         {
         std::cerr << "Cannot distinguish file" << std::endl;
         close();
-        return ERROR;
+        return ERROR_TYPE;
         }
       }
     bool found_amp = line.find_first_of('&') != std::string::npos;
@@ -243,14 +243,14 @@ void inpFileReader
 ::close()
 {
   CleanFile = "";
-  Type = UNKNOWN;
+  Type = UNKNOWN_TYPE;
   this->FileName= "";
 }
 
 bool inpFileReader
 ::read(cmbNucAssembly & assembly)
 {
-  if(Type != ASSEMBLY)
+  if(Type != ASSEMBLY_TYPE)
     return false;
   inpFileHelper helper;
   assembly.FileName = FileName;
@@ -347,7 +347,7 @@ bool inpFileReader
 bool inpFileReader
 ::read(cmbNucCore & core)
 {
-  if(Type != CORE)
+  if(Type != CORE_TYPE)
     return false;
   QFileInfo info(FileName.c_str());
   std::string strPath = info.dir().path().toStdString();

@@ -8,7 +8,7 @@ INCLUDE(${QT_USE_FILE})  # include UseQt4.cmake
 INCLUDE_DIRECTORIES(${QT_INCLUDE_DIR})
 
 FIND_PACKAGE(Remus REQUIRED)
-INCLUDE(${Remus_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${Remus_INCLUDE_DIR})
 message("${Remus_INCLUDE_DIR}")
 
 # support for out-of-source build
