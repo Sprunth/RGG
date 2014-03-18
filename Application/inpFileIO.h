@@ -18,7 +18,7 @@ class inpFileReader
 {
 public:
   inpFileReader();
-  enum FileType{ERROR, UNKNOWN, ASSEMBLY, CORE};
+  enum FileType{ERROR_TYPE, UNKNOWN_TYPE, ASSEMBLY_TYPE, CORE_TYPE};
   FileType open(std::string fname);
   void close();
   bool read(cmbNucAssembly & assembly);
