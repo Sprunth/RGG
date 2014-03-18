@@ -284,7 +284,7 @@ bool inpFileReader
       {
       helper.readMaterials( input, assembly );
       }
-    else if(value == "duct")
+    else if(value == "duct" || value == "dimensions")
       {
       helper.readDuct( input, assembly );
       }
