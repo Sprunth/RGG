@@ -1,0 +1,106 @@
+project(GDAL)
+cmake_minimum_required(VERSION 2.8.2)
+
+
+
+# GDAL CMake modules
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_COLOR_MAKEFILE ON)
+
+include(GdalUtilities)
+
+# GDAL version information
+
+# Global vars.
+set(INSTALL_HEADERS)
+
+# Generate C/C++ configuration for GDAL
+include(GdalConfig)
+
+# Find GDAL dependencies
+set   ( GDAL_WITH_zlib "Using ZLIB" ON )
+option( GDAL_USE_EXTERNAL_zlib "Using external ZLIB" OFF )
+
+set(GDAL_DEPENDS_LIBRARIES)
+
+include(GdalDependencies)
+
+# Build GDAL core modules
+include(GdalAddModule)
+
+set(GDAL_ALL_MODULES port gcore frmts alg ogr)
+
+foreach(module ${GDAL_ALL_MODULES})
+  add_subdirectory(${module})
+endforeach(module)
+
+# Build main GDAL/OGR library target
+option( BUILD_SHARED_LIBS "Set to OFF to build static libraries" ON )
+
+# Silence useless warnings.
+if(MSVC_VERSION EQUAL 1400 OR MSVC_VERSION GREATER 1400)
+  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS)
+  add_definitions(-D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+endif(MSVC_VERSION EQUAL 1400 OR MSVC_VERSION GREATER 1400)
+
+# Silence all warnings.
+if(UNIX)
+  add_definitions(-w)
+endif(UNIX)
+if(WIN32)
+  add_definitions(/w)
+endif(WIN32)
+
+# Collect sources of core modules
+gdal_collect_sources("${GDAL_MODULES}" GDAL_LIBRARY_SOURCES)
+
+set(GDAL_LIBRARY_SOURCES ${GDAL_LIBRARY_SOURCES}
+  ${CMAKE_CURRENT_SOURCE_DIR}/frmts/gdalallregister.cpp)
+
+string(TOLOWER ${PROJECT_NAME} GDAL_LIBRARY_TARGET)
+
+include_directories(
+  ${CMAKE_BINARY_DIR}/port
+  ${CMAKE_SOURCE_DIR}/port
+  ${CMAKE_SOURCE_DIR}/ogr
+  ${CMAKE_SOURCE_DIR}/gcore
+  ${GDAL_FRMTS_INCLUDE}
+  ${GDAL_ALG_INCLUDE}
+  ${GDAL_OGR_INCLUDE}
+)
+
+# UNIX requires linking with dl.
+if(HAVE_LIBDL AND BUILD_SHARED_LIBS)
+  set(GDAL_DEPENDS_LIBRARIES ${GDAL_DEPENDS_LIBRARIES} dl)
+endif(HAVE_LIBDL AND BUILD_SHARED_LIBS)
+
+add_library(
+  ${GDAL_LIBRARY_TARGET}
+  ${GDAL_LIBRARY_SOURCES}
+  ${GDAL_FRMTS_SRC}
+  ${GDAL_ALG_SRC}
+  ${GDAL_OGR_SRC})
+
+set_property(TARGET ${GDAL_LIBRARY_TARGET}
+    PROPERTY INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+
+target_link_libraries(
+  ${GDAL_LIBRARY_TARGET}
+  ${GDAL_DEPENDS_LIBRARIES})
+
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin
+    CACHE PATH
+    "Single directory for all libraries.")
+
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin
+    CACHE PATH
+    "Single directory for all executables.")
+
+install(TARGETS ${GDAL_LIBRARY_TARGET}
+  RUNTIME DESTINATION bin COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION lib COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION lib COMPONENT Development)
+
+install(FILES ${INSTALL_HEADERS} DESTINATION include/ COMPONENT Development)
+
+add_subdirectory(apps)

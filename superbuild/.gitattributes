@@ -1,0 +1,9 @@
+*.patch -whitespace
+Projects/patches/* -whitespace
+CMake/CTestCustom.cmake.in -whitespace
+CMake/crosscompile/*/* -whitespace
+CMake/crosscompile/* -whitespace
+Projects/apple/*  -whitespace
+Projects/*  -whitespace
+Projects/win32/*  -whitespace
+Projects/unix/*  -whitespace
