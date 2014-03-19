@@ -16,5 +16,6 @@ add_external_project(vtk
     -DModule_vtkGUISupportQtOpenGL:bool=ON
     -DModule_vtkRenderingQt:bool=ON
     -DModule_vtkViewsQt:bool=ON
+    -DVTK_REQUIRED_OBJCXX_FLAGS:STRING=""
   ${suppress_build_out}
 )
