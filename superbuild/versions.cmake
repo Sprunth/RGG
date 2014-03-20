@@ -208,3 +208,35 @@ add_revision(smtk
 add_revision(shiboken
   GIT_REPOSITORY https://github.com/OpenGeoscience/shiboken.git
   GIT_TAG smtk-head)
+
+#------------------------------------------------------------------------------
+# moab versions
+#------------------------------------------------------------------------------
+add_revision(ftgl
+  GIT_REPOSITORY "https://github.com/ulrichard/ftgl.git"
+  GIT_TAG cf4d9957930e41c3b82a57b20207242c7ef69f18
+  )
+
+add_revision(oce
+  GIT_REPOSITORY "https://github.com/robertmaynard/oce.git"
+  GIT_TAG "cgm_support"
+  )
+
+add_revision(netcdf
+  URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.0.tar.gz"
+  URL_MD5 40c0e53433fc5dc59296ee257ff4a813
+  )
+
+add_revision(netcdfcpp
+  URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx-4.2.tar.gz"
+  URL_MD5 d32b20c00f144ae6565d9e98d9f6204c
+)
+
+add_revision(cgm
+  GIT_REPOSITORY https://bitbucket.org/fathomteam/cgm.git
+  GIT_TAG 13.1.1
+  )
+
+add_revision(moab
+  GIT_REPOSITORY https://github.com/judajake/moab.git
+  GIT_TAG cmakify_build_on_windows)

@@ -16,6 +16,15 @@ macro (SetupCMBSuperBuild)
     ENABLE_remus
     ENABLE_zeroMQ
     ENABLE_zlib
+    ENABLE_szip
+    ENABLE_hdf5
+    ENABLE_cgm
+    ENABLE_netcdfcpp
+    ENABLE_netcdf
+    ENABLE_moab
+    ENABLE_ftgl
+    ENABLE_oce
+    ENABLE_freetype
     )
 
   set(ENABLE_nuclearRGG ON CACHE BOOL "")
