@@ -263,12 +263,11 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
     // For hex geometry type, figure out the six corners first
     if(this->AssyLattice.GetGeometryType() == HEXAGONAL && i>0)
       {
-      layerRadius = hexRadius * (2 * i);
       for(int c = 0; c < 6; c++)
         {
         double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
-        layerCorners[c][0] = layerRadius * cos(angle);
-        layerCorners[c][1] = layerRadius * sin(angle);
+        layerCorners[c][0] = cos(angle);
+        layerCorners[c][1] = sin(angle);
         }
       }
 
@@ -317,13 +316,25 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
               if(this->AssyLattice.GetGeometryType() == HEXAGONAL)
                 {
+                double pinDistFromCenter = pincell->pitchX * (i);
+                  /*
+                  if(this->AssyLattice.GetGeometryType() == HEXAGONAL && i>0)
+                  {
+                    layerRadius = pincell->pitchX * (i);
+                    for(int c = 0; c < 6; c++)
+                    {
+                      double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
+                      layerCorners[c][0] = layerRadius * cos(angle);
+                      layerCorners[c][1] = layerRadius * sin(angle);
+                    }
+                  }*/
                 double tX=hexDuct->x, tY=hexDuct->y, tZ=0.0;
                 int cornerIdx;
                 if(i == 1)
                   {
                   cornerIdx = j%6;
-                  tX += layerCorners[cornerIdx][0];
-                  tY += layerCorners[cornerIdx][1];
+                  tX += pinDistFromCenter*layerCorners[cornerIdx][0];
+                  tY += pinDistFromCenter*layerCorners[cornerIdx][1];
                   }
                 else if( i > 1)
                   {
@@ -331,8 +342,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                   int idxOnEdge = j%i;
                   if(idxOnEdge == 0) // one of the corners
                     {
-                    tX += layerCorners[cornerIdx][0];
-                    tY += layerCorners[cornerIdx][1];
+                    tX += pinDistFromCenter*layerCorners[cornerIdx][0];
+                    tY += pinDistFromCenter*layerCorners[cornerIdx][1];
                     }
                   else
                     {
@@ -340,10 +351,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                     // between the corners
                     double deltx, delty, numSegs = i, centerPos[2];
                     int idxNext = cornerIdx==5 ? 0 : cornerIdx+1;
-                    deltx = (layerCorners[idxNext][0] - layerCorners[cornerIdx][0]) / numSegs;
-                    delty = (layerCorners[idxNext][1] - layerCorners[cornerIdx][1]) / numSegs;
-                    centerPos[0] = layerCorners[cornerIdx][0] + deltx * (idxOnEdge);
-                    centerPos[1] = layerCorners[cornerIdx][1] + delty * (idxOnEdge);
+                    deltx = pinDistFromCenter*(layerCorners[idxNext][0] - layerCorners[cornerIdx][0]) / numSegs;
+                    delty = pinDistFromCenter*(layerCorners[idxNext][1] - layerCorners[cornerIdx][1]) / numSegs;
+                    centerPos[0] = pinDistFromCenter*layerCorners[cornerIdx][0] + deltx * (idxOnEdge);
+                    centerPos[1] = pinDistFromCenter*layerCorners[cornerIdx][1] + delty * (idxOnEdge);
                     tX += centerPos[0];
                     tY += centerPos[1];
                     }
