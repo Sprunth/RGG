@@ -858,6 +858,13 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           cylinder->materials[c] = mname;
           }
         }
+      else if(value == "cellmaterial")
+        {
+        double tmp;
+        double v;
+        std::string material;
+        input >> tmp >> v >> material;
+        }
       else if(value == "frustum")
         {
         int layers;
