@@ -43,12 +43,10 @@ public slots:
   void onExit();
   void onFileNew();
   void onNewDialogAccept();
-  void onFileOpenAssembly();
-  void onFileOpenCore();
+  void onFileOpen();
   void onFileOpenMoab();
   void onFileSave();
   void onCoreFileSave();
-  void openAssemblyFiles(const QStringList &fileNames);
   void saveFile(const QString &fileName);
   void saveCoreFile(const QString &fileName);
   void exportVTKFile(const QString &fileName);

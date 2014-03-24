@@ -176,8 +176,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
-  connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpenAssembly()));
-  connect(this->ui->actionOpenCoreFile, SIGNAL(triggered()), this, SLOT(onFileOpenCore()));
+  connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
 #ifdef BUILD_WITH_MOAB
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
   connect(this->ExportDialog, SIGNAL(finished(QString)),
@@ -410,7 +409,7 @@ void cmbNucMainWindow::onNewDialogAccept()
   this->Renderer->Render();
 }
 
-void cmbNucMainWindow::onFileOpenAssembly()
+void cmbNucMainWindow::onFileOpen()
 {
   // Use cached value for last used directory if there is one,
   // or default to the user's home dir if not.
@@ -419,62 +418,67 @@ void cmbNucMainWindow::onFileOpenAssembly()
 
   QStringList fileNames =
     QFileDialog::getOpenFileNames(this,
-                                 "Open Assygen File...",
+                                 "Open File...",
                                  dir.path(),
                                  "INP Files (*.inp)");
   if(fileNames.count()==0)
     {
     return;
     }
-  // Cache the directory for the next time the dialog is opened
-  QFileInfo info(fileNames[0]);
-  settings.setValue("cache/lastDir", info.dir().path());
-
-  this->openAssemblyFiles(fileNames);
-  // In case the loaded assembly adds new materials
-  this->PropertyWidget->updateMaterials();
-
-  // update render view
-  this->Renderer->ResetCamera();
-  this->Renderer->Render();
-}
-
-void cmbNucMainWindow::onFileOpenCore()
-{
-  // Use cached value for last used directory if there is one,
-  // or default to the user's home dir if not.
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
-
-  QStringList fileNames =
-    QFileDialog::getOpenFileNames(this,
-                                 "Open Coregen File...",
-                                 dir.path(),
-                                 "INP Files (*.inp)");
-  if(fileNames.count()==0)
-    {
-    return;
-    }
-
   this->setCursor(Qt::BusyCursor);
-  // clear old assembly
-  this->PropertyWidget->setObject(NULL, NULL);
-  this->PropertyWidget->setAssembly(NULL);
-
   // Cache the directory for the next time the dialog is opened
   QFileInfo info(fileNames[0]);
   settings.setValue("cache/lastDir", info.dir().path());
+  int numExistingAssy = this->NuclearCore->GetNumberOfAssemblies();
+  bool need_to_use_assem = false;
 
-  this->NuclearCore->ReadFile(fileNames[0].toStdString(), numAssemblyDefaultColors,
-                              defaultAssemblyColors);
-
-  int numNewAssy = this->NuclearCore->GetNumberOfAssemblies();
-  if(numNewAssy)
+  for(unsigned int i = 0; i < fileNames.count(); ++i)
+  {
+    inpFileReader freader;
+    switch(freader.open(fileNames[i].toStdString()))
     {
-    this->PropertyWidget->setGeometryType(
-      this->NuclearCore->CoreLattice.GetGeometryType());
-    }
+      case inpFileReader::ASSEMBLY_TYPE:
+      {
+        QFileInfo finfo(fileNames[i]);
+        std::string label = finfo.completeBaseName().toStdString();
+        cmbNucAssembly *assembly = new cmbNucAssembly();
+        assembly->label = label;
+        freader.read(*assembly);
+        int acolorIndex = numExistingAssy +
+                          this->NuclearCore->GetNumberOfAssemblies() % numAssemblyDefaultColors;
 
+        QColor acolor(defaultAssemblyColors[acolorIndex][0],
+                      defaultAssemblyColors[acolorIndex][1],
+                      defaultAssemblyColors[acolorIndex][2]);
+        assembly->SetLegendColor(acolor);
+        this->NuclearCore->AddAssembly(assembly);
+        need_to_use_assem = true;
+        break;
+      }
+      case inpFileReader::CORE_TYPE:
+        // clear old assembly
+        this->PropertyWidget->setObject(NULL, NULL);
+        this->PropertyWidget->setAssembly(NULL);
+        freader.read(*(this->NuclearCore));
+        this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
+                                                      defaultAssemblyColors);
+        break;
+      default:
+        qDebug() << "could not open" << fileNames[i];
+    }
+  }
+
+  int numNewAssy = this->NuclearCore->GetNumberOfAssemblies() - numExistingAssy;
+  if(numNewAssy && !need_to_use_assem)
+  {
+    this->PropertyWidget->setGeometryType(
+          this->NuclearCore->CoreLattice.GetGeometryType());
+  }
+  else if(numNewAssy)
+  {
+    this->PropertyWidget->setGeometryType(
+          this->NuclearCore->GetAssembly(0)->AssyLattice.GetGeometryType());
+  }
   // update data colors
   this->updateCoreMaterialColors();
 
@@ -505,63 +509,6 @@ void cmbNucMainWindow::onFileOpenMoab()
   }
   Internal->CoreGenDialog->openFile(fileNames.first());
 #endif
-}
-
-void cmbNucMainWindow::openAssemblyFiles(const QStringList &fileNames)
-{
-  this->setCursor(Qt::BusyCursor);
-  // clear old assembly
-  this->PropertyWidget->setObject(NULL, NULL);
-  this->PropertyWidget->setAssembly(NULL);
-  int numExistingAssy = this->NuclearCore->GetNumberOfAssemblies();
-  int numNewAssy = 0;
-  QList<cmbNucAssembly*> assemblies;
-  foreach(QString fileName, fileNames)
-    {
-    if(!fileName.isEmpty())
-      {
-      QFileInfo finfo(fileName);
-      std::string label = finfo.completeBaseName().toStdString();
-      cmbNucAssembly* assy = this->NuclearCore->loadAssemblyFromFile(
-        fileName.toStdString(), label);
-      int acolorIndex = numExistingAssy + assemblies.size() % numAssemblyDefaultColors;
-      std::cerr << "a color index = " << acolorIndex << "\n";
-
-      QColor acolor(defaultAssemblyColors[acolorIndex][0],
-                    defaultAssemblyColors[acolorIndex][1],
-                    defaultAssemblyColors[acolorIndex][2]);
-      assy->SetLegendColor(acolor);
-      assemblies.append(assy);
-      numNewAssy++;
-      }
-    }
-  // the very first time
-  if(numExistingAssy == 0)
-    {
-    this->NuclearCore->SetDimensions(numNewAssy, numNewAssy);
-    for(int i=0; i<numNewAssy ; i++)
-      {
-      this->NuclearCore->SetAssemblyLabel(i, 0, assemblies.at(i)->label, assemblies.at(i)->GetLegendColor());
-      std::cerr << "Setting color!\n";
-      for(int j=1; j<this->NuclearCore->CoreLattice.Grid[i].size() ; j++)
-        {
-        this->NuclearCore->ClearAssemblyLabel(i, j);
-        }
-      }
-    }
-
-  if(assemblies.count())
-    {
-    this->PropertyWidget->setGeometryType(
-      assemblies.at(0)->AssyLattice.GetGeometryType());
-    }
-
-  // update data colors
-  this->updateCoreMaterialColors();
-  // render
-  this->InputsWidget->updateUI(numExistingAssy==0 && numNewAssy>1);
-
-  this->unsetCursor();
 }
 
 void cmbNucMainWindow::onFileSave()

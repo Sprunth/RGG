@@ -196,10 +196,6 @@ public:
   // the core with assemblies. This is used to render the core in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
 
-  // Reads a core from a ".inp" file.
-  void ReadFile(const std::string &FileName,
-                int numDefaultColors, int defaultColors[][3]);
-
   void SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3]);
 
   // Check if GeometryType is Hexagonal
