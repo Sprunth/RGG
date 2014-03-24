@@ -292,21 +292,6 @@ bool cmbNucCore::IsHexType()
   return strGeoType == "hexflat" || strGeoType == "hexvertex";
 }
 
-void cmbNucCore::ReadFile(const std::string &FileName,
-                          int numDefaultColors, int defaultColors[][3])
-{
-  this->FileName = "";
-  std::ifstream input(FileName.c_str());
-  inpFileReader freader;
-  if(!freader.open(FileName))
-  {
-    return;
-  }
-  freader.read(*this);
-
-  this->SetLegendColorToAssemblies(numDefaultColors, defaultColors);
-}
-
 void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3])
 {
   for(unsigned int i = 0; i < this->Assemblies.size(); ++i)

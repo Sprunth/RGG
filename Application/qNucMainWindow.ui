@@ -61,20 +61,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionOpenCoreFile"/>
-   <addaction name="actionOpenFile"/>
-   <addaction name="actionSaveFile"/>
-  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -89,7 +75,6 @@
      <string>File</string>
     </property>
     <addaction name="actionNew"/>
-    <addaction name="actionOpenCoreFile"/>
     <addaction name="actionOpenFile"/>
     <addaction name="saveCoreFile"/>
     <addaction name="actionSaveFile"/>
@@ -137,6 +122,19 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2"/>
   </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionOpenFile"/>
+   <addaction name="actionSaveFile"/>
+  </widget>
   <action name="actionOpenFile">
    <property name="enabled">
     <bool>true</bool>
@@ -146,7 +144,7 @@
      <normaloff>:/CMBNuclear/Icons/qNucOpen32.png</normaloff>:/CMBNuclear/Icons/qNucOpen32.png</iconset>
    </property>
    <property name="text">
-    <string>Open Assembly File...</string>
+    <string>Open INP File...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
