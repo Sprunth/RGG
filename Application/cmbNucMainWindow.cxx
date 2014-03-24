@@ -130,6 +130,18 @@ cmbNucMainWindow::cmbNucMainWindow()
   vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
   renderWindow->AddRenderer(this->Renderer);
   this->VTKToQt = vtkSmartPointer<vtkEventQtSlotConnect>::New();
+  if(0)
+  {
+    vtkCamera * cam = this->Renderer->GetActiveCamera();
+    if(cam)
+    {
+      double * vpt = cam->GetFocalPoint();
+      double dist = cam->GetDistance();
+      cam->SetPosition(vpt[0], vpt[1], vpt[2]-dist);
+      cam->SetViewUp(0,-1,1);
+    }
+  }
+
 
   // setup depth peeling
   renderWindow->SetAlphaBitPlanes(1);
@@ -158,9 +170,9 @@ cmbNucMainWindow::cmbNucMainWindow()
   attributes->Delete();
 
   // add axes actor
-  vtkAxesActor *axesActor = vtkAxesActor::New();
- // this->Renderer->AddActor(axesActor);
-  axesActor->Delete();
+  //vtkAxesActor *axesActor = vtkAxesActor::New();
+  //this->Renderer->AddActor(axesActor);
+  //axesActor->Delete();
 
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));

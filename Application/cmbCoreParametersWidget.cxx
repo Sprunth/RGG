@@ -133,14 +133,12 @@ void convert(bool qw, bool & result)
 
 void setValue(std::string &to, QComboBox * from)
 {
-  qDebug() << "sending value";
   convert(from->currentText (), to);
 }
 
 void setValue(QComboBox * to, std::string &from)
 {
   QString tmp(from.c_str());
-  qDebug() << "Settign combo box: " << tmp;
   to->setCurrentIndex(to->findText(tmp, Qt::MatchFixedString));
 }
 
@@ -231,7 +229,6 @@ setValue(Core->Params.Var, Internal->Var);
 //-----------------------------------------------------------------------------
 void cmbCoreParametersWidget::resetCore(cmbNucCore* Core)
 {
-  qDebug() << "Resetting core";
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
 if(Core->Params.Var##IsSet()){ setValue(Internal->Var, Core->Params.Var); }
 

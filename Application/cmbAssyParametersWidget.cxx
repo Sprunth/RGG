@@ -118,7 +118,6 @@ void setValue(QComboBox * to, std::string &from)
 {
   QString tmp(from.c_str());
   tmp = tmp.simplified();
-  qDebug() << "Settign combo box: " << tmp;
   to->setCurrentIndex(to->findText(tmp, Qt::MatchFixedString));
 }
 
@@ -226,7 +225,6 @@ void setValue(QCheckBox * to, bool &from)
 //-----------------------------------------------------------------------------
 void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 {
-  qDebug() << QString::number(reinterpret_cast<unsigned long>(assy),16) << " " << assy->label.c_str();
   cmbAssyParameters* parameters = assy->GetParameters();
 #define FUN(X) setValue(parameters->X, this->Internal->X);
   EASY_ASSY_PARAMS_MACRO()
@@ -236,22 +234,18 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
   parameters->UnknownParams.clear();
   while( std::getline(ss, line))
   {
-    qDebug() << line.c_str();
     parameters->UnknownParams.push_back(line);
     line.clear();
   }
-  qDebug() << "extracted: " << parameters->UnknownParams.size();
 }
 
 //-----------------------------------------------------------------------------
 void cmbAssyParametersWidget::resetAssembly(cmbNucAssembly* assy)
 {
-  qDebug() << QString::number(reinterpret_cast<unsigned long>(assy),16) << " " << assy->label.c_str();
   cmbAssyParameters* parameters = assy->GetParameters();
 #define FUN(X) setValue(this->Internal->X, parameters->X);
   EASY_ASSY_PARAMS_MACRO()
 #undef FUN
-  qDebug() << "Number of knowns: " << parameters->UnknownParams.size();
   std::string unknowns;
   for(unsigned int i = 0; i < parameters->UnknownParams.size(); ++i)
   {

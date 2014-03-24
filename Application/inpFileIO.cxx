@@ -261,7 +261,6 @@ bool inpFileReader
     input >> value;
 
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-    qDebug() << value.c_str();
 
     if(input.eof())
       {
@@ -361,8 +360,6 @@ bool inpFileReader
     input >> value;
 
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-
-    qDebug() << value.c_str();
 
     if(input.eof())
       {
@@ -574,7 +571,6 @@ void inpFileHelper::writeMaterials( std::ofstream &output,
   output << "Materials " << materials.count();
   foreach(std::string name, materials.keys())
     {
-    qDebug() << "Material write: " << name.c_str();
     std::string material_name = materials[name];
     if(material_name.empty())
       {
@@ -599,7 +595,6 @@ void inpFileHelper::readMaterials( std::stringstream & input,
     std::string mname;
     input >> mname;
     input >> mlabel;
-    qDebug() << "Material " << mname.c_str() << " " << mlabel.c_str();
 
     materialLabelMap[mlabel] = mname;
     std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
@@ -927,10 +922,10 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool isHex,
                                  int hexSymmetry, bool useAmp, Lattice &lat )
 {
-  output << key << " " << lat.Grid.size();
+  output << key << " " << lat.Grid[0].size();
   if(!isHex)
     {
-    output << " " << lat.Grid[0].size();
+    output << " " << lat.Grid.size();
     }
   output << "\n";
   if(isHex)
@@ -1010,9 +1005,11 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool i
     {
     for(size_t i = 0; i < lat.Grid.size(); i++)
       {
-      for(size_t j = 0; j < lat.Grid[i].size(); j++)
+      const size_t sizeati = lat.Grid[i].size();
+      size_t ati = lat.Grid.size() - i - 1;
+      for(size_t j = 0; j < sizeati; j++)
         {
-        std::string label = lat.Grid[i][j].label;
+        std::string label = lat.Grid[ati][j].label;
         if(label.empty())
           {
           label = "xx";
@@ -1029,23 +1026,24 @@ void inpFileHelper::readLattice( std::stringstream & input,
                                  bool isHex, int hexSymmetry,
                                  Lattice &lattice )
 {
-  size_t x=0;
-  size_t y=0;
+  size_t cols=0;
+  size_t rows=0;
   if(isHex)
     {
-    input >> x;
-    y = x;
+    input >> rows;
+    cols = rows;
     }
   else
     {
     // the lattice 2d grid use y as rows, x as columns
-    input >> y >> x;
+    input >> cols >> rows;
     }
 
-  lattice.SetDimensions(x, y);
+  lattice.SetDimensions(rows, cols);
 
   if(isHex)
     {
+    size_t x = rows;
     if(hexSymmetry == 1)
       {
       // a full hex assembly, NOT partial
@@ -1123,13 +1121,16 @@ void inpFileHelper::readLattice( std::stringstream & input,
     }
   else
     {
-    for(size_t j = 0; j < y; j++)
+    for(size_t i = 0; i < rows; i++)
       {
-      for(size_t i = 0; i < x; i++)
+      size_t ati = rows-i-1;
+      for(size_t j = 0; j < cols; j++)
         {
+          assert(i < lattice.Grid.size());
+          assert(j < lattice.Grid[i].size());
         std::string label;
         input >> label;
-        lattice.Grid[i][j].label = label;
+        lattice.Grid[ati][j].label = label;
         }
       }
     }
@@ -1184,8 +1185,6 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     output << " " << core.AssyemblyPitchY;
   }
   output << "\n";
-  qDebug() << "There are " << core.Assemblies.size() << " assemblies.";
-  qDebug() << "There are " << core.GetNumberOfAssemblies() << " assemblies.";
   for(unsigned int i = 0; i < core.Assemblies.size(); ++i)
     {
     //construct assemply file name

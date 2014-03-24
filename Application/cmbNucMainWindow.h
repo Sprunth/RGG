@@ -12,6 +12,7 @@
 // Forward Qt class declarations
 class Ui_qNucMainWindow;
 class vtkActor;
+class vtkAxesActor;
 class vtkCompositePolyDataMapper2;
 class vtkEventQtSlotConnect;
 class vtkObject;
