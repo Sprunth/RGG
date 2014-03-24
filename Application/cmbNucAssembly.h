@@ -179,6 +179,8 @@ protected :
 
   vtkSmartPointer<vtkMultiBlockDataSet> CreateData();
 
+  void computeRecOffset(unsigned int i, unsigned int j, double &tx, double &ty);
+
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
   QColor LegendColor;

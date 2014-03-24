@@ -152,7 +152,6 @@ if(this->Parameters->isValueSet(this->Parameters->X))\
 
 void cmbNucAssembly::WriteFile(const std::string &fname)
 {
-  qDebug() << "Writing: " << fname.c_str();
   inpFileWriter::write(fname, *this, true);
 }
 
@@ -160,66 +159,64 @@ void cmbNucAssembly::updateMaterialColors(
   unsigned int& realflatidx,
   vtkCompositeDataDisplayAttributes *attributes)
 {
-// count number of pin blocks in the data set
-int pins = this->AssyLattice.GetNumberOfCells();
-int pin_count = 0;
-int ducts_count = 0;
-cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
 
-std::string pinMaterial = "pin";
-int numAssyBlocks = this->Data->GetNumberOfBlocks();
-for(unsigned int idx = 0; idx < numAssyBlocks; idx++)
+  // count number of pin blocks in the data set
+  int pins = this->AssyLattice.GetNumberOfCells();
+  int pin_count = 0;
+  int ducts_count = 0;
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+
+  std::string pinMaterial = "pin";
+  int numAssyBlocks = this->AssyLattice.GetNumberOfCells() +
+                      this->AssyDuct.Ducts.size();
+  for(unsigned int idx = 0; idx < this->AssyLattice.GetNumberOfCells(); ++idx)
   {
-  realflatidx++;
-  if(pin_count < pins)
-    {
-    std::string label = this->AssyLattice.GetCell(pin_count).label;
+    realflatidx++;
+    std::string label = this->AssyLattice.GetCell(idx).label;
     PinCell* pinCell = this->GetPinCell(label);
 
     if(pinCell)
-      {
+    {
       std::string pinMaterial;
 
       for(unsigned int cidx = 0; cidx < pinCell->cylinders.size(); cidx++)
-        {
+      {
         realflatidx++; // increase one for this cylinder
         for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
-          {
+        {
           pinMaterial = pinCell->cylinders[cidx]->materials[k];
           matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
-          }
-        }
-      for(unsigned int fidx = 0; fidx < pinCell->frustums.size(); fidx++)
-        {
-        realflatidx++; // increase one for this frustum
-        for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
-          {
-          pinMaterial = pinCell->frustums[fidx]->materials[k];
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
-          }
         }
       }
-    pin_count++;
-    }
-  else // ducts need to color by layers
-    {
-    if(vtkMultiBlockDataSet* ductBlock =
-      vtkMultiBlockDataSet::SafeDownCast(this->Data->GetBlock(idx)))
+      for(unsigned int fidx = 0; fidx < pinCell->frustums.size(); fidx++)
       {
-      Duct* duct = this->AssyDuct.Ducts[ducts_count];
+        realflatidx++; // increase one for this frustum
+        for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
+        {
+          pinMaterial = pinCell->frustums[fidx]->materials[k];
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
+        }
+      }
+    }
+  }
+  for(unsigned int idx = 0; idx < this->AssyDuct.Ducts.size(); ++idx)
+  {
+    realflatidx++;
+    if(vtkMultiBlockDataSet* ductBlock =
+       vtkMultiBlockDataSet::SafeDownCast(this->Data->GetBlock(this->AssyLattice.GetNumberOfCells()+idx)))
+    {
+      Duct* duct = this->AssyDuct.Ducts[idx];
       unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
       for(unsigned int b = 0; b < numBlocks; b++)
-        {
+      {
         std::string layerMaterial =
-          (duct && b < duct->materials.size()) ? duct->materials[b] : "duct";
+        (duct && b < duct->materials.size()) ? duct->materials[b] : "duct";
         if(layerMaterial.empty())
-          {
+        {
           layerMaterial = "duct";
-          }
+        }
         layerMaterial = QString(layerMaterial.c_str()).toLower().toStdString();
         matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, layerMaterial);
-        }
-      ducts_count++;
       }
     }
   }
@@ -234,16 +231,106 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   return this->CreateData();
 }
 
+void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
+                                      double &tx, double &ty)
+{
+  std::string const& l = this->AssyLattice.Grid[i][j].label;
+  double pitch_ij[2] = {0,0};
+  PinCell* pincell = NULL;
+  if(!l.empty() && l != "xx" && l != "XX" && (pincell = this->GetPinCell(l)) != NULL )
+  {
+    pitch_ij[0] = pincell->pitchX;
+    pitch_ij[1] = pincell->pitchY;
+  }
+  else
+  {
+    pitch_ij[0] = PinCells[0]->pitchX;
+    pitch_ij[1] = PinCells[0]->pitchY;
+  }
+
+  if(i==0)
+  {
+    ty = 0;
+  }
+  else if(j == 0)
+  {
+    std::string const& l2 = this->AssyLattice.Grid[i-1][j].label;
+    if(!l2.empty() && l2 != "xx" && l2 != "XX" && (pincell = this->GetPinCell(l2)) != NULL)
+    {
+      ty += (pitch_ij[1] + pincell->pitchY) * 0.5;
+    }
+    else
+    {
+      ty += pitch_ij[1];
+    }
+  }
+
+  if(j==0)
+  {
+    tx = 0;
+  }
+  else
+  {
+    std::string const& l2 = this->AssyLattice.Grid[i][j-1].label;
+    if(!l2.empty() && l2 != "xx" && l2 != "XX" && (pincell = this->GetPinCell(l2)) != NULL)
+    {
+      tx += (pitch_ij[0] + pincell->pitchX) * 0.5;
+    }
+    else
+    {
+      tx += pitch_ij[0];
+    }
+  }
+}
+
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 {
   if(this->AssyDuct.Ducts.size()==0 || this->AssyLattice.Grid.size() == 0)
     {
     return NULL;
     }
+  double currentLaticePoint[] = {0,0};
   double outerDuctHeight = this->AssyDuct.Ducts[0]->thicknesses.back();
   double innerDuctHeight = this->AssyDuct.Ducts[0]->thicknesses.front();
   double chamberStart = outerDuctHeight - innerDuctHeight;
   double chamberEnd = innerDuctHeight;
+  double latticeOffset[2];
+
+  std::vector< std::vector< double > > offX, offY;
+
+  if(this->AssyLattice.GetGeometryType() == RECTILINEAR)
+    {
+    double maxLatPt[2] = {0,0};
+    offX.resize(this->AssyLattice.Grid.size(), std::vector< double >(this->AssyLattice.Grid[0].size(), 0));
+    offY.resize(this->AssyLattice.Grid.size(), std::vector< double >(this->AssyLattice.Grid[0].size(), 0));
+    for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
+      {
+      const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
+      for(size_t j = 0; j < row.size(); j++)
+        {
+        this->computeRecOffset(i, j, currentLaticePoint[0], currentLaticePoint[1]);
+        offX[i][j] = currentLaticePoint[0];
+        offY[i][j] = currentLaticePoint[1];
+        }
+      }
+    size_t r = this->AssyLattice.Grid.size()-1;
+    size_t c = this->AssyLattice.Grid[0].size()-1;
+    maxLatPt[0] = offX[r][c];
+    maxLatPt[1] = offY[r][c];
+    double m2[] = {0,0};
+    for(unsigned int i = 0; i < this->AssyDuct.Ducts.size(); ++i)
+    {
+      for(unsigned int j = 0; j < this->AssyDuct.Ducts[i]->thicknesses.size(); j += 2)
+        {
+        double t =this->AssyDuct.Ducts[i]->thicknesses[j];
+        if(t > m2[0]) m2[0] = t;
+        t = this->AssyDuct.Ducts[i]->thicknesses[j+1];
+        if(t > m2[1]) m2[1] = t;
+        }
+    }
+    latticeOffset[0] = (m2[0] - maxLatPt[0])*0.5;
+    latticeOffset[1] = (m2[1] - maxLatPt[1])*0.5;
+    }
 
   // setup data
   this->Data->SetNumberOfBlocks(this->AssyLattice.GetNumberOfCells() +
@@ -251,29 +338,30 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
   // For Hex type
   Duct *hexDuct = this->AssyDuct.Ducts[0];
-  double layerCorners[6][2], hexRadius, hexDiameter, layerRadius;
+  double layerCorners[8][2], hexRadius, hexDiameter, layerRadius;
   hexDiameter = hexDuct->thicknesses[0];
   hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
   hexRadius = hexRadius / (double)(2*this->AssyLattice.Grid.size()-1);
 
   double cellLength = (chamberEnd - chamberStart) / this->AssyLattice.Grid.size();
 
+  double overallDx = 0;
   for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
     {
+    double overallDy = 0;
     // For hex geometry type, figure out the six corners first
     if(this->AssyLattice.GetGeometryType() == HEXAGONAL && i>0)
       {
-      layerRadius = hexRadius * (2 * i);
       for(int c = 0; c < 6; c++)
         {
         double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
-        layerCorners[c][0] = layerRadius * cos(angle);
-        layerCorners[c][1] = layerRadius * sin(angle);
+        layerCorners[c][0] = cos(angle);
+        layerCorners[c][1] = sin(angle);
         }
       }
 
     size_t startBlock = this->AssyLattice.GetGeometryType() == HEXAGONAL ?
-      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->AssyLattice.Grid.size());
+      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->AssyLattice.Grid[0].size());
     const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
     for(size_t j = 0; j < row.size(); j++)
       {
@@ -317,13 +405,14 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
               if(this->AssyLattice.GetGeometryType() == HEXAGONAL)
                 {
+                double pinDistFromCenter = pincell->pitchX * (i);
                 double tX=hexDuct->x, tY=hexDuct->y, tZ=0.0;
                 int cornerIdx;
                 if(i == 1)
                   {
                   cornerIdx = j%6;
-                  tX += layerCorners[cornerIdx][0];
-                  tY += layerCorners[cornerIdx][1];
+                  tX += pinDistFromCenter*layerCorners[cornerIdx][0];
+                  tY += pinDistFromCenter*layerCorners[cornerIdx][1];
                   }
                 else if( i > 1)
                   {
@@ -331,8 +420,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                   int idxOnEdge = j%i;
                   if(idxOnEdge == 0) // one of the corners
                     {
-                    tX += layerCorners[cornerIdx][0];
-                    tY += layerCorners[cornerIdx][1];
+                    tX += pinDistFromCenter*layerCorners[cornerIdx][0];
+                    tY += pinDistFromCenter*layerCorners[cornerIdx][1];
                     }
                   else
                     {
@@ -340,10 +429,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                     // between the corners
                     double deltx, delty, numSegs = i, centerPos[2];
                     int idxNext = cornerIdx==5 ? 0 : cornerIdx+1;
-                    deltx = (layerCorners[idxNext][0] - layerCorners[cornerIdx][0]) / numSegs;
-                    delty = (layerCorners[idxNext][1] - layerCorners[cornerIdx][1]) / numSegs;
-                    centerPos[0] = layerCorners[cornerIdx][0] + deltx * (idxOnEdge);
-                    centerPos[1] = layerCorners[cornerIdx][1] + delty * (idxOnEdge);
+                    deltx = pinDistFromCenter*(layerCorners[idxNext][0] - layerCorners[cornerIdx][0]) / numSegs;
+                    delty = pinDistFromCenter*(layerCorners[idxNext][1] - layerCorners[cornerIdx][1]) / numSegs;
+                    centerPos[0] = pinDistFromCenter*layerCorners[cornerIdx][0] + deltx * (idxOnEdge);
+                    centerPos[1] = pinDistFromCenter*layerCorners[cornerIdx][1] + delty * (idxOnEdge);
                     tX += centerPos[0];
                     tY += centerPos[1];
                     }
@@ -353,9 +442,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                 }
               else
                 {
-                transform->Translate(chamberStart + i * cellLength + 0.5 * pincell->pitchX,
-                  chamberStart + j * cellLength + 0.5 * pincell->pitchY,
-                  0);
+                double tx = offX[i][j]+latticeOffset[0];
+                double ty = offY[i][j]+latticeOffset[1];
+                transform->Translate(tx,ty, 0);
                 }
 
               vtkNew<vtkTransformFilter> filter;
@@ -367,7 +456,6 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
               }
             pinDataSet->SetBlock(block, transdataSet.GetPointer());
             }
-//          dataSet->Delete();
           this->Data->SetBlock(startBlock+j, pinDataSet.GetPointer());
           }
         else

@@ -136,11 +136,8 @@ vtkPolyData* vtkCmbDuctSource::CreateLayer(int layer)
   double h = this->Height;
 
   // adjust layer origin and size based on the sizes of the previous layers
-  x += this->Layers[this->Layers.size()-2] - w;
-  y += this->Layers[this->Layers.size()-1] - l;
-
-  w -= this->Layers[this->Layers.size()-2] - w;
-  l -= this->Layers[this->Layers.size()-1] - l;
+  x += (this->Layers[this->Layers.size()-2] - w)*0.5;
+  y += (this->Layers[this->Layers.size()-1] - l)*0.5;
 
   vtkPolyData *polyData = vtkPolyData::New();
   polyData->Allocate();
@@ -150,14 +147,14 @@ vtkPolyData* vtkCmbDuctSource::CreateLayer(int layer)
 
   // create outer layer
   vtkIdType p0 = points->InsertNextPoint(x, y, z);
-  vtkIdType p1 = points->InsertNextPoint(x+l, y, z);
-  vtkIdType p2 = points->InsertNextPoint(x+l, y+w, z);
-  vtkIdType p3 = points->InsertNextPoint(x, y+w, z);
+  vtkIdType p1 = points->InsertNextPoint(x+w, y, z);
+  vtkIdType p2 = points->InsertNextPoint(x+w, y+l, z);
+  vtkIdType p3 = points->InsertNextPoint(x, y+l, z);
 
   vtkIdType p4 = points->InsertNextPoint(x, y, z+h);
-  vtkIdType p5 = points->InsertNextPoint(x+l, y, z+h);
-  vtkIdType p6 = points->InsertNextPoint(x+l, y+w, z+h);
-  vtkIdType p7 = points->InsertNextPoint(x, y+w, z+h);
+  vtkIdType p5 = points->InsertNextPoint(x+w, y, z+h);
+  vtkIdType p6 = points->InsertNextPoint(x+w, y+l, z+h);
+  vtkIdType p7 = points->InsertNextPoint(x, y+l, z+h);
 
   vtkIdType c0[] = { p0, p4, p5, p1 };
   cells->InsertNextCell(4, c0);
@@ -174,18 +171,18 @@ vtkPolyData* vtkCmbDuctSource::CreateLayer(int layer)
   // create inner layer (for all but the innermost layer)
   if(layer != 0)
     {
-    double tx = this->Layers[layer*2+0] - this->Layers[layer*2-2];
-    double ty = this->Layers[layer*2+1] - this->Layers[layer*2-1];
+    double tx = (this->Layers[layer*2+0] - this->Layers[layer*2-2])*0.5;
+    double ty = (this->Layers[layer*2+1] - this->Layers[layer*2-1])*0.5;
 
     vtkIdType p8 = points->InsertNextPoint(x+tx, y+ty, z);
-    vtkIdType p9 = points->InsertNextPoint(x+l-tx, y+ty, z);
-    vtkIdType p10 = points->InsertNextPoint(x+l-tx, y+w-ty, z);
-    vtkIdType p11 = points->InsertNextPoint(x+tx, y+w-ty, z);
+    vtkIdType p9 = points->InsertNextPoint(x+w-tx, y+ty, z);
+    vtkIdType p10 = points->InsertNextPoint(x+w-tx, y+l-ty, z);
+    vtkIdType p11 = points->InsertNextPoint(x+tx, y+l-ty, z);
 
     vtkIdType p12 = points->InsertNextPoint(x+tx, y+ty, z+h);
-    vtkIdType p13 = points->InsertNextPoint(x+l-tx, y+ty, z+h);
-    vtkIdType p14 = points->InsertNextPoint(x+l-tx, y+w-ty, z+h);
-    vtkIdType p15 = points->InsertNextPoint(x+tx, y+w-ty, z+h);
+    vtkIdType p13 = points->InsertNextPoint(x+w-tx, y+ty, z+h);
+    vtkIdType p14 = points->InsertNextPoint(x+w-tx, y+l-ty, z+h);
+    vtkIdType p15 = points->InsertNextPoint(x+tx, y+l-ty, z+h);
 
     vtkIdType c4[] = { p0, p1, p9, p8 };
     cells->InsertNextCell(4, c4);

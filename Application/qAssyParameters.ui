@@ -7,13 +7,16 @@
     <x>0</x>
     <y>0</y>
     <width>368</width>
-    <height>467</height>
+    <height>477</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
    <item row="0" column="0" colspan="2">
     <widget class="QScrollArea" name="scrollArea">
      <property name="widgetResizable">
@@ -23,8 +26,8 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-402</y>
-        <width>327</width>
+        <y>0</y>
+        <width>351</width>
         <height>843</height>
        </rect>
       </property>

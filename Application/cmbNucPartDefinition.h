@@ -3,7 +3,9 @@
 
 #include <vector>
 #include <QColor>
+#include <QDebug>
 #include <sstream>
+#include <assert.h>
 
 #include <vtkSmartPointer.h>
 #include "vtkMultiBlockDataSet.h"
@@ -470,8 +472,11 @@ enum enumGeometryType {
         }
       else
         {
+        int s = this->Grid[0].size();
         int j = i / s;
         int k = i - (j*s);
+        assert(j < this->Grid.size());
+        assert(k < this->Grid[j].size());
 
         return this->Grid[j][k];
         }

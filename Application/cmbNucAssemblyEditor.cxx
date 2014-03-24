@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <QtGui>
+#include <QDebug>
 
 cmbNucAssemblyEditor::cmbNucAssemblyEditor(QWidget *parent, cmbNucAssembly* assy)
   : QFrame(parent), CurrentAssembly(assy), CurrentCore(NULL)
@@ -115,6 +116,7 @@ void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
     this->LatticeLayout = new QGridLayout(this);
     this->LatticeLayout->setSpacing(2);
     this->LatticeLayout->setContentsMargins(1, 1, 1, 1);
+    this->LatticeLayout->setOriginCorner(Qt::BottomLeftCorner);
     this->setLayout(this->LatticeLayout);
     }
   int availableX = (int)this->CurrentGrid.size();
@@ -156,7 +158,7 @@ void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
       cmbNucDragLabel *wordLabel = new cmbNucDragLabel(
         lc.label.c_str(), this, i, j);
       wordLabel->setBackgroundColor(lc.color);
-      this->LatticeLayout->addWidget(wordLabel, y - j - 1, i);
+      this->LatticeLayout->addWidget(wordLabel, i, j);
       }
     }
   update();
