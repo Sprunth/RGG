@@ -478,6 +478,15 @@ void cmbNucMainWindow::onFileOpen()
   {
     this->PropertyWidget->setGeometryType(
           this->NuclearCore->GetAssembly(0)->AssyLattice.GetGeometryType());
+    switch(this->NuclearCore->GetAssembly(0)->AssyLattice.GetGeometryType())
+    {
+      case RECTILINEAR:
+        NuclearCore->GeometryType = "Rectangular";
+        break;
+      case HEXAGONAL:
+        NuclearCore->GeometryType = "HexFlat";
+        break;
+    }
   }
   // update data colors
   this->updateCoreMaterialColors();

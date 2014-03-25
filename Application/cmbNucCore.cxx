@@ -126,7 +126,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
   for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
     {
     size_t startBlock = isHex ?
-      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->CoreLattice.Grid.size());
+      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->CoreLattice.Grid[0].size());
 
     const std::vector<LatticeCell> &row = this->CoreLattice.Grid[i];
 
@@ -199,9 +199,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           }
         else
           {
-          transform->Translate(startX + i * (outerDuctHeight+0.5),
-            startY + j * (outerDuctHeight+0.5),
-            0);
+          double tX = startX + i * (outerDuctHeight+0.5);
+          double tY = startY + j * (outerDuctHeight+0.5);
+          transform->Translate(tY, tX, 0);
           }
  // transform block by block --- got to have better ways
         vtkNew<vtkMultiBlockDataSet> blockData;
