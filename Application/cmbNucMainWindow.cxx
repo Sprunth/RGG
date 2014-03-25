@@ -130,18 +130,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
   renderWindow->AddRenderer(this->Renderer);
   this->VTKToQt = vtkSmartPointer<vtkEventQtSlotConnect>::New();
-  if(0)
-  {
-    vtkCamera * cam = this->Renderer->GetActiveCamera();
-    if(cam)
-    {
-      double * vpt = cam->GetFocalPoint();
-      double dist = cam->GetDistance();
-      cam->SetPosition(vpt[0], vpt[1], vpt[2]-dist);
-      cam->SetViewUp(0,-1,1);
-    }
-  }
-
 
   // setup depth peeling
   renderWindow->SetAlphaBitPlanes(1);
@@ -192,6 +180,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
   connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
           this, SLOT(useParallelProjection(bool)));
+  connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
 
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();
@@ -591,6 +580,19 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
 void cmbNucMainWindow::saveCoreFile(const QString &fileName)
 {
   inpFileWriter::write(fileName.toStdString(), *NuclearCore);
+}
+
+void cmbNucMainWindow::clearAll()
+{
+  delete this->NuclearCore;
+  this->NuclearCore = new cmbNucCore();
+  this->initPanels();
+  //this->InputsWidget->updateUI(false);
+  //this->PropertyWidget->resetCore(NULL);
+  this->Mapper->SetInputDataObject(NULL);
+  this->ui->qvtkWidget->update();
+  this->Renderer->ResetCamera();
+  this->Renderer->Render();
 }
 
 void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
