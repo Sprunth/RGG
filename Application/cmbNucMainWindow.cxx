@@ -265,6 +265,8 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->InputsWidget,
     SIGNAL(materialVisibilityChanged(const QString&)), this,
     SLOT(onObjectModified()));
+  QObject::connect(this->InputsWidget, SIGNAL(deleteCore()),
+                   this, SLOT(clearAll()));
 }
 
 void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,

@@ -42,6 +42,8 @@ signals:
   void pinsModified(cmbNucAssembly*);
   void assembliesModified(cmbNucCore*);
 
+  void deleteCore();
+
 public slots:
   void onNewAssembly();
 
@@ -65,6 +67,7 @@ private slots:
   virtual void onMaterialChanged(QTreeWidgetItem*, int col);
   virtual void onTabChanged(int);
   void onMaterialClicked(QTreeWidgetItem*, int col);
+  void onDeleteAssembly(QTreeWidgetItem*);
 
   // Description:
   // Tree widget context menu related slots
@@ -77,6 +80,9 @@ private slots:
   void onRemoveMaterial();
   void onImportMaterial();
   void onSaveMaterial();
+
+signals:
+  void deleteAssembly(QTreeWidgetItem*);
 
 private:
   cmbNucInputListWidgetInternal* Internal;
