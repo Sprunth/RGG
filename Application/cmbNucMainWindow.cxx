@@ -53,8 +53,10 @@ class NucMainInternal
 {
 public:
 #ifdef BUILD_WITH_MOAB
-  cmbNucCoregen *CoreGenDialog;
+  cmbNucCoregen *MoabSource;
 #endif
+  vtkSmartPointer<vtkMultiBlockDataSet> PreviousDataset;
+  vtkSmartPointer<vtkMultiBlockDataSet> CurrentDataset;
 };
 
 int numAssemblyDefaultColors = 42;
@@ -119,7 +121,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Preferences = new cmbNucPreferencesDialog(this);
   Internal = new NucMainInternal();
 #ifdef BUILD_WITH_MOAB
-  this->Internal->CoreGenDialog = new cmbNucCoregen(this);
+  this->Internal->MoabSource = NULL;
 #endif
 
   connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
@@ -150,7 +152,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   cone->SetNumberOfLayers(3);
   cone->SetHeight(20.0);
   cone->Update();
-  this->Mapper->SetInputDataObject(cone->GetOutput());
+  this->Internal->CurrentDataset = cone->GetOutput();
+  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
   cone->Delete();
 
   vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
@@ -165,11 +168,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
-#ifdef BUILD_WITH_MOAB
-  connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
-  connect(this->ExportDialog, SIGNAL(finished(QString)),
-          this->Internal->CoreGenDialog, SLOT(openFile(QString)));
-#else
+#ifndef BUILD_WITH_MOAB
   this->ui->actionOpenMOABFile->setVisible(false);
 #endif
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
@@ -199,11 +198,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
           this, SLOT(zScaleChanged(int)));
 
-#ifdef BUILD_WITH_MOAB
-  connect(this, SIGNAL(updateGlobalZScale(double)),
-          this->Internal->CoreGenDialog, SLOT(zScaleChanged(double)));
-#endif
-
   //setup camera interaction to render more quickly and less precisely
   vtkInteractorObserver *iStyle = renderWindow->GetInteractor()->GetInteractorStyle();
   this->VTKToQt->Connect(
@@ -223,11 +217,29 @@ cmbNucMainWindow::~cmbNucMainWindow()
   this->InputsWidget->setCore(NULL);
   delete this->NuclearCore;
   delete this->MaterialColors;
+#ifdef BUILD_WITH_MOAB
+  delete this->Internal->MoabSource;
+  delete this->Internal;
+#endif
 }
 
 void cmbNucMainWindow::initPanels()
 {
   this->InputsWidget = new cmbNucInputListWidget(this);
+
+#ifdef BUILD_WITH_MOAB
+  delete this->Internal->MoabSource;
+  this->Internal->MoabSource = new cmbNucCoregen(this->InputsWidget->getModelTree());
+  connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
+  connect(this->ExportDialog, SIGNAL(finished(QString)),
+          this->Internal->MoabSource, SLOT(openFile(QString)));
+  QObject::connect(this->InputsWidget, SIGNAL(switchToModelTab()),
+                   this, SLOT(onChangeToModelTab()));
+  QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab()),
+                   this, SLOT(onChangeFromModelTab()));
+
+#endif
+
   this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
   this->PropertyWidget->updateMaterials();
   this->ui->InputsDock->setWidget(this->InputsWidget);
@@ -507,7 +519,7 @@ void cmbNucMainWindow::onFileOpenMoab()
   {
     return;
   }
-  Internal->CoreGenDialog->openFile(fileNames.first());
+  Internal->MoabSource->openFile(fileNames.first());
 #endif
 }
 
@@ -591,6 +603,7 @@ void cmbNucMainWindow::clearAll()
   this->initPanels();
   //this->InputsWidget->updateUI(false);
   //this->PropertyWidget->resetCore(NULL);
+  this->Internal->CurrentDataset = NULL;
   this->Mapper->SetInputDataObject(NULL);
   this->ui->qvtkWidget->update();
   this->Renderer->ResetCamera();
@@ -603,9 +616,9 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
     {
     return;
     }
-  vtkMultiBlockDataSet *data_set = pin->CachedData;
+  this->Internal->CurrentDataset = pin->CachedData;
 
-  this->Mapper->SetInputDataObject(data_set);
+  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
 
@@ -613,11 +626,11 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
   size_t numFrus = pin->frustums.size();
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
   unsigned int flat_index = 1; // start from first child
-  for(unsigned int idx=0; idx<data_set->GetNumberOfBlocks(); idx++)
+  for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
     {
     std::string pinMaterial;
     vtkMultiBlockDataSet* aSection = vtkMultiBlockDataSet::SafeDownCast(
-      data_set->GetBlock(idx));
+      this->Internal->CurrentDataset->GetBlock(idx));
     if(idx < numCyls)
       {
       flat_index++; // increase one for this cylinder
@@ -647,9 +660,9 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
     }
 
   // regenerate core and assembly view
-  vtkSmartPointer<vtkMultiBlockDataSet> assydata = assy->GetData();
-  this->Mapper->SetInputDataObject(assydata);
-  if(!assydata)
+  this->Internal->CurrentDataset = assy->GetData();
+  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
+  if(!this->Internal->CurrentDataset)
     {
     return;
     }
@@ -679,13 +692,13 @@ void cmbNucMainWindow::exportVTKFile(const QString &fileName)
 void cmbNucMainWindow::updateCoreMaterialColors()
 {
   // regenerate core and assembly view
-  vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
-  this->Mapper->SetInputDataObject(coredata);
-  if(!coredata)
+  this->Internal->CurrentDataset = this->NuclearCore->GetData();
+  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
+  if(!this->Internal->CurrentDataset)
     {
     return;
     }
-  unsigned int numCoreBlocks = coredata->GetNumberOfBlocks();
+  unsigned int numCoreBlocks = this->Internal->CurrentDataset->GetNumberOfBlocks();
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
 
@@ -693,19 +706,19 @@ void cmbNucMainWindow::updateCoreMaterialColors()
   for(unsigned int block = 0; block < numCoreBlocks; block++)
     {
     realflatidx++; // for assembly block
-    if(!coredata->GetBlock(block))
+    if(!this->Internal->CurrentDataset->GetBlock(block))
       {
       continue;
       }
-    vtkMultiBlockDataSet* data = vtkMultiBlockDataSet::SafeDownCast(coredata->GetBlock(block));
+    vtkMultiBlockDataSet* data = vtkMultiBlockDataSet::SafeDownCast(this->Internal->CurrentDataset->GetBlock(block));
     if(!data)
       {
       continue;
       }
     // for each assembly
-    if(coredata->GetMetaData(block)->Has(vtkCompositeDataSet::NAME()))
+    if(this->Internal->CurrentDataset->GetMetaData(block)->Has(vtkCompositeDataSet::NAME()))
       {
-      std::string assyLabel = coredata->GetMetaData(block)->Get(
+      std::string assyLabel = this->Internal->CurrentDataset->GetMetaData(block)->Get(
         vtkCompositeDataSet::NAME());
       cmbNucAssembly* assy = this->NuclearCore->GetAssembly(assyLabel);
       if(!assy)
@@ -739,6 +752,33 @@ void cmbNucMainWindow::ResetView()
   this->ui->qvtkWidget->update();
 }
 
+void cmbNucMainWindow::onChangeToModelTab()
+{
+#ifdef BUILD_WITH_MOAB
+  vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
+  this->Mapper->SetCompositeDataDisplayAttributes(attributes);
+  attributes->Delete();
+  vtkProperty* property = this->Actor->GetProperty();
+  property->SetEdgeVisibility(1);
+  property->SetEdgeColor(255,0,0);
+  this->Mapper->SetInputDataObject(this->Internal->MoabSource->getData());
+  this->Renderer->ResetCamera();
+  this->ui->qvtkWidget->update();
+  connect(this->Internal->MoabSource, SIGNAL(update()),
+          this, SLOT(onChangeToModelTab()));
+#endif
+}
+
+void cmbNucMainWindow::onChangeFromModelTab()
+{
+#ifdef BUILD_WITH_MOAB
+  vtkProperty* property = this->Actor->GetProperty();
+  property->SetEdgeVisibility(0);
+  disconnect(this->Internal->MoabSource, SIGNAL(update()),
+             this, SLOT(onChangeToModelTab()));
+#endif
+}
+
 void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long event)
 {
   switch (event)
@@ -749,7 +789,7 @@ void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long ev
       break;
     case vtkCommand::EndInteractionEvent:
       //this->Renderer->UseDepthPeelingOn();
-      this->Renderer->SetMaximumNumberOfPeels(100);
+      this->Renderer->SetMaximumNumberOfPeels(10);
       break;
     }
 }

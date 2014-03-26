@@ -3,45 +3,45 @@
 
 #include <QDialog>
 #include <QString>
-#include <QThread>
+#include <QTreeWidget>
+#include <QObject>
 #include <vtkSmartPointer.h>
+#include <vtkMultiBlockDataSet.h>
+#include <vtkPolyData.h>
 #include "cmbNucPartDefinition.h"
 #include "cmbNucCore.h"
 #include "ui_qCoregenModel.h"
+#include <vector>
 
-class vtkActor;
-class vtkCompositePolyDataMapper2;
-class vtkEventQtSlotConnect;
-class vtkObject;
-class vtkRenderer;
-class QVTKWidget;
-class cmbNucMainWindow;
 class vtkMoabReader;
 class vtkGeometryFilter;
 
-class cmbNucCoregen : public QDialog
+class cmbNucCoregen : public QObject
 {
   Q_OBJECT
 public:
-  cmbNucCoregen(cmbNucMainWindow* mainWindow);
+  cmbNucCoregen(QTreeWidget *);
   ~cmbNucCoregen();
-  vtkSmartPointer<vtkMoabReader> MoabReader;
+
+  vtkSmartPointer<vtkDataObject> getData();
 
 public slots:
   void openFile(QString file);
-  void zScaleChanged(double z);
 
 signals:
   void error(QString);
+  void update();
 
 private:
   // Designer form
-  Ui_qCoregenModel *ui;
-  vtkSmartPointer<vtkRenderer> Renderer;
-  vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
+  vtkSmartPointer<vtkMoabReader> MoabReader;
   vtkSmartPointer<vtkGeometryFilter> GeoFilt;
-  vtkSmartPointer<vtkActor> Actor;
-  vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
+  vtkSmartPointer<vtkDataObject> Data;
+  std::vector< vtkSmartPointer<vtkDataObject> > DataSets;
+  QTreeWidget * List;
+
+protected slots:
+  void onSelectionChanged();
 };
 
 #endif

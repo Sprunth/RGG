@@ -94,6 +94,25 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tabModel">
+      <attribute name="title">
+       <string>Mesh</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <property name="margin">
+        <number>1</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QTreeWidget" name="ModelTree">
+         <column>
+          <property name="text">
+           <string>Name</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
