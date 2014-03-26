@@ -13,76 +13,74 @@
 #include <vtkInteractorObserver.h>
 #include <vtkNew.h>
 #include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkXMLMultiBlockDataWriter.h>
 #include "vtk_moab_reader/vtkMoabReader.h"
 #include "vtkCmbLayeredConeSource.h"
 #include "vtkGeometryFilter.h"
 #include <iostream>
 #include <QDebug>
 
-cmbNucCoregen::cmbNucCoregen(cmbNucMainWindow* mainWindow)
-: QDialog(mainWindow)
+class meshOptionItem : public QTreeWidgetItem
 {
-  this->ui = new Ui_qCoregenModel;
-  this->ui->setupUi(this);
+public:
+  meshOptionItem(const char* name, unsigned int i)
+  {
+    this->setText(0,name);
+    Id = i;
+  }
+  unsigned int Id;
+};
 
-  this->Renderer = vtkSmartPointer<vtkRenderer>::New();
-  vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
-  renderWindow->AddRenderer(this->Renderer);
-  this->VTKToQt = vtkSmartPointer<vtkEventQtSlotConnect>::New();
-
-  renderWindow->SetAlphaBitPlanes(1);
-  renderWindow->SetMultiSamples(0);
-  //this->Renderer->SetUseDepthPeeling(1);
-  //this->Renderer->SetMaximumNumberOfPeels(5);
-  this->Renderer->SetBackground(0.1,0.2,0.5);
-
-  this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
-  //this->Mapper->SetScalarVisibility(0);
-  this->Actor = vtkSmartPointer<vtkActor>::New();
-  this->Actor->SetMapper(this->Mapper.GetPointer());
-  this->Actor->GetProperty()->SetShading(1);
-  this->Actor->GetProperty()->SetInterpolationToPhong();
-  this->Renderer->AddActor(this->Actor);
-
-  vtkProperty* property = this->Actor->GetProperty();
-  property->SetEdgeVisibility(1);
-
-  MoabReader = vtkMoabReader::New();
+cmbNucCoregen::cmbNucCoregen(QTreeWidget * l)
+{
+  this->MoabReader = vtkMoabReader::New();
   this->GeoFilt = vtkGeometryFilter::New();
-  this->GeoFilt->SetInputConnection(MoabReader->GetOutputPort());
-  this->Mapper->SetInputConnection(GeoFilt->GetOutputPort());
-
-  vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
-  this->Mapper->SetCompositeDataDisplayAttributes(attributes);
-  attributes->Delete();
-
+  this->List = l;
+  QObject::connect(this->List, SIGNAL(itemSelectionChanged()),
+                   this, SLOT(onSelectionChanged()), Qt::QueuedConnection);
 }
 
 cmbNucCoregen::~cmbNucCoregen()
 {
-  delete this->ui;
+}
+
+vtkSmartPointer<vtkDataObject>
+cmbNucCoregen::getData()
+{
+  return this->Data;
 }
 
 void cmbNucCoregen::openFile(QString file)
 {
-  qDebug() <<file;
-  MoabReader->SetFileName(file.toStdString().c_str());
-  MoabReader->Update();
-  GeoFilt->Update();
-
-  this->show();
-  this->Renderer->ResetCamera();
-  this->Renderer->Render();
-  this->ui->qvtkWidget->update();
+  this->MoabReader->SetFileName(file.toStdString().c_str());
+  this->MoabReader->Update();
+  vtkSmartPointer<vtkMultiBlockDataSet> tmp = this->MoabReader->GetOutput();
+  DataSets.resize(tmp->GetNumberOfBlocks());
+  for (unsigned int i = 0; i < tmp->GetNumberOfBlocks(); ++i)
+  {
+    const char * name = tmp->GetMetaData(i)->Get(vtkCompositeDataSet::NAME());
+    qDebug() << name;
+    this->GeoFilt->SetInputData(tmp->GetBlock(i));
+    this->GeoFilt->Update();
+    DataSets[i].TakeReference(this->GeoFilt->GetOutputDataObject(0)->NewInstance());
+    DataSets[i]->DeepCopy(this->GeoFilt->GetOutputDataObject(0));
+    QTreeWidgetItem * atwi = new meshOptionItem(name, i);
+    List->addTopLevelItem(atwi);
+    if(i == 0)
+    {
+      atwi->setSelected(true);
+    }
+  }
+  this->Data = DataSets[0];
 }
 
-void cmbNucCoregen::zScaleChanged(double z)
+void cmbNucCoregen::onSelectionChanged()
 {
-  this->Actor->SetScale(1, 1, z);
-  this->Renderer->ResetCamera();
-  this->ui->qvtkWidget->update();
+  QList<QTreeWidgetItem*> selItems = List->selectedItems();
+  meshOptionItem* selItem =
+      selItems.count()>0 ? dynamic_cast<meshOptionItem*>(selItems.value(0)) : NULL;
+  if(selItem)
+  {
+    this->Data = DataSets[selItem->Id];
+    emit(update());
+  }
 }

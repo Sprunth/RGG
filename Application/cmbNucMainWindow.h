@@ -66,6 +66,9 @@ protected slots:
   void onObjectModified(AssyPartObj* obj=NULL);
   void onObjectGeometryChanged(AssyPartObj* obj);
 
+  void onChangeToModelTab();
+  void onChangeFromModelTab();
+
   // updates the block colors based on their materials
   void updateCoreMaterialColors();
   void updateAssyMaterialColors(cmbNucAssembly* assy);

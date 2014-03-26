@@ -31,6 +31,8 @@ public:
   AssyPartObj* getSelectedPart();
   cmbNucPartsTreeItem* getSelectedPartNode();
 
+  QTreeWidget * getModelTree();
+
 signals:
   // Description:
   // Fired when a part/material is selected in the tree
@@ -41,6 +43,8 @@ signals:
 
   void pinsModified(cmbNucAssembly*);
   void assembliesModified(cmbNucCore*);
+  void switchToModelTab();
+  void switchToNonModelTab();
 
   void deleteCore();
 

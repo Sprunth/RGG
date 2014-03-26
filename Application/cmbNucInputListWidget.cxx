@@ -123,6 +123,12 @@ void cmbNucInputListWidget::setCore(cmbNucCore* core)
 }
 
 //-----------------------------------------------------------------------------
+QTreeWidget * cmbNucInputListWidget::getModelTree()
+{
+  return this->Internal->ModelTree;
+}
+
+//-----------------------------------------------------------------------------
 cmbNucPartsTreeItem* cmbNucInputListWidget::getDuctCellNode(
   cmbNucPartsTreeItem* assyNode)
 {
@@ -230,10 +236,16 @@ void cmbNucInputListWidget::onTabChanged(int currentTab)
   if(currentTab == 0) // parts
     {
     this->onPartsSelectionChanged();
+    emit switchToNonModelTab();
     }
   else if(currentTab == 1) // materials
     {
     this->onMaterialSelectionChanged();
+    emit switchToNonModelTab();
+    }
+  else if(currentTab) //model
+    {
+    emit(switchToModelTab());
     }
 }
 //----------------------------------------------------------------------------
