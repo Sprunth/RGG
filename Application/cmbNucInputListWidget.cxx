@@ -100,6 +100,9 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   QObject::connect(this->Internal->tabInputs, SIGNAL(currentChanged(int)),
     this, SLOT(onTabChanged(int)));
 
+  QObject::connect(this, SIGNAL(deleteAssembly(QTreeWidgetItem*)),
+                   this, SLOT(onDeleteAssembly(QTreeWidgetItem*)));
+
   this->initUI();
 }
 
@@ -417,9 +420,13 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
   std::string selText = selItem->text(0).toStdString();
   switch(selType)
   {
+  case CMBNUC_CORE:
+    emit deleteCore();
+    objRemoved = false;
+    break;
   case CMBNUC_ASSEMBLY:
-    this->NuclearCore->RemoveAssembly(selText);
-    emit assembliesModified(this->NuclearCore);
+    selItem->setSelected(false);
+    emit deleteAssembly(selItem);
     break;
   case CMBNUC_ASSY_PINCELL:
     pincell = dynamic_cast<PinCell*>(selObj);
@@ -469,6 +476,22 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     emit this->objectRemoved();
     }
 }
+
+void cmbNucInputListWidget::onDeleteAssembly(QTreeWidgetItem* item)
+{
+  this->setCursor(Qt::BusyCursor);
+  std::string selText = item->text(0).toStdString();
+  this->Internal->PartsList->blockSignals(true);
+  delete item;
+  this->NuclearCore->RemoveAssembly(selText);
+  this->Internal->PartsList->setCurrentItem(this->Internal->RootCoreNode);
+  emit assembliesModified(this->NuclearCore);
+  this->Internal->PartsList->blockSignals(false);
+  this->Internal->RootCoreNode->setSelected(true);
+  this->onPartsSelectionChanged();
+  this->unsetCursor();
+}
+
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewMaterial()
 {
@@ -727,9 +750,13 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
 
   switch(selObj->GetType())
   {
+  case CMBNUC_ASSEMBLY:
+    this->Internal->Action_DeletePart->setEnabled(true);
+    break;
   case CMBNUC_CORE:
     this->Internal->Action_NewDuct->setEnabled(false);
     this->Internal->Action_NewPin->setEnabled(false);
+    this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_PINCELL:
     //this->Internal->Action_NewFrustum->setEnabled(true);
@@ -749,7 +776,7 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
   case CMBNUC_ASSY_RECT_DUCT:
     // keep at lease one duct
     this->Internal->Action_DeletePart->setEnabled(
-      this->getCurrentAssembly()->AssyDuct.Ducts.size()>1 ? true : false);
+          this->getCurrentAssembly()->AssyDuct.Ducts.size()>1 ? true : false);
     break;
   default:
     break;

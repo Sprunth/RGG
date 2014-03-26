@@ -76,10 +76,14 @@
     </property>
     <addaction name="actionNew"/>
     <addaction name="actionOpenFile"/>
+    <addaction name="actionOpenMOABFile"/>
+    <addaction name="separator"/>
     <addaction name="saveCoreFile"/>
     <addaction name="actionSaveFile"/>
+    <addaction name="separator"/>
+    <addaction name="actionClearAll"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
-    <addaction name="actionOpenMOABFile"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -231,6 +235,11 @@
   <action name="actionOpenMOABFile">
    <property name="text">
     <string>Open MOAB File</string>
+   </property>
+  </action>
+  <action name="actionClearAll">
+   <property name="text">
+    <string>Clear All</string>
    </property>
   </action>
  </widget>

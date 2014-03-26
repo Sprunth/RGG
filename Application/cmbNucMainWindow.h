@@ -47,6 +47,7 @@ public slots:
   void onFileOpenMoab();
   void onFileSave();
   void onCoreFileSave();
+  void clearAll();
   void saveFile(const QString &fileName);
   void saveCoreFile(const QString &fileName);
   void exportVTKFile(const QString &fileName);
