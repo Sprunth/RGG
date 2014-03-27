@@ -55,10 +55,10 @@ void cmbNucCoregen::openFile(QString file)
   this->MoabReader->Update();
   vtkSmartPointer<vtkMultiBlockDataSet> tmp = this->MoabReader->GetOutput();
   DataSets.resize(tmp->GetNumberOfBlocks());
+  List->clear();
   for (unsigned int i = 0; i < tmp->GetNumberOfBlocks(); ++i)
   {
     const char * name = tmp->GetMetaData(i)->Get(vtkCompositeDataSet::NAME());
-    qDebug() << name;
     this->GeoFilt->SetInputData(tmp->GetBlock(i));
     this->GeoFilt->Update();
     DataSets[i].TakeReference(this->GeoFilt->GetOutputDataObject(0)->NewInstance());
@@ -71,6 +71,7 @@ void cmbNucCoregen::openFile(QString file)
     }
   }
   this->Data = DataSets[0];
+  color = false;
 }
 
 void cmbNucCoregen::onSelectionChanged()
@@ -81,6 +82,7 @@ void cmbNucCoregen::onSelectionChanged()
   if(selItem)
   {
     this->Data = DataSets[selItem->Id];
+    this->color = selItem->Id == 5;
     emit(update());
   }
 }
