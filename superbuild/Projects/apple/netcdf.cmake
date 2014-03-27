@@ -29,3 +29,11 @@ add_external_project_step(patch1
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/Projects/patches/netcdf.load.c <SOURCE_DIR>/ncgen3/load.c
       DEPENDEES update
       DEPENDERS patch)
+
+if( ${CMAKE_OSX_DEPLOYMENT_TARGET} MATCHES "10.6" ) 
+add_external_project_step(patch2
+      COMMENT "Fixing missing include files."
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/Projects/patches/netcdf.daputil.c <SOURCE_DIR>/libdap2/daputil.c
+      DEPENDEES update
+      DEPENDERS patch1)
+endif()
