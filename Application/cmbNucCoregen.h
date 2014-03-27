@@ -25,6 +25,8 @@ public:
 
   vtkSmartPointer<vtkDataObject> getData();
 
+  bool colorBlocks() const { return this->color; }
+
 public slots:
   void openFile(QString file);
 
@@ -39,6 +41,7 @@ private:
   vtkSmartPointer<vtkDataObject> Data;
   std::vector< vtkSmartPointer<vtkDataObject> > DataSets;
   QTreeWidget * List;
+  bool color;
 
 protected slots:
   void onSelectionChanged();

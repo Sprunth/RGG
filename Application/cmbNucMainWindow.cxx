@@ -60,7 +60,7 @@ public:
 };
 
 int numAssemblyDefaultColors = 42;
-int defaultAssemblyColors[][3] = 
+int defaultAssemblyColors[][3] =
 {
   {66,146,198},
   {241,105,19},
@@ -766,6 +766,24 @@ void cmbNucMainWindow::onChangeToModelTab()
   this->ui->qvtkWidget->update();
   connect(this->Internal->MoabSource, SIGNAL(update()),
           this, SLOT(onChangeToModelTab()));
+  if(this->Internal->MoabSource->colorBlocks())
+  {
+    property->SetEdgeVisibility(0);
+    vtkCompositeDataDisplayAttributes *att =
+      this->Mapper->GetCompositeDataDisplayAttributes();
+
+    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData());
+    for(unsigned int idx=0; idx < sec->GetNumberOfBlocks()*2; idx++)
+    {
+      //sec->GetBlock(idx)->PrintSelf(std::cout, vtkIndent());
+      unsigned int cind = idx%numAssemblyDefaultColors;
+      double color[3] = {defaultAssemblyColors[cind][0]/255.0,
+                         defaultAssemblyColors[cind][1]/255.0,
+                         defaultAssemblyColors[cind][2]/255.0};
+      att->SetBlockColor(idx, color);
+      att->SetBlockVisibility(idx, true);
+    }
+  }
 #endif
 }
 
