@@ -13,11 +13,11 @@ add_external_project(moab
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>
     -DHDF5_INCLUDE_DIR:path=<INSTALL_DIR>/include
-    -DHDF5_LIBRARY:path=<INSTALL_DIR>/lib/libhdf5.so
+    -DHDF5_LIBRARY:path=<INSTALL_DIR>/lib/libhdf5.dylib
     -DCGM_CFG:path=<INSTALL_DIR>/lib/cgm.make
-    -DNetCDF_CXX_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.so
-    -DNetCDF_C_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.so
-    -DNetCDF_FORTRAN_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.so
+    -DNetCDF_CXX_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.dylib
+    -DNetCDF_C_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.dylib
+    -DNetCDF_FORTRAN_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.dylib
     -DNetCDF_INCLUDE_DIRECTORIES:path=<INSTALL_DIR>/include
     -DNetCDF_PREFIX:path=<INSTALL_DIR>
 )
