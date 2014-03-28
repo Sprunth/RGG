@@ -114,7 +114,12 @@ SOURCE_GROUP("Generated" FILES
   ${MOCSrcs}
 )
 
+if (WIN32)
+  set( ICON_FILE cmbNuclear.rc )
+endif()
+
 if(APPLE)
+  set( ICON_FILE MacIcon.icns )
   SET( MACOSX_BUNDLE_INFO_STRING "CMBNuclear" )
   SET( MACOSX_BUNDLE_ICON_FILE MacIcon.icns )
   SET( MACOSX_BUNDLE_BUNDLE_NAME "CMBNuclear" )
@@ -123,7 +128,7 @@ if(APPLE)
                                Resources )
 endif()
 
-ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${MACOSX_BUNDLE_ICON_FILE})
+ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
 TARGET_LINK_LIBRARIES( CMBNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
 
 # The initial material color file
