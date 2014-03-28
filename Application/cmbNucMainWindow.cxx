@@ -766,7 +766,8 @@ void cmbNucMainWindow::onChangeToModelTab()
   this->ui->qvtkWidget->update();
   connect(this->Internal->MoabSource, SIGNAL(update()),
           this, SLOT(onChangeToModelTab()));
-  if(this->Internal->MoabSource->colorBlocks())
+  if(this->Internal->MoabSource->colorBlocks() &&
+     this->Internal->MoabSource->getData() != NULL)
   {
     property->SetEdgeVisibility(0);
     vtkCompositeDataDisplayAttributes *att =
