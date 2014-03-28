@@ -47,7 +47,7 @@ protected slots:
 signals:
   void process( const QString, const QStringList &,
                 const QString, const QString,
-                const QString);
+                const QString, const QString);
 public:
 signals:
   void error(QString);

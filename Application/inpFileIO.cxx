@@ -396,9 +396,7 @@ bool inpFileReader
       }
     else if(value == "outputfilename")
       {
-      //we are ingnoring this
-      std::string dk;
-      getline(input, dk);
+      getline(input, core.h5mFile);
       }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     else if( value == #Key) \

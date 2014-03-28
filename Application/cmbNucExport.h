@@ -69,7 +69,8 @@ public slots:
             const QStringList &assygenFile,
             const QString cubitExe,
             const QString coregenExe,
-            const QString coregenFile);
+            const QString coregenFile,
+            const QString CoreGenOutputFile);
   void cancel();
 signals:
   void done();

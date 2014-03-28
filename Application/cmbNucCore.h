@@ -213,6 +213,7 @@ public:
   std::string BackgroudMeshFile;
   std::string GeometryType;
   std::string FileName;
+  std::string h5mFile;
   int HexSymmetry;
 
   cmbNucCoreParams Params;
