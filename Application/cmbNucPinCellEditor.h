@@ -24,7 +24,7 @@ public:
   cmbNucPinCellEditor(QWidget *parent = 0);
   ~cmbNucPinCellEditor();
 
-  void SetPinCell(PinCell *pincell);
+  void SetPinCell(PinCell *pincell, bool hex);
   PinCell* GetPinCell();
 
   void SetAssembly(cmbNucAssembly *assembly) { this->AssemblyObject = assembly; }
@@ -64,6 +64,7 @@ private:
   Ui::cmbNucPinCellEditor *Ui;
   PinCell *PinCellObject;
   cmbNucAssembly *AssemblyObject;
+  bool isHex;
 
 };
 
