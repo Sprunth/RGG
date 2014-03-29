@@ -706,7 +706,7 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
       SIGNAL(pincellModified(AssyPartObj*)),
       this, SIGNAL(objGeometryChanged(AssyPartObj*)));
     }
-  this->Internal->PinCellEditor->SetPinCell(pincell);
+  this->Internal->PinCellEditor->SetPinCell(pincell,this->GeometryType == HEXAGONAL);
 }
 
 void cmbNucInputPropertiesWidget::choosePinLegendColor()

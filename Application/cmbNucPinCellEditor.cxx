@@ -124,6 +124,7 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
     Ui(new Ui::cmbNucPinCellEditor),
     AssemblyObject(0)
 {
+  isHex = false;
   this->Ui->setupUi(this);
 
   this->Ui->layersTable->setRowCount(0);
@@ -158,21 +159,34 @@ cmbNucPinCellEditor::~cmbNucPinCellEditor()
   delete this->Ui;
 }
 
-void cmbNucPinCellEditor::SetPinCell(PinCell *pincell)
+void cmbNucPinCellEditor::SetPinCell(PinCell *pincell, bool h)
 {
   if(this->PinCellObject == pincell)
     {
     return;
     }
   this->PinCellObject = pincell;
+  this->isHex = h;
 
   this->Ui->nameLineEdit->setText(pincell->name.c_str());
   this->Ui->labelLineEdit->setText(pincell->label.c_str());
   this->Ui->originX->setText("0");
   this->Ui->originY->setText("0");
+  if(isHex)
+  {
+    this->Ui->label_7->setVisible(false);
+    this->Ui->label_8->setVisible(false);
+    this->Ui->pitchY->setVisible(false);
+  }
+  else
+  {
+    this->Ui->label_7->setVisible(true);
+    this->Ui->label_8->setVisible(true);
+    this->Ui->pitchY->setVisible(true);
+  }
   this->Ui->pitchX->setText(QString::number(pincell->pitchX));
   this->Ui->pitchY->setText(QString::number(pincell->pitchY));
-  this->Ui->pitchZ->setText(QString::number(pincell->pitchZ));
+  //this->Ui->pitchZ->setText(QString::number(pincell->pitchZ));
 
   this->Ui->piecesTable->blockSignals(true);
 
@@ -245,7 +259,7 @@ void cmbNucPinCellEditor::UpdatePinCell()
   this->PinCellObject->label = this->Ui->labelLineEdit->text().toStdString();
   this->PinCellObject->pitchX = this->Ui->pitchX->text().toDouble();
   this->PinCellObject->pitchY = this->Ui->pitchY->text().toDouble();
-  this->PinCellObject->pitchZ = this->Ui->pitchZ->text().toDouble();
+  this->PinCellObject->pitchZ = this->Ui->pitchX->text().toDouble();
 
   // update components
   double z = 0;
