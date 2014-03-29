@@ -103,6 +103,11 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   QObject::connect(this, SIGNAL(deleteAssembly(QTreeWidgetItem*)),
                    this, SLOT(onDeleteAssembly(QTreeWidgetItem*)));
 
+  QObject::connect(this->Internal->ColorMesh, SIGNAL(toggled(bool)),
+                   this, SIGNAL(meshColorChange(bool)));
+  QObject::connect(this->Internal->ShowEdges, SIGNAL(toggled(bool)),
+                   this, SIGNAL(meshEdgeChange(bool)));
+
   this->initUI();
 }
 
@@ -126,6 +131,30 @@ void cmbNucInputListWidget::setCore(cmbNucCore* core)
 QTreeWidget * cmbNucInputListWidget::getModelTree()
 {
   return this->Internal->ModelTree;
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucInputListWidget::setMeshColorState(bool b)
+{
+  this->Internal->ColorMesh->setChecked(b);
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucInputListWidget::setMeshEdgeState(bool b)
+{
+  this->Internal->ShowEdges->setChecked(b);
+}
+
+//-----------------------------------------------------------------------------
+bool cmbNucInputListWidget::getMeshColorState()
+{
+  return this->Internal->ColorMesh->isChecked();
+}
+
+//-----------------------------------------------------------------------------
+bool cmbNucInputListWidget::getMeshEdgeState()
+{
+  return this->Internal->ShowEdges->isChecked();
 }
 
 //-----------------------------------------------------------------------------

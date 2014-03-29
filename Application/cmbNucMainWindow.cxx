@@ -237,6 +237,10 @@ void cmbNucMainWindow::initPanels()
                    this, SLOT(onChangeToModelTab()));
   QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab()),
                    this, SLOT(onChangeFromModelTab()));
+  QObject::connect(this->InputsWidget, SIGNAL(meshEdgeChange(bool)),
+                   this, SLOT(onChangeMeshEdgeMode(bool)));
+  QObject::connect(this->InputsWidget, SIGNAL(meshColorChange(bool)),
+                   this, SLOT(onChangeMeshColorMode(bool)));
 
 #endif
 
@@ -755,37 +759,103 @@ void cmbNucMainWindow::ResetView()
 void cmbNucMainWindow::onChangeToModelTab()
 {
 #ifdef BUILD_WITH_MOAB
-  vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
-  this->Mapper->SetCompositeDataDisplayAttributes(attributes);
-  attributes->Delete();
-  vtkProperty* property = this->Actor->GetProperty();
-  property->SetEdgeVisibility(1);
-  property->SetEdgeColor(255,0,0);
+  this->onSelectionChange();
+  connect(this->Internal->MoabSource, SIGNAL(update()),
+          this, SLOT(onSelectionChange()));
+#endif
+}
+
+void cmbNucMainWindow::onSelectionChange()
+{
+  this->onChangeMeshColorMode(this->InputsWidget->getMeshColorState());
+  this->onChangeMeshEdgeMode(this->InputsWidget->getMeshEdgeState());
   this->Mapper->SetInputDataObject(this->Internal->MoabSource->getData());
   this->Renderer->ResetCamera();
   this->ui->qvtkWidget->update();
-  connect(this->Internal->MoabSource, SIGNAL(update()),
-          this, SLOT(onChangeToModelTab()));
-  if(this->Internal->MoabSource->colorBlocks() &&
-     this->Internal->MoabSource->getData() != NULL)
-  {
-    property->SetEdgeVisibility(0);
-    vtkCompositeDataDisplayAttributes *att =
-      this->Mapper->GetCompositeDataDisplayAttributes();
+}
 
-    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData());
-    for(unsigned int idx=0; idx < sec->GetNumberOfBlocks()*2; idx++)
+void cmbNucMainWindow::onChangeMeshColorMode(bool b)
+{
+  if(b)
+  {
+    vtkSmartPointer<vtkDataObject> data = this->Internal->MoabSource->getData();
+    if(data == NULL) return;
+    switch(this->Internal->MoabSource->getSelectedType())
     {
-      //sec->GetBlock(idx)->PrintSelf(std::cout, vtkIndent());
-      unsigned int cind = idx%numAssemblyDefaultColors;
-      double color[3] = {defaultAssemblyColors[cind][0]/255.0,
-                         defaultAssemblyColors[cind][1]/255.0,
-                         defaultAssemblyColors[cind][2]/255.0};
-      att->SetBlockColor(idx, color);
-      att->SetBlockVisibility(idx, true);
+      case 5: //Material
+      {
+        vtkCompositeDataDisplayAttributes *att =
+          this->Mapper->GetCompositeDataDisplayAttributes();
+        att->RemoveBlockColors();
+
+        vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(data);
+        for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
+        {
+          unsigned int cind = idx%(numAssemblyDefaultColors-1);
+          double color[3] = {defaultAssemblyColors[cind][0]/255.0,
+                             defaultAssemblyColors[cind][1]/255.0,
+                             defaultAssemblyColors[cind][2]/255.0};
+          att->SetBlockColor(idx, color);
+          att->SetBlockVisibility(idx, true);
+        }
+      }
+        break;
+      default:
+      {
+        vtkCompositeDataDisplayAttributes *att =
+          this->Mapper->GetCompositeDataDisplayAttributes();
+        vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(data);
+        if(sec!= NULL)
+        {
+          for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
+          {
+            unsigned int cind = idx%(numAssemblyDefaultColors-1);
+            double color[3] = {defaultAssemblyColors[cind][0]/255.0,
+                               defaultAssemblyColors[cind][1]/255.0,
+                               defaultAssemblyColors[cind][2]/255.0};
+            att->SetBlockColor(idx, color);
+            att->SetBlockVisibility(idx, true);
+          }
+        }
+        else
+        {
+          double color[3] = {defaultAssemblyColors[0][0]/255.0,
+                             defaultAssemblyColors[0][1]/255.0,
+                             defaultAssemblyColors[0][2]/255.0};
+          att->SetBlockColor(0, color);
+          att->SetBlockVisibility(0, true);
+        }
+      }
     }
   }
-#endif
+  else
+  {
+    vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
+    this->Mapper->SetCompositeDataDisplayAttributes(attributes);
+    attributes->Delete();
+  }
+  this->Mapper->Modified();
+  this->Renderer->Render();
+  this->ui->qvtkWidget->update();
+}
+
+void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
+{
+  vtkProperty* property = this->Actor->GetProperty();
+  if(b)
+  {
+    property->SetEdgeVisibility(1);
+    property->SetEdgeColor(255,0,0);
+  }
+  else
+  {
+    property->SetEdgeVisibility(0);
+  }
+  this->Actor->Modified();
+  this->Mapper->Modified();
+  this->Renderer->Modified();
+  this->Renderer->Render();
+  this->ui->qvtkWidget->update();
 }
 
 void cmbNucMainWindow::onChangeFromModelTab()
