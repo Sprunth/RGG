@@ -36,7 +36,7 @@ cmbNucCoregen::cmbNucCoregen(QTreeWidget * l)
   this->GeoFilt = vtkGeometryFilter::New();
   this->List = l;
   QObject::connect(this->List, SIGNAL(itemSelectionChanged()),
-                   this, SLOT(onSelectionChanged()), Qt::QueuedConnection);
+                   this, SLOT(onSelectionChanged()), Qt::UniqueConnection);
 }
 
 cmbNucCoregen::~cmbNucCoregen()
@@ -68,6 +68,7 @@ void cmbNucCoregen::openFile(QString file)
     if(i == 0)
     {
       atwi->setSelected(true);
+      this->selectedType = i;
     }
   }
   this->Data = DataSets[0];
@@ -76,6 +77,8 @@ void cmbNucCoregen::openFile(QString file)
 
 void cmbNucCoregen::onSelectionChanged()
 {
+  qDebug() << "Selection change";
+  List->blockSignals(true);
   QList<QTreeWidgetItem*> selItems = List->selectedItems();
   meshOptionItem* selItem =
       selItems.count()>0 ? dynamic_cast<meshOptionItem*>(selItems.value(0)) : NULL;
@@ -83,6 +86,8 @@ void cmbNucCoregen::onSelectionChanged()
   {
     this->Data = DataSets[selItem->Id];
     this->color = selItem->Id == 5;
+    this->selectedType = selItem->Id;
     emit(update());
   }
+  List->blockSignals(false);
 }

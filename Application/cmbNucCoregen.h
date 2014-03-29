@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QString>
 #include <QTreeWidget>
+#include <QCheckBox>
 #include <QObject>
 #include <vtkSmartPointer.h>
 #include <vtkMultiBlockDataSet.h>
@@ -27,6 +28,9 @@ public:
 
   bool colorBlocks() const { return this->color; }
 
+  unsigned int getSelectedType() const
+  { return selectedType; }
+
 public slots:
   void openFile(QString file);
 
@@ -42,6 +46,7 @@ private:
   std::vector< vtkSmartPointer<vtkDataObject> > DataSets;
   QTreeWidget * List;
   bool color;
+  unsigned int selectedType;
 
 protected slots:
   void onSelectionChanged();

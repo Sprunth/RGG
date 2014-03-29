@@ -33,6 +33,12 @@ public:
 
   QTreeWidget * getModelTree();
 
+  void setMeshColorState(bool b);
+  void setMeshEdgeState(bool b);
+
+  bool getMeshColorState();
+  bool getMeshEdgeState();
+
 signals:
   // Description:
   // Fired when a part/material is selected in the tree
@@ -47,6 +53,9 @@ signals:
   void switchToNonModelTab();
 
   void deleteCore();
+
+  void meshEdgeChange(bool);
+  void meshColorChange(bool);
 
 public slots:
   void onNewAssembly();

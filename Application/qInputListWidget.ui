@@ -111,6 +111,24 @@
          </column>
         </widget>
        </item>
+       <item row="1" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QCheckBox" name="ShowEdges">
+           <property name="text">
+            <string>Show Edges</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="ColorMesh">
+           <property name="text">
+            <string>Color</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
      </widget>
     </widget>

@@ -69,6 +69,11 @@ protected slots:
   void onChangeToModelTab();
   void onChangeFromModelTab();
 
+  void onSelectionChange();
+
+  void onChangeMeshColorMode(bool b);
+  void onChangeMeshEdgeMode(bool b);
+
   // updates the block colors based on their materials
   void updateCoreMaterialColors();
   void updateAssyMaterialColors(cmbNucAssembly* assy);
