@@ -49,8 +49,8 @@ add_revision(moab
   )
 
 add_revision(cgm
-  SVN_REPOSITORY https://svn.mcs.anl.gov/repos/ITAPS/cgm/tags/13.1.1
-  SVN_TRUST_CERT 1
+  GIT_REPOSITORY "https://bitbucket.org/fathomteam/cgm.git"
+  GIT_TAG 13.1.1
   )
 
 add_revision(lasso
