@@ -769,13 +769,16 @@ void cmbNucMainWindow::onSelectionChange()
 {
   this->onChangeMeshColorMode(this->InputsWidget->getMeshColorState());
   this->onChangeMeshEdgeMode(this->InputsWidget->getMeshEdgeState());
+#ifdef BUILD_WITH_MOAB
   this->Mapper->SetInputDataObject(this->Internal->MoabSource->getData());
+#endif
   this->Renderer->ResetCamera();
   this->ui->qvtkWidget->update();
 }
 
 void cmbNucMainWindow::onChangeMeshColorMode(bool b)
 {
+#ifdef BUILD_WITH_MOAB
   if(b)
   {
     vtkSmartPointer<vtkDataObject> data = this->Internal->MoabSource->getData();
@@ -837,6 +840,7 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
   this->Mapper->Modified();
   this->Renderer->Render();
   this->ui->qvtkWidget->update();
+#endif
 }
 
 void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
