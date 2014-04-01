@@ -3,13 +3,15 @@
 #include "SimpleMoab.h"
 #include "DataSetConverter.h"
 
+
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkUnstructuredGrid.h"
-#include <QDebug>
+
+#include "vtkPolyData.h"
 
 
 vtkStandardNewMacro(vtkMoabReader)
@@ -30,6 +32,7 @@ int vtkMoabReader::RequestInformation(vtkInformation *request,
                        vtkInformationVector **inputVector,
                        vtkInformationVector *outputVector)
 {
+
   //todo. Walk the file and display all the 2d and 3d elements that the users
   //could possibly want to load
   return this->Superclass::RequestInformation(request,inputVector,outputVector);
@@ -50,9 +53,9 @@ int vtkMoabReader::RequestData(vtkInformation *vtkNotUsed(request),
   vtkNew<vtkMultiBlockDataSet> volumeRoot;
   vtkNew<vtkMultiBlockDataSet> boundaryRoot;
   vtkNew<vtkMultiBlockDataSet> surfaceRoot;
+  vtkNew<vtkMultiBlockDataSet> materialRoot;
   vtkNew<vtkMultiBlockDataSet> neumannRoot;
   vtkNew<vtkMultiBlockDataSet> dirichletRoot;
-  vtkNew<vtkMultiBlockDataSet> materialRoot;
 
   const int blockIndex = output->GetNumberOfBlocks();
   output->SetBlock(blockIndex,volumeRoot.GetPointer());
@@ -70,10 +73,9 @@ int vtkMoabReader::RequestData(vtkInformation *vtkNotUsed(request),
   output->GetMetaData(blockIndex+4)->Set(vtkCompositeDataSet::NAME(), "Dirichlet Sets");
   output->GetMetaData(blockIndex+5)->Set(vtkCompositeDataSet::NAME(), "Material Sets");
 
-
   smoab::GeomTag geom3Tag(3);
   smoab::GeomTag geom2Tag(2);
-  smoab::GeomTag geom1Tag(2);
+  smoab::GeomTag geom1Tag(1);
   smoab::NeumannTag neTag;
   smoab::DirichletTag diTag;
   smoab::MaterialTag metTag;
@@ -82,7 +84,6 @@ int vtkMoabReader::RequestData(vtkInformation *vtkNotUsed(request),
 
   this->CreateSubBlocks(volumeRoot, &interface, &geom3Tag);
   this->CreateSubBlocks(boundaryRoot, &interface, &geom3Tag, &geom2Tag);
-  this->CreateSubBlocks(boundaryRoot, &interface, &geom3Tag, &geom1Tag);
 
   this->CreateSubBlocks(surfaceRoot, &interface, &geom2Tag);
   this->CreateSubBlocks(neumannRoot, &interface, &neTag);
@@ -90,8 +91,6 @@ int vtkMoabReader::RequestData(vtkInformation *vtkNotUsed(request),
 
   //this->CreateSubBlocks(materialRoot, &interface, &metTag); // no points
   this->CreateSubBlocks(materialRoot, &interface, &metTag,  &geom3Tag);
-  this->CreateSubBlocks(materialRoot, &interface, &metTag,  &geom2Tag);
-  this->CreateSubBlocks(materialRoot, &interface, &metTag,  &geom1Tag);
 
   return 1;
 }
@@ -112,7 +111,6 @@ void vtkMoabReader::CreateSubBlocks(vtkNew<vtkMultiBlockDataSet> & root,
   smoab::DataSetConverter converter(*interface,extractTag);
   converter.readMaterialIds(true);
   converter.readProperties(true);
-
 
   smoab::EntityHandle rootHandle = interface->getRoot();
   smoab::Range parents = interface->findEntityRootParents(rootHandle);

@@ -85,12 +85,21 @@ IF(VTK_MOAB_SUPPORT)
   FIND_PACKAGE(MOAB)
   message(${MOAB_INCLUDE_DIR})
   INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
+  INCLUDE_DIRECTORIES(vtk_moab_reader)
   SET(CMBNuclear_Headers ${CMBNuclear_Headers} cmbNucCoregen.h)
   SET(CMBNuclear_other_headers ${CMBNuclear_other_headers}
-                               vtk_moab_reader/SimpleMoab.h
-                               vtk_moab_reader/CellTypeToType.h
+                               vtk_moab_reader/CellSets.h
                                vtk_moab_reader/DataSetConverter.h
-                               vtk_moab_reader/MixedCellConnectivity.h
+                               vtk_moab_reader/detail/CellTypeToType.h
+                               vtk_moab_reader/detail/ContinousCellInfo.h
+                               vtk_moab_reader/detail/LoadGeometry.h
+                               vtk_moab_reader/detail/MixedCellConnectivity.h
+                               vtk_moab_reader/detail/ReadSparseTag.h
+                               vtk_moab_reader/detail/ReduceSpectralMesh.h
+                               vtk_moab_reader/detail/UsageTable.h
+                               vtk_moab_reader/ExtractShell.h
+                               vtk_moab_reader/FaceSets.h
+                               vtk_moab_reader/SimpleMoab.h
                                vtk_moab_reader/vtkMoabReader.h)
   SET(CMBNuclear_Srcs ${CMBNuclear_Srcs}
                       vtk_moab_reader/vtkMoabReader.cxx
@@ -128,7 +137,7 @@ if(APPLE)
                                Resources )
 endif()
 
-ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${CMBNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
 TARGET_LINK_LIBRARIES( CMBNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
 
 # The initial material color file
