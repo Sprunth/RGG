@@ -54,9 +54,7 @@ add_revision(cgm
   )
 
 add_revision(lasso
-  SVN_REPOSITORY https://svn.mcs.anl.gov/repos/ITAPS/Lasso/trunk
-  SVN_REVISION "-r6103"
-  SVN_TRUST_CERT 1
+  GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
   )
 
 add_revision(meshkit
