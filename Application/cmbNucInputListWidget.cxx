@@ -265,12 +265,12 @@ void cmbNucInputListWidget::onTabChanged(int currentTab)
   if(currentTab == 0) // parts
     {
     this->onPartsSelectionChanged();
-    emit switchToNonModelTab();
+    emit switchToNonModelTab(0);
     }
   else if(currentTab == 1) // materials
     {
     this->onMaterialSelectionChanged();
-    emit switchToNonModelTab();
+    emit switchToNonModelTab(1);
     }
   else if(currentTab) //model
     {

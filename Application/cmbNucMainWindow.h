@@ -67,7 +67,7 @@ protected slots:
   void onObjectGeometryChanged(AssyPartObj* obj);
 
   void onChangeToModelTab();
-  void onChangeFromModelTab();
+  void onChangeFromModelTab(int);
 
   void onSelectionChange();
 
