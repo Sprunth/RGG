@@ -311,6 +311,12 @@ bool inpFileReader
       {
       input >> assembly.Parameters->RotateXYZ >> assembly.Parameters->RotateAngle;
       }
+    else if(value == "move")
+      {
+      input >> assembly.Parameters->MoveXYZ[0]
+            >> assembly.Parameters->MoveXYZ[1]
+            >> assembly.Parameters->MoveXYZ[2];
+      }
     else if(value == "hblock")
       {
       std::getline(input, assembly.Parameters->HBlock);
@@ -457,7 +463,13 @@ bool inpFileWriter::write(std::string fname,
   WRITE_PARAM_VALUE(TetMeshSize, TetMeshSize);
   WRITE_PARAM_VALUE(EdgeInterval, EdgeInterval);
   WRITE_PARAM_VALUE(RadialMeshSize, RadialMeshSize);
-  WRITE_PARAM_VALUE(Move, MoveXYZ);
+  if(params->MoveXYZ[0]!=0 || params->MoveXYZ[1]!=0 || params->MoveXYZ[2]!=0)
+    {
+    output << "Move "
+          << params->MoveXYZ[0] << " "
+          << params->MoveXYZ[1] << " "
+          << params->MoveXYZ[2] << "\n";
+    }
 
   output << "Center";
   if(params->isValueSet(params->CenterXYZ))
@@ -798,7 +810,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           {
           double dHexPinPitch;
           input >> dHexPinPitch >> pincell->pitchZ;
-          pincell->pitchX=pincell->pitchY = dHexPinPitch;
+          pincell->pitchX = pincell->pitchY = dHexPinPitch;
           }
         else
           {
@@ -920,10 +932,15 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool isHex,
                                  int hexSymmetry, bool useAmp, Lattice &lat )
 {
-  output << key << " " << lat.Grid[0].size();
+  output << key;
   if(!isHex)
     {
+    output  << " " << lat.Grid[0].size();
     output << " " << lat.Grid.size();
+    }
+  else
+    {
+      output << " " << lat.Grid.size();
     }
   output << "\n";
   if(isHex)

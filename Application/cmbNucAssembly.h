@@ -41,10 +41,11 @@ public:
   {
   this->Geometry = this->GeometryType = this->MeshType
     = this->RotateXYZ = this->CenterXYZ = this->CreateSideset = this->HBlock
-    = this->Info = this->SectionXYZ = this->MoveXYZ = ASSY_NOT_SET_KEY;
+    = this->Info = this->SectionXYZ = ASSY_NOT_SET_KEY;
   this->RotateAngle = this->RadialMeshSize = this->AxialMeshSize
     = this->TetMeshSize = this->EdgeInterval = this->MergeTolerance = this->CreateFiles
     = this->SectionOffset = ASSY_NOT_SET_VALUE;
+  MoveXYZ[0] = MoveXYZ[1] = MoveXYZ[2] = 0.0;
   this->SectionReverse = false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) Var = DEFAULT;
     ASSYGEN_EXTRA_VARABLE_MACRO()
@@ -89,7 +90,7 @@ public:
   int SectionOffset;
   bool SectionReverse;
   // [Move <x> <y> <z> ]
-  std::string MoveXYZ;
+  double MoveXYZ[3];
   // HBlock
   std::string HBlock;
 
