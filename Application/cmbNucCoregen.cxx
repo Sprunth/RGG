@@ -33,7 +33,6 @@ public:
 cmbNucCoregen::cmbNucCoregen(QTreeWidget * l)
 {
   this->MoabReader = vtkMoabReader::New();
-  this->GeoFilt = vtkGeometryFilter::New();
   this->List = l;
   QObject::connect(this->List, SIGNAL(itemSelectionChanged()),
                    this, SLOT(onSelectionChanged()), Qt::UniqueConnection);
@@ -55,14 +54,16 @@ void cmbNucCoregen::openFile(QString file)
   this->MoabReader->Update();
   vtkSmartPointer<vtkMultiBlockDataSet> tmp = this->MoabReader->GetOutput();
   DataSets.resize(tmp->GetNumberOfBlocks());
+  this->GeoFilt.resize(tmp->GetNumberOfBlocks(), NULL);
   List->clear();
   for (unsigned int i = 0; i < tmp->GetNumberOfBlocks(); ++i)
   {
+    if(this->GeoFilt[i] == NULL) this->GeoFilt[i] = vtkGeometryFilter::New();
     const char * name = tmp->GetMetaData(i)->Get(vtkCompositeDataSet::NAME());
-    this->GeoFilt->SetInputData(tmp->GetBlock(i));
-    this->GeoFilt->Update();
-    DataSets[i].TakeReference(this->GeoFilt->GetOutputDataObject(0)->NewInstance());
-    DataSets[i]->DeepCopy(this->GeoFilt->GetOutputDataObject(0));
+    this->GeoFilt[i]->SetInputData(tmp->GetBlock(i));
+    this->GeoFilt[i]->Update();
+    DataSets[i].TakeReference(this->GeoFilt[i]->GetOutputDataObject(0)->NewInstance());
+    DataSets[i]->DeepCopy(this->GeoFilt[i]->GetOutputDataObject(0));
     QTreeWidgetItem * atwi = new meshOptionItem(name, i);
     List->addTopLevelItem(atwi);
     if(i == 0)
