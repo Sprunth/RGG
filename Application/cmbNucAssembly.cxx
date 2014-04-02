@@ -244,8 +244,15 @@ void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
   }
   else
   {
-    pitch_ij[0] = PinCells[0]->pitchX;
-    pitch_ij[1] = PinCells[0]->pitchY;
+    for(unsigned int i = 0; i < PinCells.size(); ++i)
+    {
+      if(PinCells[i] != NULL)
+      {
+        pitch_ij[0] = PinCells[i]->pitchX;
+        pitch_ij[1] = PinCells[i]->pitchY;
+        break;
+      }
+    }
   }
 
   if(i==0)

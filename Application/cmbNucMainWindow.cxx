@@ -57,6 +57,7 @@ public:
 #endif
   vtkSmartPointer<vtkMultiBlockDataSet> PreviousDataset;
   vtkSmartPointer<vtkMultiBlockDataSet> CurrentDataset;
+  bool WasMeshTab;
 };
 
 int numAssemblyDefaultColors = 42;
@@ -120,6 +121,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
   Internal = new NucMainInternal();
+  this->Internal->WasMeshTab = false;
 #ifdef BUILD_WITH_MOAB
   this->Internal->MoabSource = NULL;
 #endif
@@ -235,8 +237,8 @@ void cmbNucMainWindow::initPanels()
           this->Internal->MoabSource, SLOT(openFile(QString)));
   QObject::connect(this->InputsWidget, SIGNAL(switchToModelTab()),
                    this, SLOT(onChangeToModelTab()));
-  QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab()),
-                   this, SLOT(onChangeFromModelTab()));
+  QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab(int)),
+                   this, SLOT(onChangeFromModelTab(int)));
   QObject::connect(this->InputsWidget, SIGNAL(meshEdgeChange(bool)),
                    this, SLOT(onChangeMeshEdgeMode(bool)));
   QObject::connect(this->InputsWidget, SIGNAL(meshColorChange(bool)),
@@ -375,12 +377,19 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
 void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
 {
   // update material colors
-  this->updateCoreMaterialColors();
+  if(this->Internal->WasMeshTab)
+  {
+     this->onSelectionChange();
+  }
+  else
+  {
+    this->updateCoreMaterialColors();
 
-  if(obj && obj->GetType() == CMBNUC_CORE)
-    {
-    this->Renderer->ResetCamera();
-    }
+    if(obj && obj->GetType() == CMBNUC_CORE)
+      {
+        this->Renderer->ResetCamera();
+      }
+  }
   // render
   this->ui->qvtkWidget->update();
 }
@@ -759,6 +768,7 @@ void cmbNucMainWindow::ResetView()
 void cmbNucMainWindow::onChangeToModelTab()
 {
 #ifdef BUILD_WITH_MOAB
+  this->Internal->WasMeshTab = true;
   this->onSelectionChange();
   connect(this->Internal->MoabSource, SIGNAL(update()),
           this, SLOT(onSelectionChange()));
@@ -831,7 +841,9 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
           const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
           if(name != NULL) qDebug() << idx << name << createMaterialLabel(name);
           QMap<QString, cmbNucMaterial>::const_iterator at;
-          if(name != NULL && strlen(name) != 0 && (at = colors.find(createMaterialLabel(name))) != colors.end() )
+          if(( name != NULL && strlen(name) != 0 &&
+               (at = colors.find(createMaterialLabel(name))) != colors.end()) ||
+             (at = colors.find(QString("mesh_unknown"))) != colors.end() )
           {
             color = at->Color;
             visible = at->Visible;
@@ -904,14 +916,18 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
   this->ui->qvtkWidget->update();
 }
 
-void cmbNucMainWindow::onChangeFromModelTab()
+void cmbNucMainWindow::onChangeFromModelTab(int i)
 {
+  if(i == 0)
+  {
+    this->Internal->WasMeshTab = false;
 #ifdef BUILD_WITH_MOAB
-  vtkProperty* property = this->Actor->GetProperty();
-  property->SetEdgeVisibility(0);
-  disconnect(this->Internal->MoabSource, SIGNAL(update()),
-             this, SLOT(onChangeToModelTab()));
+    vtkProperty* property = this->Actor->GetProperty();
+    property->SetEdgeVisibility(0);
+    disconnect(this->Internal->MoabSource, SIGNAL(update()),
+               this, SLOT(onSelectionChange()));
 #endif
+  }
 }
 
 void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long event)
