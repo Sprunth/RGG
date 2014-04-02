@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>368</width>
-    <height>477</height>
+    <width>599</width>
+    <height>634</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
-        <width>351</width>
-        <height>843</height>
+        <y>-187</y>
+        <width>613</width>
+        <height>849</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -50,30 +50,6 @@
          <property name="text">
           <string>User Defined</string>
          </property>
-        </widget>
-       </item>
-       <item row="19" column="1" colspan="2">
-        <widget class="QComboBox" name="MoveXYZ">
-         <item>
-          <property name="text">
-           <string>NotSet</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>X</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Y</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Z</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="21" column="1" colspan="2">
@@ -421,6 +397,70 @@
          </item>
         </widget>
        </item>
+       <item row="19" column="2" colspan="2">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="label_25">
+           <property name="text">
+            <string>X:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MoveX">
+           <property name="decimals">
+            <number>3</number>
+           </property>
+           <property name="minimum">
+            <double>-1000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>1000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_26">
+           <property name="text">
+            <string>Y:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MoveY">
+           <property name="decimals">
+            <number>3</number>
+           </property>
+           <property name="minimum">
+            <double>-1000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>1000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_27">
+           <property name="text">
+            <string>Z:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="MoveZ">
+           <property name="decimals">
+            <number>3</number>
+           </property>
+           <property name="minimum">
+            <double>-1000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>1000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
       <zorder>CreateFiles</zorder>
       <zorder>NeumannSet_StartId</zorder>
@@ -429,7 +469,6 @@
       <zorder>label_6</zorder>
       <zorder>label_9</zorder>
       <zorder>label_2</zorder>
-      <zorder>MoveXYZ</zorder>
       <zorder>label_12</zorder>
       <zorder>RotateAngle</zorder>
       <zorder>MaterialSet_StartId</zorder>
@@ -469,6 +508,7 @@
       <zorder>label_23</zorder>
       <zorder>label_24</zorder>
       <zorder>MeshType</zorder>
+      <zorder>horizontalLayoutWidget</zorder>
      </widget>
     </widget>
    </item>

@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QPointer>
 #include <QtDebug>
+#include <QDoubleSpinBox>
 
 class cmbAssyParametersWidget::cmbAssyParametersWidgetInternal :
   public Ui::qAssyParametersWidget
@@ -151,6 +152,16 @@ void setValue(std::string &to, QLineEdit * from)
   convert(from->text(), to);
 }
 
+void setValue(QDoubleSpinBox * to, double from)
+{
+  to->setValue(from);
+}
+
+void setValue(double &to, QDoubleSpinBox * from)
+{
+  to = from->value();
+}
+
 void setValue(QLineEdit * to, std::string &from)
 {
   if(from == ASSY_NOT_SET_KEY)
@@ -218,7 +229,11 @@ void setValue(QCheckBox * to, bool &from)
   FUN(List_MaterialSet_StartId) \
   FUN(NumSuperBlocks) \
   FUN(SuperBlocks) \
-  FUN(MeshType)
+  FUN(MeshType)\
+  FUN2(MoveXYZ[0],MoveX)\
+  FUN2(MoveXYZ[1],MoveY)\
+  FUN2(MoveXYZ[2],MoveZ)
+
 
 
 
@@ -227,8 +242,10 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 {
   cmbAssyParameters* parameters = assy->GetParameters();
 #define FUN(X) setValue(parameters->X, this->Internal->X);
+#define FUN2(X,Y) setValue(parameters->X, this->Internal->Y);
   EASY_ASSY_PARAMS_MACRO()
 #undef FUN
+#undef FUN2
   std::stringstream ss(Internal->Unknown->toPlainText().toStdString().c_str());
   std::string line;
   parameters->UnknownParams.clear();
@@ -244,8 +261,10 @@ void cmbAssyParametersWidget::resetAssembly(cmbNucAssembly* assy)
 {
   cmbAssyParameters* parameters = assy->GetParameters();
 #define FUN(X) setValue(this->Internal->X, parameters->X);
+#define FUN2(X,Y) setValue(this->Internal->Y, parameters->X);
   EASY_ASSY_PARAMS_MACRO()
 #undef FUN
+#undef FUN2
   std::string unknowns;
   for(unsigned int i = 0; i < parameters->UnknownParams.size(); ++i)
   {
