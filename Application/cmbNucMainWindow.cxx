@@ -776,6 +776,34 @@ void cmbNucMainWindow::onSelectionChange()
   this->ui->qvtkWidget->update();
 }
 
+QString createMaterialLabel(const char * name)
+{
+  QString result(name);
+  if(result.endsWith("_top_ss"))
+  {
+    return result.remove("_top_ss");
+  }
+  if(result.endsWith("_bot_ss"))
+  {
+    return result.remove("_bot_ss");
+  }
+  if(result.endsWith("_side_ss"))
+  {
+    return result.remove("_side_ss");
+  }
+  return QString(&(name[2]));
+
+}
+
+void add_color(vtkCompositeDataDisplayAttributes *att,
+               unsigned int idx, QColor color, bool visible)
+{
+  double cd[] = { color.redF(), color.greenF(), color.blueF() };
+  att->SetBlockColor(idx, cd);
+  att->SetBlockOpacity(idx, color.alphaF());
+  att->SetBlockVisibility(idx, visible);
+}
+
 void cmbNucMainWindow::onChangeMeshColorMode(bool b)
 {
 #ifdef BUILD_WITH_MOAB
@@ -783,50 +811,64 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
   {
     vtkSmartPointer<vtkDataObject> data = this->Internal->MoabSource->getData();
     if(data == NULL) return;
+    QColor color;
+    bool visible;
+    vtkCompositeDataDisplayAttributes *att = this->Mapper->GetCompositeDataDisplayAttributes();
+    if(att == NULL) return;
+    att->RemoveBlockVisibilites();
+    att->RemoveBlockOpacities();
+    att->RemoveBlockColors();
+    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(data);
     switch(this->Internal->MoabSource->getSelectedType())
     {
       case 5: //Material
+      case 3:
       {
-        vtkCompositeDataDisplayAttributes *att =
-          this->Mapper->GetCompositeDataDisplayAttributes();
-        att->RemoveBlockColors();
-
-        vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(data);
+        int offset = sec->GetNumberOfBlocks()-1;
+        QMap<QString, cmbNucMaterial>& colors = this->MaterialColors->MaterialColorMap();
         for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
         {
-          unsigned int cind = idx%(numAssemblyDefaultColors-1);
-          double color[3] = {defaultAssemblyColors[cind][0]/255.0,
-                             defaultAssemblyColors[cind][1]/255.0,
-                             defaultAssemblyColors[cind][2]/255.0};
-          att->SetBlockColor(idx, color);
-          att->SetBlockVisibility(idx, true);
+          const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
+          if(name != NULL) qDebug() << idx << name << createMaterialLabel(name);
+          QMap<QString, cmbNucMaterial>::const_iterator at;
+          if(name != NULL && strlen(name) != 0 && (at = colors.find(createMaterialLabel(name))) != colors.end() )
+          {
+            color = at->Color;
+            visible = at->Visible;
+          }
+          else
+          {
+            unsigned int cind = idx%(numAssemblyDefaultColors-1);
+            color = QColor(defaultAssemblyColors[cind][0],
+                           defaultAssemblyColors[cind][1],
+                           defaultAssemblyColors[cind][2], 180);
+            visible = true;
+          }
+          add_color(att, idx, color, visible);
         }
       }
         break;
       default:
       {
-        vtkCompositeDataDisplayAttributes *att =
-          this->Mapper->GetCompositeDataDisplayAttributes();
-        vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(data);
         if(sec!= NULL)
         {
           for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
           {
             unsigned int cind = idx%(numAssemblyDefaultColors-1);
-            double color[3] = {defaultAssemblyColors[cind][0]/255.0,
-                               defaultAssemblyColors[cind][1]/255.0,
-                               defaultAssemblyColors[cind][2]/255.0};
-            att->SetBlockColor(idx, color);
-            att->SetBlockVisibility(idx, true);
+            color = QColor(defaultAssemblyColors[cind][0],
+                           defaultAssemblyColors[cind][1],
+                           defaultAssemblyColors[cind][2]);
+            visible = true;
+            add_color(att, idx, color, visible);
           }
         }
         else
         {
-          double color[3] = {defaultAssemblyColors[0][0]/255.0,
-                             defaultAssemblyColors[0][1]/255.0,
-                             defaultAssemblyColors[0][2]/255.0};
-          att->SetBlockColor(0, color);
-          att->SetBlockVisibility(0, true);
+          color = QColor(defaultAssemblyColors[0][0],
+                         defaultAssemblyColors[0][1],
+                         defaultAssemblyColors[0][2]);
+          visible = true;
+          add_color(att, 0, color, visible);
         }
       }
     }
@@ -849,7 +891,7 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
   if(b)
   {
     property->SetEdgeVisibility(1);
-    property->SetEdgeColor(255,0,0);
+    property->SetEdgeColor(16,0,250);
   }
   else
   {

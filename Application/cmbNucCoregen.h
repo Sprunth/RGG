@@ -41,7 +41,7 @@ signals:
 private:
   // Designer form
   vtkSmartPointer<vtkMoabReader> MoabReader;
-  vtkSmartPointer<vtkGeometryFilter> GeoFilt;
+  std::vector< vtkSmartPointer<vtkGeometryFilter> > GeoFilt;
   vtkSmartPointer<vtkDataObject> Data;
   std::vector< vtkSmartPointer<vtkDataObject> > DataSets;
   QTreeWidget * List;

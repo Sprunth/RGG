@@ -138,6 +138,7 @@ void vtkMoabReader::CreateSubBlocks(vtkNew<vtkMultiBlockDataSet> & root,
       std::string name = interface->name(*i);
       if(name.size() > 0)
         {
+        std::cout << index << ' ' << name << std::endl;
         root->GetMetaData(index)->Set(vtkCompositeDataSet::NAME(), name.c_str());
         }
       ++index;
