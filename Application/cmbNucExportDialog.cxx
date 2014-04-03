@@ -126,14 +126,16 @@ void cmbNucExportDialog::sendSignalToProcess()
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
     outputMesh = path + '/' + name + ".h5m";
+    Core->h5mFile = name.toStdString();
   }
   else
   {
     QFileInfo fi(CoregenFile);
     QString path = fi.absolutePath();
+    qDebug() << Core->h5mFile.c_str();
     outputMesh = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
+    qDebug() << outputMesh;
   }
-  Core->h5mFile = outputMesh.toStdString();
 
   emit process(assygenExe, this->AssygenFileList,
                cubitExe, coregenExe, CoregenFile, outputMesh);
@@ -141,6 +143,7 @@ void cmbNucExportDialog::sendSignalToProcess()
 
 void cmbNucExportDialog::cancel()
 {
+  this->Progress->ui->command->setText("");
   qDebug() << "CANCELING";
   Exporter->cancel();
   qDebug() << "Canceling done";
@@ -149,7 +152,11 @@ void cmbNucExportDialog::cancel()
 
 void cmbNucExportDialog::done()
 {
+  this->Progress->ui->command->setText("");
   this->Progress->hide();
-  qDebug() << "Sending filename" << Core->h5mFile.c_str();
-  emit(finished(QString(Core->h5mFile.c_str())));
+  QFileInfo fi(CoregenFile);
+  QString path = fi.absolutePath();
+  qDebug() << Core->h5mFile.c_str();
+  QString outputMesh = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
+  emit(finished(outputMesh));
 }

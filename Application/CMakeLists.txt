@@ -1,4 +1,4 @@
-PROJECT(CMBNuclear)
+PROJECT(RGGNuclear)
 
 FIND_PACKAGE(VTK)
 INCLUDE(${VTK_USE_FILE}) # include UseVTK.cmake
@@ -18,7 +18,7 @@ INCLUDE_DIRECTORIES(
 )
 
 #Now the QtVTK version
-SET(CMBNuclear_Srcs
+SET(RGGNuclear_Srcs
   cmbNucMain.cxx
   cmbNucMainWindow.cxx
   cmbNucAssembly.cxx
@@ -45,7 +45,7 @@ SET(CMBNuclear_Srcs
   cmbCoreParametersWidget.cxx
 )
 
-SET(CMBNuclear_UI
+SET(RGGNuclear_UI
   qNucMainWindow.ui
   qNucNewDialog.ui
   qInputListWidget.ui
@@ -59,7 +59,7 @@ SET(CMBNuclear_UI
   qCoreParameters.ui
 )
 
-SET(CMBNuclear_Headers
+SET(RGGNuclear_Headers
   cmbNucCore.h
   cmbNucMainWindow.h
   cmbNucInputListWidget.h
@@ -78,7 +78,7 @@ SET(CMBNuclear_Headers
   cmbCoreParametersWidget.h
 )
 
-SET(CMBNuclear_other_headers )
+SET(RGGNuclear_other_headers )
 
 OPTION( VTK_MOAB_SUPPORT "Build with VTK MOAB support"  OFF )
 IF(VTK_MOAB_SUPPORT)
@@ -86,8 +86,8 @@ IF(VTK_MOAB_SUPPORT)
   message(${MOAB_INCLUDE_DIR})
   INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
   INCLUDE_DIRECTORIES(vtk_moab_reader)
-  SET(CMBNuclear_Headers ${CMBNuclear_Headers} cmbNucCoregen.h)
-  SET(CMBNuclear_other_headers ${CMBNuclear_other_headers}
+  SET(RGGNuclear_Headers ${RGGNuclear_Headers} cmbNucCoregen.h)
+  SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
                                vtk_moab_reader/CellSets.h
                                vtk_moab_reader/DataSetConverter.h
                                vtk_moab_reader/detail/CellTypeToType.h
@@ -101,7 +101,7 @@ IF(VTK_MOAB_SUPPORT)
                                vtk_moab_reader/FaceSets.h
                                vtk_moab_reader/SimpleMoab.h
                                vtk_moab_reader/vtkMoabReader.h)
-  SET(CMBNuclear_Srcs ${CMBNuclear_Srcs}
+  SET(RGGNuclear_Srcs ${RGGNuclear_Srcs}
                       vtk_moab_reader/vtkMoabReader.cxx
                       cmbNucCoregen.cxx )
   SET(MOAB_LIB MOAB)
@@ -110,12 +110,12 @@ IF(VTK_MOAB_SUPPORT)
                               COMPILE_FLAGS "-DBUILD_WITH_MOAB")
 ENDIF()
 
-QT4_WRAP_UI(UISrcs ${CMBNuclear_UI})
-QT4_WRAP_CPP(MOCSrcs ${CMBNuclear_Headers} )
+QT4_WRAP_UI(UISrcs ${RGGNuclear_UI})
+QT4_WRAP_CPP(MOCSrcs ${RGGNuclear_Headers} )
 QT4_ADD_RESOURCES(RCS_SOURCES
   qNucResources.qrc)
 SOURCE_GROUP("Resources" FILES
-  ${CMBNuclear_UI} ${RCS_SOURCES}
+  ${RGGNuclear_UI} ${RCS_SOURCES}
 )
 
 SOURCE_GROUP("Generated" FILES
@@ -124,21 +124,21 @@ SOURCE_GROUP("Generated" FILES
 )
 
 if (WIN32)
-  set( ICON_FILE cmbNuclear.rc )
+  set( ICON_FILE RGGNuclear.rc )
 endif()
 
 if(APPLE)
   set( ICON_FILE MacIcon.icns )
-  SET( MACOSX_BUNDLE_INFO_STRING "CMBNuclear" )
+  SET( MACOSX_BUNDLE_INFO_STRING "RGGNuclear" )
   SET( MACOSX_BUNDLE_ICON_FILE MacIcon.icns )
-  SET( MACOSX_BUNDLE_BUNDLE_NAME "CMBNuclear" )
+  SET( MACOSX_BUNDLE_BUNDLE_NAME "RGGNuclear" )
   SET_SOURCE_FILES_PROPERTIES( MacIcon.icns PROPERTIES
                                MACOSX_PACKAGE_LOCATION
                                Resources )
 endif()
 
-ADD_EXECUTABLE( CMBNuclear MACOSX_BUNDLE ${CMBNuclear_Srcs} ${CMBNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-TARGET_LINK_LIBRARIES( CMBNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
 
 # The initial material color file
 set (materialColorsName "materialcolors")
@@ -159,19 +159,19 @@ if(WIN32)
     ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/${materialColorsName}.ini)
 
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
-  install(TARGETS CMBNuclear DESTINATION bin)
+  install(TARGETS RGGNuclear DESTINATION bin)
 elseif(APPLE)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
-             ${EXECUTABLE_OUTPUT_PATH}/CMBNuclear.app/Contents/MacOS/${materialColorsName}.ini
+             ${EXECUTABLE_OUTPUT_PATH}/RGGNuclear.app/Contents/MacOS/${materialColorsName}.ini
              @ONLY)
-  #on the mac the marterialcolor file needs to be installed into the CMBNuclear app
-  install (FILES ${EXECUTABLE_OUTPUT_PATH}/CMBNuclear.app/Contents/MacOS/${materialColorsName}.ini DESTINATION
-          ${CMAKE_INSTALL_PREFIX}/Applications/CMBNuclear.app/Contents/MacOS)
-  install(TARGETS CMBNuclear DESTINATION ${CMAKE_INSTALL_PREFIX}/Applications)
+  #on the mac the marterialcolor file needs to be installed into the RGGNuclear app
+  install (FILES ${EXECUTABLE_OUTPUT_PATH}/RGGNuclear.app/Contents/MacOS/${materialColorsName}.ini DESTINATION
+          ${CMAKE_INSTALL_PREFIX}/Applications/RGGNuclear.app/Contents/MacOS)
+  install(TARGETS RGGNuclear DESTINATION ${CMAKE_INSTALL_PREFIX}/Applications)
 else()
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
              ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
              @ONLY)
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
-  install(TARGETS CMBNuclear DESTINATION bin)
+  install(TARGETS RGGNuclear DESTINATION bin)
 endif()

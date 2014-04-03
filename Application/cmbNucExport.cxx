@@ -274,6 +274,7 @@ void cmbNucExport::run( const QString assygenExe,
                         const QString coregenFile,
                         const QString CoreGenOutputFile )
 {
+  qDebug() << "Output file: " << CoreGenOutputFile;
   this->setKeepGoing(true);
   emit currentProcess("  Started setting up");
   //pop up progress bar
@@ -356,7 +357,9 @@ void cmbNucExport::run( const QString assygenExe,
     }
 
     emit currentProcess("  cubit " + name + ".jou");
-    QFile::remove(CoreGenOutputFile);
+    qDebug() << "Output file: " << CoreGenOutputFile;
+    QFile::remove(pass + ".cub");
+    qDebug() << "Output file: " << CoreGenOutputFile;
     lr = ce.getOutput(ExporterInput(path, cubitExe, pass + ".jou"));
     current++;
     emit progress(static_cast<int>(current/total_number_of_file*100));
@@ -396,7 +399,9 @@ void cmbNucExport::run( const QString assygenExe,
       this->deleteWorkers();
       return;
     }
+    qDebug() << "Output file: " << CoreGenOutputFile;
     QFile::remove(CoreGenOutputFile);
+    qDebug() << "Output file: " << CoreGenOutputFile;
     QFileInfo fi(coregenFile);
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
@@ -409,12 +414,13 @@ void cmbNucExport::run( const QString assygenExe,
     if(!r.Valid)
     {
       emit errorMessage("ERROR: Curegen failed");
-      emit currentProcess("  coregen " + name + ".inp FAILED");
+      emit currentProcess("  running coregen " + name + ".inp FAILED returned failure mode");
       emit done();
       b.stopBrokering();
       this->deleteWorkers();
       return;
     }
+    qDebug() << "testing to see if " << CoreGenOutputFile << "exists";
     if(QFileInfo(CoreGenOutputFile).exists())
     {
       emit sendCoreResult(CoreGenOutputFile);
