@@ -11,7 +11,7 @@ set(CPACK_MONOLITHIC_INSTALL TRUE)
 # URL to website providing assistance in installing your application.
 set (CPACK_NSIS_HELP_LINK "http://paraview.org/Wiki/ParaView")
 set (CPACK_NSIS_MENU_LINKS
-  "bin/CMBNuclear.exe" "RGG Nuclear GUI")
+  "bin/RGGNuclear.exe" "RGG Nuclear GUI")
 
 #FIXME: need a pretty icon.
 #set (CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_LIST_DIR}/paraview.ico")
