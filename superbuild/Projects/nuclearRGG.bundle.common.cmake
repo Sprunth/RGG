@@ -47,7 +47,7 @@ endif()
 
 #set the programs we want to install
 set(rgg_programs_to_install
-     CMBNuclear
+     RGGNuclear
     )
 
 
