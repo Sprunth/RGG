@@ -903,7 +903,7 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
   if(b)
   {
     property->SetEdgeVisibility(1);
-    property->SetEdgeColor(16,0,250);
+    property->SetEdgeColor(0,0,0.4);
   }
   else
   {
