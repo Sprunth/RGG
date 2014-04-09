@@ -126,7 +126,6 @@ void inpFileHelper
   destination = v == mesg;
 }
 
-
 template<>
 void inpFileHelper::
 write<ExtrudedType>( std::ofstream &output,
@@ -334,10 +333,10 @@ bool inpFileReader
         assembly.Parameters->CenterXYZ = tmp;
         }
       }
-#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK)\
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)\
     else if(value == #Key)\
       { \
-      std::getline(input, assembly.Parameters->Var);\
+      helper.read(input, assembly.IsHexType(), MSG, assembly.Parameters->Var);\
       }
     ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
@@ -461,7 +460,6 @@ bool inpFileWriter::write(std::string fname,
                        assembly.AssyLattice );
   //Other Parameters
   WRITE_PARAM_VALUE(TetMeshSize, TetMeshSize);
-  WRITE_PARAM_VALUE(EdgeInterval, EdgeInterval);
   WRITE_PARAM_VALUE(RadialMeshSize, RadialMeshSize);
   if(params->MoveXYZ[0]!=0 || params->MoveXYZ[1]!=0 || params->MoveXYZ[2]!=0)
     {
@@ -494,8 +492,6 @@ bool inpFileWriter::write(std::string fname,
            << ((params->SectionReverse)?1:0) << "\n";
   }
   WRITE_PARAM_VALUE(AxialMeshSize, AxialMeshSize);
-  WRITE_PARAM_VALUE(CreateSideset, CreateSideset);
-  WRITE_PARAM_VALUE(MergeTolerance, MergeTolerance);
   WRITE_PARAM_VALUE(HBlock, HBlock);
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK)\
 if(params->isValueSet(params->Var))\
@@ -605,6 +601,7 @@ void inpFileHelper::readMaterials( std::stringstream & input,
     std::string mname;
     input >> mname;
     input >> mlabel;
+    std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
 
     materialLabelMap[mlabel] = mname;
     std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
@@ -687,6 +684,7 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
   for(int i = 0; i < materials; i++)
     {
     input >> mlabel;
+    std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
     duct->materials[i] = materialLabelMap[mlabel];
     }
 
@@ -858,6 +856,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           // maps to the actual material
           std::string mname;
           input >> mlabel;
+          std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
           mname = materialLabelMap[mlabel];
           std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
           // Lets save the first material to use to set the pin's color legend
@@ -915,6 +914,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           // maps to the actual material
           std::string mname;
           input >> mlabel;
+          std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
           mname = materialLabelMap[mlabel];
           std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
           // Lets save the first material to use to set the pin's color legend
