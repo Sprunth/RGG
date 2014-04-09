@@ -30,8 +30,10 @@ FUN_SIMPLE(std::string, QString, List_NeumannSet_StartId,  list_neumannset_start
 FUN_SIMPLE(std::string, QString, MaterialSet_StartId,      materialset_startid,      ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, List_MaterialSet_StartId, list_materialset_startid, ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, NumSuperBlocks,           numsuperblocks,           ASSY_NOT_SET_KEY, "") \
-FUN_SIMPLE(std::string, QString, SuperBlocks,              superblocks,              ASSY_NOT_SET_KEY, "")
-
+FUN_SIMPLE(std::string, QString, SuperBlocks,              superblocks,              ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(std::string, QString, CreateSideset,            createsideset,            ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(int,         QString, EdgeInterval,             edgeinterval,             ASSY_NOT_SET_VALUE, "") \
+FUN_SIMPLE(double,      QString, MergeTolerance,           mergetolerance,           ASSY_NOT_SET_VALUE, "")
 
 
 class cmbAssyParameters
@@ -40,10 +42,10 @@ public:
   cmbAssyParameters()
   {
   this->Geometry = this->GeometryType = this->MeshType
-    = this->RotateXYZ = this->CenterXYZ = this->CreateSideset = this->HBlock
+    = this->RotateXYZ = this->CenterXYZ = this->HBlock
     = this->Info = this->SectionXYZ = ASSY_NOT_SET_KEY;
   this->RotateAngle = this->RadialMeshSize = this->AxialMeshSize
-    = this->TetMeshSize = this->EdgeInterval = this->MergeTolerance = this->CreateFiles
+    = this->TetMeshSize = this->CreateFiles
     = this->SectionOffset = ASSY_NOT_SET_VALUE;
   MoveXYZ[0] = MoveXYZ[1] = MoveXYZ[2] = 0.0;
   this->SectionReverse = false;
@@ -75,12 +77,6 @@ public:
   double RotateAngle;
   // [Center] {x | y | z}
   std::string CenterXYZ;
-  // [EdgeInterval <value>]
-  int EdgeInterval;
-  // [MergeTolerance <value>]
-  double MergeTolerance;
-  // [CreateSideSet {Yes | No}]
-  std::string CreateSideset;
   // [Info {On | off}]
   std::string Info;
   // [CreateFiles <block-number-shifted>]
