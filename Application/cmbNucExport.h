@@ -45,6 +45,7 @@ private:
   void run();
   bool StillRunning;
   mutable QMutex Mutex;
+  std::string Name;
 
   bool pollStatus( remus::common::ExecuteProcess* process,
                   const remus::worker::Job& job);
