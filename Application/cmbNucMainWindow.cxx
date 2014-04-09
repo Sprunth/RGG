@@ -614,6 +614,7 @@ void cmbNucMainWindow::clearAll()
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
   this->initPanels();
+  onChangeMeshEdgeMode(false);
   //this->InputsWidget->updateUI(false);
   //this->PropertyWidget->resetCore(NULL);
   this->Internal->CurrentDataset = NULL;
