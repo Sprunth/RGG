@@ -1036,6 +1036,10 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool i
           }
         output << label << " ";
         }
+      if(useAmp && i < lat.Grid.size()-1)
+        {
+        output << "&";
+        }
       output << "\n";
       }
     }
