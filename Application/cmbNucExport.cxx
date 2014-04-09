@@ -16,6 +16,20 @@
 #include <QStringList>
 #include <QDir>
 #include <QMutexLocker>
+#include <QEventLoop>
+#include <QThread>
+
+namespace
+{
+class Thread : public QThread
+{
+public:
+  static void msleep(int ms)
+  {
+    QThread::msleep(ms);
+  }
+};
+}
 
 #include <iostream>
 
@@ -70,6 +84,7 @@ public:
   ExporterOutput getOutput(ExporterInput const& in);
 private:
   remus::client::ServerConnection Connection;
+  remus::Client * Client;
 };
 
 typedef cmbNucExporterClient<remus::meshtypes::SceneFile,remus::meshtypes::Model> AssygenExporter;
@@ -81,9 +96,12 @@ cmbNucExporterWorker
 ::AssygenWorker(std::vector<std::string> extra_args,
                 remus::worker::ServerConnection const& connection)
 {
-  return new cmbNucExporterWorker(remus::common::MeshIOType(remus::meshtypes::SceneFile(),
+  cmbNucExporterWorker * r =
+         new cmbNucExporterWorker(remus::common::MeshIOType(remus::meshtypes::SceneFile(),
                                                             remus::meshtypes::Model()),
                                   extra_args, connection );
+  r->Name = "Assygen";
+  return r;
 }
 
 cmbNucExporterWorker *
@@ -91,9 +109,12 @@ cmbNucExporterWorker
 ::CoregenWorker(std::vector<std::string> extra_args,
                 remus::worker::ServerConnection const& connection)
 {
-  return new cmbNucExporterWorker(remus::common::MeshIOType(remus::meshtypes::Mesh3D(),
+  cmbNucExporterWorker * r =
+        new cmbNucExporterWorker(remus::common::MeshIOType(remus::meshtypes::Mesh3D(),
                                                             remus::meshtypes::Mesh3D()),
                                   extra_args, connection );
+  r->Name = "CoreGen";
+  return r;
 }
 
 cmbNucExporterWorker *
@@ -101,9 +122,12 @@ cmbNucExporterWorker
 ::CubitWorker(std::vector<std::string> extra_args,
              remus::worker::ServerConnection const& connection)
 {
-  return new cmbNucExporterWorker(remus::common::MeshIOType(remus::meshtypes::Model(),
+  cmbNucExporterWorker * r =
+         new cmbNucExporterWorker(remus::common::MeshIOType(remus::meshtypes::Model(),
                                                             remus::meshtypes::Mesh3D()),
                                   extra_args, connection );
+  r->Name = "Cubit";
+  return r;
 }
 
 cmbNucExporterWorker
@@ -134,6 +158,7 @@ void cmbNucExporterWorker::run()
           continue;
         case remus::worker::Job::TERMINATE_WORKER:
           {
+          qDebug() << this->Name.c_str() << "Told to terminate";
           this->stop();
           }
           continue;
@@ -154,38 +179,40 @@ void cmbNucExporterWorker::run()
       args.push_back(*i);
     }
     args.push_back(input.FileArg);
+    qDebug() <<  this->Name.c_str() << "before create exe process";
 
     remus::common::ExecuteProcess* process = new remus::common::ExecuteProcess( input.Function, args);
-    qDebug() << QString((input.Function + "  " + input.FileArg).c_str());
+    qDebug() <<  QString((input.Function + "  " + input.FileArg).c_str());
 
     //actually launch the new process
     process->execute(remus::common::ExecuteProcess::Attached);
-    qDebug() << "processed launched";
+    qDebug() <<  this->Name.c_str() << "processed launched";
 
     //Wait for finish
     if(pollStatus(process, job))
     {
-      qDebug() << "poll success";
+      qDebug() <<  this->Name.c_str() << "poll success";
       remus::worker::JobResult results(job.id(),"DUMMY FOR NOW;");
       this->returnMeshResults(results);
     }
     else
     {
-      qDebug() << "poll fail";
+      qDebug() <<  this->Name.c_str() << "poll fail";
       remus::worker::JobStatus status(job.id(),remus::FAILED);
       updateStatus(status);
     }
     QDir::setCurrent( current );
-    qDebug() << "deleting process";
+    qDebug() <<  this->Name.c_str() << "deleting process";
     delete process;
-    qDebug() << "done deleting process";
+    qDebug() <<  this->Name.c_str() << "done deleting process";
   }
+  qDebug() << this->Name.c_str() << "Worker finished running";
 }
 
 void cmbNucExporterWorker::stop()
 {
   QMutexLocker locker(&Mutex);
-  qDebug() << "Worker stopping";
+  qDebug() << this->Name.c_str() << "Worker stopping";
   StillRunning = false;
 }
 
@@ -211,7 +238,7 @@ bool cmbNucExporterWorker
     if(data.type == ProcessPipe::STDOUT)
     {
       //we have something on the output pipe
-      status.Progress.setMessage(data.text);
+      status.Progress.setMessage("bob");
       this->updateStatus(status);
     }
   }
@@ -237,34 +264,66 @@ cmbNucExporterClient<JOB_REQUEST_IN, JOB_REQUEST_OUT>::cmbNucExporterClient(std:
     {
     Connection = remus::client::make_ServerConnection(server);
     }
+  Client = new remus::Client(Connection);
 }
 
 template<class JOB_REQUEST_IN, class JOB_REQUEST_OUT>
 ExporterOutput
 cmbNucExporterClient<JOB_REQUEST_IN, JOB_REQUEST_OUT>::getOutput(ExporterInput const& in)
 {
-  remus::Client c(Connection);
   JOB_REQUEST_IN in_type;
   JOB_REQUEST_OUT out_type;
+  ExporterOutput eo;
   remus::client::JobRequest request(in_type, out_type, in);
-  if(c.canMesh(request))
+  unsigned int i = 0;
+  while( !Client->canMesh(request) && i++ < 60 )
     {
-    remus::client::Job job = c.submitJob(request);
-    remus::client::JobStatus jobState = c.jobStatus(job);
+    qDebug() << "Can mesh returns false";
+    Thread::msleep(1000);
+    JOB_REQUEST_IN tin;
+    JOB_REQUEST_OUT tout;
+    request = remus::client::JobRequest(tin, tout, in);
+    }
+  if(Client->canMesh(request))
+    {
+    remus::client::Job job = Client->submitJob(request);
+    remus::client::JobStatus jobState = Client->jobStatus(job);
 
     //wait while the job is running
+    QEventLoop el;
     while(jobState.good())
       {
-      jobState = c.jobStatus(job);
+      el.processEvents();
+      jobState = Client->jobStatus(job);
       };
 
     if(jobState.finished())
       {
-      remus::client::JobResult result = c.retrieveResults(job);
+      remus::client::JobResult result = Client->retrieveResults(job);
       return ExporterOutput(result);
       }
+    else if(jobState.Status == remus::INVALID_STATUS)
+      {
+      eo.Result = " Remus Invalid Status";
+      }
+    else if(jobState.Status == remus::FAILED)
+      {
+      eo.Result = " Remus Failed";
+      }
+    else if(jobState.Status == remus::EXPIRED)
+      {
+      eo.Result = " Remus Expired";
+      }
+    else
+      {
+      eo.Result = " Remus did not finish but was not good";
+      }
     }
-  return ExporterOutput();
+  else
+    {
+    eo.Result = " Remus Server does not support the job request";
+    }
+  return eo;
 }
 
 void cmbNucExport::run( const QString assygenExe,
@@ -290,8 +349,7 @@ void cmbNucExport::run( const QString assygenExe,
 
   //start accepting connections for clients and workers
   emit currentProcess("  Starting server");
-  qDebug() << "Starting server";
-  bool valid = b.startBrokering();
+  bool valid = b.startBrokering(remus::Server::NONE);
   if( !valid )
   {
     emit errorMessage("failed to start server");
@@ -299,6 +357,7 @@ void cmbNucExport::run( const QString assygenExe,
     emit done();
     return;
   }
+
   b.waitForBrokeringToStart();
   current++;
   emit progress(static_cast<int>(current/total_number_of_file*100));
@@ -334,7 +393,7 @@ void cmbNucExport::run( const QString assygenExe,
     if(!lr.Valid)
     {
       emit errorMessage("Assygen failed");
-      emit currentProcess("  assygen " + name + " FAILED");
+      emit currentProcess("  assygen " + name + " FAILED" + lr.Result.c_str());
       emit done();
       b.stopBrokering();
       this->deleteWorkers();
@@ -357,16 +416,14 @@ void cmbNucExport::run( const QString assygenExe,
     }
 
     emit currentProcess("  cubit " + name + ".jou");
-    qDebug() << "Output file: " << CoreGenOutputFile;
     QFile::remove(pass + ".cub");
-    qDebug() << "Output file: " << CoreGenOutputFile;
     lr = ce.getOutput(ExporterInput(path, cubitExe, pass + ".jou"));
     current++;
     emit progress(static_cast<int>(current/total_number_of_file*100));
     if(!lr.Valid)
     {
       emit errorMessage("Cubit failed");
-      emit currentProcess("  cubit " + name + ".jou FAILED");
+      emit currentProcess("  cubit " + name + ".jou FAILED" + lr.Result.c_str());
       emit done();
       b.stopBrokering();
       this->deleteWorkers();
@@ -399,9 +456,7 @@ void cmbNucExport::run( const QString assygenExe,
       this->deleteWorkers();
       return;
     }
-    qDebug() << "Output file: " << CoreGenOutputFile;
     QFile::remove(CoreGenOutputFile);
-    qDebug() << "Output file: " << CoreGenOutputFile;
     QFileInfo fi(coregenFile);
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
@@ -414,7 +469,7 @@ void cmbNucExport::run( const QString assygenExe,
     if(!r.Valid)
     {
       emit errorMessage("ERROR: Curegen failed");
-      emit currentProcess("  running coregen " + name + ".inp FAILED returned failure mode");
+      emit currentProcess("  running coregen " + name + ".inp FAILED returned failure mode" + r.Result.c_str());
       emit done();
       b.stopBrokering();
       this->deleteWorkers();
