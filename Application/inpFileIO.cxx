@@ -587,7 +587,7 @@ void inpFileHelper::writeMaterials( std::ofstream &output,
       material_name = name;
       }
 
-    output << " " << material_name << " " << name;
+    output << " " << name << " " << material_name;
     }
   output << "\n";
 }
@@ -696,6 +696,9 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
 void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
 {
   output << "pincells " << assembly.PinCells.size() << "\n";
+  QMap<std::string, std::string> materials;
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  matColorMap->GetAssemblyMaterials(&assembly, materials);
 
   for(size_t i = 0; i < assembly.PinCells.size(); i++)
     {
@@ -735,7 +738,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
         }
       for(int material = 0; material < cylinder->materials.size(); material++)
         {
-        output << cylinder->materials[material] << " ";
+        output << materials[cylinder->materials[material]] << " ";
         }
       if(j==pincell->cylinders.size()-1) output << "\n";
       }
@@ -749,14 +752,16 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
              << frustum->y << " "
              << frustum->z1 << " "
              << frustum->z2 << " ";
-      for(int material = 0; material < frustum->materials.size() / 2; material++)
+      double r1 = frustum->r1;
+      double r2 = frustum->r2;
+      for(int atr = 0; atr < frustum->materials.size(); atr+=2)
         {
-        output << std::showpoint << pincell->radii[material*2+0] << " ";
-        output << std::showpoint << pincell->radii[material*2+1] << " ";
+        output << std::showpoint << pincell->radii[atr*2+0]*r2 << " ";
+        output << std::showpoint << pincell->radii[atr*2+1]*r1 << " ";
         }
       for(int material = 0; material < frustum->materials.size(); material++)
         {
-        output << frustum->materials[material] << " ";
+        output << materials[frustum->materials[material]] << " ";
         }
       if(j==pincell->frustums.size()-1) output << "\n";
       }
