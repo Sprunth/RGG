@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <set>
 
 #include "cmbNucAssembly.h"
 
@@ -104,6 +105,28 @@ cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
 cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
 {
   return idx<this->Assemblies.size() ? this->Assemblies[idx] : NULL;
+}
+
+std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
+{
+  std::set<std::string> usedDict;
+  for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
+    {
+    for(size_t j = 0; j < this->CoreLattice.Grid[i].size(); j++)
+      {
+      usedDict.insert(this->CoreLattice.GetCell(i, j).label);
+      }
+    }
+  std::vector< cmbNucAssembly* > result;
+  for (unsigned int i = 0; i < this->Assemblies.size(); ++i)
+    {
+    if(this->Assemblies[i]!=NULL &&
+       usedDict.find(this->Assemblies[i]->label) != usedDict.end())
+      {
+      result.push_back(Assemblies[i]);
+      }
+    }
+  return result;
 }
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()

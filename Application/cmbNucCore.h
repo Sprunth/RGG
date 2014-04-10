@@ -174,6 +174,8 @@ public:
   cmbNucAssembly* GetAssembly(const std::string &label);
   cmbNucAssembly* GetAssembly(int idx);
 
+  std::vector< cmbNucAssembly* > GetUsedAssemblies();
+
   // Return the number of assemblies in the core
   int GetNumberOfAssemblies();
 
