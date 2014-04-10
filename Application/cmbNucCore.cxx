@@ -43,6 +43,17 @@ void cmbNucCore::SetDimensions(int i, int j)
   this->CoreLattice.SetDimensions(i, j);
 }
 
+void cmbNucCore::clearExceptAssembliesAndGeom()
+{
+  this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+  this->CoreLattice.SetDimensions(1, 1, true);
+  BackgroudMeshFile = "";
+  GeometryType = "";
+  FileName = "";
+  h5mFile = "";
+  Params.clear();
+}
+
 void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 {
     if(this->Assemblies.size()==0)

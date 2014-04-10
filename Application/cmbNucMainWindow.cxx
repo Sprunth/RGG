@@ -285,7 +285,7 @@ void cmbNucMainWindow::initPanels()
     SIGNAL(materialVisibilityChanged(const QString&)), this,
     SLOT(onObjectModified()));
   QObject::connect(this->InputsWidget, SIGNAL(deleteCore()),
-                   this, SLOT(clearAll()));
+                   this, SLOT(clearCore()));
 }
 
 void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
@@ -624,6 +624,20 @@ void cmbNucMainWindow::clearAll()
   this->ui->qvtkWidget->update();
   this->Renderer->ResetCamera();
   this->Renderer->Render();
+}
+
+void cmbNucMainWindow::clearCore()
+{
+  if(this->NuclearCore)
+  {
+    this->NuclearCore->clearExceptAssembliesAndGeom();
+    this->updateCoreMaterialColors();
+    this->PropertyWidget->resetCore(this->NuclearCore);
+    this->InputsWidget->updateUI(true);
+    this->ui->qvtkWidget->update();
+    this->Renderer->ResetCamera();
+    this->Renderer->Render();
+  }
 }
 
 void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)

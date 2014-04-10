@@ -48,6 +48,7 @@ public slots:
   void onFileSave();
   void onCoreFileSave();
   void clearAll();
+  void clearCore();
   void saveFile(const QString &fileName);
   void saveCoreFile(const QString &fileName);
   void exportVTKFile(const QString &fileName);

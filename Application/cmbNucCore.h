@@ -82,6 +82,16 @@ public:
 #undef FUN_STRUCT
   }
 
+  void clear()
+  {
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) Var = DEFAULT;
+#define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, DK) Var = TYPE();
+    EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+#undef FUN_STRUCT
+
+  }
+
   std::vector<std::string> UnknownKeyWords;
 
 private:
@@ -129,6 +139,7 @@ public slots:
 
   void setOutputFileName(QString v)
   {  convert(v, OutputFileName); }
+
 };
 
 // Represents the core which is composed of multiple assemblies
@@ -148,6 +159,8 @@ public:
   ~cmbNucCore();
 
   virtual enumNucPartsType GetType() {return CMBNUC_CORE;}
+
+  void clearExceptAssembliesAndGeom();
 
   // Adds a new Assembly to the core. After adding the Assembly it
   // can be placed in the Core with the SetAssembly() method.
