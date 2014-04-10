@@ -21,6 +21,8 @@ public:
 
   explicit PinCellComponent(const Cylinder *cylinder)
     : type(CylinderType),
+      x(cylinder->x),
+      y(cylinder->y),
       z1(cylinder->z1),
       z2(cylinder->z2),
       r1(cylinder->r),
@@ -31,6 +33,8 @@ public:
 
   explicit PinCellComponent(const Frustum *frustum)
     : type(FrustumType),
+      x(frustum->x),
+      y(frustum->y),
       z1(frustum->z1),
       z2(frustum->z2),
       r1(frustum->r1),
@@ -45,6 +49,8 @@ public:
   const AssyPartObj* obj() const { return PartObj; }
 
   enum Type type;
+  double x;
+  double y;
   double z1;
   double z2;
   double r1;
@@ -170,8 +176,6 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell, bool h)
 
   this->Ui->nameLineEdit->setText(pincell->name.c_str());
   this->Ui->labelLineEdit->setText(pincell->label.c_str());
-  this->Ui->originX->setText("0");
-  this->Ui->originY->setText("0");
   if(isHex)
   {
     this->Ui->label_7->setVisible(false);
@@ -190,10 +194,11 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell, bool h)
 
   this->Ui->piecesTable->blockSignals(true);
 
-  this->Ui->piecesTable->setColumnCount(4);
-  this->Ui->piecesTable->setHorizontalHeaderLabels(
-    QStringList() << "Segment Type" << "Length" << "Radius (base)" << "Radius (top)"
-  );
+  this->Ui->piecesTable->setColumnCount(6);
+  this->Ui->piecesTable->setHorizontalHeaderLabels( QStringList() << "Segment Type"
+                                                   << "Length" << "Radius (base)"
+                                                   << "Radius (top)" << "Origin X"
+                                                   << "Origin Y");
 
   std::vector<PinCellComponent> components;
   for(size_t i = 0; i < pincell->cylinders.size(); i++){
@@ -208,7 +213,10 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell, bool h)
   for(size_t i = 0; i < components.size(); i++){
     const PinCellComponent &component = components[i];
     this->createComponentItem(i, component.length(),
-      component.radius1(), component.radius2());
+                              component.radius1(),
+                              component.radius2(),
+                              component.x,
+                              component.y);
     if(component.obj())
       {
       QComboBox *comboBox = qobject_cast<QComboBox *>(
@@ -305,8 +313,8 @@ void cmbNucPinCellEditor::updateComponentObject(int i, double& z)
     {
     return;
     }
-  double x = this->Ui->originX->text().toDouble();
-  double y = this->Ui->originY->text().toDouble();
+  double x = this->Ui->piecesTable->item(i, 4)->text().toDouble();
+  double y = this->Ui->piecesTable->item(i, 5)->text().toDouble();
   double l = this->Ui->piecesTable->item(i, 1)->text().toDouble();
   double r1 = this->Ui->piecesTable->item(i, 2)->text().toDouble();
   double r2 = this->Ui->piecesTable->item(i, 3)->text().toDouble();
@@ -340,8 +348,8 @@ AssyPartObj* cmbNucPinCellEditor::createComponentObject(int i, double& z)
 
   QComboBox *comboBox = qobject_cast<QComboBox *>(this->Ui->piecesTable->cellWidget(i, 0));
 
-  double x = this->Ui->originX->text().toDouble();
-  double y = this->Ui->originY->text().toDouble();
+  double x = this->Ui->piecesTable->item(i, 4)->text().toDouble();
+  double y = this->Ui->piecesTable->item(i, 5)->text().toDouble();
   double l = this->Ui->piecesTable->item(i, 1)->text().toDouble();
   double r1 = this->Ui->piecesTable->item(i, 2)->text().toDouble();
   double r2 = this->Ui->piecesTable->item(i, 3)->text().toDouble();
@@ -451,7 +459,7 @@ void cmbNucPinCellEditor::addComponent()
       default_radius = this->Ui->piecesTable->item(row - 1, 3)->text().toDouble();
   }
 
-  this->createComponentItem(row, default_length, default_radius, default_radius);
+  this->createComponentItem(row, default_length, default_radius, default_radius, 0, 0);
 
   // Add the new component
   double z=0;
@@ -472,8 +480,10 @@ void cmbNucPinCellEditor::addComponent()
   this->UpdateData();
 }
 
-void cmbNucPinCellEditor::createComponentItem(
-  int row, double default_length, double default_radius1, double default_radius2)
+void cmbNucPinCellEditor::createComponentItem( int row, double default_length,
+                                               double default_radius1,
+                                               double default_radius2,
+                                               double x, double y)
 {
   this->Ui->piecesTable->blockSignals(true);
   // type
@@ -502,6 +512,16 @@ void cmbNucPinCellEditor::createComponentItem(
   item = new SegmentRadiusEditor;
   item->setText(QString::number(default_radius2));
   this->Ui->piecesTable->setItem(row, 3, item);
+
+  // Origin X
+  item = new SegmentRadiusEditor;
+  item->setText(QString::number(x));
+  this->Ui->piecesTable->setItem(row, 4, item);
+
+  // Origin Y
+  item = new SegmentRadiusEditor;
+  item->setText(QString::number(y));
+  this->Ui->piecesTable->setItem(row, 5, item);
 
   this->Ui->piecesTable->blockSignals(false);
 }
@@ -787,6 +807,15 @@ void cmbNucPinCellEditor::addLayerBefore()
   QTableWidgetItem* item = new LayerRadiusEditor;
   item->setText(QString::number(radius));
   this->Ui->layersTable->setItem(row, 1, item);
+
+  item = new LayerRadiusEditor;
+  item->setText(QString::number(0.0));
+  this->Ui->layersTable->setItem(row, 4, item);
+
+  item = new LayerRadiusEditor;
+  item->setText(QString::number(0.0));
+  this->Ui->layersTable->setItem(row, 5, item);
+
   this->Ui->layersTable->blockSignals(false);
   this->rebuildLayersFromTable();
   this->UpdateData();
@@ -837,6 +866,15 @@ void cmbNucPinCellEditor::addLayerAfter()
   QTableWidgetItem* item = new LayerRadiusEditor;
   item->setText(QString::number(radius));
   this->Ui->layersTable->setItem(row, 1, item);
+
+  item = new LayerRadiusEditor;
+  item->setText(QString::number(0.0));
+  this->Ui->layersTable->setItem(row, 4, item);
+
+  item = new LayerRadiusEditor;
+  item->setText(QString::number(0.0));
+  this->Ui->layersTable->setItem(row, 5, item);
+
   this->Ui->layersTable->blockSignals(false);
   this->rebuildLayersFromTable();
   this->UpdateData();
