@@ -31,12 +31,16 @@ public:
 
 signals:
   void pincellModified(AssyPartObj*);
+  void labelChanged(PinCell*, QString prev, QString current);
+  void nameChanged(PinCell*, QString prev, QString current);
 
 public slots:
   void Apply();
   void UpdatePinCell();
   void UpdateData();
   void onUpdateLayerMaterial();
+  void badLabel(QString);
+  void badName(QString);
 
 private slots:
   void tableCellChanged(int row, int col);
@@ -54,7 +58,8 @@ private slots:
   AssyPartObj* createComponentObject(int i, double& z);
   void updateComponentObject(int i, double& z);
   void createComponentItem(int row, double default_length,
-    double default_radius1, double default_radius2);
+                           double default_radius1,
+                           double default_radius2);
   void onCutAwayCheckBoxToggled(bool state);
 
 private:

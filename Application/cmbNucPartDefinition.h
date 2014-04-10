@@ -504,6 +504,21 @@ enum enumGeometryType {
         }
       }
 
+    void replaceLabel(const std::string &oldL, const std::string &newL)
+      {
+      std::pair<int, int> dim = this->GetDimensions();
+      for(size_t i = 0; i < this->Grid.size(); i++)
+        {
+        for(size_t j = 0; j < this->Grid[i].size(); j++)
+          {
+          if(this->GetCell(i, j).label == oldL)
+            {
+            this->SetCell(i, j, newL, Qt::white);
+            }
+          }
+        }
+      }
+
     enumNucPartsType GetType()
       { return CMBNUC_ASSY_LATTICE;}
 

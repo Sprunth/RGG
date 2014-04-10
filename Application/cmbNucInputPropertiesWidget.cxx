@@ -17,6 +17,7 @@
 #include <QPointer>
 #include <QtDebug>
 #include <QColorDialog>
+#include <QMessageBox>
 
 class cmbNucInputPropertiesWidgetInternal :
   public Ui::InputPropertiesWidget
@@ -149,6 +150,7 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
 
   this->onReset();
 }
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::updateMaterials()
 {
@@ -323,6 +325,75 @@ void cmbNucInputPropertiesWidget::onReset()
       break;
     }
 }
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
+                                                  QString previous,
+                                                  QString current)
+{
+  if(this->CurrentObject == NULL && this->Assembly)
+  {
+    return;
+  }
+  //Check to make sure new label is unique
+  for(unsigned int i = 0; i < this->Assembly->PinCells.size(); ++i)
+  {
+    PinCell * tpc = this->Assembly->PinCells[i];
+    if(tpc != NULL && pincell != tpc)
+    {
+      if(tpc->label == current.toStdString())
+      {
+        //ERROR!  Should be unique, revert
+        QMessageBox msgBox;
+        msgBox.setText(current +
+                       QString(" is already use as a pin label, reverting to ")+
+                       previous);
+        msgBox.exec();
+        emit(badPinLabel(previous));
+        return;
+      }
+    }
+  }
+  AssyPartObj* selObj = this->CurrentObject;
+  if(selObj->GetType() == CMBNUC_ASSY_PINCELL)
+  {
+    this->Assembly->AssyLattice.replaceLabel(previous.toStdString(),
+                                             current.toStdString());
+  }
+  emit currentObjectNameChanged(current);
+  emit sendLabelChange(current);
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucInputPropertiesWidget::pinNameChanged(PinCell* pincell,
+                                                 QString previous,
+                                                 QString current)
+{
+  if(this->CurrentObject == NULL && this->Assembly)
+  {
+    return;
+  }
+  //Check to make sure new label is unique
+  for(unsigned int i = 0; i < this->Assembly->PinCells.size(); ++i)
+  {
+    PinCell * tpc = this->Assembly->PinCells[i];
+    if(tpc != NULL && pincell != tpc)
+    {
+      if(tpc->name == current.toStdString())
+      {
+        //ERROR!  Should be unique, revert
+        QMessageBox msgBox;
+        msgBox.setText(current +
+                       QString(" is already use as a pin name, reverting to ")+
+                       previous);
+        msgBox.exec();
+        emit(badPinName(previous));
+        return;
+      }
+    }
+  }
+}
+
 // reset property panel with given object
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
@@ -332,6 +403,7 @@ void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
   palette.setColor(this->Internal->colorSwatch->backgroundRole(), pincell->GetLegendColor());
   this->Internal->colorSwatch->setPalette(palette);
 }
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetFrustum(Frustum* frust)
 {
@@ -705,6 +777,20 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
     QObject::connect(this->Internal->PinCellEditor,
       SIGNAL(pincellModified(AssyPartObj*)),
       this, SIGNAL(objGeometryChanged(AssyPartObj*)));
+    QObject::connect( this->Internal->PinCellEditor,
+                      SIGNAL(labelChanged(PinCell*, QString, QString)),
+                      this, SLOT(pinLabelChanged(PinCell*, QString, QString)));
+      QObject::connect( this->Internal->PinCellEditor,
+                       SIGNAL(nameChanged(PinCell*, QString, QString)),
+                       this, SLOT(pinNameChanged(PinCell*, QString, QString)));
+    QObject::connect( this,
+                      SIGNAL(badPinLabel(QString)),
+                      this->Internal->PinCellEditor,
+                      SLOT(badLabel(QString)));
+      QObject::connect( this,
+                       SIGNAL(badPinName(QString)),
+                       this->Internal->PinCellEditor,
+                       SLOT(badName(QString)));
     }
   this->Internal->PinCellEditor->SetPinCell(pincell,this->GeometryType == HEXAGONAL);
 }
