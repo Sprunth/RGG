@@ -1201,19 +1201,20 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   QFileInfo info(outFileName.c_str());
   std::string strPath = info.dir().path().toStdString();
   std::string coreName = info.fileName().toStdString();
+  std::vector< cmbNucAssembly* > usedAssemblies = core.GetUsedAssemblies();
 
-  output << "Assemblies " << core.Assemblies.size();
+  output << "Assemblies " << usedAssemblies.size();
   output << " " << core.AssyemblyPitchX;
   if(!core.IsHexType())
   {
     output << " " << core.AssyemblyPitchY;
   }
   output << "\n";
-  for(unsigned int i = 0; i < core.Assemblies.size(); ++i)
+  for(unsigned int i = 0; i < usedAssemblies.size(); ++i)
     {
     //construct assemply file name
     //Look to see if it already has a fname
-    cmbNucAssembly & assembly = *(core.Assemblies[i]);
+    cmbNucAssembly & assembly = *(usedAssemblies[i]);
     std::string assemblyName = assembly.FileName;
     if(assemblyName.empty())
       {
