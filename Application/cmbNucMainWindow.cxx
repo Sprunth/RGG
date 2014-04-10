@@ -172,6 +172,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
 #ifndef BUILD_WITH_MOAB
   this->ui->actionOpenMOABFile->setVisible(false);
+#else
+  connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
 #endif
   connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
   connect(this->ui->saveCoreFile, SIGNAL(triggered()), this, SLOT(onCoreFileSave()));
@@ -232,7 +234,6 @@ void cmbNucMainWindow::initPanels()
 #ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
   this->Internal->MoabSource = new cmbNucCoregen(this->InputsWidget->getModelTree());
-  connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
   connect(this->ExportDialog, SIGNAL(finished(QString)),
           this->Internal->MoabSource, SLOT(openFile(QString)));
   QObject::connect(this->InputsWidget, SIGNAL(switchToModelTab()),
