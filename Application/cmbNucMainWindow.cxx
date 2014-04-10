@@ -474,6 +474,7 @@ void cmbNucMainWindow::onFileOpen()
       }
       case inpFileReader::CORE_TYPE:
         // clear old assembly
+        clearAll();
         this->PropertyWidget->setObject(NULL, NULL);
         this->PropertyWidget->setAssembly(NULL);
         freader.read(*(this->NuclearCore));
