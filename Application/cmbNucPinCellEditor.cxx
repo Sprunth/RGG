@@ -255,8 +255,21 @@ void cmbNucPinCellEditor::Apply()
 void cmbNucPinCellEditor::UpdatePinCell()
 {
   // apply pincell attributes
-  this->PinCellObject->name = this->Ui->nameLineEdit->text().toStdString();
-  this->PinCellObject->label = this->Ui->labelLineEdit->text().toStdString();
+  QString newName = this->Ui->nameLineEdit->text();
+  QString prevName = QString(this->PinCellObject->name.c_str());
+  this->PinCellObject->name = newName.toStdString();
+  if(newName != prevName)
+  {
+    emit nameChanged(this->PinCellObject, prevName, newName);
+  }
+
+  QString newlabel = this->Ui->labelLineEdit->text();
+  QString prevlabel = QString(this->PinCellObject->label.c_str());
+  this->PinCellObject->label = newlabel.toStdString();
+  if(newlabel != prevlabel)
+    {
+    emit labelChanged(this->PinCellObject, prevlabel, newlabel);
+    }
   this->PinCellObject->pitchX = this->Ui->pitchX->text().toDouble();
   this->PinCellObject->pitchY = this->Ui->pitchY->text().toDouble();
   this->PinCellObject->pitchZ = this->Ui->pitchX->text().toDouble();
@@ -266,6 +279,18 @@ void cmbNucPinCellEditor::UpdatePinCell()
   for(int i = 0; i < this->Ui->piecesTable->rowCount(); i++){
     this->updateComponentObject(i, z);
   }
+}
+
+void cmbNucPinCellEditor::badLabel(QString label)
+{
+  this->PinCellObject->label = label.toStdString();
+  this->Ui->labelLineEdit->setText(label);
+}
+
+void cmbNucPinCellEditor::badName(QString name)
+{
+  this->PinCellObject->name = name.toStdString();
+  this->Ui->nameLineEdit->setText(name);
 }
 
 void cmbNucPinCellEditor::updateComponentObject(int i, double& z)

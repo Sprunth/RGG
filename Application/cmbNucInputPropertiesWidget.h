@@ -45,10 +45,15 @@ signals:
   // Fired when the current object is modified
   void objGeometryChanged(AssyPartObj* selObj);
   void currentObjectNameChanged(const QString& name);
+  void sendLabelChange(const QString);
+  void badPinLabel(QString prevL);
+  void badPinName(QString prev);
 
 public slots:
   void resetCore(cmbNucCore* nucCore);
   void resetAssemblyEditor(cmbNucAssembly* assembly);
+  void pinLabelChanged(PinCell*, QString previous, QString current);
+  void pinNameChanged(PinCell*, QString previous, QString current);
 
 protected slots:
   // Invoked when Apply button clicked

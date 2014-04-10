@@ -825,6 +825,17 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
 }
 
 //-----------------------------------------------------------------------------
+void cmbNucInputListWidget::labelChanged(QString newl)
+{
+  cmbNucPartsTreeItem* selItem =
+    this->getSelectedItem(this->Internal->PartsList);
+  if(selItem)
+  {
+    selItem->setText(0,newl);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void cmbNucInputListWidget::fireObjectSelectedSignal(
   cmbNucPartsTreeItem* selItem)
 {

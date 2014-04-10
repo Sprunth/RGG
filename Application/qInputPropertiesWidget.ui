@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>385</width>
+    <width>389</width>
     <height>496</height>
    </rect>
   </property>
@@ -113,24 +113,16 @@
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>299</width>
+                  <width>303</width>
                   <height>331</height>
                  </rect>
                 </property>
-                <zorder></zorder>
                </widget>
               </widget>
              </item>
             </layout>
            </item>
           </layout>
-          <zorder>coreLatticeY</zorder>
-          <zorder>label_29</zorder>
-          <zorder>coreLatticeX</zorder>
-          <zorder>label_30</zorder>
-          <zorder>coreLatticeY</zorder>
-          <zorder>coreLatticeX</zorder>
-          <zorder>label_30</zorder>
           <zorder>coreLatticeY</zorder>
           <zorder>label_29</zorder>
           <zorder>coreLatticeX</zorder>
@@ -228,7 +220,7 @@
        <item row="0" column="0">
         <widget class="QTabWidget" name="tabWidget_2">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tab_3">
           <attribute name="title">
@@ -858,6 +850,49 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>coreLatticeX</tabstop>
+  <tabstop>coreLatticeY</tabstop>
+  <tabstop>coreLatticeContainer</tabstop>
+  <tabstop>HexCore</tabstop>
+  <tabstop>hexLattice</tabstop>
+  <tabstop>tabWidget_2</tabstop>
+  <tabstop>hexLatticeAssy</tabstop>
+  <tabstop>hexAssyColorSelectButton</tabstop>
+  <tabstop>tabWidget_3</tabstop>
+  <tabstop>DuctXPos</tabstop>
+  <tabstop>DuctYPos</tabstop>
+  <tabstop>DuctZPos1</tabstop>
+  <tabstop>DuctZPos2</tabstop>
+  <tabstop>NumOfDuctLayers</tabstop>
+  <tabstop>DuctLayer</tabstop>
+  <tabstop>DuctLayerMaterial</tabstop>
+  <tabstop>DuctThick1</tabstop>
+  <tabstop>DuctThick2</tabstop>
+  <tabstop>colorSelectButton</tabstop>
+  <tabstop>CylinderXPos</tabstop>
+  <tabstop>CylinderYPos</tabstop>
+  <tabstop>CylinderZPos1</tabstop>
+  <tabstop>CylinderZPos2</tabstop>
+  <tabstop>CylinderRadius</tabstop>
+  <tabstop>CylinderMaterial</tabstop>
+  <tabstop>FrustumXPos</tabstop>
+  <tabstop>FrustumYPos</tabstop>
+  <tabstop>FrustumZPos1</tabstop>
+  <tabstop>FrustumZPos2</tabstop>
+  <tabstop>FrustumRadius1</tabstop>
+  <tabstop>FrustumRadius2</tabstop>
+  <tabstop>FrustumMaterial</tabstop>
+  <tabstop>MaterialLabel</tabstop>
+  <tabstop>ApplyButton</tabstop>
+  <tabstop>ResetButton</tabstop>
+  <tabstop>latticeX</tabstop>
+  <tabstop>latticeY</tabstop>
+  <tabstop>assemblyLatticeContainer</tabstop>
+  <tabstop>assyColorSelectButton</tabstop>
+  <tabstop>MeshSize</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -273,6 +273,10 @@ void cmbNucMainWindow::initPanels()
     this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
 
   QObject::connect(this->PropertyWidget,
+                   SIGNAL(sendLabelChange(const QString)),
+                   this->InputsWidget,
+                   SLOT(labelChanged(QString)));
+  QObject::connect(this->PropertyWidget,
     SIGNAL(objGeometryChanged(AssyPartObj*)), this,
     SLOT(onObjectGeometryChanged(AssyPartObj*)));
   QObject::connect(this->PropertyWidget,

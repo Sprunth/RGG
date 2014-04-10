@@ -69,8 +69,8 @@ protected:
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
   cmbNucPartsTreeItem* getDuctCellNode(cmbNucPartsTreeItem* assyNode);
   void initCoreRootNode();
-  void createMaterialItem(
-    const QString& name, const QString& label, const QColor& color);
+  void createMaterialItem( const QString& name, const QString& label,
+                           const QColor& color );
 
 private slots:
   // Description:
@@ -81,6 +81,7 @@ private slots:
   virtual void onTabChanged(int);
   void onMaterialClicked(QTreeWidgetItem*, int col);
   void onDeleteAssembly(QTreeWidgetItem*);
+  void labelChanged(QString);
 
   // Description:
   // Tree widget context menu related slots
