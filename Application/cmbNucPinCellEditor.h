@@ -59,7 +59,8 @@ private slots:
   void updateComponentObject(int i, double& z);
   void createComponentItem(int row, double default_length,
                            double default_radius1,
-                           double default_radius2);
+                           double default_radius2,
+                           double x, double y);
   void onCutAwayCheckBoxToggled(bool state);
 
 private:
