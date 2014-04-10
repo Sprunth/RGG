@@ -630,6 +630,8 @@ void cmbNucMainWindow::clearCore()
   if(this->NuclearCore)
   {
     this->NuclearCore->clearExceptAssembliesAndGeom();
+    this->updateCoreMaterialColors();
+    this->PropertyWidget->resetCore(this->NuclearCore);
     this->InputsWidget->updateUI(true);
     this->ui->qvtkWidget->update();
     this->Renderer->ResetCamera();
