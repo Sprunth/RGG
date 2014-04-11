@@ -518,6 +518,22 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
   return this->Data;
 }
 
+void cmbNucAssembly::GetDuctWidthHeight(double r[2])
+{
+  r[0] = 0;
+  r[1] = 0;
+  for(unsigned int i = 0; i < this->AssyDuct.Ducts.size(); ++i)
+    {
+    for(unsigned int j = 0; j < this->AssyDuct.Ducts[i]->thicknesses.size(); j += 2)
+      {
+      double t =this->AssyDuct.Ducts[i]->thicknesses[j];
+      if(t > r[0]) r[0] = t;
+      t = this->AssyDuct.Ducts[i]->thicknesses[j+1];
+      if(t > r[1]) r[1] = t;
+      }
+    }
+}
+
 vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, bool cutaway)
 {
   if(pincell->cylinders.size() + pincell->frustums.size() == 0)
