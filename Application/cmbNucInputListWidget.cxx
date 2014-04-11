@@ -294,23 +294,22 @@ void cmbNucInputListWidget::onNewAssembly()
 
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->GeometryType = "Rectangular";
   assembly->AssyLattice.SetGeometryType(
     this->NuclearCore->CoreLattice.GetGeometryType());
   if(this->NuclearCore->CoreLattice.GetGeometryType() == HEXAGONAL)
     {
-    assembly->AssyLattice.SetDimensions(2, 0, true);
+    assembly->AssyLattice.SetDimensions(1, 0, true);
     assembly->GeometryType = "Hexagonal";
+    }
+  else
+    {
+    assembly->GeometryType = "Rectangular";
     }
   assembly->label = QString("Assy").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
 
   this->NuclearCore->AddAssembly(assembly);
 
-  if(this->NuclearCore->CoreLattice.GetGeometryType() == HEXAGONAL)
-    {
-    this->NuclearCore->SetDimensions(1, 0);
-    }
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
   emit assembliesModified(this->NuclearCore);
@@ -762,7 +761,8 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
 
   if(select)
     {
-    partsRoot->setSelected(true); // select the assembly
+    this->Internal->PartsList->setCurrentItem(partsRoot);
+    //partsRoot->setSelected(true); // select the assembly
     this->onPartsSelectionChanged();
     }
 }
