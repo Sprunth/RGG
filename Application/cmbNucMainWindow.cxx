@@ -619,6 +619,14 @@ void cmbNucMainWindow::clearAll()
 {
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
+
+  if(this->MaterialColors) delete this->MaterialColors;
+
+  this->MaterialColors = new cmbNucMaterialColors(true);
+  QString materialfile =
+     QCoreApplication::applicationDirPath() + "/materialcolors.ini";
+  this->MaterialColors->OpenFile(materialfile);
+
   this->initPanels();
   onChangeMeshEdgeMode(false);
   //this->InputsWidget->updateUI(false);
