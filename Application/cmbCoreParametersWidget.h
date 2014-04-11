@@ -31,6 +31,7 @@ public slots:
   void onReset();
   void onAddToTable();
   void onDeleteRow();
+  void onSetBackgroundMesh();
 
 public slots:  // reset property panel with given object
   void resetCore(cmbNucCore* Core);

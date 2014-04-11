@@ -73,8 +73,12 @@ public:
 #undef FUN_SIMPLE
 #undef FUN_STRUCT
 
+  bool BackgroundIsSet() {return !Background.empty();}
+
   cmbNucCoreParams()
   {
+    Background = "";
+    BackgroundFullPath = "";
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) Var = DEFAULT;
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, DK) Var = TYPE();
     EXTRA_VARABLE_MACRO()
@@ -93,6 +97,8 @@ public:
   }
 
   std::vector<std::string> UnknownKeyWords;
+  std::string Background;
+  std::string BackgroundFullPath;
 
 private:
 
@@ -225,7 +231,6 @@ public:
   double AssyemblyPitchY;
 
   Lattice CoreLattice;
-  std::string BackgroudMeshFile;
   std::string GeometryType;
   std::string FileName;
   std::string h5mFile;
