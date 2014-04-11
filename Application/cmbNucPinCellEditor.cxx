@@ -689,12 +689,16 @@ void cmbNucPinCellEditor::onPieceSelected()
   this->Ui->layersTable->setEnabled(pieceSelected);
   if(!pieceSelected)
     {
+    this->Ui->layersTable->clear();
+    this->Ui->layersTable->setRowCount(0);
     return;
     }
   PinCell *pincell = this->PinCellObject;
   int layers = pincell->GetNumberOfLayers();
   if(layers < 1)
     {
+    this->Ui->layersTable->clear();
+    this->Ui->layersTable->setRowCount(0);
     this->numberOfLayersChanged(1);
     }
   else
