@@ -9,6 +9,10 @@
 #include <QtDebug>
 #include <QDebug>
 #include <QIntValidator>
+#include <QSettings>
+#include <QDir>
+#include <QFileInfo>
+#include <QFileDialog>
 
 #include <sstream>
 
@@ -41,6 +45,8 @@ void cmbCoreParametersWidget::initUI()
   Internal->NeumannSetId->setValidator( new QIntValidator(0, 100000, this) );
   connect(Internal->NewmannSetAdd, SIGNAL(clicked()), this, SLOT(onAddToTable()));
   connect(Internal->NewmannSetDel, SIGNAL(clicked()), this, SLOT(onDeleteRow()));
+  connect( this->Internal->BackgroundSetting, SIGNAL(clicked()),
+           this, SLOT(onSetBackgroundMesh()) );
 }
 
 //-----------------------------------------------------------------------------
@@ -53,6 +59,7 @@ void cmbCoreParametersWidget::setCore(cmbNucCore *CoreObj)
   this->Core = CoreObj;
   this->onReset();
 }
+
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
 void cmbCoreParametersWidget::onApply()
@@ -63,6 +70,7 @@ void cmbCoreParametersWidget::onApply()
     }
   this->applyToCore(this->Core);
 }
+
 // Invoked when Reset button clicked
 //-----------------------------------------------------------------------------
 void cmbCoreParametersWidget::onReset()
@@ -73,6 +81,33 @@ void cmbCoreParametersWidget::onReset()
     }
 
   this->resetCore(this->Core);
+}
+
+void cmbCoreParametersWidget::onSetBackgroundMesh()
+{
+  if(this->Core == NULL)
+  {
+    return;
+  }
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QStringList fileNames =
+  QFileDialog::getOpenFileNames(this,
+                                "Open File...",
+                                dir.path(),
+                                "cub Files (*.cub)");
+  if(fileNames.count()==0)
+  {
+    return;
+  }
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileNames[0]);
+  this->Core->Params.Background = info.fileName().toStdString();
+  this->Core->Params.BackgroundFullPath = info.absoluteFilePath().toStdString();
+  Internal->Background->setText(info.fileName());
 }
 
 //-------
@@ -187,11 +222,26 @@ void setValue(QCheckBox * to, bool &from)
   to->setChecked(from);
 }
 
+void setValue(std::string &to, QLabel * from)
+{
+  convert(from->text(), to);
+}
+
+
+void setValue(QLabel * to, std::string &from)
+{
+  QString tmp(from.c_str());
+  if(tmp.isEmpty()) return;
+  to->setText(tmp);
+}
+
+
 #define USED_SIMPLE_VARABLE_MACRO() \
 FUN_SIMPLE(std::string, QString, ProblemType, problemtype, "", "") \
 FUN_SIMPLE(std::string, QString, Geometry, geometry, "", "") \
 FUN_SIMPLE(double, QString, MergeTolerance, mergetolerance, -1e23, "") \
 FUN_SIMPLE(std::string, QString, SaveParallel, saveparallel, "", "") \
+FUN_SIMPLE(std::string, QString, Background, Background, "", "") \
 FUN_SIMPLE(bool, bool, Info, info, false, "on") \
 FUN_SIMPLE(bool, bool, MeshInfo, meshinfo, false, "on")
 

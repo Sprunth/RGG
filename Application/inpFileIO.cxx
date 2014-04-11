@@ -14,6 +14,7 @@
 #include <QMap>
 #include <QFileInfo>
 #include <QDir>
+#include <QMessageBox>
 
 typedef cmbNucCoreParams::ExtrudeStruct ExtrudedType;
 typedef cmbNucCoreParams::NeumannSetStruct NeumannSetType;
@@ -397,7 +398,20 @@ bool inpFileReader
       }
     else if(value == "background")
       {
-      input >> core.BackgroudMeshFile;
+      getline(input, core.Params.Background);
+      core.Params.Background = QString(core.Params.Background.c_str()).trimmed().toStdString();
+      //check to make sure the file exists.
+      QFileInfo tmpFI( QDir(strPath.c_str()),
+                       core.Params.Background.c_str() );
+      if(!tmpFI.exists())
+        {
+        QMessageBox msgBox;
+        msgBox.setText( QString(core.Params.Background.c_str()) +
+                        QString(" was not found in same director as the core inp file."));
+        msgBox.exec();
+        }
+      core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
+
       }
     else if(value == "outputfilename")
       {
@@ -517,6 +531,7 @@ bool inpFileWriter::write(std::string fname,
                           bool updateFname)
 {
   inpFileHelper helper;
+  QFileInfo info(fname.c_str());
   std::ofstream output(fname.c_str());
   if(!output.is_open())
     {
@@ -532,8 +547,24 @@ bool inpFileWriter::write(std::string fname,
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", core.IsHexType(),
                        core.HexSymmetry, true, core.CoreLattice );
-  if(!core.BackgroudMeshFile.empty())
-    output << "Background " << core.BackgroudMeshFile << "\n";
+  if( !core.Params.Background.empty() &&
+      QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() )
+    {
+    QFile src(core.Params.BackgroundFullPath.c_str());
+    QFile dest( QFileInfo(info.dir(), core.Params.Background.c_str()).absoluteFilePath() );
+    if(!dest.exists() || dest.remove())
+      {
+      src.copy(dest.fileName());
+      }
+    output << "Background " << core.Params.Background << "\n";
+    }
+  else if( !core.Params.Background.empty() )
+    {
+    QMessageBox msgBox;
+    msgBox.setText( QString(core.Params.Background.c_str()) +
+                   QString(" was not found.  We are not writing Background to output inp file."));
+    msgBox.exec();
+    }
 
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
   if( core.Params.Var##IsSet() ) \
