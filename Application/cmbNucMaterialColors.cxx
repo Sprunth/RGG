@@ -68,9 +68,10 @@ cmbNucMaterialColors* cmbNucMaterialColors::instance()
 }
 
 //-----------------------------------------------------------------------------
-cmbNucMaterialColors::cmbNucMaterialColors(): Llimit(0.1), Ulimit(0.9), numNewMaterials(0)
+cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
+  : Llimit(0.1), Ulimit(0.9), numNewMaterials(0)
 {
-  if (!cmbNucMaterialColors::Instance)
+  if (!cmbNucMaterialColors::Instance || reset_instance)
     {
     cmbNucMaterialColors::Instance = this;
     }

@@ -28,7 +28,7 @@ public:
   // Get the global instance for the cmbNucMaterialColors.
   static cmbNucMaterialColors* instance();
 
-  cmbNucMaterialColors();
+  cmbNucMaterialColors(bool reset_instance = false);
   virtual ~cmbNucMaterialColors();
 
   QMap<QString, cmbNucMaterial>& MaterialColorMap();
