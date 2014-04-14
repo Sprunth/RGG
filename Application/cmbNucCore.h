@@ -226,6 +226,8 @@ public:
   cmbNucAssembly* loadAssemblyFromFile(
      const std::string &fileName, const std::string &assyLabel);
 
+  void computePitch();
+
   // Get/Set Assembly pitch
   double AssyemblyPitchX;
   double AssyemblyPitchY;

@@ -158,6 +158,8 @@ public:
 
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
+  void GetDuctWidthHeight(double r[2]);
+
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;

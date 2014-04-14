@@ -374,6 +374,21 @@ void cmbNucCore::RebuildGrid()
     }
 }
 
+void cmbNucCore::computePitch()
+{
+  std::vector< cmbNucAssembly* > assemblies = this->GetUsedAssemblies();
+  AssyemblyPitchX = 0;
+  AssyemblyPitchY = 0;
+  double tmp[2];
+  for (unsigned int i = 0; i < assemblies.size(); ++i)
+  {
+    if(assemblies[i]==NULL) continue;
+    assemblies[i]->GetDuctWidthHeight(tmp);
+    if(tmp[0]>AssyemblyPitchX) AssyemblyPitchX = tmp[0];
+    if(tmp[1]>AssyemblyPitchY) AssyemblyPitchY = tmp[1];
+  }
+}
+
 int cmbNucCore::GetNumberOfAssemblies()
 {
   return (int)this->Assemblies.size();

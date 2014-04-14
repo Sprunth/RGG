@@ -541,6 +541,7 @@ bool inpFileWriter::write(std::string fname,
     {
     core.FileName = fname;
     }
+  core.computePitch();
   helper.writeHeader(output,"Assembly");
   output << "Symmetry "  << core.HexSymmetry << "\n";
   output << "GeometryType " << core.GeometryType << "\n";
