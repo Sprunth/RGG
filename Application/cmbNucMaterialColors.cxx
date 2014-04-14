@@ -162,7 +162,7 @@ void cmbNucMaterialColors::GetAssemblyMaterials(
     Duct *duct = assy->AssyDuct.Ducts[i];
     for(size_t j = 0; j < duct->materials.size(); j++)
       {
-      strMat = duct->materials[j];
+      strMat = duct->materials[j].material;
       if(!strMat.empty() && strMat != " " && !materials.contains(strMat))
         {
         materials[strMat] =

@@ -143,7 +143,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 
   double startX = this->Assemblies[0]->AssyDuct.Ducts[0]->x;
   double startY = this->Assemblies[0]->AssyDuct.Ducts[0]->y;
-  double outerDuctHeight = this->Assemblies[0]->AssyDuct.Ducts[0]->thicknesses.back();
+  double outerDuctHeight = this->Assemblies[0]->AssyDuct.Ducts[0]->thickness[0];
 
   // Is this Hex type?
   bool isHex = Assemblies[0]->AssyLattice.GetGeometryType() == HEXAGONAL;
@@ -181,7 +181,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           {
           Duct *hexDuct = assembly->AssyDuct.Ducts[0];
           double layerCorners[6][2], hexDiameter, layerRadius;
-          hexDiameter = hexDuct->thicknesses.back();
+          hexDiameter = hexDuct->thickness[0];
 
           // For hex geometry type, figure out the six corners first
           if(isHex && i>0)

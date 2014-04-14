@@ -305,32 +305,56 @@ enum enumGeometryType {
   class Duct : public AssyPartObj
   {
   public:
+    struct Material
+    {
+      Material()
+      {
+        this->material = "";
+        this->normThickness[0] = 1;
+        this->normThickness[1] = 1;
+      }
+      std::string material;
+      double normThickness[2];
+      bool operator==( const Duct::Material & other ) const
+      {
+        return material == other.material &&
+               normThickness[0] == other.normThickness[0] &&
+               normThickness[1] == other.normThickness[1];
+      }
+    };
     Duct(enumNucPartsType type=CMBNUC_ASSY_RECT_DUCT)
       {
       x=0.0;y=0.0;z1=0.0;z2=4.0;
-      materials.push_back("");
-      thicknesses.push_back(18.0);
-      thicknesses.push_back(18.0);
+      Duct::Material m;
+      materials.push_back(m);
+      thickness[0] = 18;
+      thickness[1] = 18;
       enType = type;
       }
     enumNucPartsType GetType()
     { return enType;}
     void SetType(enumNucPartsType type)
       { enType = type;}
+    double GetLayerThick(size_t layer, size_t t = 0) const
+    {
+      return materials[layer].normThickness[t] * this->thickness[t];
+    }
+
     bool operator==(const Duct& obj)
       {
       return this->x==obj.x && this->y==obj.y &&
         this->z1==obj.z1 && this->z2==obj.z2 &&
         this->materials==obj.materials &&
-        this->thicknesses==obj.thicknesses &&
+        this->thickness[0]==obj.thickness[0] &&
+        this->thickness[1]==obj.thickness[1] &&
         this->enType == obj.enType;
       }
     double x;
     double y;
     double z1;
     double z2;
-    std::vector<std::string> materials;
-    std::vector<double> thicknesses;
+    double thickness[2];
+    std::vector<Duct::Material> materials;
     enumNucPartsType enType;
   };
 
