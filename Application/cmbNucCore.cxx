@@ -385,7 +385,7 @@ void cmbNucCore::computePitch()
     if(assemblies[i]==NULL) continue;
     assemblies[i]->GetDuctWidthHeight(tmp);
     if(tmp[0]>AssyemblyPitchX) AssyemblyPitchX = tmp[0];
-    if(tmp[1]>AssyemblyPitchX) AssyemblyPitchY = tmp[1];
+    if(tmp[1]>AssyemblyPitchY) AssyemblyPitchY = tmp[1];
   }
 }
 
