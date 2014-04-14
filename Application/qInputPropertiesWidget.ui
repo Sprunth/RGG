@@ -312,7 +312,7 @@
          <item>
           <widget class="QTabWidget" name="tabWidget_3">
            <property name="currentIndex">
-            <number>1</number>
+            <number>0</number>
            </property>
            <widget class="QWidget" name="tab_6">
             <attribute name="title">
@@ -428,7 +428,7 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>297</width>
+                    <width>301</width>
                     <height>247</height>
                    </rect>
                   </property>
@@ -457,61 +457,18 @@
      </widget>
      <widget class="QWidget" name="pageRectDuct">
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="1" column="0">
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Layer</string>
+       <item row="3" column="0">
+        <spacer name="verticalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="1" column="3" colspan="2">
-           <widget class="QComboBox" name="DuctLayer"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Current Layer</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="3">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>    Material</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>    Thickness</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="4">
-           <widget class="QLineEdit" name="DuctThick2"/>
-          </item>
-          <item row="3" column="3">
-           <widget class="QLineEdit" name="DuctThick1"/>
-          </item>
-          <item row="2" column="3" colspan="2">
-           <widget class="QComboBox" name="DuctLayerMaterial"/>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Number Of Layers:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3" colspan="2">
-           <widget class="QSpinBox" name="NumOfDuctLayers">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item row="0" column="0">
         <widget class="QGroupBox" name="groupBox">
@@ -562,18 +519,66 @@
          </layout>
         </widget>
        </item>
-       <item row="2" column="0">
-        <spacer name="verticalSpacer_6">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="1" column="0">
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Layer</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <property name="margin">
+           <number>2</number>
+          </property>
+          <item row="0" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>    Thickness</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="DuctThickX"/>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="DuctThickY"/>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0" colspan="3">
+           <widget class="QTableWidget" name="DuctLayers">
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QPushButton" name="AddDuctMaterialBefore">
+              <property name="text">
+               <string>Add Before</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="AddDuctMaterialAfter">
+              <property name="text">
+               <string>Add After</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="DeleteDuctMaterial">
+              <property name="text">
+               <string>Delete</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -861,15 +866,21 @@
   <tabstop>hexLatticeAssy</tabstop>
   <tabstop>hexAssyColorSelectButton</tabstop>
   <tabstop>tabWidget_3</tabstop>
+  <tabstop>MeshSize</tabstop>
+  <tabstop>assyColorSelectButton</tabstop>
+  <tabstop>latticeX</tabstop>
+  <tabstop>latticeY</tabstop>
+  <tabstop>assemblyLatticeContainer</tabstop>
   <tabstop>DuctXPos</tabstop>
   <tabstop>DuctYPos</tabstop>
   <tabstop>DuctZPos1</tabstop>
   <tabstop>DuctZPos2</tabstop>
-  <tabstop>NumOfDuctLayers</tabstop>
-  <tabstop>DuctLayer</tabstop>
-  <tabstop>DuctLayerMaterial</tabstop>
-  <tabstop>DuctThick1</tabstop>
-  <tabstop>DuctThick2</tabstop>
+  <tabstop>DuctThickX</tabstop>
+  <tabstop>DuctThickY</tabstop>
+  <tabstop>DuctLayers</tabstop>
+  <tabstop>AddDuctMaterialBefore</tabstop>
+  <tabstop>AddDuctMaterialAfter</tabstop>
+  <tabstop>DeleteDuctMaterial</tabstop>
   <tabstop>colorSelectButton</tabstop>
   <tabstop>CylinderXPos</tabstop>
   <tabstop>CylinderYPos</tabstop>
@@ -887,11 +898,6 @@
   <tabstop>MaterialLabel</tabstop>
   <tabstop>ApplyButton</tabstop>
   <tabstop>ResetButton</tabstop>
-  <tabstop>latticeX</tabstop>
-  <tabstop>latticeY</tabstop>
-  <tabstop>assemblyLatticeContainer</tabstop>
-  <tabstop>assyColorSelectButton</tabstop>
-  <tabstop>MeshSize</tabstop>
  </tabstops>
  <resources/>
  <connections/>

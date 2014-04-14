@@ -80,23 +80,29 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->assyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
   this->Internal->hexAssyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
 
+  this->Internal->DuctLayers->setColumnCount(3);
+  this->Internal->DuctLayers->horizontalHeader()->setStretchLastSection(true);
+  this->Internal->DuctLayers->setHorizontalHeaderLabels( QStringList() << "Material"
+                                                        << "Normalized Thickness 1"
+                                                        << "Normalized Thickness 2");
+
   QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
     this, SLOT(onApply()));
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
     this, SLOT(onReset()));
 
   // duct related connections
-  QObject::connect(this->Internal->NumOfDuctLayers, SIGNAL(valueChanged(int)),
-    this, SLOT(onNumberOfDuctLayersChanged(int)));
-  QObject::connect(this->Internal->DuctLayer, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onCurrentDuctLayerChanged(int)));
+  //QObject::connect(this->Internal->NumOfDuctLayers, SIGNAL(valueChanged(int)),
+  //  this, SLOT(onNumberOfDuctLayersChanged(int)));
+  //QObject::connect(this->Internal->DuctLayer, SIGNAL(currentIndexChanged(int)),
+  //  this, SLOT(onCurrentDuctLayerChanged(int)));
 
-  QObject::connect(this->Internal->DuctLayerMaterial, SIGNAL(currentIndexChanged(int)),
-    this, SLOT(onCurrentDuctMaterialChanged()));
-  QObject::connect(this->Internal->DuctThick1, SIGNAL(editingFinished()),
-    this, SLOT(onDuctThicknessChanged()));
-  QObject::connect(this->Internal->DuctThick2, SIGNAL(editingFinished()),
-    this, SLOT(onDuctThicknessChanged()));
+  //QObject::connect(this->Internal->DuctLayerMaterial, SIGNAL(currentIndexChanged(int)),
+  //  this, SLOT(onCurrentDuctMaterialChanged()));
+  //QObject::connect(this->Internal->DuctThick1, SIGNAL(editingFinished()),
+  //  this, SLOT(onDuctThicknessChanged()));
+  //QObject::connect(this->Internal->DuctThick2, SIGNAL(editingFinished()),
+  //  this, SLOT(onDuctThicknessChanged()));
   QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
     this, SLOT(onLatticeDimensionChanged()));
   QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
@@ -117,6 +123,14 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(chooseAssyLegendColor()));
   QObject::connect(this->Internal->hexAssyColorSelectButton, SIGNAL(clicked()),
     this, SLOT(chooseHexAssyLegendColor()));
+
+  // Connect the layer buttons
+  QObject::connect(this->Internal->AddDuctMaterialBefore, SIGNAL(clicked()),
+                   this, SLOT(addDuctLayerBefore()));
+  QObject::connect(this->Internal->AddDuctMaterialAfter, SIGNAL(clicked()),
+                    this, SLOT(addDuctLayerAfter()));
+  QObject::connect(this->Internal->DeleteDuctMaterial, SIGNAL(clicked()),
+                   this, SLOT(deleteDuctLayer()));
 }
 
 //-----------------------------------------------------------------------------
@@ -155,11 +169,11 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
 void cmbNucInputPropertiesWidget::updateMaterials()
 {
   // update materials
-  this->Internal->DuctLayerMaterial->blockSignals(true);
+  //this->Internal->DuctLayerMaterial->blockSignals(true);
   this->Internal->FrustumMaterial->blockSignals(true);
   this->Internal->CylinderMaterial->blockSignals(true);
 
-  this->Internal->DuctLayerMaterial->clear();
+  //this->Internal->DuctLayerMaterial->clear();
   this->Internal->FrustumMaterial->clear();
   this->Internal->CylinderMaterial->clear();
 
@@ -169,12 +183,12 @@ void cmbNucInputPropertiesWidget::updateMaterials()
     {
 //    matLabel = matColorMap->MaterialColorMap()[material].Label;
     matLabel = material;
-    this->Internal->DuctLayerMaterial->addItem(matLabel);
+    //this->Internal->DuctLayerMaterial->addItem(matLabel);
     this->Internal->FrustumMaterial->addItem(matLabel);
     this->Internal->CylinderMaterial->addItem(matLabel);
     }
 
-  this->Internal->DuctLayerMaterial->blockSignals(false);
+  //this->Internal->DuctLayerMaterial->blockSignals(false);
   this->Internal->FrustumMaterial->blockSignals(false);
   this->Internal->CylinderMaterial->blockSignals(false);
 }
@@ -444,18 +458,12 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
   this->Internal->DuctZPos1->setText(QString::number(duct->z1));
   this->Internal->DuctZPos2->setText(QString::number(duct->z2));
 
-  // update the material and thickness cache.
-  this->Internal->DuctMaterials.clear();
-  this->Internal->DuctThicknesses.clear();
-  for(size_t i = 0; i < duct->materials.size(); i++)
-    {
-    this->Internal->DuctMaterials.append(duct->materials[i].c_str());
-    this->Internal->DuctThicknesses.append(
-      qMakePair(duct->thicknesses[2*i],duct->thicknesses[2*i+1]));
-    }
-  //layers
-  this->Internal->NumOfDuctLayers->setValue((int)duct->materials.size());
-  this->onNumberOfDuctLayersChanged(this->Internal->NumOfDuctLayers->value());
+  this->Internal->DuctThickX->setText(QString::number(duct->thickness[0]));
+  this->Internal->DuctThickY->setText(QString::number(duct->thickness[1]));
+
+  this->Internal->DuctThickY->setVisible(this->GeometryType != HEXAGONAL);
+
+  this->setUpDuctTable(this->GeometryType == HEXAGONAL, duct);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
@@ -516,12 +524,12 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
 {
-  this->Internal->DuctLayer->blockSignals(true);
+/*  this->Internal->DuctLayers->blockSignals(true);
   int previusLayer = this->Internal->DuctLayer->currentIndex();
-  this->Internal->DuctLayer->clear();
+  this->Internal->DuctLayers->clear();
   for(int i=0; i<numLayers; i++)
     {
-    this->Internal->DuctLayer->addItem(QString::number(i));
+    this->Internal->DuctLayers->addItem(QString::number(i));
     }
   // add new layers if the number is increased
   if(numLayers > this->Internal->DuctMaterials.count())
@@ -544,14 +552,14 @@ void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
       }
     }
 
-  this->Internal->DuctLayer->blockSignals(false);
+  this->Internal->DuctLayers->blockSignals(false);
   int currentLayer = previusLayer < numLayers ? previusLayer : 0;
-  this->onCurrentDuctLayerChanged(currentLayer >= 0 ? currentLayer : 0);
+  this->onCurrentDuctLayerChanged(currentLayer >= 0 ? currentLayer : 0);*/
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onCurrentDuctLayerChanged(int idx)
 {
-  if(idx < this->Internal->DuctMaterials.count())
+/*  if(idx < this->Internal->DuctMaterials.count())
     {
     this->Internal->DuctLayerMaterial->
       setCurrentIndex(this->Internal->DuctLayerMaterial->findText(this->Internal->DuctMaterials.value(idx).toLower()));
@@ -559,23 +567,23 @@ void cmbNucInputPropertiesWidget::onCurrentDuctLayerChanged(int idx)
       this->Internal->DuctThicknesses.value(idx).first));
     this->Internal->DuctThick2->setText(QString::number(
       this->Internal->DuctThicknesses.value(idx).second));
-    }
+    }*/
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onCurrentDuctMaterialChanged()
 {
-  int currentLayer = this->Internal->DuctLayer->currentIndex();
+/*  int currentLayer = this->Internal->DuctLayer->currentIndex();
   this->Internal->DuctMaterials.replace(currentLayer,
-    this->Internal->DuctLayerMaterial->currentText());
+    this->Internal->DuctLayerMaterial->currentText());*/
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onDuctThicknessChanged()
 {
-  int currentLayer = this->Internal->DuctLayer->currentIndex();
+/*  int currentLayer = this->Internal->DuctLayer->currentIndex();
   double dThick1 = this->Internal->DuctThick1->text().toDouble();
   double dThick2 = this->Internal->DuctThick2->text().toDouble();
   this->Internal->DuctThicknesses.replace(currentLayer,
-    qMakePair(dThick1, dThick2));
+    qMakePair(dThick1, dThick2));*/
 }
 
 // apply property panel to given object
@@ -613,27 +621,15 @@ void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
 {
-  if(this->Internal->NumOfDuctLayers->value() !=
-     this->Internal->DuctMaterials.size())
-    {
-    qCritical() << "The duct layers and their materials are not set properly.";
-    return;
-    }
-
   duct->x = this->Internal->DuctXPos->text().toDouble();
   duct->y = this->Internal->DuctYPos->text().toDouble();
   duct->z1 = this->Internal->DuctZPos1->text().toDouble();
   duct->z2 = this->Internal->DuctZPos2->text().toDouble();
 
-  // update the material and thickness for all layers.
-  duct->materials.clear();
-  duct->thicknesses.clear();
-  for(int i = 0; i < this->Internal->DuctMaterials.count(); i++)
-    {
-    duct->materials.push_back(this->Internal->DuctMaterials.value(i).toStdString());
-    duct->thicknesses.push_back(this->Internal->DuctThicknesses.value(i).first);
-    duct->thicknesses.push_back(this->Internal->DuctThicknesses.value(i).second);
-    }
+  duct->thickness[0] = this->Internal->DuctThickX->text().toDouble();
+  duct->thickness[1] = this->Internal->DuctThickY->text().toDouble();
+
+  this->setDuctValuesFromTable(duct);
 
   emit this->objGeometryChanged(duct);
 }
@@ -866,7 +862,225 @@ void cmbNucInputPropertiesWidget::onCoreLayersChanged()
 {
   this->HexCore->setLayers(this->Internal->hexLattice->value());
 }
+
 void cmbNucInputPropertiesWidget::onAssyLayersChanged()
 {
   this->HexAssy->setLayers(this->Internal->hexLatticeAssy->value());
+}
+
+// We use this class to validate the input to the radius fields for layers
+class DuctLayerThicknessEditor : public QTableWidgetItem
+{
+public:
+  virtual void setData(int role, const QVariant& value)
+  {
+    if (this->tableWidget() != NULL && role == Qt::EditRole)
+    {
+      bool ok;
+      double dval = value.toDouble(&ok);
+
+      // Make sure value is in [0, 1]
+      if (!ok || dval < 0. || dval > 1.)
+      {
+        return;
+      }
+      // Make sure value is greater than previous row
+      if (this->row() > 0)
+      {
+        double prev = this->tableWidget()->item(this->row() - 1, 1)
+        ->data(Qt::DisplayRole).toDouble();
+        if (dval <= prev)
+        {
+          return;
+        }
+      }
+      // Make sure value is less than next row
+      if (this->row() < this->tableWidget()->rowCount() - 1)
+      {
+        double next = this->tableWidget()->item(this->row() + 1, 1)
+        ->data(Qt::DisplayRole).toDouble();
+        if (dval >= next)
+        {
+          return;
+        }
+      }
+      if(this->row() == this->tableWidget()->rowCount() - 1 && dval != 1.0)
+      {
+        return;
+      }
+    }
+    QTableWidgetItem::setData(role, value);
+  }
+};
+
+void cmbNucInputPropertiesWidget::setUpDuctTable(bool isHex, Duct* duct)
+{
+  QTableWidget * tmpTable = this->Internal->DuctLayers;
+  tmpTable->clear();
+  tmpTable->setRowCount(0);
+  tmpTable->setColumnCount(3);
+  tmpTable->setColumnHidden(2, isHex);
+  if(isHex)
+  {
+    tmpTable->setHorizontalHeaderLabels( QStringList() << "Material"
+                                         << "Normalized\nThickness");
+  }
+  else
+  {
+    tmpTable->setHorizontalHeaderLabels( QStringList() << "Material"
+                                         << "Normalized\nThickness 1"
+                                         << "Normalized\nThickness 2");
+  }
+  tmpTable->horizontalHeader()->setStretchLastSection(true);
+  if(duct == NULL) return;
+  tmpTable->blockSignals(true);
+  tmpTable->setRowCount(duct->materials.size());
+
+  for(size_t i = 0; i < duct->materials.size(); i++)
+  {
+    // Private helper method to create the UI for a duct layer
+    QComboBox* comboBox = new QComboBox;
+    size_t row = i;
+    Duct::Material m = duct->materials[i];
+
+    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+    foreach(QString material, matColorMap->MaterialColorMap().keys())
+    {
+      QString mat = matColorMap->MaterialColorMap()[material].Label;
+      comboBox->addItem(mat);
+      if (mat.toStdString() == m.material)
+      {
+        comboBox->setCurrentIndex(comboBox->count() - 1);
+      }
+    }
+    tmpTable->setCellWidget(row, 0, comboBox);
+
+    QTableWidgetItem* thick1Item = new DuctLayerThicknessEditor;
+    QTableWidgetItem* thick2Item = new DuctLayerThicknessEditor;
+
+    thick1Item->setText(QString::number(m.normThickness[0]));
+    thick2Item->setText(QString::number(m.normThickness[1]));
+
+    tmpTable->setItem(row, 1, thick1Item);
+    tmpTable->setItem(row, 2, thick2Item);
+  }
+  tmpTable->resizeColumnsToContents();
+  tmpTable->blockSignals(false);
+}
+
+void cmbNucInputPropertiesWidget::setDuctValuesFromTable(Duct* duct)
+{
+  if(duct == NULL) return;
+  duct->materials.clear();
+  QTableWidget * table = this->Internal->DuctLayers;
+  for(int i = 0; i < table->rowCount(); i++)
+  {
+    Duct::Material m = duct->materials[i];
+    QString mat = qobject_cast<QComboBox *>(table->cellWidget(i, 0))->currentText();
+    m.material = mat.toStdString();
+    m.normThickness[0] = table->item(i, 1)->data(Qt::DisplayRole).toDouble();
+    m.normThickness[1] = table->item(i, 2)->data(Qt::DisplayRole).toDouble();
+    duct->materials.push_back(m);
+  }
+}
+
+void cmbNucInputPropertiesWidget::addDuctLayerBefore()
+{
+  QTableWidget * table = this->Internal->DuctLayers;
+  table->blockSignals(true);
+  int row = 0;
+  if(table->selectedItems().count() > 0)
+  {
+    row = table->selectedItems().value(0)->row();
+  }
+
+  table->insertRow(row);
+  this->addDuctLayerSetRowValue(row);
+  table->blockSignals(false);
+}
+
+void cmbNucInputPropertiesWidget::addDuctLayerAfter()
+{
+  QTableWidget * table = this->Internal->DuctLayers;
+  table->blockSignals(true);
+  int row = table->rowCount();
+  if(table->selectedItems().count() > 0)
+  {
+    row = table->selectedItems().value(0)->row() + 1;
+  }
+
+  table->insertRow(row);
+  this->addDuctLayerSetRowValue(row);
+  table->blockSignals(false);
+}
+
+void cmbNucInputPropertiesWidget::deleteDuctLayer()
+{
+  QTableWidget * table = this->Internal->DuctLayers;
+  table->blockSignals(true);
+  if(table->selectedItems().count() == 0)
+  {
+    return;
+  }
+  QTableWidgetItem* selItem =
+  table->selectedItems().value(0);
+  table->removeRow(selItem->row());
+  table->blockSignals(false);
+}
+
+void cmbNucInputPropertiesWidget::addDuctLayerSetRowValue(int row)
+{
+  QTableWidget * table = this->Internal->DuctLayers;
+  // Private helper method to create the UI for a duct layer
+  QComboBox* comboBox = new QComboBox;
+  double thickness[] = {0,0};
+  if(row == table->rowCount()-1) // end
+  {
+    thickness[0] = 1.0;
+    thickness[1] = 1.0;
+    if(row > 0)
+    {
+      QTableWidgetItem  * before1 = table->item(row-1, 1);
+      QTableWidgetItem  * before2 = table->item(row-1, 2);
+      double tmp[] = {0,0};
+      if(row > 1)
+      {
+        tmp[0] = table->item(row-2, 1)->data(Qt::DisplayRole).toDouble();
+        tmp[1] = table->item(row-2, 2)->data(Qt::DisplayRole).toDouble();
+      }
+      before1->setText(QString::number(tmp[0] + (1-tmp[0])*0.5));
+      before2->setText(QString::number(tmp[1] + (1-tmp[1])*0.5));
+    }
+  }
+  else
+  {
+    double tmpB[] = {0,0};
+    double tmpA[] = {table->item(row+1, 1)->data(Qt::DisplayRole).toDouble(),
+                     table->item(row+1, 2)->data(Qt::DisplayRole).toDouble()};
+    if(row > 0)
+    {
+      tmpB[0] = table->item(row-1, 1)->data(Qt::DisplayRole).toDouble();
+      tmpB[1] = table->item(row-1, 2)->data(Qt::DisplayRole).toDouble();
+    }
+    thickness[0] = tmpB[0] + (tmpA[0]-tmpB[0])*0.5;
+    thickness[1] = tmpB[1] + (tmpA[1]-tmpB[1])*0.5;
+  }
+
+
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  foreach(QString material, matColorMap->MaterialColorMap().keys())
+  {
+    QString mat = matColorMap->MaterialColorMap()[material].Label;
+    comboBox->addItem(mat);
+  }
+  table->setCellWidget(row, 0, comboBox);
+
+  QTableWidgetItem* thick1Item = new DuctLayerThicknessEditor;
+  QTableWidgetItem* thick2Item = new DuctLayerThicknessEditor;
+
+  thick1Item->setText(QString::number(thickness[0]));
+  thick2Item->setText(QString::number(thickness[1]));
+
+  table->setItem(row, 1, thick1Item);
+  table->setItem(row, 2, thick2Item);
 }

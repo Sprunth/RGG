@@ -657,26 +657,18 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly 
 
     output << "duct " << duct->materials.size() << " ";
     output << std::showpoint << duct->x << " " << duct->y << " " << duct->z1 << " " << duct->z2;
-
-    if(assembly.IsHexType())
+    for(int i = 0; i <  duct->materials.size(); i++)
       {
-      for(int i = 0; i <  duct->materials.size(); i++)
+      output << " " << duct->GetLayerThick(i, 0);
+      if(!assembly.IsHexType())
         {
-        output << " " << duct->thicknesses[i*2];
+          output << " " << duct->GetLayerThick(i, 1);
         }
       }
-    else
-      {
-      for(size_t j = 0; j < duct->thicknesses.size(); j++)
-        {
-        output << " " << duct->thicknesses[j];
-        }
-      }
-
     for(size_t j = 0; j < duct->materials.size(); j++)
-    {
-      output << " " << duct->materials[j];
-    }
+      {
+      output << " " << duct->materials[j].material;
+      }
     output << "\n";
   }
 }
@@ -693,30 +685,40 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
         >> duct->z1
         >> duct->z2;
 
-  duct->thicknesses.resize(materials*2);
+  duct->materials.resize(materials);
+  double maxV[] = {0,0};
+  for(int i = 0; i < materials; i++)
+  {
+    double tmpD[2];
+    if(assembly.IsHexType())
+    {
+      input >> tmpD[0];
+      tmpD[1] = tmpD[0];
+    }
+    else
+    {
+      input >> tmpD[0] >> tmpD[1];
+    }
+    if(tmpD[0]> maxV[0]) maxV[0] = tmpD[0];
+    if(tmpD[1]> maxV[1]) maxV[1] = tmpD[1];
+    duct->materials[i].normThickness[0] = tmpD[0];
+    duct->materials[i].normThickness[1] = tmpD[1];
+  }
   if(assembly.IsHexType())
     {
     duct->SetType(CMBNUC_ASSY_HEX_DUCT);
-    for(int i = 0; i < materials; i++)
-      {
-      input >> duct->thicknesses[i*2];
-      duct->thicknesses[i*2+1] = duct->thicknesses[i*2];
-      }
-    }
-  else
-    {
-    for(int i = 0; i < materials*2; i++)
-      {
-      input >> duct->thicknesses[i];
-      }
     }
 
-  duct->materials.resize(materials);
+  duct->thickness[0] = maxV[0];
+  duct->thickness[1] = maxV[1];
+
   for(int i = 0; i < materials; i++)
     {
     input >> mlabel;
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
-    duct->materials[i] = materialLabelMap[mlabel];
+    duct->materials[i].material = materialLabelMap[mlabel];
+    duct->materials[i].normThickness[0] /= maxV[0];
+    duct->materials[i].normThickness[1] /= maxV[1];
     }
 
   assembly.AssyDuct.Ducts.push_back(duct);

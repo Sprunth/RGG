@@ -102,9 +102,9 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
     Duct *duct = this->AssyDuct.Ducts[i];
     for(size_t j = 0; j < duct->materials.size(); j++)
       {
-      if(duct->materials[j] == name)
+      if(duct->materials[j].material == name)
         {
-        duct->materials[j] = "";
+        duct->materials[j].material = "";
         }
      }
     }
@@ -210,7 +210,7 @@ void cmbNucAssembly::updateMaterialColors(
       for(unsigned int b = 0; b < numBlocks; b++)
       {
         std::string layerMaterial =
-        (duct && b < duct->materials.size()) ? duct->materials[b] : "duct";
+           (duct && b < duct->materials.size()) ? duct->materials[b].material : "duct";
         if(layerMaterial.empty())
         {
           layerMaterial = "duct";
@@ -297,10 +297,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
     return NULL;
     }
   double currentLaticePoint[] = {0,0};
-  double outerDuctHeight = this->AssyDuct.Ducts[0]->thicknesses.back();
-  double innerDuctHeight = this->AssyDuct.Ducts[0]->thicknesses.front();
-  double chamberStart = outerDuctHeight - innerDuctHeight;
-  double chamberEnd = innerDuctHeight;
+  std::vector<Duct*> & tmpDucts = this->AssyDuct.Ducts;
   double latticeOffset[2];
 
   std::vector< std::vector< double > > offX, offY;
@@ -325,13 +322,13 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
     maxLatPt[0] = offX[r][c];
     maxLatPt[1] = offY[r][c];
     double m2[] = {0,0};
-    for(unsigned int i = 0; i < this->AssyDuct.Ducts.size(); ++i)
+    for(unsigned int i = 0; i < tmpDucts.size(); ++i)
     {
-      for(unsigned int j = 0; j < this->AssyDuct.Ducts[i]->thicknesses.size(); j += 2)
+      for(unsigned int j = 0; j < tmpDucts[i]->materials.size(); ++j)
         {
-        double t =this->AssyDuct.Ducts[i]->thicknesses[j];
+        double t =tmpDucts[i]->GetLayerThick(j, 0);
         if(t > m2[0]) m2[0] = t;
-        t = this->AssyDuct.Ducts[i]->thicknesses[j+1];
+        t = tmpDucts[i]->GetLayerThick(j, 1);
         if(t > m2[1]) m2[1] = t;
         }
     }
@@ -344,13 +341,11 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                                 this->AssyDuct.Ducts.size());
 
   // For Hex type
-  Duct *hexDuct = this->AssyDuct.Ducts[0];
+  Duct *hexDuct = tmpDucts[0];
   double layerCorners[8][2], hexRadius, hexDiameter, layerRadius;
-  hexDiameter = hexDuct->thicknesses[0];
+  hexDiameter = hexDuct->thickness[0];
   hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
   hexRadius = hexRadius / (double)(2*this->AssyLattice.Grid.size()-1);
-
-  double cellLength = (chamberEnd - chamberStart) / this->AssyLattice.Grid.size();
 
   double overallDx = 0;
   for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
@@ -479,10 +474,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
   // setup ducts
   double z, deltaZ, height;
-  size_t numDucts = this->AssyDuct.Ducts.size();
+  size_t numDucts = tmpDucts.size();
   for(size_t i = 0; i < numDucts; i++)
     {
-    Duct *duct = this->AssyDuct.Ducts[i];
+    Duct *duct = tmpDucts[i];
 
     vtkCmbDuctSource *ductSource = vtkCmbDuctSource::New();
     z = duct->z1;
@@ -509,9 +504,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
       this->AssyLattice.GetGeometryType()== HEXAGONAL ?
       CMBNUC_ASSY_HEX_DUCT : CMBNUC_ASSY_RECT_DUCT);
 
-    for(size_t j = 0; j < duct->thicknesses.size()/2; j++)
+    for(size_t j = 0; j < duct->materials.size(); j++)
       {
-      ductSource->AddLayer(duct->thicknesses[2*j], duct->thicknesses[2*j+1]);
+      ductSource->AddLayer(duct->GetLayerThick(j,0), duct->GetLayerThick(j,1));
       }
 
     ductSource->Update();

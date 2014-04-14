@@ -97,7 +97,14 @@ protected slots:
   void chooseAssyLegendColor();
   void chooseHexAssyLegendColor();
 
+  void addDuctLayerBefore();
+  void addDuctLayerAfter();
+  void deleteDuctLayer();
+
 private:
+  void setUpDuctTable(bool isHex, Duct* duct);
+  void setDuctValuesFromTable(Duct* duct);
+  void addDuctLayerSetRowValue(int row);
   bool RebuildCoreGrid;
   cmbNucInputPropertiesWidgetInternal* Internal;
 
