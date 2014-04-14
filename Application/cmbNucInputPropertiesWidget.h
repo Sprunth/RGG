@@ -78,13 +78,6 @@ protected slots:
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToCore(cmbNucCore* nucCore);
 
-  // Slot for duct layers
-  void onNumberOfDuctLayersChanged(int numLayers);
-  void onCurrentDuctLayerChanged(int idx);
-  // the following three works on current duct layer
-  void onCurrentDuctMaterialChanged();
-  void onDuctThicknessChanged();
-
   // Slot for Lattice dimensions
   void onLatticeDimensionChanged();
   void onCoreDimensionChanged();

@@ -91,18 +91,6 @@ void cmbNucInputPropertiesWidget::initUI()
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
     this, SLOT(onReset()));
 
-  // duct related connections
-  //QObject::connect(this->Internal->NumOfDuctLayers, SIGNAL(valueChanged(int)),
-  //  this, SLOT(onNumberOfDuctLayersChanged(int)));
-  //QObject::connect(this->Internal->DuctLayer, SIGNAL(currentIndexChanged(int)),
-  //  this, SLOT(onCurrentDuctLayerChanged(int)));
-
-  //QObject::connect(this->Internal->DuctLayerMaterial, SIGNAL(currentIndexChanged(int)),
-  //  this, SLOT(onCurrentDuctMaterialChanged()));
-  //QObject::connect(this->Internal->DuctThick1, SIGNAL(editingFinished()),
-  //  this, SLOT(onDuctThicknessChanged()));
-  //QObject::connect(this->Internal->DuctThick2, SIGNAL(editingFinished()),
-  //  this, SLOT(onDuctThicknessChanged()));
   QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
     this, SLOT(onLatticeDimensionChanged()));
   QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
@@ -519,71 +507,6 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid);
       }
     }
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::onNumberOfDuctLayersChanged(int numLayers)
-{
-/*  this->Internal->DuctLayers->blockSignals(true);
-  int previusLayer = this->Internal->DuctLayer->currentIndex();
-  this->Internal->DuctLayers->clear();
-  for(int i=0; i<numLayers; i++)
-    {
-    this->Internal->DuctLayers->addItem(QString::number(i));
-    }
-  // add new layers if the number is increased
-  if(numLayers > this->Internal->DuctMaterials.count())
-    {
-    int nmaterials = this->Internal->DuctMaterials.count();
-    for(int j = nmaterials; j<numLayers; j++)
-      {
-      this->Internal->DuctMaterials.append("");
-      this->Internal->DuctThicknesses.append(
-        qMakePair(0.0,0.0));
-      }
-    }
-  // remove layers if the number is decreased
-  else if(numLayers < this->Internal->DuctMaterials.count())
-    {
-    for(int j = this->Internal->DuctMaterials.count() - 1; j >= numLayers; j--)
-      {
-      this->Internal->DuctMaterials.removeAt(j);
-      this->Internal->DuctThicknesses.removeAt(j);
-      }
-    }
-
-  this->Internal->DuctLayers->blockSignals(false);
-  int currentLayer = previusLayer < numLayers ? previusLayer : 0;
-  this->onCurrentDuctLayerChanged(currentLayer >= 0 ? currentLayer : 0);*/
-}
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::onCurrentDuctLayerChanged(int idx)
-{
-/*  if(idx < this->Internal->DuctMaterials.count())
-    {
-    this->Internal->DuctLayerMaterial->
-      setCurrentIndex(this->Internal->DuctLayerMaterial->findText(this->Internal->DuctMaterials.value(idx).toLower()));
-    this->Internal->DuctThick1->setText(QString::number(
-      this->Internal->DuctThicknesses.value(idx).first));
-    this->Internal->DuctThick2->setText(QString::number(
-      this->Internal->DuctThicknesses.value(idx).second));
-    }*/
-}
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::onCurrentDuctMaterialChanged()
-{
-/*  int currentLayer = this->Internal->DuctLayer->currentIndex();
-  this->Internal->DuctMaterials.replace(currentLayer,
-    this->Internal->DuctLayerMaterial->currentText());*/
-}
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::onDuctThicknessChanged()
-{
-/*  int currentLayer = this->Internal->DuctLayer->currentIndex();
-  double dThick1 = this->Internal->DuctThick1->text().toDouble();
-  double dThick2 = this->Internal->DuctThick2->text().toDouble();
-  this->Internal->DuctThicknesses.replace(currentLayer,
-    qMakePair(dThick1, dThick2));*/
 }
 
 // apply property panel to given object
