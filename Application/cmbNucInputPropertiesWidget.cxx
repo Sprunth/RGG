@@ -68,8 +68,12 @@ void cmbNucInputPropertiesWidget::initUI()
 
   this->HexAssyConf = new cmbAssyParametersWidget(this);
   this->Internal->HexAssyConfLayout->addWidget(this->HexAssyConf);
+  connect(this->HexAssyConf, SIGNAL(valuesChanged()),
+          this, SIGNAL(valuesChanged()));
   this->RectAssyConf = new cmbAssyParametersWidget(this);
   this->Internal->RectAssyConfLayout->addWidget(this->RectAssyConf);
+  connect(this->RectAssyConfd, SIGNAL(valuesChanged()),
+          this, SIGNAL(valuesChanged()));
 
   //this->CoreProperties->hide();
   //todo::add thins

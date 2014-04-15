@@ -21,6 +21,7 @@ public:
   cmbNucAssembly* getAssembly(){return this->Assembly;}
 
 signals:
+  void valuesChanged();
 
 public slots:
   // Invoked when Apply button clicked
