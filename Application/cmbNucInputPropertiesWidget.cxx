@@ -60,8 +60,12 @@ void cmbNucInputPropertiesWidget::initUI()
 
   this->HexCoreProperties = new cmbCoreParametersWidget(this);
   this->Internal->hexCoreConfLayout->addWidget(this->HexCoreProperties);
+  connect(this->HexCoreProperties, SIGNAL(valuesChanged()),
+          this, SIGNAL(valuesChanged()));
   this->RectCoreProperties = new cmbCoreParametersWidget(this);
   this->Internal->rectCoreConfLayout->addWidget(this->RectCoreProperties);
+  connect(this->RectCoreProperties, SIGNAL(valuesChanged()),
+          this, SIGNAL(valuesChanged()));
 
   this->HexAssyConf = new cmbAssyParametersWidget(this);
   this->Internal->HexAssyConfLayout->addWidget(this->HexAssyConf);
@@ -69,7 +73,7 @@ void cmbNucInputPropertiesWidget::initUI()
           this, SIGNAL(valuesChanged()));
   this->RectAssyConf = new cmbAssyParametersWidget(this);
   this->Internal->RectAssyConfLayout->addWidget(this->RectAssyConf);
-  connect(this->RectAssyConfd, SIGNAL(valuesChanged()),
+  connect(this->RectAssyConf, SIGNAL(valuesChanged()),
           this, SIGNAL(valuesChanged()));
 
   //this->CoreProperties->hide();
@@ -600,20 +604,21 @@ void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 {
+  bool change = false;
   if(this->GeometryType == RECTILINEAR)
     {
-    this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
+    change = this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
     }
   else if(this->GeometryType == HEXAGONAL)
     {
-    this->HexAssy->applyToGrid(lattice->Grid);
+    change = this->HexAssy->applyToGrid(lattice->Grid);
     }
+  if(change) emit valuesChanged();
   emit this->objGeometryChanged(lattice);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
-  //assy->MeshSize = this->Internal->MeshSize->text().toDouble();
   if(this->GeometryType == RECTILINEAR)
   {
     this->RectAssyConf->applyToAssembly(assy);
@@ -628,17 +633,18 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
+  bool changed = false;
   if(this->GeometryType == RECTILINEAR)
     {
     this->RectCoreProperties->applyToCore(nucCore);
-    this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
+    changed = this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
     }
   else if(this->GeometryType == HEXAGONAL)
     {
     this->HexCoreProperties->applyToCore(nucCore);
-    this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
+    changed = this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
-
+  if(changed) emit valuesChanged();
   emit this->objGeometryChanged(nucCore);
 }
 //-----------------------------------------------------------------------------

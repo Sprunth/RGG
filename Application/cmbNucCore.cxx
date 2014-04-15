@@ -17,6 +17,7 @@
 #include "vtkMath.h"
 
 #include <QFileInfo>
+#include <QDateTime>
 #include <QDir>
 
 cmbNucCore::cmbNucCore()
@@ -392,4 +393,43 @@ void cmbNucCore::computePitch()
 int cmbNucCore::GetNumberOfAssemblies()
 {
   return (int)this->Assemblies.size();
+}
+
+void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
+{
+  if(diffFromFile)
+  {
+    this->DifferentFromFile = true;
+    this->DifferentFromH5M = true;
+    return;
+  }
+  //make sure file exits
+  //check to see if a h5m file has been generate and is older than this file
+  QFileInfo inpInfo(this->FileName.c_str());
+  if(!inpInfo.exists())
+  {
+    this->DifferentFromFile = true;
+    this->DifferentFromH5M = true;
+    return;
+  }
+  this->DifferentFromFile = false;
+  QDateTime inpLM = inpInfo.lastModified();
+  QFileInfo h5mInfo(inpInfo.dir(), inpInfo.baseName() + ".h5m");
+  if(!h5mInfo.exists())
+  {
+    this->DifferentFromH5M = true;
+    return;
+  }
+  QDateTime h5mLM = h5mInfo.lastModified();
+  this->DifferentFromH5M = h5mLM < inpLM;
+}
+
+bool cmbNucCore::changeSinceLastSave() const
+{
+  return this->DifferentFromFile;
+}
+
+bool cmbNucCore::changeSinceLastGenerate() const
+{
+  return this->DifferentFromH5M;
 }

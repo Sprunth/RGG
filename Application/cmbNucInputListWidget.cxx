@@ -15,7 +15,6 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QHeaderView>
-#include <QFont>
 
 class cmbNucInputListWidgetInternal :
   public Ui::InputListWidget
@@ -686,6 +685,8 @@ void cmbNucInputListWidget::initCoreRootNode()
       Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     this->Internal->RootCoreNode = new cmbNucPartsTreeItem(
       this->Internal->PartsList->invisibleRootItem(), this->NuclearCore);
+    connect(this, SIGNAL(checkSavedAndGenerate()),
+            this->Internal->RootCoreNode->connection, SLOT(checkSaveAndGenerate()));
     this->Internal->RootCoreNode->setText(0, "Core");
     this->Internal->RootCoreNode->setFlags(itemFlags); // not editable
     this->Internal->RootCoreNode->setChildIndicatorPolicy(
@@ -702,18 +703,15 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   cmbNucPartsTreeItem* assyNode = new cmbNucPartsTreeItem(
     this->Internal->RootCoreNode, assy);
+  connect(this, SIGNAL(checkSavedAndGenerate()),
+          assyNode->connection, SLOT(checkSaveAndGenerate()));
   assyNode->setText(0, assy->label.c_str());
   assyNode->setFlags(itemFlags); // not editable
   assyNode->setChildIndicatorPolicy(
     QTreeWidgetItem::DontShowIndicatorWhenChildless);
 
-  if(assy->changeSinceLastSave())
-  {
-    QFont tmp_font = assyNode->font(0);
-    tmp_font.setBold(true);
-    tmp_font.setUnderline(true);
-    assyNode->setFont(0, tmp_font);
-  }
+  assyNode->setHightlights(assy->changeSinceLastSave(),
+                           assy->changeSinceLastGenerate());
 
   /// ******** populate parts tree ********
   QTreeWidgetItem* partsRoot = assyNode;
@@ -967,10 +965,19 @@ void cmbNucInputListWidget::assemblyModified(cmbNucPartsTreeItem* assyNode)
   if(assem)
   {
     assem->setAndTestDiffFromFiles(true);
-    QFont tmp_font = assyNode->font(0);
-    tmp_font.setBold(true);
-    tmp_font.setUnderline(true);
-    assyNode->setFont(0, tmp_font);
+    assyNode->setHightlights(assem->changeSinceLastSave(),
+                             assem->changeSinceLastGenerate());
+  }
+}
+
+void cmbNucInputListWidget::coreModified()
+{
+  cmbNucPartsTreeItem* selItem = this->getSelectedPartNode();
+  if(selItem && NuclearCore)
+  {
+    NuclearCore->setAndTestDiffFromFiles(true);
+    selItem->setHightlights(NuclearCore->changeSinceLastSave(),
+                            NuclearCore->changeSinceLastGenerate());
   }
 }
 
@@ -997,18 +1004,10 @@ void cmbNucInputListWidget::valueChanged()
       this->assemblyModified(dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()->parent()));
       break;
     case CMBNUC_ASSEMBLY:
-      assemblyModified(selItem);
+      this->assemblyModified(selItem);
       break;
     case CMBNUC_CORE:
+      this->coreModified();
       break;
   }
-}
-
-void cmbNucInputListWidget::checkSaved()
-{
-}
-
-void cmbNucInputListWidget::checkGenerated()
-{
-
 }

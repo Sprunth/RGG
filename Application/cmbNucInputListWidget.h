@@ -57,11 +57,11 @@ signals:
   void meshEdgeChange(bool);
   void meshColorChange(bool);
 
+  void checkSavedAndGenerate();
+
 public slots:
   void onNewAssembly();
   void valueChanged();
-  void checkSaved();
-  void checkGenerated();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -75,6 +75,7 @@ protected:
   void createMaterialItem( const QString& name, const QString& label,
                            const QColor& color );
   void assemblyModified(cmbNucPartsTreeItem* assyNode);
+  void coreModified();
 
 private slots:
   // Description:

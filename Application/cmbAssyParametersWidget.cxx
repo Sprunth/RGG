@@ -257,10 +257,20 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 #undef FUN2
   std::stringstream ss(Internal->Unknown->toPlainText().toStdString().c_str());
   std::string line;
-  parameters->UnknownParams.clear();
+  unsigned int i = 0;
   while( std::getline(ss, line))
   {
-    parameters->UnknownParams.push_back(line);
+    if(i <parameters->UnknownParams.size())
+    {
+      changed |= parameters->UnknownParams[i] != line;
+      parameters->UnknownParams[i] = line;
+    }
+    else
+    {
+      changed = true;
+      parameters->UnknownParams.push_back(line);
+    }
+    ++i;
     line.clear();
   }
   if(changed) emit valuesChanged();

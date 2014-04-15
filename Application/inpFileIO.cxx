@@ -357,6 +357,7 @@ bool inpFileReader
     return false;
   QFileInfo info(FileName.c_str());
   std::string strPath = info.dir().path().toStdString();
+  core.setAndTestDiffFromFiles(false); //Should not be different
 
   inpFileHelper helper;
   core.FileName = FileName;
@@ -522,6 +523,7 @@ if(params->isValueSet(params->Var))\
   // end
   output << "end\n";
   output.close();
+  assembly.setAndTestDiffFromFiles(false);
 
   return true;
 }
@@ -586,6 +588,8 @@ bool inpFileWriter::write(std::string fname,
 
   output << "End\n";
   output.close();
+
+  core.setAndTestDiffFromFiles(false);
 
   return true;
 }

@@ -29,7 +29,7 @@ public:
     QStringList& availableActions);
   void updateLatticeView(int x, int y);
   void clearUI(bool updateUI=true);
-  void updateLatticeWithGrid(
+  bool updateLatticeWithGrid(
     std::vector<std::vector<LatticeCell> >& Grid);
 
   void setAssembly(cmbNucAssembly* assy);

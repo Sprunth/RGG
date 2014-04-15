@@ -231,6 +231,8 @@ void cmbNucMainWindow::initPanels()
 {
   this->InputsWidget = new cmbNucInputListWidget(this);
 
+  connect(this, SIGNAL(checkSave()), this->InputsWidget, SIGNAL(checkSavedAndGenerate()));
+
 #ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
   this->Internal->MoabSource = new cmbNucCoregen(this->InputsWidget->getModelTree());
@@ -597,6 +599,7 @@ void cmbNucMainWindow::onCoreFileSave()
     this->setCursor(Qt::BusyCursor);
     this->saveCoreFile(fileName);
     this->unsetCursor();
+    emit checkSave();
   }
 
 }
@@ -609,6 +612,7 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
     return;
     }
 
+  emit checkSave();
   this->InputsWidget->getCurrentAssembly()->WriteFile(fileName.toStdString());
 }
 

@@ -58,6 +58,7 @@ public slots:
 
 signals:
   void updateGlobalZScale(double scale);
+  void checkSave();
 
 protected:
   void initPanels();

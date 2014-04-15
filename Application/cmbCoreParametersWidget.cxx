@@ -129,17 +129,20 @@ void cmbCoreParametersWidget::onDeleteRow()
 
 //Helpers
 
-void convert(QString qw, std::string & result)
+bool convert(QString qw, std::string & result)
 {
+  bool diff = result != qw.toStdString();
   result = qw.toStdString();
+  return diff;
 }
 
-void convert(QString qw, double & result)
+bool convert(QString qw, double & result)
 {
   if(qw.isEmpty())
   {
+    bool r = result != -1e23;
     result = -1e23;
-    return;
+    return r;
   }
   bool ok;
   double previous = result;
@@ -148,9 +151,10 @@ void convert(QString qw, double & result)
   {
     result = previous;
   }
+  return result != previous;
 }
 
-void convert(QString qw, int & result)
+bool convert(QString qw, int & result)
 {
   bool ok;
   int previous = result;
@@ -159,16 +163,12 @@ void convert(QString qw, int & result)
   {
     result = previous;
   }
+  return result != previous;
 }
 
-void convert(bool qw, bool & result)
+bool setValue(std::string &to, QComboBox * from)
 {
-  result = qw;
-}
-
-void setValue(std::string &to, QComboBox * from)
-{
-  convert(from->currentText (), to);
+  return convert(from->currentText (), to);
 }
 
 void setValue(QComboBox * to, std::string &from)
@@ -177,24 +177,20 @@ void setValue(QComboBox * to, std::string &from)
   to->setCurrentIndex(to->findText(tmp, Qt::MatchFixedString));
 }
 
-void setValue(double &to, QLineEdit * from)
+bool setValue(double &to, QLineEdit * from)
 {
-  if(from->text().isEmpty())
-  {
-    to = -1e23;
-    return;
-  }
-  convert(from->text(), to);
+  return convert(from->text(), to);
 }
 
-void setValue(int &to, QLineEdit * from)
+bool setValue(int &to, QLineEdit * from)
 {
   if(from->text().isEmpty())
   {
+    bool r = to != -100;
     to = -100;
-    return;
+    return r;
   }
-  convert(from->text(), to);
+  return convert(from->text(), to);
 }
 
 
@@ -212,9 +208,11 @@ void setValue(QLineEdit * to, int &from)
   to->setText(tmp);
 }
 
-void setValue(bool &to, QCheckBox * from)
+bool setValue(bool &to, QCheckBox * from)
 {
+  bool r = to != from->isChecked();
   to = from->isChecked();
+  return r;
 }
 
 void setValue(QCheckBox * to, bool &from)
@@ -222,9 +220,9 @@ void setValue(QCheckBox * to, bool &from)
   to->setChecked(from);
 }
 
-void setValue(std::string &to, QLabel * from)
+bool setValue(std::string &to, QLabel * from)
 {
-  convert(from->text(), to);
+  return convert(from->text(), to);
 }
 
 
@@ -248,32 +246,48 @@ FUN_SIMPLE(bool, bool, MeshInfo, meshinfo, false, "on")
 //-----------------------------------------------------------------------------
 void cmbCoreParametersWidget::applyToCore(cmbNucCore* Core)
 {
+  bool changed = false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
-setValue(Core->Params.Var, Internal->Var);
+changed |= setValue(Core->Params.Var, Internal->Var);
 
   USED_SIMPLE_VARABLE_MACRO()
 
 #undef FUN_SIMPLE
 
   cmbNucCoreParams::NeumannSetStruct tmp;
-  Core->Params.NeumannSet.clear();
+  changed |= Core->Params.NeumannSet != Internal->NeumannSetTable->rowCount();
+  Core->Params.NeumannSet.resize(Internal->NeumannSetTable->rowCount());
   for (unsigned int i = 0; i < Internal->NeumannSetTable->rowCount(); ++i )
   {
-    convert(Internal->NeumannSetTable->item( i, 0 )->text(), tmp.Side);
-    convert(Internal->NeumannSetTable->item( i, 1 )->text(), tmp.Id);
-    convert(Internal->NeumannSetTable->item( i, 2 )->text(), tmp.Equation);
-    Core->Params.NeumannSet.push_back(tmp);
+    changed |= convert(Internal->NeumannSetTable->item( i, 0 )->text(),
+                       Core->Params.NeumannSet[i].Side);
+    changed |= convert(Internal->NeumannSetTable->item( i, 1 )->text(),
+                       Core->Params.NeumannSet[i].Id);
+    changed |= convert(Internal->NeumannSetTable->item( i, 2 )->text(),
+                       Core->Params.NeumannSet[i].Equation);
   }
-  convert(Internal->ExtrudeDivisions->text(), Core->Params.Extrude.Divisions);
-  convert(Internal->ExtrudeHeight->text(), Core->Params.Extrude.Size);
+  changed |= convert(Internal->ExtrudeDivisions->text(), Core->Params.Extrude.Divisions);
+  changed |= convert(Internal->ExtrudeHeight->text(), Core->Params.Extrude.Size);
 
   std::stringstream ss(Internal->UnknownsVars->toPlainText().toStdString().c_str());
   std::string line;
+  unsigned int j = 0;
   while( std::getline(ss, line))
   {
-    Core->Params.UnknownKeyWords.push_back(line);
+    if(j<Core->Params.UnknownKeyWords.size())
+    {
+      changed |= Core->Params.UnknownKeyWords[j] != line;
+      Core->Params.UnknownKeyWords[j] = line;
+    }
+    else
+    {
+      changed = true;
+      Core->Params.UnknownKeyWords.push_back(line);
+    }
+    j++;
     line.clear();
   }
+  if(changed) emit valuesChanged();
 }
 
 //-----------------------------------------------------------------------------
