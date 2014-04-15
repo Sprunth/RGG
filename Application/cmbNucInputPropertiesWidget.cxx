@@ -19,6 +19,10 @@
 #include <QColorDialog>
 #include <QMessageBox>
 
+#define set_and_test_for_change(X, Y)\
+   change |= ((Y) != (X)); \
+   X = (Y)
+
 class cmbNucInputPropertiesWidgetInternal :
   public Ui::InputPropertiesWidget
 {
@@ -519,40 +523,59 @@ void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToFrustum(Frustum* frust)
 {
-  frust->x = this->Internal->FrustumXPos->text().toDouble();
-  frust->y = this->Internal->FrustumYPos->text().toDouble();
-  frust->z1 = this->Internal->FrustumZPos1->text().toDouble();
-  frust->z2 = this->Internal->FrustumZPos2->text().toDouble();
-  frust->r1 = this->Internal->FrustumRadius1->text().toDouble();
-  frust->r2 = this->Internal->FrustumRadius2->text().toDouble();
+  bool change = false;
+  set_and_test_for_change(frust->x,
+                          this->Internal->FrustumXPos->text().toDouble());
+  set_and_test_for_change(frust->y,
+                          this->Internal->FrustumYPos->text().toDouble());
+  set_and_test_for_change(frust->z1,
+                          this->Internal->FrustumZPos1->text().toDouble());
+  set_and_test_for_change(frust->z2,
+                          this->Internal->FrustumZPos2->text().toDouble());
+  set_and_test_for_change(frust->r1,
+                          this->Internal->FrustumRadius1->text().toDouble());
+  set_and_test_for_change(frust->r2,
+                          this->Internal->FrustumRadius2->text().toDouble());
+  if(change) emit valuesChanged();
 
-  //frust->material = this->Internal->FrustumMaterial->currentText().toStdString();
   emit this->objGeometryChanged(frust);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
 {
-  cylin->x = this->Internal->CylinderXPos->text().toDouble();
-  cylin->y = this->Internal->CylinderYPos->text().toDouble();
-  cylin->z1 = this->Internal->CylinderZPos1->text().toDouble();
-  cylin->z2 = this->Internal->CylinderZPos2->text().toDouble();
-  cylin->r = this->Internal->CylinderRadius->text().toDouble();
+  bool change = false;
+  set_and_test_for_change(cylin->x,
+                          this->Internal->CylinderXPos->text().toDouble());
+  set_and_test_for_change(cylin->y,
+                          this->Internal->CylinderYPos->text().toDouble());
+  set_and_test_for_change(cylin->z1,
+                          this->Internal->CylinderZPos1->text().toDouble());
+  set_and_test_for_change(cylin->z2,
+                          this->Internal->CylinderZPos2->text().toDouble());
+  set_and_test_for_change(cylin->r,
+                          this->Internal->CylinderRadius->text().toDouble());
+  if(change) emit valuesChanged();
 
-  //cylin->material = this->Internal->CylinderMaterial->currentText().toStdString();
   emit this->objGeometryChanged(cylin);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
 {
-  duct->x = this->Internal->DuctXPos->text().toDouble();
-  duct->y = this->Internal->DuctYPos->text().toDouble();
-  duct->z1 = this->Internal->DuctZPos1->text().toDouble();
-  duct->z2 = this->Internal->DuctZPos2->text().toDouble();
+  bool change = false;
 
-  duct->thickness[0] = this->Internal->DuctThickX->text().toDouble();
-  duct->thickness[1] = this->Internal->DuctThickY->text().toDouble();
+  set_and_test_for_change(duct->x, this->Internal->DuctXPos->text().toDouble());
+  set_and_test_for_change(duct->y, this->Internal->DuctYPos->text().toDouble());
+  set_and_test_for_change(duct->z1, this->Internal->DuctZPos1->text().toDouble());
+  set_and_test_for_change(duct->z2, this->Internal->DuctZPos2->text().toDouble());
 
-  this->setDuctValuesFromTable(duct);
+  set_and_test_for_change(duct->thickness[0],
+                          this->Internal->DuctThickX->text().toDouble());
+  set_and_test_for_change(duct->thickness[1],
+                          this->Internal->DuctThickY->text().toDouble());
+
+  change |= this->setDuctValuesFromTable(duct);
+
+  if(change) emit valuesChanged();
 
   emit this->objGeometryChanged(duct);
 }
@@ -699,17 +722,19 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
     QObject::connect( this->Internal->PinCellEditor,
                       SIGNAL(labelChanged(PinCell*, QString, QString)),
                       this, SLOT(pinLabelChanged(PinCell*, QString, QString)));
-      QObject::connect( this->Internal->PinCellEditor,
+    QObject::connect( this->Internal->PinCellEditor,
                        SIGNAL(nameChanged(PinCell*, QString, QString)),
                        this, SLOT(pinNameChanged(PinCell*, QString, QString)));
     QObject::connect( this,
                       SIGNAL(badPinLabel(QString)),
                       this->Internal->PinCellEditor,
                       SLOT(badLabel(QString)));
-      QObject::connect( this,
+    QObject::connect( this,
                        SIGNAL(badPinName(QString)),
                        this->Internal->PinCellEditor,
                        SLOT(badName(QString)));
+    QObject::connect( this->Internal->PinCellEditor, SIGNAL(valueChange()),
+                      this, SIGNAL(valuesChanged()) );
     }
   this->Internal->PinCellEditor->SetPinCell(pincell,this->GeometryType == HEXAGONAL);
 }
@@ -891,20 +916,23 @@ void cmbNucInputPropertiesWidget::setUpDuctTable(bool isHex, Duct* duct)
   tmpTable->blockSignals(false);
 }
 
-void cmbNucInputPropertiesWidget::setDuctValuesFromTable(Duct* duct)
+bool cmbNucInputPropertiesWidget::setDuctValuesFromTable(Duct* duct)
 {
-  if(duct == NULL) return;
-  duct->materials.clear();
+  if(duct == NULL) return false;
   QTableWidget * table = this->Internal->DuctLayers;
+  bool change = duct->materials.size() != table->rowCount();
+  duct->materials.resize(table->rowCount());
   for(int i = 0; i < table->rowCount(); i++)
   {
-    Duct::Material m = duct->materials[i];
+    Duct::Material & m = duct->materials[i];
     QString mat = qobject_cast<QComboBox *>(table->cellWidget(i, 0))->currentText();
-    m.material = mat.toStdString();
-    m.normThickness[0] = table->item(i, 1)->data(Qt::DisplayRole).toDouble();
-    m.normThickness[1] = table->item(i, 2)->data(Qt::DisplayRole).toDouble();
-    duct->materials.push_back(m);
+    set_and_test_for_change(m.material, mat.toStdString());
+    set_and_test_for_change(m.normThickness[0],
+                            table->item(i, 1)->data(Qt::DisplayRole).toDouble());
+    set_and_test_for_change(m.normThickness[1],
+                            table->item(i, 2)->data(Qt::DisplayRole).toDouble());
   }
+  return change;
 }
 
 void cmbNucInputPropertiesWidget::addDuctLayerBefore()

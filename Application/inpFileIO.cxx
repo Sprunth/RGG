@@ -254,6 +254,7 @@ bool inpFileReader
     return false;
   inpFileHelper helper;
   assembly.FileName = FileName;
+  assembly.setAndTestDiffFromFiles(false); //Should not be different
   std::stringstream input(CleanFile);
   while(!input.eof())
   {

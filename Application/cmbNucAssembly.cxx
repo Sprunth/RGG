@@ -27,12 +27,17 @@
 #include "vtkXMLMultiBlockDataWriter.h"
 #include <QMap>
 #include <QDebug>
+#include <QFileInfo>
+#include <QDateTime>
+#include <QDir>
 
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->LegendColor = Qt::white;
   this->Parameters = new cmbAssyParameters;
+  this->DifferentFromFile = true;
+  this->DifferentFromCub = true;
 }
 
 cmbNucAssembly::~cmbNucAssembly()
@@ -652,4 +657,43 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
     }
 
   return dataSet;
+}
+
+void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
+{
+  if(diffFromFile)
+  {
+    this->DifferentFromFile = true;
+    this->DifferentFromCub = true;
+    return;
+  }
+  //make sure file exits
+  //check to see if a cub file has been generate and is older than this file
+  QFileInfo inpInfo(this->FileName.c_str());
+  if(!inpInfo.exists())
+  {
+    this->DifferentFromFile = true;
+    this->DifferentFromCub = true;
+    return;
+  }
+  this->DifferentFromFile = false;
+  QDateTime inpLM = inpInfo.lastModified();
+  QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName() + ".cub");
+  if(!cubInfo.exists())
+  {
+    this->DifferentFromCub = true;
+    return;
+  }
+  QDateTime cubLM = cubInfo.lastModified();
+  this->DifferentFromCub = cubLM < inpLM;
+}
+
+bool cmbNucAssembly::changeSinceLastSave() const
+{
+  return this->DifferentFromFile;
+}
+
+bool cmbNucAssembly::changeSinceLastGenerate() const
+{
+  return this->DifferentFromCub;
 }

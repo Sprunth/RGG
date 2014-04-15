@@ -15,6 +15,7 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QHeaderView>
+#include <QFont>
 
 class cmbNucInputListWidgetInternal :
   public Ui::InputListWidget
@@ -706,6 +707,14 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   assyNode->setChildIndicatorPolicy(
     QTreeWidgetItem::DontShowIndicatorWhenChildless);
 
+  if(assy->changeSinceLastSave())
+  {
+    QFont tmp_font = assyNode->font(0);
+    tmp_font.setBold(true);
+    tmp_font.setUnderline(true);
+    assyNode->setFont(0, tmp_font);
+  }
+
   /// ******** populate parts tree ********
   QTreeWidgetItem* partsRoot = assyNode;
 
@@ -922,6 +931,7 @@ void cmbNucInputListWidget::initPartsTree()
   treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
   treeWidget->blockSignals(false);
 }
+
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::initMaterialsTree()
 {
@@ -949,4 +959,56 @@ void cmbNucInputListWidget::initMaterialsTree()
     }
 
   treeWidget->blockSignals(false);
+}
+
+void cmbNucInputListWidget::assemblyModified(cmbNucPartsTreeItem* assyNode)
+{
+  cmbNucAssembly* assem = this->getCurrentAssembly();
+  if(assem)
+  {
+    assem->setAndTestDiffFromFiles(true);
+    QFont tmp_font = assyNode->font(0);
+    tmp_font.setBold(true);
+    tmp_font.setUnderline(true);
+    assyNode->setFont(0, tmp_font);
+  }
+}
+
+void cmbNucInputListWidget::valueChanged()
+{
+  AssyPartObj* part = this->getSelectedPart();
+  cmbNucPartsTreeItem* selItem = this->getSelectedPartNode();
+  if(part == NULL || selItem == NULL)
+  {
+    return;
+  }
+  switch(part->GetType())
+  {
+    case CMBNUC_ASSY_LATTICE:
+    case CMBNUC_ASSY_DUCTCELL:
+    case CMBNUC_ASSY_PINCELL:
+      this->assemblyModified(dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()));
+      break;
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_BASEOBJ:
+      this->assemblyModified(dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()->parent()));
+      break;
+    case CMBNUC_ASSEMBLY:
+      assemblyModified(selItem);
+      break;
+    case CMBNUC_CORE:
+      break;
+  }
+}
+
+void cmbNucInputListWidget::checkSaved()
+{
+}
+
+void cmbNucInputListWidget::checkGenerated()
+{
+
 }

@@ -271,6 +271,8 @@ void cmbNucMainWindow::initPanels()
     this->PropertyWidget, SLOT(resetAssemblyEditor(cmbNucAssembly*)));
   QObject::connect(this->InputsWidget, SIGNAL(assembliesModified(cmbNucCore*)),
     this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
+  QObject::connect(this->PropertyWidget, SIGNAL(valuesChanged()),
+                   this->InputsWidget, SLOT(valueChanged()));
 
   QObject::connect(this->PropertyWidget,
                    SIGNAL(sendLabelChange(const QString)),

@@ -11,6 +11,11 @@
 #include "cmbNucAssembly.h"
 #include "cmbNucMaterialColors.h"
 
+#define set_and_test(X,Y) \
+change |= (Y) != X;\
+X = (Y);
+
+
 class PinCellComponent
 {
 public:
@@ -269,6 +274,7 @@ void cmbNucPinCellEditor::UpdatePinCell()
   if(newName != prevName)
   {
     emit nameChanged(this->PinCellObject, prevName, newName);
+    emit valueChange();
   }
 
   QString newlabel = this->Ui->labelLineEdit->text();
@@ -277,10 +283,14 @@ void cmbNucPinCellEditor::UpdatePinCell()
   if(newlabel != prevlabel)
     {
     emit labelChanged(this->PinCellObject, prevlabel, newlabel);
+    emit valueChange();
     }
-  this->PinCellObject->pitchX = this->Ui->pitchX->text().toDouble();
-  this->PinCellObject->pitchY = this->Ui->pitchY->text().toDouble();
-  this->PinCellObject->pitchZ = this->Ui->pitchX->text().toDouble();
+
+  bool change = false;
+  set_and_test(this->PinCellObject->pitchX, this->Ui->pitchX->text().toDouble());
+  set_and_test(this->PinCellObject->pitchY, this->Ui->pitchY->text().toDouble());
+  set_and_test(this->PinCellObject->pitchZ, this->Ui->pitchX->text().toDouble());
+  if(change) emit valueChange();
 
   // update components
   double z = 0;
@@ -318,26 +328,28 @@ void cmbNucPinCellEditor::updateComponentObject(int i, double& z)
   double l = this->Ui->piecesTable->item(i, 1)->text().toDouble();
   double r1 = this->Ui->piecesTable->item(i, 2)->text().toDouble();
   double r2 = this->Ui->piecesTable->item(i, 3)->text().toDouble();
+  bool change = false;
 
   if(obj->GetType() == CMBNUC_ASSY_CYLINDER_PIN){
       Cylinder *cylinder = dynamic_cast<Cylinder*>(obj);
-      cylinder->x = x;
-      cylinder->y = y;
-      cylinder->z1 = z;
-      cylinder->z2 = z + l;
-      cylinder->r = r1;
+      set_and_test(cylinder->x, x);
+      set_and_test(cylinder->y, y);
+      set_and_test(cylinder->z1, z);
+      set_and_test(cylinder->z2, z + l);
+      set_and_test(cylinder->r, r1);
   }
   else if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN){
-      Frustum *frustum =  dynamic_cast<Frustum*>(obj);;
-      frustum->x = x;
-      frustum->y = y;
-      frustum->z1 = z;
-      frustum->z2 = z + l;
-      frustum->r1 = r1;
-      frustum->r2 = r2;
+      Frustum *frustum =  dynamic_cast<Frustum*>(obj);
+      set_and_test(frustum->x, x);
+      set_and_test(frustum->y, y);
+      set_and_test(frustum->z1, z);
+      set_and_test(frustum->z2, z + l);
+      set_and_test(frustum->r1, r1);
+      set_and_test(frustum->r2, r2);
   }
   z += l;
   this->Ui->piecesTable->blockSignals(false);
+  if(change) emit valueChange();
 }
 
 AssyPartObj* cmbNucPinCellEditor::createComponentObject(int i, double& z)
@@ -390,6 +402,8 @@ AssyPartObj* cmbNucPinCellEditor::createComponentObject(int i, double& z)
   this->UpdateLayerMaterials();
   this->Ui->piecesTable->blockSignals(false);
 
+  emit valueChange();
+
   return retObj;
 }
 
@@ -435,6 +449,7 @@ void cmbNucPinCellEditor::UpdateLayerMaterials()
         }
       }
     }
+  emit valueChange();
 }
 
 void cmbNucPinCellEditor::UpdateData()

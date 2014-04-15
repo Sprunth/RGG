@@ -238,6 +238,9 @@ public:
   std::string h5mFile;
   int HexSymmetry;
 
+  bool DifferentFromFile;
+  bool DifferentFromH5M;
+
   cmbNucCoreParams Params;
 
 private:
