@@ -27,9 +27,6 @@ class cmbNucInputPropertiesWidgetInternal :
   public Ui::InputPropertiesWidget
 {
 public:
-
-  QStringList DuctMaterials; // size is the number of layers
-  QList<QPair<double, double> > DuctThicknesses; //size is twice the number of layers
   QPointer <cmbNucPinCellEditor> PinCellEditor;
 };
 
