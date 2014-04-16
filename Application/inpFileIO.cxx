@@ -46,7 +46,7 @@ public:
   void readDuct( std::stringstream & input, cmbNucAssembly &assembly );
   void readPincell( std::stringstream & input, cmbNucAssembly &assembly );
   void readAssemblies( std::stringstream & input, cmbNucCore &core,
-                       std::string strPath );
+                       std::string strPath, bool readAssemblies );
   template<class TYPE> void read( std::stringstream & input,
                                   bool /*isHex*/,
                                   std::string /*mesg*/,
@@ -254,6 +254,7 @@ bool inpFileReader
     return false;
   inpFileHelper helper;
   assembly.FileName = FileName;
+  assembly.clear();
   assembly.setAndTestDiffFromFiles(false); //Should not be different
   std::stringstream input(CleanFile);
   while(!input.eof())
@@ -351,16 +352,16 @@ bool inpFileReader
 }
 
 bool inpFileReader
-::read(cmbNucCore & core)
+::read(cmbNucCore & core, bool read_assemblies)
 {
   if(Type != CORE_TYPE)
     return false;
   QFileInfo info(FileName.c_str());
   std::string strPath = info.dir().path().toStdString();
-  core.setAndTestDiffFromFiles(false); //Should not be different
 
   inpFileHelper helper;
   core.FileName = FileName;
+  core.setAndTestDiffFromFiles(false);
   std::stringstream input(CleanFile);
   while(!input.eof())
   {
@@ -392,7 +393,7 @@ bool inpFileReader
       }
     else if(value == "assemblies")
       {
-      helper.readAssemblies( input, core, strPath );
+      helper.readAssemblies( input, core, strPath, read_assemblies );
       }
     else if(value == "lattice")
       {
@@ -1201,7 +1202,8 @@ void inpFileHelper::readLattice( std::stringstream & input,
 
 void inpFileHelper::readAssemblies( std::stringstream &input,
                                     cmbNucCore &core,
-                                    std::string strPath )
+                                    std::string strPath,
+                                    bool readAssy )
 {
   int count;
   cmbNucAssembly *subAssembly;
@@ -1226,7 +1228,7 @@ void inpFileHelper::readAssemblies( std::stringstream &input,
     QFileInfo tmpInfo(tmpPath.c_str());
     tmpPath = strPath + "/" + tmpInfo.completeBaseName().toStdString() + ".inp";
     QFileInfo assyInfo(tmpPath.c_str());
-    if(assyInfo.exists())
+    if(assyInfo.exists() && readAssy)
       {
       subAssembly = core.loadAssemblyFromFile(tmpPath, assylabel);
       }
@@ -1263,20 +1265,21 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
         {
         assemblyName = "assembly_a_"+assembly.label;
         }
+      assembly.FileName = strPath+"/"+assemblyName+".inp";
       }
     else
       {
       QFileInfo temp(assemblyName.c_str());
       assemblyName = temp.completeBaseName().toStdString();
-      if(assemblyName + ".inp" == coreName)
+      if(temp.dir()  == info.dir())
         {
-        assemblyName = "assembly_"+info.completeBaseName().toStdString();
+        assemblyName = temp.completeBaseName().toStdString();
         }
-
+      else
+        {
+        assemblyName = (temp.dir().path() + "/" + temp.completeBaseName()).toStdString();
+        }
       }
-    std::string tmpPath = strPath;
-    tmpPath.append("/").append(assemblyName).append(".inp");
     output << assemblyName << ".cub " << assembly.label << "\n";
-    assembly.WriteFile(tmpPath);
     }
 }

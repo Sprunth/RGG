@@ -25,6 +25,8 @@ cmbNucCore::cmbNucCore()
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
   this->HexSymmetry = 1;
+  DifferentFromFile = true;
+  DifferentFromH5M = true;
 }
 
 cmbNucCore::~cmbNucCore()

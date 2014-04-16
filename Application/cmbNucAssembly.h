@@ -165,6 +165,8 @@ public:
 
   void GetDuctWidthHeight(double r[2]);
 
+  void clear();
+
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;

@@ -75,6 +75,9 @@
      <string>File</string>
     </property>
     <widget class="QMenu" name="menuReload">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="title">
       <string>Reload From File</string>
      </property>
@@ -85,8 +88,11 @@
     <addaction name="actionOpenFile"/>
     <addaction name="actionOpenMOABFile"/>
     <addaction name="separator"/>
-    <addaction name="saveCoreFile"/>
-    <addaction name="actionSaveFile"/>
+    <addaction name="actionSaveAll"/>
+    <addaction name="actionSaveSelected"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveSelectedAs"/>
+    <addaction name="actionSaveProjectAs"/>
     <addaction name="separator"/>
     <addaction name="actionClearAll"/>
     <addaction name="menuReload"/>
@@ -258,6 +264,26 @@
   <action name="actionReloadSelected">
    <property name="text">
     <string>Selected</string>
+   </property>
+  </action>
+  <action name="actionSaveAll">
+   <property name="text">
+    <string>Save All</string>
+   </property>
+  </action>
+  <action name="actionSaveSelected">
+   <property name="text">
+    <string>Save Selected</string>
+   </property>
+  </action>
+  <action name="actionSaveSelectedAs">
+   <property name="text">
+    <string>Save Selected As</string>
+   </property>
+  </action>
+  <action name="actionSaveProjectAs">
+   <property name="text">
+    <string>Save Project As</string>
    </property>
   </action>
  </widget>

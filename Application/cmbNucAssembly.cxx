@@ -697,3 +697,11 @@ bool cmbNucAssembly::changeSinceLastGenerate() const
 {
   return this->DifferentFromCub;
 }
+
+void cmbNucAssembly::clear()
+{
+  AssyPartObj::deleteObjs(this->PinCells);
+  this->PinCells.clear();
+  delete this->Parameters;
+  this->Parameters = new cmbAssyParameters;
+}

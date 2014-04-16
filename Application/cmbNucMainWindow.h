@@ -45,8 +45,12 @@ public slots:
   void onNewDialogAccept();
   void onFileOpen();
   void onFileOpenMoab();
-  void onFileSave();
-  void onCoreFileSave();
+  void onSaveSelected();
+  void onSaveAll();
+  void onSaveProjectAs();
+  void onSaveSelectedAs();
+  void onReloadSelected();
+  void onReloadAll();
   void clearAll();
   void clearCore();
   void saveFile(const QString &fileName);
@@ -62,6 +66,11 @@ signals:
 
 protected:
   void initPanels();
+  void saveSelected(bool requestFileName);
+  void saveAll(bool requestFileName);
+  void save(cmbNucAssembly*, bool request_file_name);
+  void save(cmbNucCore*, bool request_file_name);
+  QString requestInpFileName(QString name, QString type);
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);

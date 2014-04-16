@@ -22,7 +22,7 @@ public:
   FileType open(std::string fname);
   void close();
   bool read(cmbNucAssembly & assembly);
-  bool read(cmbNucCore & core);
+  bool read(cmbNucCore & core, bool read_assemblies = true);
 protected:
   std::string FileName;
   FileType Type;

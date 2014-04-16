@@ -685,6 +685,8 @@ void cmbNucInputListWidget::initCoreRootNode()
       Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     this->Internal->RootCoreNode = new cmbNucPartsTreeItem(
       this->Internal->PartsList->invisibleRootItem(), this->NuclearCore);
+    this->Internal->RootCoreNode->setHightlights( this->NuclearCore->changeSinceLastSave(),
+                                                  this->NuclearCore->changeSinceLastGenerate());
     connect(this, SIGNAL(checkSavedAndGenerate()),
             this->Internal->RootCoreNode->connection, SLOT(checkSaveAndGenerate()));
     this->Internal->RootCoreNode->setText(0, "Core");
@@ -1010,4 +1012,34 @@ void cmbNucInputListWidget::valueChanged()
       this->coreModified();
       break;
   }
+}
+
+AssyPartObj* cmbNucInputListWidget::getSelectedCoreOrAssembly()
+{
+  AssyPartObj* part = this->getSelectedPart();
+  cmbNucPartsTreeItem* selItem = this->getSelectedPartNode();
+  if(part == NULL || selItem == NULL)
+  {
+    return NULL;
+  }
+  switch(part->GetType())
+  {
+    case CMBNUC_ASSY_LATTICE:
+    case CMBNUC_ASSY_DUCTCELL:
+    case CMBNUC_ASSY_PINCELL:
+      return dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent())->getPartObject();
+      break;
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_BASEOBJ:
+      return dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()->parent())->getPartObject();
+      break;
+    case CMBNUC_ASSEMBLY:
+    case CMBNUC_CORE:
+      return part;
+      break;
+  }
+  return NULL;
 }
