@@ -15,6 +15,44 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QHeaderView>
+#include <QItemDelegate>
+
+class MyItemDelegate: public QItemDelegate
+{
+public:
+  MyItemDelegate(QObject* pParent = 0) : QItemDelegate(pParent)
+  {
+  }
+
+  void paint(QPainter* pPainter, const QStyleOptionViewItem& rOption, const QModelIndex& rIndex) const
+  {
+    QStyleOptionViewItemV4 ViewOption(rOption);
+
+    QString oldText;
+    cmbNucPartsTreeItem * item = reinterpret_cast<cmbNucPartsTreeItem *>(rIndex.internalPointer());
+
+    if(item->fileChanged())
+    {
+      oldText = item->text(0);
+      item->setText(0, "!* "+item->text(0)+" *!");
+    }
+
+    QColor ItemForegroundColor = rIndex.data(Qt::ForegroundRole).value<QColor>();
+    if (ItemForegroundColor.isValid())
+    {
+      if (ItemForegroundColor != rOption.palette.color(QPalette::WindowText))
+      {
+        ViewOption.palette.setColor(QPalette::Highlight, ItemForegroundColor);
+      }
+    }
+    QItemDelegate::paint(pPainter, ViewOption, rIndex);
+    if(item->fileChanged())
+    {
+      item->setText(0, oldText);
+    }
+  }
+};
+
 
 class cmbNucInputListWidgetInternal :
   public Ui::InputListWidget
@@ -62,6 +100,7 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
 
   // set up the UI trees
   QTreeWidget* treeWidget = this->Internal->PartsList;
+  treeWidget->setItemDelegate(new MyItemDelegate());
 
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
@@ -972,6 +1011,7 @@ void cmbNucInputListWidget::assemblyModified(cmbNucPartsTreeItem* assyNode)
     assem->setAndTestDiffFromFiles(true);
     assyNode->setHightlights(assem->changeSinceLastSave(),
                              assem->changeSinceLastGenerate());
+    this->Internal->PartsList->repaint();
   }
 }
 
@@ -983,6 +1023,7 @@ void cmbNucInputListWidget::coreModified()
     NuclearCore->setAndTestDiffFromFiles(true);
     selItem->setHightlights(NuclearCore->changeSinceLastSave(),
                             NuclearCore->changeSinceLastGenerate());
+    this->Internal->PartsList->repaint();
   }
 }
 

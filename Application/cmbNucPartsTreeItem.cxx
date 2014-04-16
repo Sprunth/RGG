@@ -3,11 +3,13 @@
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
 #include <QFont>
+#include <QBrush>
 
 //-----------------------------------------------------------------------------
 cmbNucPartsTreeItem::cmbNucPartsTreeItem(
   QTreeWidgetItem* pNode, AssyPartObj* obj)
-: QTreeWidgetItem(pNode), PartObject(obj)
+:  FileChanged(false), NeedGeneration(false),
+   QTreeWidgetItem(pNode), PartObject(obj)
 {
   this->connection = new cmbNucPartsTreeItemConnection();
   this->connection->v = this;
@@ -70,10 +72,32 @@ void cmbNucPartsTreeItem::checkSaveAndGenerate()
   this->setHightlights(need_to_save, need_to_generate);
 }
 
-void cmbNucPartsTreeItem::setHightlights(bool fileChange, bool needGeneration)
+bool cmbNucPartsTreeItem::fileChanged() const
 {
+  return FileChanged;
+}
+
+bool cmbNucPartsTreeItem::needGeneration() const
+{
+  return NeedGeneration;
+}
+
+void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
+{
+  FileChanged = fc;
+  NeedGeneration = ng;
   QFont tmp_font = this->font(0);
-  tmp_font.setBold(fileChange);
-  tmp_font.setUnderline(fileChange);
+  tmp_font.setBold(FileChanged||NeedGeneration);
   this->setFont(0, tmp_font);
+
+  if(NeedGeneration)
+  {
+    QBrush b (Qt::red);
+    setForeground( 0 , b );
+  }
+  else
+  {
+    QBrush b;
+    setForeground( 0 , b );
+  }
 }

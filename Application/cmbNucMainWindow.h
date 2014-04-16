@@ -59,6 +59,7 @@ public slots:
   void ResetView();
   void onInteractionTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);
+  void checkForNewCUBH5MFiles();
 
 signals:
   void updateGlobalZScale(double scale);
@@ -66,10 +67,10 @@ signals:
 
 protected:
   void initPanels();
-  void saveSelected(bool requestFileName);
-  void saveAll(bool requestFileName);
-  void save(cmbNucAssembly*, bool request_file_name);
-  void save(cmbNucCore*, bool request_file_name);
+  void saveSelected(bool requestFileName, bool force);
+  void saveAll(bool requestFileName, bool force);
+  void save(cmbNucAssembly*, bool request_file_name, bool force);
+  void save(cmbNucCore*, bool request_file_name, bool force);
   QString requestInpFileName(QString name, QString type);
 
 protected slots:

@@ -438,6 +438,7 @@ void cmbNucExport::run( const QString assygenExe,
       this->deleteWorkers();
       return;
     }
+    emit fileDone();
     if(!keepGoing())
     {
       emit currentProcess("  CANCELED");
@@ -478,6 +479,7 @@ void cmbNucExport::run( const QString assygenExe,
     qDebug() << "testing to see if " << CoreGenOutputFile << "exists";
     if(QFileInfo(CoreGenOutputFile).exists())
     {
+      emit fileDone();
       emit sendCoreResult(CoreGenOutputFile);
     }
     else

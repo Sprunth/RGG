@@ -361,7 +361,7 @@ bool inpFileReader
 
   inpFileHelper helper;
   core.FileName = FileName;
-  core.setAndTestDiffFromFiles(false);
+  core.h5mFile = (info.completeBaseName() + ".h5m").toStdString();
   std::stringstream input(CleanFile);
   while(!input.eof())
   {
@@ -418,7 +418,9 @@ bool inpFileReader
       }
     else if(value == "outputfilename")
       {
+      core.h5mFile.clear();
       getline(input, core.h5mFile);
+      core.h5mFile = QString(core.h5mFile.c_str()).trimmed().toStdString();
       }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     else if( value == #Key) \
@@ -434,6 +436,7 @@ bool inpFileReader
         helper.readUnknown(input, value, core.Params.UnknownKeyWords);
       }
     }
+  core.setAndTestDiffFromFiles(false);
   return true;
 }
 
@@ -545,6 +548,10 @@ bool inpFileWriter::write(std::string fname,
     {
     core.FileName = fname;
     }
+  if(core.h5mFile.empty())
+  {
+    core.h5mFile = (info.completeBaseName() + ".h5m").toStdString();
+  }
   core.computePitch();
   helper.writeHeader(output,"Assembly");
   output << "Symmetry "  << core.HexSymmetry << "\n";
@@ -583,7 +590,7 @@ bool inpFileWriter::write(std::string fname,
 #undef FUN_STRUCT
 
   output << "outputfilename "
-         << QFileInfo(fname.c_str()).completeBaseName().toStdString() << ".h5m\n";
+         << core.h5mFile << "\n";
 
   helper.writeUnknown(output, core.Params.UnknownKeyWords);
 

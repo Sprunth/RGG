@@ -36,6 +36,7 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
            this->Exporter, SLOT(run( const QString, const QStringList &,
                                      const QString, const QString,
                                      const QString, const QString)));
+  connect( this->Exporter, SIGNAL(fileDone()), this, SIGNAL(fileFinish()));
   Thread.start();
 }
 

@@ -19,6 +19,7 @@
 #include <QFileInfo>
 #include <QDateTime>
 #include <QDir>
+#include <QDebug>
 
 cmbNucCore::cmbNucCore()
 {
@@ -416,8 +417,11 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
     return;
   }
   this->DifferentFromFile = false;
+  //QFileInfo h5mFI();
   QDateTime inpLM = inpInfo.lastModified();
-  QFileInfo h5mInfo(inpInfo.dir(), inpInfo.baseName() + ".h5m");
+  QFileInfo h5mInfo(inpInfo.dir(), h5mFile.c_str());
+  qDebug() << h5mFile.c_str();
+  qDebug() << h5mInfo.absoluteFilePath();
   if(!h5mInfo.exists())
   {
     this->DifferentFromH5M = true;

@@ -52,6 +52,7 @@ public:
 signals:
   void error(QString);
   void finished(QString);
+  void fileFinish();
 
 private:
   // Designer form

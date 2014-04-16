@@ -243,6 +243,7 @@ void cmbNucMainWindow::initPanels()
   this->Internal->MoabSource = new cmbNucCoregen(this->InputsWidget->getModelTree());
   connect(this->ExportDialog, SIGNAL(finished(QString)),
           this->Internal->MoabSource, SLOT(openFile(QString)));
+  connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
   QObject::connect(this->InputsWidget, SIGNAL(switchToModelTab()),
                    this, SLOT(onChangeToModelTab()));
   QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab(int)),
@@ -475,6 +476,7 @@ void cmbNucMainWindow::onFileOpen()
         cmbNucAssembly *assembly = new cmbNucAssembly();
         assembly->label = label;
         freader.read(*assembly);
+        assembly->setAndTestDiffFromFiles(false);
         int acolorIndex = numExistingAssy +
                           this->NuclearCore->GetNumberOfAssemblies() % numAssemblyDefaultColors;
 
@@ -492,6 +494,7 @@ void cmbNucMainWindow::onFileOpen()
         this->PropertyWidget->setObject(NULL, NULL);
         this->PropertyWidget->setAssembly(NULL);
         freader.read(*(this->NuclearCore));
+        this->NuclearCore->setAndTestDiffFromFiles(false);
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
         break;
@@ -609,21 +612,21 @@ void cmbNucMainWindow::onFileOpenMoab()
 
 void cmbNucMainWindow::onSaveSelected()
 {
-  this->saveSelected(false);
+  this->saveSelected(false, false);
 }
 
 void cmbNucMainWindow::onSaveAll()
 {
-  this->saveAll(false);
+  this->saveAll(false, false);
 }
 
-void cmbNucMainWindow::saveAll(bool requestFileName)
+void cmbNucMainWindow::saveAll(bool requestFileName, bool force_save)
 {
   for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
-  {
-    this->save(NuclearCore->GetAssembly(i), requestFileName);
-  }
-  this->save(NuclearCore, requestFileName);
+    {
+    this->save(NuclearCore->GetAssembly(i), requestFileName, force_save);
+    }
+  this->save(NuclearCore, requestFileName, force_save);
   emit checkSave();
 }
 
@@ -641,16 +644,16 @@ void cmbNucMainWindow::onSaveProjectAs()
                                             NuclearCore->GetAssembly(i)->label + ".inp";
   }
   NuclearCore->FileName =dir.toStdString() + "/Core.inp";
-  this->saveAll(false);
+  this->saveAll(false, true);
   emit checkSave();
 }
 
 void cmbNucMainWindow::onSaveSelectedAs()
 {
-  this->saveSelected(true);
+  this->saveSelected(true, true);
 }
 
-void cmbNucMainWindow::saveSelected(bool requestFileName)
+void cmbNucMainWindow::saveSelected(bool requestFileName, bool force_save)
 {
   //Get the selected core or assembly.
   AssyPartObj* part = InputsWidget->getSelectedCoreOrAssembly();
@@ -659,10 +662,10 @@ void cmbNucMainWindow::saveSelected(bool requestFileName)
   switch(part->GetType())
   {
     case CMBNUC_ASSEMBLY:
-      this->save(dynamic_cast<cmbNucAssembly*>(part), requestFileName);
+      this->save(dynamic_cast<cmbNucAssembly*>(part), requestFileName, force_save);
       break;
     case CMBNUC_CORE:
-      this->save(dynamic_cast<cmbNucCore*>(part), requestFileName);
+      this->save(dynamic_cast<cmbNucCore*>(part), requestFileName, force_save);
       break;
     default:
       return;
@@ -670,7 +673,7 @@ void cmbNucMainWindow::saveSelected(bool requestFileName)
   emit checkSave();
 }
 
-void cmbNucMainWindow::save(cmbNucAssembly* assembly, bool request_file_name)
+void cmbNucMainWindow::save(cmbNucAssembly* assembly, bool request_file_name, bool force_save)
 {
   if(assembly == NULL) return;
   QString fileName = assembly->FileName.c_str();
@@ -680,10 +683,13 @@ void cmbNucMainWindow::save(cmbNucAssembly* assembly, bool request_file_name)
     fileName = cmbNucMainWindow::requestInpFileName(defaultName, "Assembly");
   }
   if(fileName.isEmpty()) return;
-  assembly->WriteFile(fileName.toStdString());
+  if(force_save || assembly->changeSinceLastSave())
+  {
+    assembly->WriteFile(fileName.toStdString());
+  }
 }
 
-void cmbNucMainWindow::save(cmbNucCore* core, bool request_file_name)
+void cmbNucMainWindow::save(cmbNucCore* core, bool request_file_name, bool force_save)
 {
   if(core == NULL) return;
   QString fileName = core->FileName.c_str();
@@ -692,7 +698,20 @@ void cmbNucMainWindow::save(cmbNucCore* core, bool request_file_name)
     fileName = cmbNucMainWindow::requestInpFileName("","Core");
   }
   if(fileName.isEmpty()) return;
-  inpFileWriter::write(fileName.toStdString(), *core);
+  if(force_save || core->changeSinceLastSave())
+  {
+    inpFileWriter::write(fileName.toStdString(), *core);
+  }
+}
+
+void cmbNucMainWindow::checkForNewCUBH5MFiles()
+{
+  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  {
+    NuclearCore->GetAssembly(i)->setAndTestDiffFromFiles(NuclearCore->GetAssembly(i)->changeSinceLastSave());
+  }
+  NuclearCore->setAndTestDiffFromFiles(NuclearCore->changeSinceLastSave());
+  emit checkSave();
 }
 
 QString cmbNucMainWindow::requestInpFileName(QString name,

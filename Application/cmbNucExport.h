@@ -81,6 +81,7 @@ signals:
   void progress(int);
   void currentProcess(QString);
   void errorMessage( QString );
+  void fileDone();
 protected:
 signals:
   void startWorkers();
