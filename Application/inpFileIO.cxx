@@ -723,7 +723,7 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
     {
     input >> mlabel;
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
-    duct->materials[i].material = materialLabelMap[mlabel];
+    duct->materials[i].material = mlabel;
     duct->materials[i].normThickness[0] /= maxV[0];
     duct->materials[i].normThickness[1] /= maxV[1];
     }

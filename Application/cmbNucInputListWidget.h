@@ -40,6 +40,8 @@ public:
   bool getMeshColorState();
   bool getMeshEdgeState();
 
+  void clearTable();
+
 signals:
   // Description:
   // Fired when a part/material is selected in the tree

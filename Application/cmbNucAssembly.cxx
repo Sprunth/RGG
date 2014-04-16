@@ -96,12 +96,17 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
       }
     }
   // update the Grid
-  this->AssyLattice.ClearCell(label);
+  if(this->AssyLattice.ClearCell(label))
+  {
+    setAndTestDiffFromFiles(true);
+    CreateData();
+  }
 }
 
 void cmbNucAssembly::RemoveMaterial(const std::string &name)
 {
   // update all places that references materials: ducts, pins
+  bool change = false;
    for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
     {
     Duct *duct = this->AssyDuct.Ducts[i];
@@ -110,14 +115,20 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
       if(duct->materials[j].material == name)
         {
         duct->materials[j].material = "";
+        change = true;
         }
      }
     }
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
     PinCell* pincell = this->PinCells[i];
-    pincell->RemoveMaterial(name);
+    change |= pincell->RemoveMaterial(name);
     }
+  if(change)
+  {
+    setAndTestDiffFromFiles(true);
+    CreateData();
+  }
 }
 
 PinCell* cmbNucAssembly::GetPinCell(const std::string &label)

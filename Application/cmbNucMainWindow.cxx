@@ -763,6 +763,7 @@ void cmbNucMainWindow::saveCoreFile(const QString &fileName)
 
 void cmbNucMainWindow::clearAll()
 {
+  this->InputsWidget->clearTable();
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
 
@@ -793,6 +794,7 @@ void cmbNucMainWindow::clearCore()
     this->updateCoreMaterialColors();
     this->PropertyWidget->resetCore(this->NuclearCore);
     this->InputsWidget->updateUI(true);
+    emit checkSave();
     this->ui->qvtkWidget->update();
     this->Renderer->ResetCamera();
     this->Renderer->Render();

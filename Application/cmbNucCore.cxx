@@ -51,6 +51,7 @@ void cmbNucCore::clearExceptAssembliesAndGeom()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->CoreLattice.SetDimensions(1, 1, true);
+  this->setAndTestDiffFromFiles(true);
   GeometryType = "";
   FileName = "";
   h5mFile = "";
@@ -88,7 +89,7 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
       }
     }
   // update the Grid
-  this->CoreLattice.ClearCell(label);
+  if(this->CoreLattice.ClearCell(label)) this->setAndTestDiffFromFiles(true);
 }
 
 cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)

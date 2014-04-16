@@ -472,8 +472,10 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     pincell = dynamic_cast<PinCell*>(selObj);
     if(pincell)
       {
-      this->getCurrentAssembly()->RemovePinCell(pincell->label);
-      emit pinsModified(this->getCurrentAssembly());
+      cmbNucAssembly* assem = this->getCurrentAssembly();
+      selItem->setSelected(false);
+      assem->RemovePinCell(pincell->label);
+      emit pinsModified(assem);
       }
     delete selItem;
     break;
@@ -511,6 +513,7 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     objRemoved = false;
     break;
   }
+  emit checkSavedAndGenerate();
   if(objRemoved)
     {
     emit this->objectRemoved();
@@ -1042,4 +1045,9 @@ AssyPartObj* cmbNucInputListWidget::getSelectedCoreOrAssembly()
       break;
   }
   return NULL;
+}
+
+void cmbNucInputListWidget::clearTable()
+{
+  this->Internal->PartsList->clear();
 }
