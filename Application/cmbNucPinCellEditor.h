@@ -33,6 +33,7 @@ signals:
   void pincellModified(AssyPartObj*);
   void labelChanged(PinCell*, QString prev, QString current);
   void nameChanged(PinCell*, QString prev, QString current);
+  void valueChange();
 
 public slots:
   void Apply();

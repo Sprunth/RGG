@@ -26,7 +26,7 @@ public:
   void rebuild();
   // build lattice with given Grid[layer][idx]
   void resetWithGrid(std::vector<std::vector<LatticeCell> >& inGrid);
-  void applyToGrid(
+  bool applyToGrid(
     std::vector<std::vector<LatticeCell> >& outGrid);
   void showContextMenu(HexLatticeItem* hexitem, QMouseEvent* event);
   void setActions(const QStringList& actions);
@@ -41,7 +41,7 @@ protected:
 private slots:
   void clear();
   void init();
-  void copyGrid(std::vector<std::vector<LatticeCell> >& inGrid,
+  bool copyGrid(std::vector<std::vector<LatticeCell> >& inGrid,
     std::vector<std::vector<LatticeCell> >& outGrid);
 
   void addCell(double centerPos[2], double radius, int layer, int cellIdx);

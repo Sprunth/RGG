@@ -228,6 +228,11 @@ public:
 
   void computePitch();
 
+  //Set the different from file and tests the h5m file;
+  void setAndTestDiffFromFiles(bool diffFromFile);
+  bool changeSinceLastSave() const;
+  bool changeSinceLastGenerate() const;
+
   // Get/Set Assembly pitch
   double AssyemblyPitchX;
   double AssyemblyPitchY;
@@ -237,6 +242,9 @@ public:
   std::string FileName;
   std::string h5mFile;
   int HexSymmetry;
+
+  bool DifferentFromFile;
+  bool DifferentFromH5M;
 
   cmbNucCoreParams Params;
 

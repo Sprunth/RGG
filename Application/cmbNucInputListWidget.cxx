@@ -15,6 +15,44 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QHeaderView>
+#include <QItemDelegate>
+
+class MyItemDelegate: public QItemDelegate
+{
+public:
+  MyItemDelegate(QObject* pParent = 0) : QItemDelegate(pParent)
+  {
+  }
+
+  void paint(QPainter* pPainter, const QStyleOptionViewItem& rOption, const QModelIndex& rIndex) const
+  {
+    QStyleOptionViewItemV4 ViewOption(rOption);
+
+    QString oldText;
+    cmbNucPartsTreeItem * item = reinterpret_cast<cmbNucPartsTreeItem *>(rIndex.internalPointer());
+
+    if(item->fileChanged())
+    {
+      oldText = item->text(0);
+      item->setText(0, "!* "+item->text(0)+" *!");
+    }
+
+    QColor ItemForegroundColor = rIndex.data(Qt::ForegroundRole).value<QColor>();
+    if (ItemForegroundColor.isValid())
+    {
+      if (ItemForegroundColor != rOption.palette.color(QPalette::WindowText))
+      {
+        ViewOption.palette.setColor(QPalette::Highlight, ItemForegroundColor);
+      }
+    }
+    QItemDelegate::paint(pPainter, ViewOption, rIndex);
+    if(item->fileChanged())
+    {
+      item->setText(0, oldText);
+    }
+  }
+};
+
 
 class cmbNucInputListWidgetInternal :
   public Ui::InputListWidget
@@ -62,6 +100,7 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
 
   // set up the UI trees
   QTreeWidget* treeWidget = this->Internal->PartsList;
+  treeWidget->setItemDelegate(new MyItemDelegate());
 
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
@@ -472,8 +511,10 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     pincell = dynamic_cast<PinCell*>(selObj);
     if(pincell)
       {
-      this->getCurrentAssembly()->RemovePinCell(pincell->label);
-      emit pinsModified(this->getCurrentAssembly());
+      cmbNucAssembly* assem = this->getCurrentAssembly();
+      selItem->setSelected(false);
+      assem->RemovePinCell(pincell->label);
+      emit pinsModified(assem);
       }
     delete selItem;
     break;
@@ -511,6 +552,7 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     objRemoved = false;
     break;
   }
+  emit checkSavedAndGenerate();
   if(objRemoved)
     {
     emit this->objectRemoved();
@@ -685,6 +727,10 @@ void cmbNucInputListWidget::initCoreRootNode()
       Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     this->Internal->RootCoreNode = new cmbNucPartsTreeItem(
       this->Internal->PartsList->invisibleRootItem(), this->NuclearCore);
+    this->Internal->RootCoreNode->setHightlights( this->NuclearCore->changeSinceLastSave(),
+                                                  this->NuclearCore->changeSinceLastGenerate());
+    connect(this, SIGNAL(checkSavedAndGenerate()),
+            this->Internal->RootCoreNode->connection, SLOT(checkSaveAndGenerate()));
     this->Internal->RootCoreNode->setText(0, "Core");
     this->Internal->RootCoreNode->setFlags(itemFlags); // not editable
     this->Internal->RootCoreNode->setChildIndicatorPolicy(
@@ -701,10 +747,15 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   cmbNucPartsTreeItem* assyNode = new cmbNucPartsTreeItem(
     this->Internal->RootCoreNode, assy);
+  connect(this, SIGNAL(checkSavedAndGenerate()),
+          assyNode->connection, SLOT(checkSaveAndGenerate()));
   assyNode->setText(0, assy->label.c_str());
   assyNode->setFlags(itemFlags); // not editable
   assyNode->setChildIndicatorPolicy(
     QTreeWidgetItem::DontShowIndicatorWhenChildless);
+
+  assyNode->setHightlights(assy->changeSinceLastSave(),
+                           assy->changeSinceLastGenerate());
 
   /// ******** populate parts tree ********
   QTreeWidgetItem* partsRoot = assyNode;
@@ -922,6 +973,7 @@ void cmbNucInputListWidget::initPartsTree()
   treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
   treeWidget->blockSignals(false);
 }
+
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::initMaterialsTree()
 {
@@ -949,4 +1001,94 @@ void cmbNucInputListWidget::initMaterialsTree()
     }
 
   treeWidget->blockSignals(false);
+}
+
+void cmbNucInputListWidget::assemblyModified(cmbNucPartsTreeItem* assyNode)
+{
+  cmbNucAssembly* assem = this->getCurrentAssembly();
+  if(assem)
+  {
+    assem->setAndTestDiffFromFiles(true);
+    assyNode->setHightlights(assem->changeSinceLastSave(),
+                             assem->changeSinceLastGenerate());
+    this->Internal->PartsList->repaint();
+  }
+}
+
+void cmbNucInputListWidget::coreModified()
+{
+  cmbNucPartsTreeItem* selItem = this->getSelectedPartNode();
+  if(selItem && NuclearCore)
+  {
+    NuclearCore->setAndTestDiffFromFiles(true);
+    selItem->setHightlights(NuclearCore->changeSinceLastSave(),
+                            NuclearCore->changeSinceLastGenerate());
+    this->Internal->PartsList->repaint();
+  }
+}
+
+void cmbNucInputListWidget::valueChanged()
+{
+  AssyPartObj* part = this->getSelectedPart();
+  cmbNucPartsTreeItem* selItem = this->getSelectedPartNode();
+  if(part == NULL || selItem == NULL)
+  {
+    return;
+  }
+  switch(part->GetType())
+  {
+    case CMBNUC_ASSY_LATTICE:
+    case CMBNUC_ASSY_DUCTCELL:
+    case CMBNUC_ASSY_PINCELL:
+      this->assemblyModified(dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()));
+      break;
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_BASEOBJ:
+      this->assemblyModified(dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()->parent()));
+      break;
+    case CMBNUC_ASSEMBLY:
+      this->assemblyModified(selItem);
+      break;
+    case CMBNUC_CORE:
+      this->coreModified();
+      break;
+  }
+}
+
+AssyPartObj* cmbNucInputListWidget::getSelectedCoreOrAssembly()
+{
+  AssyPartObj* part = this->getSelectedPart();
+  cmbNucPartsTreeItem* selItem = this->getSelectedPartNode();
+  if(part == NULL || selItem == NULL)
+  {
+    return NULL;
+  }
+  switch(part->GetType())
+  {
+    case CMBNUC_ASSY_LATTICE:
+    case CMBNUC_ASSY_DUCTCELL:
+    case CMBNUC_ASSY_PINCELL:
+      return dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent())->getPartObject();
+      break;
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_RECT_DUCT:
+    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_BASEOBJ:
+      return dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()->parent())->getPartObject();
+      break;
+    case CMBNUC_ASSEMBLY:
+    case CMBNUC_CORE:
+      return part;
+      break;
+  }
+  return NULL;
+}
+
+void cmbNucInputListWidget::clearTable()
+{
+  this->Internal->PartsList->clear();
 }

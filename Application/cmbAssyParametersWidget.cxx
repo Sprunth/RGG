@@ -73,16 +73,20 @@ void cmbAssyParametersWidget::onReset()
 namespace
 {
 
-void convert(QString qw, std::string & result)
+bool convert(QString qw, std::string & result)
 {
+  std::string prev = result;
   result = qw.toStdString();
+  return result != prev;
 }
 
-void convert(QString qw, double & result)
+bool convert(QString qw, double & result)
 {
   if(qw.isEmpty())
   {
+    bool r = result != ASSY_NOT_SET_VALUE;
     result = ASSY_NOT_SET_VALUE;
+    return r;
   }
   bool ok;
   double previous = result;
@@ -91,9 +95,10 @@ void convert(QString qw, double & result)
   {
     result = previous;
   }
+  return result != previous;
 }
 
-void convert(QString qw, int & result)
+bool convert(QString qw, int & result)
 {
   bool ok;
   int previous = result;
@@ -102,17 +107,13 @@ void convert(QString qw, int & result)
   {
     result = previous;
   }
+  return result != previous;
 }
 
-void convert(bool qw, bool & result)
-{
-  result = qw;
-}
-
-void setValue(std::string &to, QComboBox * from)
+bool setValue(std::string &to, QComboBox * from)
 {
   QString tmp = from->currentText();
-  convert(tmp, to);
+  return convert(tmp, to);
 }
 
 void setValue(QComboBox * to, std::string &from)
@@ -122,34 +123,37 @@ void setValue(QComboBox * to, std::string &from)
   to->setCurrentIndex(to->findText(tmp, Qt::MatchFixedString));
 }
 
-void setValue(double &to, QLineEdit * from)
+bool setValue(double &to, QLineEdit * from)
 {
   if(from->text().isEmpty())
   {
+    bool r = to != ASSY_NOT_SET_VALUE;
     to = ASSY_NOT_SET_VALUE;
-    return;
+    return r;
   }
-  convert(from->text(), to);
+  return convert(from->text(), to);
 }
 
-void setValue(int &to, QLineEdit * from)
+bool setValue(int &to, QLineEdit * from)
 {
   if(from->text().isEmpty())
   {
+    bool r = to != ASSY_NOT_SET_VALUE;
     to = ASSY_NOT_SET_VALUE;
-    return;
+    return r;
   }
-  convert(from->text(), to);
+  return convert(from->text(), to);
 }
 
-void setValue(std::string &to, QLineEdit * from)
+bool setValue(std::string &to, QLineEdit * from)
 {
   if(from->text().isEmpty())
   {
+    bool r = to != ASSY_NOT_SET_KEY;
     to = ASSY_NOT_SET_KEY;
-    return;
+    return r;
   }
-  convert(from->text(), to);
+  return convert(from->text(), to);
 }
 
 void setValue(QDoubleSpinBox * to, double from)
@@ -157,9 +161,11 @@ void setValue(QDoubleSpinBox * to, double from)
   to->setValue(from);
 }
 
-void setValue(double &to, QDoubleSpinBox * from)
+bool setValue(double &to, QDoubleSpinBox * from)
 {
+  double prev = to;
   to = from->value();
+  return to != prev;
 }
 
 void setValue(QLineEdit * to, std::string &from)
@@ -195,9 +201,11 @@ void setValue(QLineEdit * to, int &from)
   to->setText(tmp);
 }
 
-void setValue(bool &to, QCheckBox * from)
+bool setValue(bool &to, QCheckBox * from)
 {
+  bool prev = to;
   to = from->isChecked();
+  return prev != to;
 }
 
 void setValue(QCheckBox * to, bool &from)
@@ -241,19 +249,31 @@ void setValue(QCheckBox * to, bool &from)
 void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 {
   cmbAssyParameters* parameters = assy->GetParameters();
-#define FUN(X) setValue(parameters->X, this->Internal->X);
-#define FUN2(X,Y) setValue(parameters->X, this->Internal->Y);
+  bool changed = false;
+#define FUN(X)    changed |= setValue(parameters->X, this->Internal->X);
+#define FUN2(X,Y) changed |= setValue(parameters->X, this->Internal->Y);
   EASY_ASSY_PARAMS_MACRO()
 #undef FUN
 #undef FUN2
   std::stringstream ss(Internal->Unknown->toPlainText().toStdString().c_str());
   std::string line;
-  parameters->UnknownParams.clear();
+  unsigned int i = 0;
   while( std::getline(ss, line))
   {
-    parameters->UnknownParams.push_back(line);
+    if(i <parameters->UnknownParams.size())
+    {
+      changed |= parameters->UnknownParams[i] != line;
+      parameters->UnknownParams[i] = line;
+    }
+    else
+    {
+      changed = true;
+      parameters->UnknownParams.push_back(line);
+    }
+    ++i;
     line.clear();
   }
+  if(changed) emit valuesChanged();
 }
 
 //-----------------------------------------------------------------------------

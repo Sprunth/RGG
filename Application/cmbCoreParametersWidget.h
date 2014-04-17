@@ -23,6 +23,7 @@ public:
 signals:
   void set(QString v);
   void set(bool b);
+  void valuesChanged();
 
 public slots:
   // Invoked when Apply button clicked

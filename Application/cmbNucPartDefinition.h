@@ -227,14 +227,16 @@ enum enumGeometryType {
         this->frustums[i]->SetMaterial(idx, material);
         }
       }
-    void RemoveMaterial(const std::string& name)
+    bool RemoveMaterial(const std::string& name)
       {
+      bool change = false;
       for(size_t i = 0; i < this->cylinders.size(); i++){
         for(size_t j = 0; j < this->cylinders[i]->materials.size(); j++)
           {
           if(this->cylinders[i]->materials[j] == name)
             {
             this->cylinders[i]->materials[j] = "";
+            change = true;
             }
           }
         }
@@ -244,9 +246,11 @@ enum enumGeometryType {
           if(this->frustums[i]->materials[j] == name)
             {
             this->frustums[i]->materials[j] = "";
+            change = true;
             }
           }
         }
+      return change;
       }
 
     QColor GetLegendColor() const
@@ -513,18 +517,21 @@ enum enumGeometryType {
       {
       this->SetCell(i, j, "xx", Qt::white);
       }
-    void ClearCell(const std::string &label)
+    bool ClearCell(const std::string &label)
       {
+      bool r = false;
       for(size_t i = 0; i < this->Grid.size(); i++)
         {
         for(size_t j = 0; j < this->Grid[i].size(); j++)
           {
           if(this->GetCell(i, j).label == label)
             {
+            r = true;
             this->ClearCell(i, j);
             }
           }
         }
+      return r;
       }
 
     void replaceLabel(const std::string &oldL, const std::string &newL)

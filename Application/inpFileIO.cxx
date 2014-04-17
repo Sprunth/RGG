@@ -46,7 +46,7 @@ public:
   void readDuct( std::stringstream & input, cmbNucAssembly &assembly );
   void readPincell( std::stringstream & input, cmbNucAssembly &assembly );
   void readAssemblies( std::stringstream & input, cmbNucCore &core,
-                       std::string strPath );
+                       std::string strPath, bool readAssemblies );
   template<class TYPE> void read( std::stringstream & input,
                                   bool /*isHex*/,
                                   std::string /*mesg*/,
@@ -254,6 +254,8 @@ bool inpFileReader
     return false;
   inpFileHelper helper;
   assembly.FileName = FileName;
+  assembly.clear();
+  assembly.setAndTestDiffFromFiles(false); //Should not be different
   std::stringstream input(CleanFile);
   while(!input.eof())
   {
@@ -350,7 +352,7 @@ bool inpFileReader
 }
 
 bool inpFileReader
-::read(cmbNucCore & core)
+::read(cmbNucCore & core, bool read_assemblies)
 {
   if(Type != CORE_TYPE)
     return false;
@@ -359,6 +361,7 @@ bool inpFileReader
 
   inpFileHelper helper;
   core.FileName = FileName;
+  core.h5mFile = (info.completeBaseName() + ".h5m").toStdString();
   std::stringstream input(CleanFile);
   while(!input.eof())
   {
@@ -390,7 +393,7 @@ bool inpFileReader
       }
     else if(value == "assemblies")
       {
-      helper.readAssemblies( input, core, strPath );
+      helper.readAssemblies( input, core, strPath, read_assemblies );
       }
     else if(value == "lattice")
       {
@@ -415,7 +418,9 @@ bool inpFileReader
       }
     else if(value == "outputfilename")
       {
+      core.h5mFile.clear();
       getline(input, core.h5mFile);
+      core.h5mFile = QString(core.h5mFile.c_str()).trimmed().toStdString();
       }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     else if( value == #Key) \
@@ -431,6 +436,7 @@ bool inpFileReader
         helper.readUnknown(input, value, core.Params.UnknownKeyWords);
       }
     }
+  core.setAndTestDiffFromFiles(false);
   return true;
 }
 
@@ -521,6 +527,7 @@ if(params->isValueSet(params->Var))\
   // end
   output << "end\n";
   output.close();
+  assembly.setAndTestDiffFromFiles(false);
 
   return true;
 }
@@ -541,6 +548,10 @@ bool inpFileWriter::write(std::string fname,
     {
     core.FileName = fname;
     }
+  if(core.h5mFile.empty())
+  {
+    core.h5mFile = (info.completeBaseName() + ".h5m").toStdString();
+  }
   core.computePitch();
   helper.writeHeader(output,"Assembly");
   output << "Symmetry "  << core.HexSymmetry << "\n";
@@ -579,12 +590,14 @@ bool inpFileWriter::write(std::string fname,
 #undef FUN_STRUCT
 
   output << "outputfilename "
-         << QFileInfo(fname.c_str()).completeBaseName().toStdString() << ".h5m\n";
+         << core.h5mFile << "\n";
 
   helper.writeUnknown(output, core.Params.UnknownKeyWords);
 
   output << "End\n";
   output.close();
+
+  core.setAndTestDiffFromFiles(false);
 
   return true;
 }
@@ -717,7 +730,7 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
     {
     input >> mlabel;
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
-    duct->materials[i].material = materialLabelMap[mlabel];
+    duct->materials[i].material = mlabel;
     duct->materials[i].normThickness[0] /= maxV[0];
     duct->materials[i].normThickness[1] /= maxV[1];
     }
@@ -1196,7 +1209,8 @@ void inpFileHelper::readLattice( std::stringstream & input,
 
 void inpFileHelper::readAssemblies( std::stringstream &input,
                                     cmbNucCore &core,
-                                    std::string strPath )
+                                    std::string strPath,
+                                    bool readAssy )
 {
   int count;
   cmbNucAssembly *subAssembly;
@@ -1221,7 +1235,7 @@ void inpFileHelper::readAssemblies( std::stringstream &input,
     QFileInfo tmpInfo(tmpPath.c_str());
     tmpPath = strPath + "/" + tmpInfo.completeBaseName().toStdString() + ".inp";
     QFileInfo assyInfo(tmpPath.c_str());
-    if(assyInfo.exists())
+    if(assyInfo.exists() && readAssy)
       {
       subAssembly = core.loadAssemblyFromFile(tmpPath, assylabel);
       }
@@ -1258,20 +1272,21 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
         {
         assemblyName = "assembly_a_"+assembly.label;
         }
+      assembly.FileName = strPath+"/"+assemblyName+".inp";
       }
     else
       {
       QFileInfo temp(assemblyName.c_str());
       assemblyName = temp.completeBaseName().toStdString();
-      if(assemblyName + ".inp" == coreName)
+      if(temp.dir()  == info.dir())
         {
-        assemblyName = "assembly_"+info.completeBaseName().toStdString();
+        assemblyName = temp.completeBaseName().toStdString();
         }
-
+      else
+        {
+        assemblyName = (temp.dir().path() + "/" + temp.completeBaseName()).toStdString();
+        }
       }
-    std::string tmpPath = strPath;
-    tmpPath.append("/").append(assemblyName).append(".inp");
     output << assemblyName << ".cub " << assembly.label << "\n";
-    assembly.WriteFile(tmpPath);
     }
 }

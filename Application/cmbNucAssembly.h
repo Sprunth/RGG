@@ -158,7 +158,14 @@ public:
 
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
+  //Set the different from file and tests the cub file;
+  void setAndTestDiffFromFiles(bool diffFromFile);
+  bool changeSinceLastSave() const;
+  bool changeSinceLastGenerate() const;
+
   void GetDuctWidthHeight(double r[2]);
+
+  void clear();
 
   // Expose assembly parts for UI access
   std::vector<PinCell*> PinCells;
@@ -186,6 +193,9 @@ private:
 
   // Check if GeometryType is Hexagonal
   bool IsHexType();
+
+  bool DifferentFromFile;
+  bool DifferentFromCub;
 
 };
 

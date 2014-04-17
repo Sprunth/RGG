@@ -128,7 +128,6 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
-
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
   vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
@@ -175,8 +174,14 @@ cmbNucMainWindow::cmbNucMainWindow()
 #else
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
 #endif
-  connect(this->ui->actionSaveFile, SIGNAL(triggered()), this, SLOT(onFileSave()));
-  connect(this->ui->saveCoreFile, SIGNAL(triggered()), this, SLOT(onCoreFileSave()));
+  connect(this->ui->actionSaveSelected,   SIGNAL(triggered()), this, SLOT(onSaveSelected()));
+  connect(this->ui->actionSaveSelectedAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
+  connect(this->ui->actionSaveProjectAs,  SIGNAL(triggered()), this, SLOT(onSaveProjectAs()));
+  connect(this->ui->actionSaveAll,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
+
+  connect(this->ui->actionReloadAll,      SIGNAL(triggered()), this, SLOT(onReloadAll()));
+  connect(this->ui->actionReloadSelected, SIGNAL(triggered()), this, SLOT(onReloadSelected()));
+
   connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
           this->Preferences, SLOT(setPreferences()));
@@ -231,11 +236,14 @@ void cmbNucMainWindow::initPanels()
 {
   this->InputsWidget = new cmbNucInputListWidget(this);
 
+  connect(this, SIGNAL(checkSave()), this->InputsWidget, SIGNAL(checkSavedAndGenerate()));
+
 #ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
   this->Internal->MoabSource = new cmbNucCoregen(this->InputsWidget->getModelTree());
   connect(this->ExportDialog, SIGNAL(finished(QString)),
           this->Internal->MoabSource, SLOT(openFile(QString)));
+  connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
   QObject::connect(this->InputsWidget, SIGNAL(switchToModelTab()),
                    this, SLOT(onChangeToModelTab()));
   QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab(int)),
@@ -271,6 +279,8 @@ void cmbNucMainWindow::initPanels()
     this->PropertyWidget, SLOT(resetAssemblyEditor(cmbNucAssembly*)));
   QObject::connect(this->InputsWidget, SIGNAL(assembliesModified(cmbNucCore*)),
     this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
+  QObject::connect(this->PropertyWidget, SIGNAL(valuesChanged()),
+                   this->InputsWidget, SLOT(valueChanged()));
 
   QObject::connect(this->PropertyWidget,
                    SIGNAL(sendLabelChange(const QString)),
@@ -407,6 +417,7 @@ void cmbNucMainWindow::onExit()
 void cmbNucMainWindow::onFileNew()
 {
   this->NewDialog->show();
+  emit checkSave();
 }
 
 void cmbNucMainWindow::onNewDialogAccept()
@@ -465,6 +476,7 @@ void cmbNucMainWindow::onFileOpen()
         cmbNucAssembly *assembly = new cmbNucAssembly();
         assembly->label = label;
         freader.read(*assembly);
+        assembly->setAndTestDiffFromFiles(false);
         int acolorIndex = numExistingAssy +
                           this->NuclearCore->GetNumberOfAssemblies() % numAssemblyDefaultColors;
 
@@ -482,6 +494,7 @@ void cmbNucMainWindow::onFileOpen()
         this->PropertyWidget->setObject(NULL, NULL);
         this->PropertyWidget->setAssembly(NULL);
         freader.read(*(this->NuclearCore));
+        this->NuclearCore->setAndTestDiffFromFiles(false);
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
         break;
@@ -519,8 +532,63 @@ void cmbNucMainWindow::onFileOpen()
   this->unsetCursor();
 
   // update render view
+  emit checkSave();
   this->Renderer->ResetCamera();
   this->Renderer->Render();
+}
+
+void cmbNucMainWindow::onReloadSelected()
+{
+  inpFileReader freader;
+  //Get the selected core or assembly.
+  AssyPartObj* part = InputsWidget->getSelectedCoreOrAssembly();
+  if(part == NULL) return;
+  //check for type
+  switch(part->GetType())
+  {
+    case CMBNUC_ASSEMBLY:
+      {
+      cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(part);
+      if(assy->FileName.empty()) return;
+      freader.open(assy->FileName);
+      freader.read(*assy);
+      }
+      break;
+    case CMBNUC_CORE:
+      {
+      cmbNucCore* core = dynamic_cast<cmbNucCore*>(part);
+      if(core->FileName.empty()) return;
+      freader.open(core->FileName);
+      freader.read(*core, false);
+      }
+      break;
+    default:
+      return;
+  }
+  emit checkSave();
+  this->Renderer->ResetCamera();
+  this->Renderer->Render();
+}
+
+void cmbNucMainWindow::onReloadAll()
+{
+  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  {
+    inpFileReader freader;
+    cmbNucAssembly* assy = NuclearCore->GetAssembly(i);
+    if(assy->FileName.empty()) continue;
+    freader.open(assy->FileName);
+    freader.read(*assy);
+  }
+
+  if(!NuclearCore->FileName.empty())
+  {
+    inpFileReader freader;
+    freader.open(NuclearCore->FileName);
+    freader.read(*NuclearCore, false);
+  }
+
+  emit checkSave();
 }
 
 void cmbNucMainWindow::onFileOpenMoab()
@@ -542,61 +610,169 @@ void cmbNucMainWindow::onFileOpenMoab()
 #endif
 }
 
-void cmbNucMainWindow::onFileSave()
+void cmbNucMainWindow::onSaveSelected()
 {
-  // Use cached value for last used directory if there is one,
-  // or default to the user's home dir if not.
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
-  QString fileName =
-    QFileDialog::getSaveFileName(this,
-                                 "Save Assygen File...",
-                                 dir.path(),
-                                 "INP Files (*.inp);; vtk Files (*.vtm)");
-  if(!fileName.isEmpty())
+  this->saveSelected(false, false);
+}
+
+void cmbNucMainWindow::onSaveAll()
+{
+  this->saveAll(false, false);
+}
+
+void cmbNucMainWindow::saveAll(bool requestFileName, bool force_save)
+{
+  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
     {
-    // Cache the directory for the next time the dialog is opened
-    QFileInfo info(fileName);
-    settings.setValue("cache/lastDir", info.dir().path());
+    this->save(NuclearCore->GetAssembly(i), requestFileName, force_save);
+    }
+  this->save(NuclearCore, requestFileName, force_save);
+  emit checkSave();
+}
 
-    this->setCursor(Qt::BusyCursor);
+void cmbNucMainWindow::onSaveProjectAs()
+{
+  QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                          QDir::homePath()).toString();
+  QString	dir = QFileDialog::getExistingDirectory( this,
+                                                   "Save Project To Single Directory",
+                                                   tdir.path() );
+  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  {
+    NuclearCore->GetAssembly(i)->FileName = dir.toStdString() +
+                                            "/Assembly_" +
+                                            NuclearCore->GetAssembly(i)->label + ".inp";
+  }
+  NuclearCore->FileName =dir.toStdString() + "/Core.inp";
+  this->saveAll(false, true);
+  emit checkSave();
+}
 
-    QString ext = info.suffix();
-    if (ext == QString("vtm"))
+void cmbNucMainWindow::onSaveSelectedAs()
+{
+  this->saveSelected(true, true);
+}
+
+void cmbNucMainWindow::saveSelected(bool requestFileName, bool force_save)
+{
+  //Get the selected core or assembly.
+  AssyPartObj* part = InputsWidget->getSelectedCoreOrAssembly();
+  if(part == NULL) return;
+  //check for type
+  switch(part->GetType())
+  {
+    case CMBNUC_ASSEMBLY:
+      this->save(dynamic_cast<cmbNucAssembly*>(part), requestFileName, force_save);
+      break;
+    case CMBNUC_CORE:
+      this->save(dynamic_cast<cmbNucCore*>(part), requestFileName, force_save);
+      break;
+    default:
+      return;
+  }
+  emit checkSave();
+}
+
+void cmbNucMainWindow::saveFile(cmbNucAssembly* a)
+{
+  save(a, false, false);
+  emit checkSave();
+}
+
+void cmbNucMainWindow::saveFile(cmbNucCore* c)
+{
+  save(c, false, false);
+  emit checkSave();
+}
+
+void cmbNucMainWindow::save(cmbNucAssembly* assembly, bool request_file_name, bool force_save)
+{
+  if(assembly == NULL) return;
+  QString fileName = assembly->FileName.c_str();
+  if(request_file_name || fileName.isEmpty())
+  {
+    QString defaultName = (fileName.isEmpty())?(assembly->label+".inp").c_str():fileName;
+    fileName = cmbNucMainWindow::requestInpFileName(defaultName, "Assembly");
+  }
+  if(fileName.isEmpty()) return;
+  if(force_save || assembly->changeSinceLastSave())
+  {
+    assembly->WriteFile(fileName.toStdString());
+  }
+}
+
+void cmbNucMainWindow::save(cmbNucCore* core, bool request_file_name, bool force_save)
+{
+  if(core == NULL) return;
+  QString fileName = core->FileName.c_str();
+  if(request_file_name || fileName.isEmpty())
+  {
+    fileName = cmbNucMainWindow::requestInpFileName("","Core");
+  }
+  if(fileName.isEmpty()) return;
+  if(force_save || core->changeSinceLastSave())
+  {
+    inpFileWriter::write(fileName.toStdString(), *core);
+  }
+}
+
+void cmbNucMainWindow::checkForNewCUBH5MFiles()
+{
+  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  {
+    NuclearCore->GetAssembly(i)->setAndTestDiffFromFiles(NuclearCore->GetAssembly(i)->changeSinceLastSave());
+  }
+  NuclearCore->setAndTestDiffFromFiles(NuclearCore->changeSinceLastSave());
+  emit checkSave();
+}
+
+QString cmbNucMainWindow::requestInpFileName(QString name,
+                                             QString type)
+{
+  QString defaultName("");
+  QString defaultLoc;
+  if(!name.isEmpty())
+  {
+    QFileInfo fi(name);
+    QDir dir = fi.dir();
+    if(dir.path() == ".")
       {
-      this->exportVTKFile(fileName);
+      defaultName = fi.baseName();
+      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                              QDir::homePath()).toString();
+      defaultLoc = tdir.path();
       }
     else
       {
-      this->saveFile(fileName);
+      defaultLoc = dir.path();
+      defaultName = fi.baseName();
       }
-    this->unsetCursor();
-    }
+  }
+  if(defaultLoc.isEmpty())
+  {
+    QDir dir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                           QDir::homePath()).toString();
+    defaultLoc = dir.path();
+  }
 
-}
+  QFileDialog saveQD( this, "Save "+type+" File...", defaultLoc, "INP Files (*.inp)");
+  saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
+  saveQD.setAcceptMode(QFileDialog::AcceptSave);
+  saveQD.selectFile(defaultName);
+  QString fileName;
+  if(saveQD.exec()== QDialog::Accepted)
+  {
+    fileName = saveQD.selectedFiles().first();
+  }
 
-void cmbNucMainWindow::onCoreFileSave()
-{
-  // Use cached value for last used directory if there is one,
-  // or default to the user's home dir if not.
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
-  QString fileName =
-  QFileDialog::getSaveFileName(this,
-                               "Save Assygen File...",
-                               dir.path(),
-                               "INP Files (*.inp)");
   if(!fileName.isEmpty())
   {
     // Cache the directory for the next time the dialog is opened
     QFileInfo info(fileName);
-    settings.setValue("cache/lastDir", info.dir().path());
-
-    this->setCursor(Qt::BusyCursor);
-    this->saveCoreFile(fileName);
-    this->unsetCursor();
+    QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir",
+                                                   info.dir().path());
   }
-
+  return fileName;
 }
 
 void cmbNucMainWindow::saveFile(const QString &fileName)
@@ -607,6 +783,7 @@ void cmbNucMainWindow::saveFile(const QString &fileName)
     return;
     }
 
+  emit checkSave();
   this->InputsWidget->getCurrentAssembly()->WriteFile(fileName.toStdString());
 }
 
@@ -617,6 +794,7 @@ void cmbNucMainWindow::saveCoreFile(const QString &fileName)
 
 void cmbNucMainWindow::clearAll()
 {
+  this->InputsWidget->clearTable();
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
 
@@ -628,6 +806,7 @@ void cmbNucMainWindow::clearAll()
   this->MaterialColors->OpenFile(materialfile);
 
   this->initPanels();
+  emit checkSave();
   onChangeMeshEdgeMode(false);
   //this->InputsWidget->updateUI(false);
   //this->PropertyWidget->resetCore(NULL);
@@ -646,6 +825,7 @@ void cmbNucMainWindow::clearCore()
     this->updateCoreMaterialColors();
     this->PropertyWidget->resetCore(this->NuclearCore);
     this->InputsWidget->updateUI(true);
+    emit checkSave();
     this->ui->qvtkWidget->update();
     this->Renderer->ResetCamera();
     this->Renderer->Render();

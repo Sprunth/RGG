@@ -65,7 +65,7 @@ SET(RGGNuclear_Headers
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
   cmbNucNewDialog.h
-#  cmbNucPartsTreeItem.h
+  cmbNucPartsTreeItem.h
   cmbNucAssemblyEditor.h
   cmbNucDragLabel.h
   cmbNucPinCellEditor.h

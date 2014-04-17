@@ -48,6 +48,7 @@ signals:
   void sendLabelChange(const QString);
   void badPinLabel(QString prevL);
   void badPinName(QString prev);
+  void valuesChanged();
 
 public slots:
   void resetCore(cmbNucCore* nucCore);
@@ -96,7 +97,7 @@ protected slots:
 
 private:
   void setUpDuctTable(bool isHex, Duct* duct);
-  void setDuctValuesFromTable(Duct* duct);
+  bool setDuctValuesFromTable(Duct* duct);
   void addDuctLayerSetRowValue(int row);
   bool RebuildCoreGrid;
   cmbNucInputPropertiesWidgetInternal* Internal;

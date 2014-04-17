@@ -17,6 +17,10 @@ namespace common
 {
 class ExecuteProcess;
 }
+namespace server
+{
+class Server;
+}
 }
 
 class cmbNucExporterWorker: public QObject, public remus::worker::Worker
@@ -40,6 +44,7 @@ public slots:
   void stop();
 signals:
   void errorMessage( QString );
+  void currentMessage( QString );
 private:
   bool stillRunning();
   void run();
@@ -72,6 +77,12 @@ public slots:
             const QString coregenExe,
             const QString coregenFile,
             const QString CoreGenOutputFile);
+  void runAssy( const QString assygenExe,
+                const QStringList &assygenFile,
+                const QString cubitExe );
+  void runCore(const QString coregenExe,
+               const QString coregenFile,
+               const QString CoreGenOutputFile);
   void cancel();
 signals:
   void done();
@@ -81,11 +92,25 @@ signals:
   void progress(int);
   void currentProcess(QString);
   void errorMessage( QString );
+  void fileDone();
+  void statusMessage(QString);
 protected:
 signals:
   void startWorkers();
   void endWorkers();
 private:
+  bool runAssyHelper( const QString assygenExe,
+                      const QStringList &assygenFile,
+                      const QString cubitExe,
+                      double & count, double max_count );
+  bool runCoreHelper( const QString coregenExe,
+                      const QString coregenFile,
+                      const QString CoreGenOutputFile,
+                      double & count, double max_count );
+  void finish();
+  void cancelHelper();
+  void failedHelper(QString msg, QString pmsg);
+  bool startUpHelper(double & count, double max_count);
   bool keepGoing() const;
   bool KeepGoing;
   mutable QMutex Mutex, Memory;
@@ -95,6 +120,7 @@ private:
   cmbNucExporterWorker * assygenWorker;
   cmbNucExporterWorker * coregenWorker;
   cmbNucExporterWorker * cubitWorker;
+  remus::server::Server * Server;
 };
 
 #endif //cmbNucExport_H

@@ -27,12 +27,17 @@
 #include "vtkXMLMultiBlockDataWriter.h"
 #include <QMap>
 #include <QDebug>
+#include <QFileInfo>
+#include <QDateTime>
+#include <QDir>
 
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->LegendColor = Qt::white;
   this->Parameters = new cmbAssyParameters;
+  this->DifferentFromFile = true;
+  this->DifferentFromCub = true;
 }
 
 cmbNucAssembly::~cmbNucAssembly()
@@ -91,12 +96,17 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
       }
     }
   // update the Grid
-  this->AssyLattice.ClearCell(label);
+  if(this->AssyLattice.ClearCell(label))
+  {
+    setAndTestDiffFromFiles(true);
+    CreateData();
+  }
 }
 
 void cmbNucAssembly::RemoveMaterial(const std::string &name)
 {
   // update all places that references materials: ducts, pins
+  bool change = false;
    for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
     {
     Duct *duct = this->AssyDuct.Ducts[i];
@@ -105,14 +115,20 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
       if(duct->materials[j].material == name)
         {
         duct->materials[j].material = "";
+        change = true;
         }
      }
     }
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
     PinCell* pincell = this->PinCells[i];
-    pincell->RemoveMaterial(name);
+    change |= pincell->RemoveMaterial(name);
     }
+  if(change)
+  {
+    setAndTestDiffFromFiles(true);
+    CreateData();
+  }
 }
 
 PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
@@ -652,4 +668,51 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
     }
 
   return dataSet;
+}
+
+void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
+{
+  if(diffFromFile)
+  {
+    this->DifferentFromFile = true;
+    this->DifferentFromCub = true;
+    return;
+  }
+  //make sure file exits
+  //check to see if a cub file has been generate and is older than this file
+  QFileInfo inpInfo(this->FileName.c_str());
+  if(!inpInfo.exists())
+  {
+    this->DifferentFromFile = true;
+    this->DifferentFromCub = true;
+    return;
+  }
+  this->DifferentFromFile = false;
+  QDateTime inpLM = inpInfo.lastModified();
+  QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName() + ".cub");
+  if(!cubInfo.exists())
+  {
+    this->DifferentFromCub = true;
+    return;
+  }
+  QDateTime cubLM = cubInfo.lastModified();
+  this->DifferentFromCub = cubLM < inpLM;
+}
+
+bool cmbNucAssembly::changeSinceLastSave() const
+{
+  return this->DifferentFromFile;
+}
+
+bool cmbNucAssembly::changeSinceLastGenerate() const
+{
+  return this->DifferentFromCub;
+}
+
+void cmbNucAssembly::clear()
+{
+  AssyPartObj::deleteObjs(this->PinCells);
+  this->PinCells.clear();
+  delete this->Parameters;
+  this->Parameters = new cmbAssyParameters;
 }

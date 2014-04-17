@@ -45,22 +45,35 @@ public slots:
   void onNewDialogAccept();
   void onFileOpen();
   void onFileOpenMoab();
-  void onFileSave();
-  void onCoreFileSave();
+  void onSaveSelected();
+  void onSaveAll();
+  void onSaveProjectAs();
+  void onSaveSelectedAs();
+  void onReloadSelected();
+  void onReloadAll();
   void clearAll();
   void clearCore();
+  void saveFile(cmbNucAssembly*);
+  void saveFile(cmbNucCore*);
   void saveFile(const QString &fileName);
   void saveCoreFile(const QString &fileName);
   void exportVTKFile(const QString &fileName);
   void ResetView();
   void onInteractionTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);
+  void checkForNewCUBH5MFiles();
 
 signals:
   void updateGlobalZScale(double scale);
+  void checkSave();
 
 protected:
   void initPanels();
+  void saveSelected(bool requestFileName, bool force);
+  void saveAll(bool requestFileName, bool force);
+  void save(cmbNucAssembly*, bool request_file_name, bool force);
+  void save(cmbNucCore*, bool request_file_name, bool force);
+  QString requestInpFileName(QString name, QString type);
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);

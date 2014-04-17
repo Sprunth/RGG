@@ -88,23 +88,27 @@ void cmbNucAssemblyEditor::resetUI(
     (int)this->CurrentGrid[0].size());
 }
 
-void cmbNucAssemblyEditor::updateLatticeWithGrid(
+bool cmbNucAssemblyEditor::updateLatticeWithGrid(
   std::vector<std::vector<LatticeCell> >& Grid)
 {
   int x = (int)this->CurrentGrid.size();
   int y = (int)this->CurrentGrid[0].size();
+  bool change = x != Grid.size();
   Grid.resize(x);
   for(int k = 0; k < x; k++)
     {
+    change |= y != Grid[k].size();
     Grid[k].resize(y);
     }
   for(int k = 0; k < x; k++)
     {
     for(int j = 0; j < y; j++)
       {
+      change |= Grid[k][j].label != Grid[k][j].label;
       Grid[k][j] = this->CurrentGrid[k][j];
       }
     }
+  return change;
 }
 
 void cmbNucAssemblyEditor::updateLatticeView(int x, int y)

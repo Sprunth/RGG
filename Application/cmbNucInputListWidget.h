@@ -29,6 +29,7 @@ public:
   void updateUI(bool selCore);
   /// get selected part object
   AssyPartObj* getSelectedPart();
+  AssyPartObj* getSelectedCoreOrAssembly();
   cmbNucPartsTreeItem* getSelectedPartNode();
 
   QTreeWidget * getModelTree();
@@ -38,6 +39,8 @@ public:
 
   bool getMeshColorState();
   bool getMeshEdgeState();
+
+  void clearTable();
 
 signals:
   // Description:
@@ -57,8 +60,11 @@ signals:
   void meshEdgeChange(bool);
   void meshColorChange(bool);
 
+  void checkSavedAndGenerate();
+
 public slots:
   void onNewAssembly();
+  void valueChanged();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -71,6 +77,8 @@ protected:
   void initCoreRootNode();
   void createMaterialItem( const QString& name, const QString& label,
                            const QColor& color );
+  void assemblyModified(cmbNucPartsTreeItem* assyNode);
+  void coreModified();
 
 private slots:
   // Description:
