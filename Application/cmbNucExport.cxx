@@ -19,6 +19,10 @@
 #include <QEventLoop>
 #include <QThread>
 
+#include <iostream>
+
+#include "cmbNucExport.h"
+
 namespace
 {
 class Thread : public QThread
@@ -30,12 +34,6 @@ public:
   }
 };
 }
-
-#include <iostream>
-
-#include <iostream>
-
-#include "cmbNucExport.h"
 
 struct ExporterInput
 {
@@ -158,7 +156,6 @@ void cmbNucExporterWorker::run()
           continue;
         case remus::worker::Job::TERMINATE_WORKER:
           {
-          qDebug() << this->Name.c_str() << "Told to terminate";
           this->stop();
           }
           continue;
@@ -179,40 +176,31 @@ void cmbNucExporterWorker::run()
       args.push_back(*i);
     }
     args.push_back(input.FileArg);
-    qDebug() <<  this->Name.c_str() << "before create exe process";
 
     remus::common::ExecuteProcess* process = new remus::common::ExecuteProcess( input.Function, args);
-    qDebug() <<  QString((input.Function + "  " + input.FileArg).c_str());
 
     //actually launch the new process
     process->execute(remus::common::ExecuteProcess::Attached);
-    qDebug() <<  this->Name.c_str() << "processed launched";
 
     //Wait for finish
     if(pollStatus(process, job))
     {
-      qDebug() <<  this->Name.c_str() << "poll success";
       remus::worker::JobResult results(job.id(),"DUMMY FOR NOW;");
       this->returnMeshResults(results);
     }
     else
     {
-      qDebug() <<  this->Name.c_str() << "poll fail";
       remus::worker::JobStatus status(job.id(),remus::FAILED);
       updateStatus(status);
     }
     QDir::setCurrent( current );
-    qDebug() <<  this->Name.c_str() << "deleting process";
     delete process;
-    qDebug() <<  this->Name.c_str() << "done deleting process";
   }
-  qDebug() << this->Name.c_str() << "Worker finished running";
 }
 
 void cmbNucExporterWorker::stop()
 {
   QMutexLocker locker(&Mutex);
-  qDebug() << this->Name.c_str() << "Worker stopping";
   StillRunning = false;
 }
 
@@ -235,11 +223,12 @@ bool cmbNucExporterWorker
   {
     //poll till we have a data, waiting for-ever!
     ProcessPipe data = process->poll(2);
-    if(data.type == ProcessPipe::STDOUT)
+    if(data.type == ProcessPipe::STDOUT || data.type == ProcessPipe::STDERR)
     {
       //we have something on the output pipe
       status.Progress.setMessage("bob");
       this->updateStatus(status);
+      emit currentMessage( QString(data.text.c_str()) );
     }
   }
   if(process->isAlive())
@@ -278,7 +267,6 @@ cmbNucExporterClient<JOB_REQUEST_IN, JOB_REQUEST_OUT>::getOutput(ExporterInput c
   unsigned int i = 0;
   while( !Client->canMesh(request) && i++ < 60 )
     {
-    qDebug() << "Can mesh returns false";
     Thread::msleep(1000);
     JOB_REQUEST_IN tin;
     JOB_REQUEST_OUT tout;
@@ -333,41 +321,77 @@ void cmbNucExport::run( const QString assygenExe,
                         const QString coregenFile,
                         const QString CoreGenOutputFile )
 {
-  qDebug() << "Output file: " << CoreGenOutputFile;
-  this->setKeepGoing(true);
-  emit currentProcess("  Started setting up");
-  //pop up progress bar
   double total_number_of_file = 2.0*assygenFile.count() + 6;
   double current = 0;
-  emit progress(static_cast<int>(current/total_number_of_file*100));
-  //start server
-  remus::server::WorkerFactory factory;
-  factory.setMaxWorkerCount(0);
 
-  //create a default server with the factory
-  remus::server::Server b(factory);
+  if(!this->startUpHelper(current, total_number_of_file)) return;
 
-  //start accepting connections for clients and workers
-  emit currentProcess("  Starting server");
-  bool valid = b.startBrokering(remus::Server::NONE);
-  if( !valid )
-  {
-    emit errorMessage("failed to start server");
-    emit currentProcess("  failed to start server");
-    emit done();
+  if(!this->runAssyHelper( assygenExe, assygenFile, cubitExe,
+                           current, total_number_of_file) )
     return;
-  }
 
-  b.waitForBrokeringToStart();
-  current++;
-  emit progress(static_cast<int>(current/total_number_of_file*100));
+  if(!this->runCoreHelper( coregenExe, coregenFile, CoreGenOutputFile,
+                           current, total_number_of_file ))
+    return;
 
-  emit currentProcess("  Starting Workers");
-  this->constructWorkers();
-  current += 3;
-  emit progress(static_cast<int>(current/total_number_of_file*100));
+  this->finish();
+}
 
-  //Send files
+void cmbNucExport::runAssy( const QString assygenExe,
+                            const QStringList &assygenFile,
+                            const QString cubitExe )
+{
+  double total_number_of_file = 2.0*assygenFile.count() + 5;
+  double current = 0;
+  if(!this->startUpHelper(current, total_number_of_file)) return;
+  if(!this->runAssyHelper( assygenExe, assygenFile, cubitExe,
+                          current, total_number_of_file) )
+    return;
+  this->finish();
+}
+
+void cmbNucExport::runCore( const QString coregenExe,
+                            const QString coregenFile,
+                            const QString CoreGenOutputFile )
+{
+  double total_number_of_file = 6;
+  double current = 0;
+  if(!this->startUpHelper(current, total_number_of_file)) return;
+  if(!this->runCoreHelper( coregenExe, coregenFile, CoreGenOutputFile,
+                          current, total_number_of_file ))
+    return;
+
+  this->finish();
+}
+
+
+
+void cmbNucExport::cancelHelper()
+{
+  emit currentProcess("  CANCELED");
+  emit done();
+  Server->stopBrokering();
+  this->deleteWorkers();
+  delete Server;
+  Server = NULL;
+}
+
+void cmbNucExport::failedHelper(QString msg, QString pmsg)
+{
+  emit errorMessage("ERROR: " + msg );
+  emit currentProcess(pmsg + " FAILED");
+  emit done();
+  Server->stopBrokering();
+  this->deleteWorkers();
+  delete Server;
+  Server = NULL;
+}
+
+bool cmbNucExport::runAssyHelper( const QString assygenExe,
+                                  const QStringList &assygenFile,
+                                  const QString cubitExe,
+                                  double & count, double max_count )
+{
   AssygenExporter ae;
   CubitExporter ce;
   for (QStringList::const_iterator i = assygenFile.constBegin();
@@ -375,11 +399,8 @@ void cmbNucExport::run( const QString assygenExe,
   {
     if(!keepGoing())
     {
-      emit currentProcess("  CANCELED");
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
+      cancelHelper();
+      return false;
     }
     QFileInfo fi(*i);
     QString path = fi.absolutePath();
@@ -388,118 +409,93 @@ void cmbNucExport::run( const QString assygenExe,
     emit currentProcess("  assygen " + name);
     QFile::remove(pass + ".jou");
     ExporterOutput lr = ae.getOutput(ExporterInput(path, assygenExe, pass));
-    current++;
-    emit progress(static_cast<int>(current/total_number_of_file*100));
+    count++;
+    emit progress(static_cast<int>(count/max_count*100));
     if(!lr.Valid)
     {
-      emit errorMessage("Assygen failed");
-      emit currentProcess("  assygen " + name + " FAILED" + lr.Result.c_str());
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
+      failedHelper("Assygen failed",
+                   "  assygen " + name + ": " + lr.Result.c_str());
+      return false;
     }
     if(!QFileInfo(pass + ".jou").exists())
     {
-      emit errorMessage("ERROR: Assygen failed to generate jou file");
-      emit currentProcess("  "+name + ".jou does not exist FAILED");
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
+      failedHelper("Assygen failed to generate jou file",
+                   "  "+name + ".jou does not exist");
+      return false;
     }
     if(!keepGoing())
     {
-      emit currentProcess("  CANCELED");
-      emit done();
-      return;
+      cancelHelper();
+      return false;
     }
 
     emit currentProcess("  cubit " + name + ".jou");
     QFile::remove(pass + ".cub");
     lr = ce.getOutput(ExporterInput(path, cubitExe, pass + ".jou"));
-    current++;
-    emit progress(static_cast<int>(current/total_number_of_file*100));
+    count++;
+    emit progress(static_cast<int>(count/max_count*100));
     if(!lr.Valid)
     {
-      emit errorMessage("Cubit failed");
-      emit currentProcess("  cubit " + name + ".jou FAILED" + lr.Result.c_str());
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
+      failedHelper("Cubit failed",
+                   "  cubit " + name + ".jou: " + lr.Result.c_str());
+      return false;
     }
     if(!QFileInfo(pass + ".cub").exists())
     {
-      emit errorMessage("ERROR: cubit failed to generate cubit file");
-      emit currentProcess("  " + name + ".cub does not exist FAILED");
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
+      failedHelper( "cubit failed to generate cubit file",
+                   "  " + name + ".cub does not exist");
+      return false;
     }
     emit fileDone();
     if(!keepGoing())
     {
-      emit currentProcess("  CANCELED");
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
+      cancelHelper();
+      return false;
     }
   }
+  return true;
+}
+
+bool cmbNucExport::runCoreHelper( const QString coregenExe,
+                                  const QString coregenFile,
+                                  const QString CoreGenOutputFile,
+                                  double & count, double max_count )
+{
+  if(!keepGoing())
   {
-    if(!keepGoing())
-    {
-      emit currentProcess("  CANCELED");
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
-    }
-    QFile::remove(CoreGenOutputFile);
-    QFileInfo fi(coregenFile);
-    QString path = fi.absolutePath();
-    QString name = fi.completeBaseName();
-    QString pass = path + '/' + name;
-    emit currentProcess("  coregen " + name + ".inp");
-    CoregenExporter coreExport;
-    ExporterOutput r = coreExport.getOutput(ExporterInput(path, coregenExe, pass));
-    current++;
-    emit progress(static_cast<int>(current/total_number_of_file*100));
-    if(!r.Valid)
-    {
-      emit errorMessage("ERROR: Curegen failed");
-      emit currentProcess("  running coregen " + name + ".inp FAILED returned failure mode" + r.Result.c_str());
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
-    }
-    qDebug() << "testing to see if " << CoreGenOutputFile << "exists";
-    if(QFileInfo(CoreGenOutputFile).exists())
-    {
-      emit fileDone();
-      emit sendCoreResult(CoreGenOutputFile);
-    }
-    else
-    {
-      qDebug() << CoreGenOutputFile;
-      emit errorMessage("ERROR: Curegen failed to generate model file");
-      emit currentProcess("  coregen did not generage a model file FAILED");
-      emit done();
-      b.stopBrokering();
-      this->deleteWorkers();
-      return;
-    }
+    cancelHelper();
+    return false;
   }
-  b.stopBrokering();
-  this->deleteWorkers();
-  current++;
-  emit progress(static_cast<int>(current/total_number_of_file*100));
-  emit currentProcess("Finished");
-  emit done();
-  emit successful();
+  QFile::remove(CoreGenOutputFile);
+  QFileInfo fi(coregenFile);
+  QString path = fi.absolutePath();
+  QString name = fi.completeBaseName();
+  QString pass = path + '/' + name;
+  emit currentProcess("  coregen " + name + ".inp");
+  CoregenExporter coreExport;
+  ExporterOutput r = coreExport.getOutput(ExporterInput(path, coregenExe, pass));
+  count++;
+  emit progress(static_cast<int>(count/max_count*100));
+  if(!r.Valid)
+  {
+    failedHelper("Curegen failed",
+                 "  running coregen " + name +
+                 ".inp returned a failure mode" + r.Result.c_str());
+    return false;
+  }
+  if(QFileInfo(CoreGenOutputFile).exists())
+  {
+    emit fileDone();
+    emit sendCoreResult(CoreGenOutputFile);
+  }
+  else
+  {
+    failedHelper("Curegen failed to generate model file",
+                 "  coregen did not generage a model file");
+    return false;
+  }
+
+  return true;
 }
 
 void cmbNucExport::cancel()
@@ -513,6 +509,18 @@ void cmbNucExport::cancel()
   }
   this->deleteWorkers();
   emit cancelled();
+}
+
+void cmbNucExport::finish()
+{
+  Server->stopBrokering();
+  this->deleteWorkers();
+  delete Server;
+  Server = NULL;
+  emit progress(100);
+  emit currentProcess("Finished");
+  emit done();
+  emit successful();
 }
 
 bool cmbNucExport::keepGoing() const
@@ -536,12 +544,16 @@ void cmbNucExport::constructWorkers()
            assygenWorker, SLOT(start()));
   connect( this, SIGNAL(endWorkers()),
           assygenWorker, SLOT(stop()));
+  connect( assygenWorker, SIGNAL(currentMessage(QString)),
+           this, SIGNAL(statusMessage(QString)) );
   coregenWorker = cmbNucExporterWorker::CoregenWorker();
   coregenWorker->moveToThread(&(WorkerThreads[1]));
   connect( this, SIGNAL(startWorkers()),
            coregenWorker, SLOT(start()));
   connect( this, SIGNAL(endWorkers()),
           coregenWorker, SLOT(stop()));
+  connect( coregenWorker, SIGNAL(currentMessage(QString)),
+          this, SIGNAL(statusMessage(QString)) );
   std::vector<std::string> args;
   args.push_back("-nographics");
   args.push_back("-batch");
@@ -551,6 +563,8 @@ void cmbNucExport::constructWorkers()
           cubitWorker, SLOT(start()));
   connect( this, SIGNAL(endWorkers()),
           cubitWorker, SLOT(stop()));
+  connect( cubitWorker, SIGNAL(currentMessage(QString)),
+          this, SIGNAL(statusMessage(QString)) );
   WorkerThreads[0].start();
   WorkerThreads[1].start();
   WorkerThreads[2].start();
@@ -574,5 +588,41 @@ void cmbNucExport::deleteWorkers()
   cubitWorker = NULL;
 }
 
+bool cmbNucExport::startUpHelper(double & count, double max_count)
+{
+  this->setKeepGoing(true);
+  emit currentProcess("  Started setting up");
+  //pop up progress bar
+  emit progress(static_cast<int>(count/max_count*100));
+  //start server
+  remus::server::WorkerFactory factory;
+  factory.setMaxWorkerCount(0);
+
+  //create a default server with the factory
+  Server = new remus::server::Server(factory);
+
+  //start accepting connections for clients and workers
+  emit currentProcess("  Starting server");
+  bool valid = Server->startBrokering(remus::Server::NONE);
+  if( !valid )
+  {
+    emit errorMessage("failed to start server");
+    emit currentProcess("  failed to start server");
+    emit done();
+    delete Server;
+    Server = NULL;
+    return false;
+  }
+
+  Server->waitForBrokeringToStart();
+  count++;
+  emit progress(static_cast<int>(count/max_count*100));
+
+  emit currentProcess("  Starting Workers");
+  this->constructWorkers();
+  count += 3;
+  emit progress(static_cast<int>(count/max_count*100));
+  return true;
+}
 
 #endif //#ifndef cmbNucExport_cxx

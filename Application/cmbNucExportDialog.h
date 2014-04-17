@@ -24,6 +24,8 @@ public:
   {
     ui = new Ui_qProgress;
     ui->setupUi(this);
+    ui->OutputArea->setVisible(false);
+    connect( ui->OutputPromp, SIGNAL(clicked(bool)), ui->OutputArea, SLOT(setVisible(bool)));
   }
   ~cmbProgressDialog()
   { delete ui; }
@@ -41,13 +43,24 @@ public slots:
 
 protected slots:
   void sendSignalToProcess();
+  void runAssygen();
+  void runSelectedAssygen();
+  void runCoregen();
   void cancel();
   void done();
+  void GetRunnableAssyFiles(bool);
+  void GetRunnableCoreFile(bool);
 
 signals:
   void process( const QString, const QStringList &,
                 const QString, const QString,
-                const QString, const QString);
+                const QString, const QString );
+  void process( const QString assygenExe,
+                const QStringList &assygenFile,
+                const QString cubitExe );
+  void process( const QString coregenExe,
+                const QString coregenFile,
+                const QString CoreGenOutputFile );
 public:
 signals:
   void error(QString);
@@ -58,6 +71,7 @@ private:
   // Designer form
   Ui_qExporterDialog *ui;
   cmbNucCore * Core;
+  cmbNucMainWindow *MainWindow;
 
   cmbProgressDialog *Progress;
   QStringList AssygenFileList;

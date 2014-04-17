@@ -673,6 +673,18 @@ void cmbNucMainWindow::saveSelected(bool requestFileName, bool force_save)
   emit checkSave();
 }
 
+void cmbNucMainWindow::saveFile(cmbNucAssembly* a)
+{
+  save(a, false, false);
+  emit checkSave();
+}
+
+void cmbNucMainWindow::saveFile(cmbNucCore* c)
+{
+  save(c, false, false);
+  emit checkSave();
+}
+
 void cmbNucMainWindow::save(cmbNucAssembly* assembly, bool request_file_name, bool force_save)
 {
   if(assembly == NULL) return;

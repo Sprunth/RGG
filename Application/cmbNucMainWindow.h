@@ -53,6 +53,8 @@ public slots:
   void onReloadAll();
   void clearAll();
   void clearCore();
+  void saveFile(cmbNucAssembly*);
+  void saveFile(cmbNucCore*);
   void saveFile(const QString &fileName);
   void saveCoreFile(const QString &fileName);
   void exportVTKFile(const QString &fileName);
