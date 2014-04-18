@@ -64,7 +64,8 @@
            <item>
             <widget class="QPushButton" name="runAssy">
              <property name="text">
-              <string>Run</string>
+              <string>Process
+Assemblies</string>
              </property>
             </widget>
            </item>
@@ -84,8 +85,9 @@
            <item>
             <widget class="QPushButton" name="runSelectedAssy">
              <property name="text">
-              <string>Run
-Selected</string>
+              <string>Process
+Selected
+Assemblies</string>
              </property>
             </widget>
            </item>
@@ -148,7 +150,7 @@ Selected</string>
            <item>
             <widget class="QPushButton" name="runCore">
              <property name="text">
-              <string>Run</string>
+              <string>Process Core</string>
              </property>
             </widget>
            </item>

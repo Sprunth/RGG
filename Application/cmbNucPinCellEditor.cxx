@@ -269,6 +269,8 @@ void cmbNucPinCellEditor::UpdatePinCell()
 {
   // apply pincell attributes
   QString newName = this->Ui->nameLineEdit->text();
+  newName = newName.trimmed().replace(' ', "_");
+  this->Ui->nameLineEdit->setText(newName);
   QString prevName = QString(this->PinCellObject->name.c_str());
   this->PinCellObject->name = newName.toStdString();
   if(newName != prevName)
