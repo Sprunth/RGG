@@ -49,6 +49,7 @@ signals:
   void badPinLabel(QString prevL);
   void badPinName(QString prev);
   void valuesChanged();
+  void resetView();
 
 public slots:
   void resetCore(cmbNucCore* nucCore);

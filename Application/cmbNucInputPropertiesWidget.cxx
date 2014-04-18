@@ -724,8 +724,11 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
     this->Internal->pinEditorContainer->addWidget(
       this->Internal->PinCellEditor);
     QObject::connect(this->Internal->PinCellEditor,
-      SIGNAL(pincellModified(AssyPartObj*)),
-      this, SIGNAL(objGeometryChanged(AssyPartObj*)));
+                     SIGNAL(pincellModified(AssyPartObj*)),
+                     this, SIGNAL(objGeometryChanged(AssyPartObj*)));
+    QObject::connect( this->Internal->PinCellEditor,
+                       SIGNAL(resetView()),
+                       this, SIGNAL(resetView()));
     QObject::connect( this->Internal->PinCellEditor,
                       SIGNAL(labelChanged(PinCell*, QString, QString)),
                       this, SLOT(pinLabelChanged(PinCell*, QString, QString)));
