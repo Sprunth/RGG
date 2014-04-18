@@ -410,6 +410,25 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>ProblemType</tabstop>
+  <tabstop>Geometry</tabstop>
+  <tabstop>MergeTolerance</tabstop>
+  <tabstop>SaveParallel</tabstop>
+  <tabstop>BackgroundSetting</tabstop>
+  <tabstop>Info</tabstop>
+  <tabstop>MeshInfo</tabstop>
+  <tabstop>NeumannSetTable</tabstop>
+  <tabstop>NeumannSetSide</tabstop>
+  <tabstop>NeumannSetId</tabstop>
+  <tabstop>NeumannSetEquation</tabstop>
+  <tabstop>NewmannSetDel</tabstop>
+  <tabstop>NewmannSetAdd</tabstop>
+  <tabstop>ExtrudeHeight</tabstop>
+  <tabstop>ExtrudeDivisions</tabstop>
+  <tabstop>UnknownsVars</tabstop>
+  <tabstop>scrollArea</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

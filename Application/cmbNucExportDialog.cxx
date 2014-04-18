@@ -35,6 +35,8 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
            this, SLOT(cancel()));
   connect( this->ui->buttonBox, SIGNAL(accepted()),
            this, SLOT(sendSignalToProcess() ));
+  QAbstractButton * button = this->ui->buttonBox->button( QDialogButtonBox::Ok );
+  button->setText("Process All");
   connect( this->ui->runAssy, SIGNAL(clicked()), this, SLOT(runAssygen()));
   connect( this->ui->runSelectedAssy, SIGNAL(clicked()), this, SLOT(runSelectedAssygen()));
   connect( this->ui->runCore, SIGNAL(clicked()), this, SLOT(runCoregen()));
