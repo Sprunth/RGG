@@ -34,6 +34,7 @@ signals:
   void labelChanged(PinCell*, QString prev, QString current);
   void nameChanged(PinCell*, QString prev, QString current);
   void valueChange();
+  void resetView();
 
 public slots:
   void Apply();

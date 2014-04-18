@@ -181,6 +181,7 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell, bool h)
 
   this->Ui->nameLineEdit->setText(pincell->name.c_str());
   this->Ui->labelLineEdit->setText(pincell->label.c_str());
+  this->Ui->cutAwayViewCheckBox->setChecked(this->PinCellObject->cutaway);
   if(isHex)
   {
     this->Ui->label_7->setVisible(false);
@@ -353,7 +354,11 @@ void cmbNucPinCellEditor::updateComponentObject(int i, double& z)
   }
   z += l;
   this->Ui->piecesTable->blockSignals(false);
-  if(change) emit valueChange();
+  if(change)
+  {
+    emit valueChange();
+    emit resetView();
+  }
 }
 
 AssyPartObj* cmbNucPinCellEditor::createComponentObject(int i, double& z)
@@ -463,6 +468,7 @@ void cmbNucPinCellEditor::UpdateData()
   this->PinCellObject->CachedData.TakeReference(
     cmbNucAssembly::CreatePinCellMultiBlock(this->PinCellObject, cutaway));
   emit this->pincellModified(this->PinCellObject);
+  emit resetView();
 }
 
 void cmbNucPinCellEditor::addComponent()

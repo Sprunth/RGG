@@ -282,6 +282,9 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->PropertyWidget, SIGNAL(valuesChanged()),
                    this->InputsWidget, SLOT(valueChanged()));
 
+  QObject::connect(this->PropertyWidget, SIGNAL(resetView()),
+                   this, SLOT(ResetView()));
+
   QObject::connect(this->PropertyWidget,
                    SIGNAL(sendLabelChange(const QString)),
                    this->InputsWidget,
