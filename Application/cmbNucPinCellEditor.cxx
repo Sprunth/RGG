@@ -280,6 +280,8 @@ void cmbNucPinCellEditor::UpdatePinCell()
   }
 
   QString newlabel = this->Ui->labelLineEdit->text();
+  newlabel = newlabel.trimmed().replace(' ', "_");
+  this->Ui->labelLineEdit->setText(newlabel);
   QString prevlabel = QString(this->PinCellObject->label.c_str());
   this->PinCellObject->label = newlabel.toStdString();
   if(newlabel != prevlabel)

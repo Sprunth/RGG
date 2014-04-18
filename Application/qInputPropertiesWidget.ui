@@ -134,6 +134,9 @@
            <string>Configure</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_20">
+           <property name="margin">
+            <number>2</number>
+           </property>
            <item row="0" column="0">
             <layout class="QVBoxLayout" name="rectCoreConfLayout"/>
            </item>
@@ -206,6 +209,9 @@
            <string>Configure</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_21">
+           <property name="margin">
+            <number>2</number>
+           </property>
            <item row="0" column="0">
             <layout class="QVBoxLayout" name="hexCoreConfLayout"/>
            </item>
@@ -296,6 +302,9 @@
            <string>Configure</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_19">
+           <property name="margin">
+            <number>2</number>
+           </property>
            <item row="0" column="0">
             <layout class="QVBoxLayout" name="HexAssyConfLayout"/>
            </item>
@@ -444,6 +453,9 @@
              <string>Configure</string>
             </attribute>
             <layout class="QGridLayout" name="gridLayout_18">
+             <property name="margin">
+              <number>2</number>
+             </property>
              <item row="0" column="0">
               <layout class="QVBoxLayout" name="RectAssyConfLayout"/>
              </item>
