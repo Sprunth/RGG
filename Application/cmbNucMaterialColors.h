@@ -5,24 +5,16 @@
 #include <QString>
 #include <QColor>
 #include <QPair>
+#include <QObject>
+#include <QPointer>
 
 class cmbNucAssembly;
+class cmbNucMaterial;
 class vtkCompositeDataDisplayAttributes;
 
-struct cmbNucMaterial
+class cmbNucMaterialColors: public QObject
 {
-  cmbNucMaterial()
-    : Visible(true) {}
-  cmbNucMaterial(const QString& label, const QColor& color)
-    : Visible(true), Label(label), Color(color) {}
-
-  QString Label;
-  QColor Color;
-  bool Visible;
-};
-
-class cmbNucMaterialColors
-{
+  Q_OBJECT
 public:
 
   // Get the global instance for the cmbNucMaterialColors.
@@ -31,7 +23,12 @@ public:
   cmbNucMaterialColors(bool reset_instance = false);
   virtual ~cmbNucMaterialColors();
 
-  QMap<QString, cmbNucMaterial>& MaterialColorMap();
+  void clear();
+
+  QPointer<cmbNucMaterial> getMaterialByName(QString& name);
+  QPointer<cmbNucMaterial> getMaterialByLabel(QString& label);
+
+  QPointer<cmbNucMaterial> getUnknownMaterial() const;
 
   void AddMaterial(const QString& name, const QString& label,
                    const QColor& color);
@@ -39,14 +36,15 @@ public:
                    double r, double g, double b, double a);
   void AddMaterial(const QString& name, double r, double g, double b, double a);
   void AddMaterial(const QString& name, const QString& label);
-  void RemoveMaterial(const QString& name);
-  void SetMaterialVisibility(const QString& name, bool visible);
+  void RemoveMaterialByName(const QString& name);
+  void RemoveMaterialByLabel(const QString& label);
 
-  void GetAssemblyMaterials(
-    cmbNucAssembly* assy, QMap<std::string, std::string>& materials);
+  bool nameUsed( const QString& name ) const;
+  bool labelUsed( const QString& label ) const;
+
   void SetBlockMaterialColor(
     vtkCompositeDataDisplayAttributes *attributes, unsigned int flatIdx,
-    const std::string& material);
+    const std::string& materialName);
 
   // open a material-file(.ini) in QSettings' ini format
   bool OpenFile(const QString& name);
@@ -55,11 +53,21 @@ public:
   void SaveToFile(const QString& name);
 
   void CalcRGB(double &r, double &g, double &b);
+
+signals:
+  void materialChanged();
+
+protected slots:
+  void testAndRename(QString oldn, QPointer<cmbNucMaterial> material);
+  void testAndRelabel(QString oldl, QPointer<cmbNucMaterial> material);
 private:
 
   static cmbNucMaterialColors* Instance;
-  // <Name, <Label, Color> >
-  QMap<QString, cmbNucMaterial> MaterialColors;
+
+  QPointer< cmbNucMaterial > UnknownMaterial;
+
+  QMap<QString, QPointer<cmbNucMaterial> > NameToMaterial;
+  QMap<QString, QPointer<cmbNucMaterial> > LabelToMaterial;
   double Ulimit, Llimit;  // luminance range when creating colors
   int numNewMaterials;
 };

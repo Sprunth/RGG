@@ -618,6 +618,7 @@ void inpFileHelper::writeMaterials( std::ofstream &output,
 {
   QMap<std::string, std::string> materials;
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  /* TODO COLOR
   matColorMap->GetAssemblyMaterials(&assembly, materials);
   output << "Materials " << materials.count();
   foreach(std::string name, materials.keys())
@@ -631,6 +632,7 @@ void inpFileHelper::writeMaterials( std::ofstream &output,
     output << " " << name << " " << material_name;
     }
   output << "\n";
+   */
 }
 
 void inpFileHelper::readMaterials( std::stringstream & input,
@@ -650,6 +652,7 @@ void inpFileHelper::readMaterials( std::stringstream & input,
 
     materialLabelMap[mlabel] = mname;
     std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+      /*TODO COLOR
     if(!matColorMap->MaterialColorMap().contains(mname.c_str()))
       {
       matColorMap->AddMaterial(mname.c_str(), mlabel.c_str());
@@ -660,6 +663,7 @@ void inpFileHelper::readMaterials( std::stringstream & input,
       const QColor &color = matColorMap->MaterialColorMap()[mname.c_str()].Color;
       matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(), color);
       }
+       */
     }
 }
 
@@ -743,7 +747,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
   output << "pincells " << assembly.PinCells.size() << "\n";
   QMap<std::string, std::string> materials;
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->GetAssemblyMaterials(&assembly, materials);
+  //matColorMap->GetAssemblyMaterials(&assembly, materials); TODO COLOR
 
   for(size_t i = 0; i < assembly.PinCells.size(); i++)
     {
@@ -976,7 +980,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         }
       }
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-    pincell->SetLegendColor(matColorMap->MaterialColorMap()[firstMaterial.c_str()].Color);
+    //pincell->SetLegendColor(matColorMap->MaterialColorMap()[firstMaterial.c_str()].Color); TODO COLOR
     assembly.AddPinCell(pincell);
     }
 }

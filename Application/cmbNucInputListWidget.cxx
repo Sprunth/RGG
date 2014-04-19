@@ -578,7 +578,7 @@ void cmbNucInputListWidget::onDeleteAssembly(QTreeWidgetItem* item)
 void cmbNucInputListWidget::onNewMaterial()
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  size_t numM = matColorMap->MaterialColorMap().size();
+  size_t numM = /*matColorMap->MaterialColorMap().size()*/ 0;  //TODO COLOR
   QString matname = QString("material").append(
     QString::number(numM+1));
 
@@ -619,9 +619,11 @@ void cmbNucInputListWidget::onRemoveMaterial()
     {
     return;
     }
+  /*  TODO Color
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->RemoveMaterial(selItem->text(1));
+  matColorMap->RemoveMaterialName(selItem->text(1));
   this->getCurrentAssembly()->RemoveMaterial(selItem->text(1).toStdString());
+   */
   delete selItem;
 }
 //----------------------------------------------------------------------------
@@ -683,8 +685,10 @@ void cmbNucInputListWidget::onMaterialClicked(QTreeWidgetItem* item, int col)
     bgBrush.setColor(color);
     item->setBackground(col, bgBrush);
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+    /* TODO COLOR
     matColorMap->AddMaterial(item->text(1), item->text(2), color);
     emit this->materialColorChanged(item->text(1));
+     */
     }
   //if(!item->isSelected())
   //  {
@@ -909,7 +913,7 @@ void cmbNucInputListWidget::onMaterialSelectionChanged()
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputListWidget::onMaterialChanged(
+void cmbNucInputListWidget::onMaterialChanged(  //TODO COLOR
  QTreeWidgetItem* item, int col)
 {
   cmbNucPartsTreeItem* selItem = dynamic_cast<cmbNucPartsTreeItem*>(item);
@@ -922,7 +926,7 @@ void cmbNucInputListWidget::onMaterialChanged(
   if(col == 0)
     {
     material = selItem->text(1);
-    matColorMap->SetMaterialVisibility(material, selItem->checkState(0));
+    //matColorMap->SetMaterialVisibility(material, selItem->checkState(0));
     emit this->materialVisibilityChanged(material);
     return;
     }
@@ -938,7 +942,7 @@ void cmbNucInputListWidget::onMaterialChanged(
     label = selItem->text(2);
     }
 
-  if(matColorMap->MaterialColorMap().contains(prematerial))
+  /*if(matColorMap->MaterialColorMap().contains(prematerial))
     {
     if(col == 1)
       {
@@ -947,6 +951,7 @@ void cmbNucInputListWidget::onMaterialChanged(
     matColorMap->AddMaterial(material, label,
       matColorMap->MaterialColorMap()[material].Color);
     }
+    */
 
   emit this->materialColorChanged(prematerial);
 }
@@ -993,12 +998,15 @@ void cmbNucInputListWidget::initMaterialsTree()
   treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  //TODO COLOR
+  /*
   foreach(QString material, matColorMap->MaterialColorMap().keys())
     {
     this->createMaterialItem(material,
       matColorMap->MaterialColorMap()[material].Label,
       matColorMap->MaterialColorMap()[material].Color);
     }
+   */
 
   treeWidget->blockSignals(false);
 }

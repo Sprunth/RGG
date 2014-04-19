@@ -801,9 +801,7 @@ void cmbNucMainWindow::clearAll()
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
 
-  if(this->MaterialColors) delete this->MaterialColors;
-
-  this->MaterialColors = new cmbNucMaterialColors(true);
+  this->MaterialColors->clear();
   QString materialfile =
      QCoreApplication::applicationDirPath() + "/materialcolors.ini";
   this->MaterialColors->OpenFile(materialfile);
@@ -1046,6 +1044,7 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
       case 5: //Material
       case 3:
       {
+        /*  TODO!!! this needs to be update for new material color manager
         int offset = sec->GetNumberOfBlocks()-1;
         QMap<QString, cmbNucMaterial>& colors = this->MaterialColors->MaterialColorMap();
         for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
@@ -1069,8 +1068,9 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
             visible = true;
           }
           add_color(att, idx, color, visible);
+         }
+         */
         }
-      }
         break;
       default:
       {

@@ -176,6 +176,7 @@ void cmbNucInputPropertiesWidget::updateMaterials()
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
   QString matLabel;
+  /* TODO COLOR
   foreach(QString material, matColorMap->MaterialColorMap().keys())
     {
 //    matLabel = matColorMap->MaterialColorMap()[material].Label;
@@ -184,6 +185,7 @@ void cmbNucInputPropertiesWidget::updateMaterials()
     this->Internal->FrustumMaterial->addItem(matLabel);
     this->Internal->CylinderMaterial->addItem(matLabel);
     }
+   */
 
   //this->Internal->DuctLayerMaterial->blockSignals(false);
   this->Internal->FrustumMaterial->blockSignals(false);
@@ -902,7 +904,7 @@ void cmbNucInputPropertiesWidget::setUpDuctTable(bool isHex, Duct* duct)
     Duct::Material m = duct->materials[i];
 
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-    foreach(QString material, matColorMap->MaterialColorMap().keys())
+    /* TODO COLORforeach(QString material, matColorMap->MaterialColorMap().keys())
     {
       QString mat = matColorMap->MaterialColorMap()[material].Label;
       comboBox->addItem(mat);
@@ -910,7 +912,7 @@ void cmbNucInputPropertiesWidget::setUpDuctTable(bool isHex, Duct* duct)
       {
         comboBox->setCurrentIndex(comboBox->count() - 1);
       }
-    }
+    }*/
     tmpTable->setCellWidget(row, 0, comboBox);
 
     QTableWidgetItem* thick1Item = new DuctLayerThicknessEditor;
@@ -1029,11 +1031,13 @@ void cmbNucInputPropertiesWidget::addDuctLayerSetRowValue(int row)
 
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  /* TODO COLOR
   foreach(QString material, matColorMap->MaterialColorMap().keys())
   {
     QString mat = matColorMap->MaterialColorMap()[material].Label;
     comboBox->addItem(mat);
   }
+   */
   table->setCellWidget(row, 0, comboBox);
 
   QTableWidgetItem* thick1Item = new DuctLayerThicknessEditor;

@@ -685,7 +685,8 @@ void cmbNucPinCellEditor::sectionTypeComboBoxChanged(const QString &type)
 void cmbNucPinCellEditor::setupMaterialComboBox(QComboBox *comboBox)
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  comboBox->addItems(matColorMap->MaterialColorMap().keys());
+  //TODO COLOR
+  //comboBox->addItems(matColorMap->MaterialColorMap().keys());
 }
 
 void cmbNucPinCellEditor::layerTableCellChanged(int row, int col)

@@ -27,6 +27,7 @@ SET(RGGNuclear_Srcs
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
   cmbNucNewDialog.cxx
+  cmbNucMaterial.cxx
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
@@ -64,6 +65,8 @@ SET(RGGNuclear_Headers
   cmbNucMainWindow.h
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
+  cmbNucMaterial.h
+  cmbNucMaterialColors.h
   cmbNucNewDialog.h
   cmbNucPartsTreeItem.h
   cmbNucAssemblyEditor.h
