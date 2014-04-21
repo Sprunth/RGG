@@ -201,10 +201,10 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell, bool h)
   this->Ui->piecesTable->blockSignals(true);
 
   this->Ui->piecesTable->setColumnCount(6);
-  this->Ui->piecesTable->setHorizontalHeaderLabels( QStringList() << "Segment Type"
-                                                   << "Length" << "Radius (base)"
-                                                   << "Radius (top)" << "Origin X"
-                                                   << "Origin Y");
+  this->Ui->piecesTable->setHorizontalHeaderLabels( QStringList() << "Segment\nType"
+                                                   << "Length" << "Base\nRadius"
+                                                   << "Top\nRadius" << "Origin\nX"
+                                                   << "Origin\nY");
 
   std::vector<PinCellComponent> components;
   for(size_t i = 0; i < pincell->cylinders.size(); i++){
