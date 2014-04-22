@@ -110,7 +110,8 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
    for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
     {
     Duct *duct = this->AssyDuct.Ducts[i];
-    for(size_t j = 0; j < duct->materials.size(); j++)
+      //TODO Remove Material
+    /*for(size_t j = 0; j < duct->materials.size(); j++)
       {
       if(duct->materials[j].material == name)
         {
@@ -118,11 +119,15 @@ void cmbNucAssembly::RemoveMaterial(const std::string &name)
         change = true;
         }
      }
+     */
     }
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
+      //TODO Remove Material
+      /*
     PinCell* pincell = this->PinCells[i];
     change |= pincell->RemoveMaterial(name);
+       */
     }
   if(change)
   {
@@ -193,15 +198,13 @@ void cmbNucAssembly::updateMaterialColors(
 
     if(pinCell)
     {
-      std::string pinMaterial;
-
       for(unsigned int cidx = 0; cidx < pinCell->cylinders.size(); cidx++)
       {
         realflatidx++; // increase one for this cylinder
         for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
         {
-          pinMaterial = pinCell->cylinders[cidx]->materials[k];
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
+                                             pinCell->cylinders[cidx]->materials[k].getMaterial());
         }
       }
       for(unsigned int fidx = 0; fidx < pinCell->frustums.size(); fidx++)
@@ -209,8 +212,8 @@ void cmbNucAssembly::updateMaterialColors(
         realflatidx++; // increase one for this frustum
         for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
         {
-          pinMaterial = pinCell->frustums[fidx]->materials[k];
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
+                                             pinCell->frustums[fidx]->materials[k].getMaterial());
         }
       }
     }
@@ -225,14 +228,8 @@ void cmbNucAssembly::updateMaterialColors(
       unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
       for(unsigned int b = 0; b < numBlocks; b++)
       {
-        std::string layerMaterial =
-           (duct && b < duct->materials.size()) ? duct->materials[b].material : "duct";
-        if(layerMaterial.empty())
-        {
-          layerMaterial = "duct";
-        }
-        layerMaterial = QString(layerMaterial.c_str()).toLower().toStdString();
-        matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, layerMaterial);
+        matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
+                                           duct->materials[b].getMaterial());
       }
     }
   }

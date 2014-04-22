@@ -105,19 +105,15 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
     this, SLOT(onNewAssembly()));
-  //QObject::connect(this->Internal->Action_NewCylinder, SIGNAL(triggered()),
-  //  this, SLOT(onNewCylinder()));
   QObject::connect(this->Internal->Action_NewDuct, SIGNAL(triggered()),
     this, SLOT(onNewDuct()));
-  //QObject::connect(this->Internal->Action_NewFrustum, SIGNAL(triggered()),
-  // this, SLOT(onNewFrustum()));
   QObject::connect(this->Internal->Action_NewPin, SIGNAL(triggered()),
     this, SLOT(onNewPin()));
   QObject::connect(this->Internal->Action_DeletePart, SIGNAL(triggered()),
     this, SLOT(onRemoveSelectedPart()));
 
   QObject::connect(this->Internal->newMaterial, SIGNAL(clicked()),
-    this, SLOT(onNewMaterial()));
+                   cmbNucMaterialColors::instance(), SLOT(CreateNewMaterial()));
   QObject::connect(this->Internal->delMaterial, SIGNAL(clicked()),
     this, SLOT(onRemoveMaterial()));
   QObject::connect(this->Internal->importMaterial, SIGNAL(clicked()),
@@ -578,11 +574,10 @@ void cmbNucInputListWidget::onDeleteAssembly(QTreeWidgetItem* item)
 void cmbNucInputListWidget::onNewMaterial()
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  size_t numM = /*matColorMap->MaterialColorMap().size()*/ 0;  //TODO COLOR
-  QString matname = QString("material").append(
-    QString::number(numM+1));
 
-  this->createMaterialItem(matname, matname, QColor::fromRgbF(1.0, 1.0, 1.0));
+  this->createMaterialItem(matColorMap->generateString("!Gen_Mat_Name_"),
+                           matColorMap->generateString("!Gen_Mat_Label_"),
+                           QColor::fromRgbF(1.0, 1.0, 1.0));
 }
 
 //----------------------------------------------------------------------------
@@ -998,15 +993,7 @@ void cmbNucInputListWidget::initMaterialsTree()
   treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  //TODO COLOR
-  /*
-  foreach(QString material, matColorMap->MaterialColorMap().keys())
-    {
-    this->createMaterialItem(material,
-      matColorMap->MaterialColorMap()[material].Label,
-      matColorMap->MaterialColorMap()[material].Color);
-    }
-   */
+  matColorMap->buildTree(treeWidget);
 
   treeWidget->blockSignals(false);
 }

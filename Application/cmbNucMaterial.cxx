@@ -1,4 +1,47 @@
 #include "cmbNucMaterial.h"
+#include "cmbNucMaterialColors.h"
+
+void cmbNucMaterialLayerConnection::materialDeleted()
+{
+  v->materialDeleted();
+}
+
+cmbNucMaterialLayer::cmbNucMaterialLayer()
+:Material(NULL), Connection(NULL)
+{
+  this->changeMaterial(cmbNucMaterialColors::instance()->getUnknownMaterial());
+}
+
+cmbNucMaterialLayer::~cmbNucMaterialLayer()
+{
+  if(Material) this->Material->dec();
+}
+void cmbNucMaterialLayer::changeMaterial(QPointer<cmbNucMaterial> m)
+{
+  if(m == NULL) m = cmbNucMaterialColors::instance()->getUnknownMaterial();
+  if(m != this->Material)
+  {
+    if(Material) this->Material->dec();
+    delete Connection;
+    Connection = new cmbNucMaterialLayerConnection();
+    Connection->v = this;
+    this->Material = m;
+    QObject::connect( Material, SIGNAL(hasBeenDeleted()),
+                      this->Connection, SLOT(materialDeleted()) );
+    this->Material->inc();
+  }
+}
+
+QPointer<cmbNucMaterial>
+cmbNucMaterialLayer::getMaterial() const
+{
+  return this->Material;
+}
+
+void cmbNucMaterialLayer::materialDeleted()
+{
+  this->changeMaterial(cmbNucMaterialColors::instance()->getUnknownMaterial());
+}
 
 cmbNucMaterial::cmbNucMaterial()
 : Visible(true), NumberReferenced(0)

@@ -34,6 +34,7 @@ SET(RGGNuclear_Srcs
   vtkCmbDuctSource.cxx
   vtkCmbLayeredConeSource.cxx
   cmbNucPartsTreeItem.cxx
+  cmbNucMaterialTreeItem.cxx
   cmbNucDragLabel.cxx
   cmbNucPinCellEditor.cxx
   cmbNucHexLattice.cxx
@@ -69,6 +70,7 @@ SET(RGGNuclear_Headers
   cmbNucMaterialColors.h
   cmbNucNewDialog.h
   cmbNucPartsTreeItem.h
+  cmbNucMaterialTreeItem.h
   cmbNucAssemblyEditor.h
   cmbNucDragLabel.h
   cmbNucPinCellEditor.h

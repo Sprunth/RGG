@@ -166,28 +166,16 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
 void cmbNucInputPropertiesWidget::updateMaterials()
 {
   // update materials
-  //this->Internal->DuctLayerMaterial->blockSignals(true);
   this->Internal->FrustumMaterial->blockSignals(true);
   this->Internal->CylinderMaterial->blockSignals(true);
 
-  //this->Internal->DuctLayerMaterial->clear();
   this->Internal->FrustumMaterial->clear();
   this->Internal->CylinderMaterial->clear();
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  QString matLabel;
-  /* TODO COLOR
-  foreach(QString material, matColorMap->MaterialColorMap().keys())
-    {
-//    matLabel = matColorMap->MaterialColorMap()[material].Label;
-    matLabel = material;
-    //this->Internal->DuctLayerMaterial->addItem(matLabel);
-    this->Internal->FrustumMaterial->addItem(matLabel);
-    this->Internal->CylinderMaterial->addItem(matLabel);
-    }
-   */
+  matColorMap->setUp(this->Internal->FrustumMaterial);
+  matColorMap->setUp(this->Internal->CylinderMaterial);
 
-  //this->Internal->DuctLayerMaterial->blockSignals(false);
   this->Internal->FrustumMaterial->blockSignals(false);
   this->Internal->CylinderMaterial->blockSignals(false);
 }
@@ -901,18 +889,12 @@ void cmbNucInputPropertiesWidget::setUpDuctTable(bool isHex, Duct* duct)
     // Private helper method to create the UI for a duct layer
     QComboBox* comboBox = new QComboBox;
     size_t row = i;
-    Duct::Material m = duct->materials[i];
+    Duct::MaterialLayer m = duct->materials[i];
 
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-    /* TODO COLORforeach(QString material, matColorMap->MaterialColorMap().keys())
-    {
-      QString mat = matColorMap->MaterialColorMap()[material].Label;
-      comboBox->addItem(mat);
-      if (mat.toStdString() == m.material)
-      {
-        comboBox->setCurrentIndex(comboBox->count() - 1);
-      }
-    }*/
+    matColorMap->setUp(comboBox);
+    matColorMap->selectIndex(comboBox, m.getMaterial());
+
     tmpTable->setCellWidget(row, 0, comboBox);
 
     QTableWidgetItem* thick1Item = new DuctLayerThicknessEditor;
@@ -934,11 +916,13 @@ bool cmbNucInputPropertiesWidget::setDuctValuesFromTable(Duct* duct)
   QTableWidget * table = this->Internal->DuctLayers;
   bool change = duct->materials.size() != table->rowCount();
   duct->materials.resize(table->rowCount());
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
   for(int i = 0; i < table->rowCount(); i++)
   {
-    Duct::Material & m = duct->materials[i];
-    QString mat = qobject_cast<QComboBox *>(table->cellWidget(i, 0))->currentText();
-    set_and_test_for_change(m.material, mat.toStdString());
+    Duct::MaterialLayer & m = duct->materials[i];
+    QPointer<cmbNucMaterial> mat =
+      matColorMap->getMaterial(qobject_cast<QComboBox *>(table->cellWidget(i, 0)));
+    set_and_test_for_change(m.getMaterial(), mat);
     set_and_test_for_change(m.normThickness[0],
                             table->item(i, 1)->data(Qt::DisplayRole).toDouble());
     set_and_test_for_change(m.normThickness[1],
@@ -1031,13 +1015,7 @@ void cmbNucInputPropertiesWidget::addDuctLayerSetRowValue(int row)
 
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  /* TODO COLOR
-  foreach(QString material, matColorMap->MaterialColorMap().keys())
-  {
-    QString mat = matColorMap->MaterialColorMap()[material].Label;
-    comboBox->addItem(mat);
-  }
-   */
+  matColorMap->setUp(comboBox);
   table->setCellWidget(row, 0, comboBox);
 
   QTableWidgetItem* thick1Item = new DuctLayerThicknessEditor;

@@ -18,7 +18,7 @@ public:
   cmbNucPartsTreeItem * v;
 signals:
 
-  public slots:
+public slots:
   void checkSaveAndGenerate();
 };
 

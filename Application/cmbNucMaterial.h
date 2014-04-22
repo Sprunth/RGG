@@ -8,6 +8,33 @@
 
 class cmbNucMaterialColors;
 
+class cmbNucMaterial;
+
+class cmbNucMaterialLayer;
+
+class cmbNucMaterialLayerConnection: public QObject
+{
+  Q_OBJECT
+public:
+  void materialDeleted();
+  cmbNucMaterialLayer * v;
+};
+
+class cmbNucMaterialLayer
+{
+public:
+  friend class cmbNucMaterialLayerConnection;
+  cmbNucMaterialLayer();
+  cmbNucMaterialLayer( const cmbNucMaterial & ml );
+  ~cmbNucMaterialLayer();
+  void changeMaterial(QPointer<cmbNucMaterial> m);
+  QPointer<cmbNucMaterial> getMaterial() const;
+protected:
+  QPointer<cmbNucMaterial> Material;
+  void materialDeleted();
+  cmbNucMaterialLayerConnection * Connection;
+};
+
 class cmbNucMaterial: public QObject
 {
   Q_OBJECT
@@ -15,8 +42,6 @@ public:
   friend class cmbNucMaterialColors;
 
   bool isVisible() const;
-
-  bool isValid() const;
 
   QString getName() const;
 

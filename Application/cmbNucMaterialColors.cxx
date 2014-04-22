@@ -2,13 +2,20 @@
 
 #include <QSettings>
 #include <QFileInfo>
+#include <QComboBox>
+#include <QMetaType>
+#include <QDebug>
+#include <QTreeWidget>
 
 #include "cmbNucAssembly.h"
 #include "cmbNucPartDefinition.h"
 #include "cmbNucMaterial.h"
+#include "cmbNucMaterialTreeItem.h"
 
 #include "vtkCompositeDataDisplayAttributes.h"
 #include "vtkMath.h"
+
+#include <cassert>
 
 // QSettings material Group name
 #define GROUP_MATERIAL "MaterialColors"
@@ -71,7 +78,7 @@ cmbNucMaterialColors* cmbNucMaterialColors::instance()
 
 //-----------------------------------------------------------------------------
 cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
-  : Llimit(0.1), Ulimit(0.9), numNewMaterials(0)
+  : MaterialTree(NULL), Llimit(0.1), Ulimit(0.9), numNewMaterials(0)
 {
   UnknownMaterial = new cmbNucMaterial("!!!!UnknownMaterial!!!!",
                                        "!!!!Unknown!!!!",
@@ -143,17 +150,15 @@ void cmbNucMaterialColors::SaveToFile(const QString& name)
   QString settingKey(GROUP_MATERIAL), strcolor;
   settingKey.append("/");
   QColor color;
-  /* TODO COLOR
-  foreach(QString mat, this->MaterialColors.keys())
+  foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
     {
-    color = this->MaterialColors[mat].Color;
+    color = mat->getColor();
     strcolor = QString("%1, %2, %3, %4, %5").arg(
-      this->MaterialColors[mat].Label).
+      mat->getLabel()).
       arg(color.redF()).arg(color.greenF()).arg(
       color.blueF()).arg(color.alphaF());
-    settings.setValue(settingKey+mat,strcolor);
+    settings.setValue(settingKey+mat->getName(),strcolor);
     }
-   */
 }
 
 //-----------------------------------------------------------------------------
@@ -170,7 +175,7 @@ void cmbNucMaterialColors::clear()
 //-----------------------------------------------------------------------------
 QPointer<cmbNucMaterial>
 cmbNucMaterialColors
-::getMaterialByName(QString& name)
+::getMaterialByName(QString const& name) const
 {
   if(nameUsed(name)) return this->NameToMaterial.find(name).value();
   return UnknownMaterial;
@@ -179,10 +184,26 @@ cmbNucMaterialColors
 //-----------------------------------------------------------------------------
 QPointer<cmbNucMaterial>
 cmbNucMaterialColors
-::getMaterialByLabel(QString& label)
+::getMaterialByLabel(QString const& label) const
 {
   if(labelUsed(label)) return this->LabelToMaterial.find(label).value();
   return UnknownMaterial;
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucMaterialColors
+::sendMaterialFromName(QString const& name)
+{
+  QPointer<cmbNucMaterial> result = this->getMaterialByName(name);
+  emit materialSelected(result);
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucMaterialColors
+::sendMaterialFromLabel(QString const& label)
+{
+  QPointer<cmbNucMaterial> result = this->getMaterialByLabel(label);
+  emit materialSelected(result);
 }
 
 //-----------------------------------------------------------------------------
@@ -192,20 +213,22 @@ QPointer<cmbNucMaterial> cmbNucMaterialColors::getUnknownMaterial() const
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucMaterialColors::AddMaterial(const QString& name,
-  const QString& label, const QColor& color)
+QPointer<cmbNucMaterial>
+cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label,
+                                  const QColor& color)
 {
-  this->AddMaterial(name, label, color.redF(), color.greenF(),
-    color.blueF(), color.alphaF());
+  return this->AddMaterial(name, label, color.redF(), color.greenF(),
+                           color.blueF(), color.alphaF());
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucMaterialColors::AddMaterial(const QString& name,
-  const QString& label, double r, double g, double b, double a)
+QPointer<cmbNucMaterial>
+cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label,
+                                  double r, double g, double b, double a)
 {
   if(this->nameUsed(name) || this->labelUsed(label))
   {
-    return;
+    return NULL;
   }
   QPointer< cmbNucMaterial > mat = new cmbNucMaterial( name, label,
                                                        QColor::fromRgbF(r, g,
@@ -213,17 +236,21 @@ void cmbNucMaterialColors::AddMaterial(const QString& name,
 
   this->NameToMaterial.insert(name, mat);
   this->LabelToMaterial.insert(label, mat);
+  assert(this->nameUsed(name));
+  assert(this->labelUsed(label));
   connect(mat, SIGNAL(nameHasChanged(QString, QPointer<cmbNucMaterial>)),
           this, SLOT(testAndRename(QString, QPointer<cmbNucMaterial>)));
   connect(mat, SIGNAL(labelHasChanged(QString, QPointer<cmbNucMaterial>)),
           this, SLOT(testAndRelabel(QString, QPointer<cmbNucMaterial>)));
+  return mat;
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucMaterialColors::AddMaterial(
-  const QString& name, double r, double g, double b, double a)
+QPointer<cmbNucMaterial>
+cmbNucMaterialColors::AddMaterial( const QString& name, double r,
+                                   double g, double b, double a)
 {
-  this->AddMaterial(name, name, r, g, b, a);
+  return this->AddMaterial(name, name, r, g, b, a);
 }
 
 //-----------------------------------------------------------------------------
@@ -246,13 +273,13 @@ void cmbNucMaterialColors::RemoveMaterialByName(const QString& name)
 //-----------------------------------------------------------------------------
 bool cmbNucMaterialColors::nameUsed( const QString& name ) const
 {
-  return this->NameToMaterial.find(name) != this->NameToMaterial.find(name);
+  return this->NameToMaterial.find(name) != this->NameToMaterial.end();
 }
 
 //-----------------------------------------------------------------------------
 bool cmbNucMaterialColors::labelUsed( const QString& label ) const
 {
-  return this->LabelToMaterial.find(label) != this->LabelToMaterial.find(label);
+  return this->LabelToMaterial.find(label) != this->LabelToMaterial.end();
 }
 
 //-----------------------------------------------------------------------------
@@ -276,26 +303,14 @@ void cmbNucMaterialColors::RemoveMaterialByLabel(const QString& name)
 //-----------------------------------------------------------------------------
 void cmbNucMaterialColors::SetBlockMaterialColor(
   vtkCompositeDataDisplayAttributes *attributes, unsigned int flatIdx,
-  const std::string& material)
+  QPointer<cmbNucMaterial> material)
 {
-#if 0
-  QString bMaterial = QString(material.c_str()).toLower();
-  if(this->MaterialColors.contains(bMaterial))
-    {
-    QColor bColor = this->MaterialColors[bMaterial].Color;
-    bool visible = this->MaterialColors[bMaterial].Visible;
-    double color[] = { bColor.redF(), bColor.greenF(), bColor.blueF() };
-    attributes->SetBlockColor(flatIdx, color);
-    attributes->SetBlockOpacity(flatIdx, bColor.alphaF());
-    attributes->SetBlockVisibility(flatIdx, visible);
-    }
-  else
-    {
-    double color[] = { 255, 192, 203 }; // pink
-    attributes->SetBlockColor(flatIdx, color);
-    attributes->SetBlockVisibility(flatIdx, true);
-    }
-  #endif
+  QColor bColor = material->getColor();
+  bool visible = material->isVisible();
+  double color[] = { bColor.redF(), bColor.greenF(), bColor.blueF() };
+  attributes->SetBlockColor(flatIdx, color);
+  attributes->SetBlockOpacity(flatIdx, bColor.alphaF());
+  attributes->SetBlockVisibility(flatIdx, visible);
 }
 
 //----------------------------------------------------------------------------
@@ -324,10 +339,11 @@ void cmbNucMaterialColors::testAndRename(QString oldn,
   if(this->nameUsed(newN))
   {
     material->revertName(oldn);
+    if(MaterialTree) MaterialTree->update();
     return;
   }
   QMap<QString, QPointer<cmbNucMaterial> >::iterator it =
-      this->NameToMaterial.find(newN);
+      this->NameToMaterial.find(oldn);
   this->NameToMaterial.erase(it);
   this->NameToMaterial.insert(newN, material);
 }
@@ -340,17 +356,18 @@ void cmbNucMaterialColors::testAndRelabel(QString oldl,
   if(this->nameUsed(newL))
   {
     material->revertLabel(oldl);
+    if(MaterialTree) MaterialTree->update();
     return;
   }
   QMap<QString, QPointer<cmbNucMaterial> >::iterator it =
-      this->LabelToMaterial.find(newL);
+      this->LabelToMaterial.find(oldl);
   this->LabelToMaterial.erase(it);
   this->LabelToMaterial.insert(newL, material);
 }
 
 //----------------------------------------------------------------------------
-void cmbNucMaterialColors::AddMaterial(const QString& name,
-                                       const QString& label)
+QPointer<cmbNucMaterial>
+cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label)
 {
   QColor color;
   if (this->numNewMaterials < numInitialNewMaterialColors)
@@ -367,5 +384,88 @@ void cmbNucMaterialColors::AddMaterial(const QString& name,
     color = QColor::fromRgbF(r, g, b, 1.0);
     }
 
-  this->AddMaterial(name, label, color);
+  return this->AddMaterial(name, label, color);
+}
+
+//----------------------------------------------------------------------------
+void cmbNucMaterialColors::setUp(QComboBox *comboBox) const
+{
+  comboBox->clear();
+  comboBox->addItem(UnknownMaterial->getName());
+  foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
+  {
+    comboBox->addItem(mat->getName());
+  }
+}
+
+//----------------------------------------------------------------------------
+void cmbNucMaterialColors::selectIndex(QComboBox *comboBox,
+                                       QPointer<cmbNucMaterial> mat) const
+{
+  int idx = -1;
+  for(int j = 0; j < comboBox->count() && mat != NULL; j++)
+  {
+    if(comboBox->itemText(j) == mat->getName())
+    {
+      idx = j;
+      break;
+    }
+  }
+  if(idx == -1)  comboBox->setCurrentIndex(0); //unknown
+  else           comboBox->setCurrentIndex(idx);
+}
+
+//----------------------------------------------------------------------------
+QPointer<cmbNucMaterial>
+cmbNucMaterialColors::getMaterial(QComboBox *comboBox) const
+{
+  int ci = comboBox->currentIndex();
+  QPointer<cmbNucMaterial> result =
+      this->getMaterialByName(comboBox->currentText());
+  if(result == NULL)
+  {
+    return UnknownMaterial;
+  }
+  return result;
+}
+
+//----------------------------------------------------------------------------
+void cmbNucMaterialColors::buildTree(QTreeWidget * tree)
+{
+  this->MaterialTree = tree;
+  this->MaterialTree->clear();
+  this->addToTree(UnknownMaterial)->setSelected(true);
+  foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
+    {
+    this->addToTree(mat);
+    }
+}
+
+//----------------------------------------------------------------------------
+cmbNucMaterialTreeItem *
+cmbNucMaterialColors::addToTree(QPointer<cmbNucMaterial> mat)
+{
+  cmbNucMaterialTreeItem* mNode =
+      new cmbNucMaterialTreeItem(MaterialTree->invisibleRootItem(),
+                                 mat);
+  return mNode;
+}
+
+//----------------------------------------------------------------------------
+void cmbNucMaterialColors::CreateNewMaterial()
+{
+  QPointer<cmbNucMaterial> mat =
+      this->AddMaterial( generateString("!MATERIAL_"),
+                         generateString("!LABEL_") );
+  if(mat == NULL)
+  {
+    qDebug() << "ERROR creating new material should not be null";
+  }
+  cmbNucMaterialTreeItem *node = this->addToTree(mat);
+  QList<QTreeWidgetItem*> selItems = MaterialTree->selectedItems();
+  if(selItems.count()>0)
+  {
+    selItems[0]->setSelected(false);
+  }
+  node->setSelected(true);
 }

@@ -447,13 +447,15 @@ void cmbNucPinCellEditor::UpdateLayerMaterials()
       comboBox = qobject_cast<QComboBox *>(this->Ui->layersTable->cellWidget(i, 0));
       if(comboBox)
         {
+        QPointer<cmbNucMaterial> mat =
+            cmbNucMaterialColors::instance()->getMaterial(comboBox);
         if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
           {
-          dynamic_cast<Frustum*>(obj)->SetMaterial(i, comboBox->currentText().toStdString());
+          dynamic_cast<Frustum*>(obj)->SetMaterial(i, mat);
           }
         else if(obj->GetType() == CMBNUC_ASSY_CYLINDER_PIN)
           {
-          dynamic_cast<Cylinder*>(obj)->SetMaterial(i, comboBox->currentText().toStdString());
+          dynamic_cast<Cylinder*>(obj)->SetMaterial(i, mat);
           }
         }
       }
@@ -645,8 +647,9 @@ void cmbNucPinCellEditor::numberOfLayersChanged(int layers)
     QTableWidgetItem *item = new LayerRadiusEditor;
     item->setText(QString::number(1.0));
     this->Ui->layersTable->setItem(row, 1, item);
-    this->PinCellObject->SetMaterial(row,
-      comboBox->currentText().toStdString());
+    QPointer<cmbNucMaterial> mat =
+      cmbNucMaterialColors::instance()->getMaterial(comboBox);
+    this->PinCellObject->SetMaterial( row, mat );
     }
   this->Ui->layersTable->blockSignals(false);
   this->UpdateData();
@@ -685,8 +688,7 @@ void cmbNucPinCellEditor::sectionTypeComboBoxChanged(const QString &type)
 void cmbNucPinCellEditor::setupMaterialComboBox(QComboBox *comboBox)
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  //TODO COLOR
-  //comboBox->addItems(matColorMap->MaterialColorMap().keys());
+  matColorMap->setUp(comboBox);
 }
 
 void cmbNucPinCellEditor::layerTableCellChanged(int row, int col)
@@ -738,40 +740,20 @@ void cmbNucPinCellEditor::onPieceSelected()
       this->Ui->layersTable->setCellWidget(i, 0, comboBox);
       this->Ui->layersTable->setItem(i, 0, new LayerRadiusEditor);
 
-      std::string strSelMat;
+      QPointer<cmbNucMaterial> selMat;
       if(obj)
         {
         if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
           {
-          strSelMat = dynamic_cast<Frustum*>(obj)->GetMaterial(i);
+          selMat = dynamic_cast<Frustum*>(obj)->GetMaterial(i);
           }
         else if(obj->GetType() == CMBNUC_ASSY_CYLINDER_PIN)
           {
-          strSelMat = dynamic_cast<Cylinder*>(obj)->GetMaterial(i);
+          selMat = dynamic_cast<Cylinder*>(obj)->GetMaterial(i);
           }
         }
+      cmbNucMaterialColors::instance()->selectIndex(comboBox, selMat);
 
-      int idx = -1;
-      for(int j = 0; j < comboBox->count(); j++)
-        {
-        if(comboBox->itemText(j).toStdString() == strSelMat)
-          {
-          idx = j;
-          break;
-          }
-        }
-      comboBox->setCurrentIndex(idx);
-      //if(!found && obj)
-      //  {
-        //if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
-        //  {
-        //  dynamic_cast<Frustum*>(obj)->SetMaterial(i,comboBox->currentText().toStdString());
-        //  }
-        //else if(obj->GetType() == CMBNUC_ASSY_CYLINDER_PIN)
-        //  {
-        //  dynamic_cast<Cylinder*>(obj)->SetMaterial(i, comboBox->currentText().toStdString());
-        //  }
-      //  }
       QTableWidgetItem *item = new LayerRadiusEditor;
       item->setText(QString::number(pincell->radii[i]));
       this->Ui->layersTable->setItem(i, 1, item);
@@ -945,9 +927,10 @@ void cmbNucPinCellEditor::rebuildLayersFromTable()
     {
     QComboBox* mat = qobject_cast<QComboBox*>(
       this->Ui->layersTable->cellWidget(layer, 0));
-
+    QPointer<cmbNucMaterial> matPtr =
+        cmbNucMaterialColors::instance()->getMaterial(mat);
     QTableWidgetItem* item = this->Ui->layersTable->item(layer, 1);
-    this->PinCellObject->SetMaterial(layer, mat->currentText().toStdString());
+    this->PinCellObject->SetMaterial(layer, matPtr);
     this->PinCellObject->SetRadius(layer, item->text().toDouble());
     }
 }

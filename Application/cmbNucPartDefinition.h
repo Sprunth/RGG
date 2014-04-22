@@ -4,11 +4,13 @@
 #include <vector>
 #include <QColor>
 #include <QDebug>
+#include <QPointer>
 #include <sstream>
 #include <assert.h>
 
 #include <vtkSmartPointer.h>
 #include "vtkMultiBlockDataSet.h"
+#include "cmbNucMaterial.h"
 
 enum enumNucPartsType
 {
@@ -77,19 +79,19 @@ enum enumGeometryType {
             this->z1==obj.z1 && this->z2==obj.z2 &&
             this->r==obj.r;
     }
-    std::string GetMaterial(int i)
+    QPointer<cmbNucMaterial> GetMaterial(int i)
       {
       if(i>=0 && i<this->materials.size())
         {
-        return this->materials[i];
+        return this->materials[i].getMaterial();
         }
-      return std::string();
+      return NULL;
       }
-    void SetMaterial(int i, const std::string& material)
+    void SetMaterial(int i, QPointer<cmbNucMaterial> material)
       {
       if(i>=0 && i<this->materials.size())
         {
-        this->materials[i] = material;
+        this->materials[i].changeMaterial( material );
         }
       }
     void SetNumberOfLayers(int numLayers)
@@ -97,7 +99,7 @@ enum enumGeometryType {
       this->materials.resize(numLayers);
       }
 
-    std::vector<std::string> materials;
+    std::vector< cmbNucMaterialLayer > materials;
     double x;
     double y;
     double z1;
@@ -120,26 +122,26 @@ enum enumGeometryType {
         this->z1==obj.z1 && this->z2==obj.z2 &&
         this->r1==obj.r2 && this->r2==obj.r2;
       }
-    std::string GetMaterial(int i)
+    QPointer<cmbNucMaterial> GetMaterial(int i)
       {
       if(i>=0 && i<this->materials.size())
         {
-        return this->materials[i];
+        return this->materials[i].getMaterial();
         }
-      return std::string();
+      return NULL;
       }
-    void SetMaterial(int i, const std::string& material)
+    void SetMaterial(int i, QPointer<cmbNucMaterial> material)
       {
       if(i>=0 && i<this->materials.size())
         {
-        this->materials[i] = material;
+        this->materials[i].changeMaterial(material);
         }
       }
     void SetNumberOfLayers(int numLayers)
     {
       this->materials.resize(numLayers);
     }
-    std::vector<std::string> materials;
+    std::vector< cmbNucMaterialLayer > materials;
     double x;
     double y;
     double z1;
@@ -218,7 +220,7 @@ enum enumGeometryType {
       this->radii[idx] = radius;
       }
 
-    void SetMaterial(int idx, const std::string& material)
+    void SetMaterial(int idx, QPointer<cmbNucMaterial> material)
       {
       for(size_t i = 0; i < this->cylinders.size(); i++){
         this->cylinders[i]->SetMaterial(idx, material);
@@ -230,12 +232,13 @@ enum enumGeometryType {
     bool RemoveMaterial(const std::string& name)
       {
       bool change = false;
+        /*
       for(size_t i = 0; i < this->cylinders.size(); i++){
         for(size_t j = 0; j < this->cylinders[i]->materials.size(); j++)
           {
-          if(this->cylinders[i]->materials[j] == name)
+          if(this->cylinders[i]->materials[j]->getName() == QString(name.c_str())) //TODO rethink this
             {
-            this->cylinders[i]->materials[j] = "";
+            this->cylinders[i]->materials[j] = NULL;
             change = true;
             }
           }
@@ -243,13 +246,14 @@ enum enumGeometryType {
       for(size_t i = 0; i < this->frustums.size(); i++){
         for(size_t j = 0; j < this->frustums[i]->materials.size(); j++)
           {
-          if(this->frustums[i]->materials[j] == name)
+          if(this->frustums[i]->materials[j]->getName() == QString(name.c_str()))
             {
-            this->frustums[i]->materials[j] = "";
+            this->frustums[i]->materials[j] = NULL; //TODO rethink this
             change = true;
             }
           }
         }
+         */
       return change;
       }
 
@@ -309,19 +313,18 @@ enum enumGeometryType {
   class Duct : public AssyPartObj
   {
   public:
-    struct Material
+    struct MaterialLayer : public cmbNucMaterialLayer
     {
-      Material()
+      MaterialLayer()
+      : cmbNucMaterialLayer()
       {
-        this->material = "";
         this->normThickness[0] = 1;
         this->normThickness[1] = 1;
       }
-      std::string material;
       double normThickness[2];
-      bool operator==( const Duct::Material & other ) const
+      bool operator==( const Duct::MaterialLayer & other ) const
       {
-        return material == other.material &&
+        return Material == other.Material &&
                normThickness[0] == other.normThickness[0] &&
                normThickness[1] == other.normThickness[1];
       }
@@ -329,7 +332,7 @@ enum enumGeometryType {
     Duct(enumNucPartsType type=CMBNUC_ASSY_RECT_DUCT)
       {
       x=0.0;y=0.0;z1=0.0;z2=4.0;
-      Duct::Material m;
+      Duct::MaterialLayer m;
       materials.push_back(m);
       thickness[0] = 18;
       thickness[1] = 18;
@@ -358,7 +361,7 @@ enum enumGeometryType {
     double z1;
     double z2;
     double thickness[2];
-    std::vector<Duct::Material> materials;
+    std::vector<Duct::MaterialLayer> materials;
     enumNucPartsType enType;
   };
 
