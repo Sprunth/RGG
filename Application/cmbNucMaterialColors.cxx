@@ -84,6 +84,11 @@ cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
   UnknownMaterial = new cmbNucMaterial("!!!!UnknownMaterial!!!!",
                                        "!!!!Unknown!!!!",
                                        QColor::fromRgbF(1.0,1.0,1.0));
+  connect(UnknownMaterial, SIGNAL(nameHasChanged(QString, QPointer<cmbNucMaterial>)),
+          this, SLOT(UnknownRename(QString)));
+  connect(UnknownMaterial, SIGNAL(labelHasChanged(QString, QPointer<cmbNucMaterial>)),
+          this, SLOT(UnknownRelabel(QString)));
+  connect(UnknownMaterial, SIGNAL(colorChanged()), this, SIGNAL(materialColorChanged()));
   if (!cmbNucMaterialColors::Instance || reset_instance)
     {
     cmbNucMaterialColors::Instance = this;
@@ -178,7 +183,9 @@ QPointer<cmbNucMaterial>
 cmbNucMaterialColors
 ::getMaterialByName(QString const& name) const
 {
-  if(nameUsed(name)) return this->NameToMaterial.find(name).value();
+  Material_Map::const_iterator iter =
+      this->find(name, this->NameToMaterial);
+  if(iter != this->NameToMaterial.end()) return iter.value();
   return UnknownMaterial;
 }
 
@@ -187,7 +194,9 @@ QPointer<cmbNucMaterial>
 cmbNucMaterialColors
 ::getMaterialByLabel(QString const& label) const
 {
-  if(labelUsed(label)) return this->LabelToMaterial.find(label).value();
+  Material_Map::const_iterator iter =
+      this->find(label, this->LabelToMaterial);
+  if(iter != this->LabelToMaterial.end()) return iter.value();
   return UnknownMaterial;
 }
 
@@ -235,8 +244,8 @@ cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label,
                                                        QColor::fromRgbF(r, g,
                                                                         b, a) );
 
-  this->NameToMaterial.insert(name, mat);
-  this->LabelToMaterial.insert(label, mat);
+  this->insert(name, mat, this->NameToMaterial);
+  this->insert(label, mat, this->LabelToMaterial);
   assert(this->nameUsed(name));
   assert(this->labelUsed(label));
   connect(mat, SIGNAL(nameHasChanged(QString, QPointer<cmbNucMaterial>)),
@@ -258,8 +267,7 @@ cmbNucMaterialColors::AddMaterial( const QString& name, double r,
 //-----------------------------------------------------------------------------
 void cmbNucMaterialColors::RemoveMaterialByName(const QString& name)
 {
-  QMap<QString, QPointer<cmbNucMaterial> >::iterator it =
-    this->NameToMaterial.find(name);
+  Material_Map::iterator it = this->find(name, this->NameToMaterial);
   if(it != this->NameToMaterial.end())
     {
       if(it.value())
@@ -280,20 +288,22 @@ void cmbNucMaterialColors::RemoveMaterialByName(const QString& name)
 //-----------------------------------------------------------------------------
 bool cmbNucMaterialColors::nameUsed( const QString& name ) const
 {
-  return this->NameToMaterial.find(name) != this->NameToMaterial.end();
+  return name.toLower() == UnknownMaterial->getName().toLower() ||
+         this->find(name, this->NameToMaterial) != this->NameToMaterial.end();
 }
 
 //-----------------------------------------------------------------------------
 bool cmbNucMaterialColors::labelUsed( const QString& label ) const
 {
-  return this->LabelToMaterial.find(label) != this->LabelToMaterial.end();
+  return label.toLower() == UnknownMaterial->getLabel().toLower() ||
+         this->find(label, this->LabelToMaterial) !=
+         this->LabelToMaterial.end();
 }
 
 //-----------------------------------------------------------------------------
 void cmbNucMaterialColors::RemoveMaterialByLabel(const QString& name)
 {
-  QMap<QString, QPointer<cmbNucMaterial> >::iterator it =
-      this->LabelToMaterial.find(name);
+  Material_Map::iterator it = this->find(name, this->LabelToMaterial);
   if(it != this->LabelToMaterial.end())
   {
     if(it.value())
@@ -349,10 +359,9 @@ void cmbNucMaterialColors::testAndRename(QString oldn,
     if(MaterialTree) MaterialTree->update();
     return;
   }
-  QMap<QString, QPointer<cmbNucMaterial> >::iterator it =
-      this->NameToMaterial.find(oldn);
+  Material_Map::iterator it = this->find(oldn, this->NameToMaterial);
   this->NameToMaterial.erase(it);
-  this->NameToMaterial.insert(newN, material);
+  this->insert(newN, material, this->NameToMaterial);
   material->emitMaterialChange();
 }
 
@@ -361,17 +370,39 @@ void cmbNucMaterialColors::testAndRelabel(QString oldl,
                                           QPointer<cmbNucMaterial> material)
 {
   QString newL = material->getLabel();
-  if(this->nameUsed(newL))
+  if(this->labelUsed(newL))
   {
     material->revertLabel(oldl);
     if(MaterialTree) MaterialTree->update();
     return;
   }
-  QMap<QString, QPointer<cmbNucMaterial> >::iterator it =
-      this->LabelToMaterial.find(oldl);
+  Material_Map::iterator it = this->find( oldl, this->LabelToMaterial);
   this->LabelToMaterial.erase(it);
-  this->LabelToMaterial.insert(newL, material);
+  this->insert(newL, material, this->LabelToMaterial);
   material->emitMaterialChange();
+}
+
+//----------------------------------------------------------------------------
+void cmbNucMaterialColors::UnknownRename(QString oldn)
+{
+  QString newN = UnknownMaterial->getName();
+  if(this->find(newN, this->NameToMaterial) != this->NameToMaterial.end())
+  {
+    UnknownMaterial->revertName(oldn);
+    if(MaterialTree) MaterialTree->update();
+  }
+}
+
+//----------------------------------------------------------------------------
+void cmbNucMaterialColors::UnknownRelabel(QString oldl)
+{
+  QString newL = UnknownMaterial->getLabel();
+  if(this->find(newL, this->LabelToMaterial) != this->LabelToMaterial.end())
+  {
+    UnknownMaterial->revertLabel(oldl);
+    if(MaterialTree) MaterialTree->update();
+    return;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -466,14 +497,13 @@ cmbNucMaterialColors::addToTree(QPointer<cmbNucMaterial> mat)
 //----------------------------------------------------------------------------
 QString
 cmbNucMaterialColors
-::generateString(QString prefix,
-                QMap<QString, QPointer<cmbNucMaterial> > const& mat)
+::generateString(QString prefix, Material_Map const& mat)
 {
   QString matname;
   while(true)
   {
     matname = prefix + QString::number(newID);
-    if(mat.find(matname) == mat.end()) break;
+    if(this->find(matname, mat) == mat.end()) break;
     newID++;
   }
   return matname;
@@ -519,4 +549,26 @@ void cmbNucMaterialColors::showJustUsed(bool b)
 {
   this->justUsed = b;
   emit showJustUsedSig(b);
+}
+
+//------------------------------------------------------------------------------
+void cmbNucMaterialColors
+::insert( QString key, QPointer<cmbNucMaterial> mat, Material_Map & map) const
+{
+  map.insert(key.toLower(), mat);
+}
+
+cmbNucMaterialColors::Material_Map::iterator
+cmbNucMaterialColors
+::find( QString key, Material_Map & map)
+{
+  return map.find(key.toLower());
+}
+
+//------------------------------------------------------------------------------
+cmbNucMaterialColors::Material_Map::const_iterator
+cmbNucMaterialColors
+::find(QString key, Material_Map const& map) const
+{
+  return map.find(key.toLower());
 }

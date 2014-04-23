@@ -967,6 +967,11 @@ void cmbNucMainWindow::ResetView()
 
 void cmbNucMainWindow::Render()
 {
+  if(this->Internal->WasMeshTab)
+  {
+    this->onChangeMeshColorMode(this->InputsWidget->getMeshColorState());
+    return;
+  }
   this->updateCoreMaterialColors();
   this->Mapper->Modified();
   this->Renderer->Render();
@@ -996,6 +1001,7 @@ void cmbNucMainWindow::onSelectionChange()
 
 QString createMaterialLabel(const char * name)
 {
+  if(name == NULL) return QString();
   QString result(name);
   if(result.endsWith("_top_ss"))
   {
@@ -1046,7 +1052,8 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
         for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
         {
           const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
-          QPointer<cmbNucMaterial> m = this->MaterialColors->getMaterialByName(QString(name));
+          QPointer<cmbNucMaterial> m =
+              this->MaterialColors->getMaterialByName(createMaterialLabel(name));
           add_color(att, idx, m->getColor(), m->isVisible());
          }
         }

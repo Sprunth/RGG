@@ -23,7 +23,9 @@ typedef std::vector<NeumannSetType> NeumannSetTypeVec;
 class inpFileHelper
 {
 public:
-  std::map<std::string, std::string> materialLabelMap;
+  std::map<std::string, QPointer<cmbNucMaterial> > materialLabelMap;
+  typedef std::map<std::string, QPointer<cmbNucMaterial> >::iterator map_iter;
+  bool labelIsDifferent;
   template <typename TYPE>
   void readGeometryType( std::stringstream & input,
                          TYPE &v, Lattice &lat)
@@ -253,9 +255,9 @@ bool inpFileReader
   if(Type != ASSEMBLY_TYPE)
     return false;
   inpFileHelper helper;
+  helper.labelIsDifferent = false;
   assembly.FileName = FileName;
   assembly.clear();
-  assembly.setAndTestDiffFromFiles(false); //Should not be different
   std::stringstream input(CleanFile);
   while(!input.eof())
   {
@@ -348,6 +350,7 @@ bool inpFileReader
       helper.readUnknown(input, value, assembly.Parameters->UnknownParams);
       }
     }
+  assembly.setAndTestDiffFromFiles(helper.labelIsDifferent); //Should not be different
   return true;
 }
 
@@ -637,48 +640,31 @@ void inpFileHelper::readMaterials( std::stringstream & input,
     {
     std::string mname;
     input >> mname;
-    std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
     input >> mlabel;
+    QPointer< cmbNucMaterial > mat;
 
     if(!matColorMap->nameUsed(mname.c_str()))
       {
-      if(matColorMap->labelUsed(mlabel.c_str())) //label is being used. Relabel
-      {
-        QPointer<cmbNucMaterial> mat = matColorMap->getMaterialByLabel(mlabel.c_str());
-        if(matColorMap->labelUsed(mat->getName()))
-          {
-          mat->setLabel("__RELABELED_BY_"+QString(mname.c_str())+"__"
-                        +mat->getLabel()+"__RELABELED__");
-          }
-        else
-          {
-          mat->setLabel(mat->getName());
-          }
-      }
-      matColorMap->AddMaterial(mname.c_str(), mlabel.c_str());
+      QString savedLabel = mlabel.c_str();
+      int count = 0;
+      while(matColorMap->labelUsed(savedLabel))
+        {
+        savedLabel = QString(mlabel.c_str()) + QString::number(count++);
+        labelIsDifferent = true;
+        }
+      mat = matColorMap->AddMaterial(mname.c_str(), savedLabel);
       }
     else
       {
       // replace the label
-      QPointer<cmbNucMaterial> mat = matColorMap->getMaterialByName(mname.c_str());
-      if(mat->getLabel() != QString(mlabel.c_str()))
+      mat = matColorMap->getMaterialByName(mname.c_str());
+      if(mat->getLabel().toLower() != QString(mlabel.c_str()).toLower())
         {
-        if(matColorMap->labelUsed(mlabel.c_str())) //label is being used. Relabel
-          {
-            QPointer<cmbNucMaterial> other = matColorMap->getMaterialByLabel(mlabel.c_str());
-            if(matColorMap->labelUsed(other->getName()))
-            {
-              other->setLabel("__RELABELED_BY_"+QString(mname.c_str())+"__"
-                            +other->getLabel()+"__RELABELED__");
-            }
-            else
-            {
-              other->setLabel(other->getName());
-            }
-          }
-        mat->setLabel(mlabel.c_str());
+        labelIsDifferent = true;
         }
       }
+    std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+    materialLabelMap[mlabel] = mat;
     }
 }
 
@@ -746,12 +732,17 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
   duct->thickness[0] = maxV[0];
   duct->thickness[1] = maxV[1];
 
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-
   for(int i = 0; i < materials; i++)
     {
     input >> mlabel;
-    duct->setMaterial(i, matColorMap->getMaterialByLabel(mlabel.c_str()));
+    QPointer< cmbNucMaterial > mat = cmbNucMaterialColors::instance()->getUnknownMaterial();
+    std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+    map_iter it = materialLabelMap.find(mlabel);
+    if(it != materialLabelMap.end())
+      mat = it->second;
+    else
+      labelIsDifferent = true;
+    duct->setMaterial(i, mat);
     duct->getNormThick(i)[0] /= maxV[0];
     duct->getNormThick(i)[1] /= maxV[1];
     }
@@ -923,8 +914,13 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           // Get the material of the layer - note that we read in the material label that
           // maps to the actual material
           input >> mlabel;
-          QPointer<cmbNucMaterial> tmp = matColorMap->getMaterialByLabel(mlabel.c_str());
-          qDebug() << tmp->getName() << tmp->getLabel() << mlabel.c_str();
+          QPointer< cmbNucMaterial > tmp = cmbNucMaterialColors::instance()->getUnknownMaterial();
+          std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+          map_iter it = materialLabelMap.find(mlabel);
+          if(it != materialLabelMap.end())
+            tmp = it->second;
+          else
+            labelIsDifferent = true;
           // Lets save the first material to use to set the pin's color legend
           if (firstMaterial == NULL)
             {

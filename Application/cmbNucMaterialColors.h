@@ -21,6 +21,9 @@ class cmbNucMaterialColors: public QObject
   Q_OBJECT
 public:
 
+  typedef QMap<QString, QPointer<cmbNucMaterial> > Material_Map;
+
+
   // Get the global instance for the cmbNucMaterialColors.
   static cmbNucMaterialColors* instance();
 
@@ -85,6 +88,9 @@ signals:
 protected slots:
   void testAndRename(QString oldn, QPointer<cmbNucMaterial> material);
   void testAndRelabel(QString oldl, QPointer<cmbNucMaterial> material);
+  void UnknownRename(QString oldn);
+  void UnknownRelabel(QString oldl);
+
   void sendMaterialFromName(QString const& name);
   void sendMaterialFromLabel(QString const& label);
 
@@ -93,7 +99,14 @@ signals:
 
 private:
 
-  QString generateString(QString prefix, QMap<QString, QPointer<cmbNucMaterial> > const& );
+  QString generateString(QString prefix, Material_Map const& );
+
+  void insert(QString key,
+              QPointer<cmbNucMaterial>,
+              QMap<QString, QPointer<cmbNucMaterial> > & ) const;
+
+  Material_Map::iterator find(QString key, Material_Map &);
+  Material_Map::const_iterator find(QString key, Material_Map const&) const;
 
   static cmbNucMaterialColors* Instance;
 
@@ -104,8 +117,8 @@ private:
   QPointer< cmbNucMaterial > UnknownMaterial;
   cmbNucMaterialTreeItem * UnknownMaterialTreeItem;
 
-  QMap<QString, QPointer<cmbNucMaterial> > NameToMaterial;
-  QMap<QString, QPointer<cmbNucMaterial> > LabelToMaterial;
+  Material_Map NameToMaterial;
+  Material_Map LabelToMaterial;
   double Ulimit, Llimit;  // luminance range when creating colors
   int numNewMaterials;
   int newID;
