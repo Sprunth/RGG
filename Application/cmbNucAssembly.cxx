@@ -31,6 +31,12 @@
 #include <QDateTime>
 #include <QDir>
 
+void cmbNucAssemblyConnection::dataChanged()
+{
+  v->setAndTestDiffFromFiles(true);
+  emit dataChangedSig();
+}
+
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
@@ -38,12 +44,18 @@ cmbNucAssembly::cmbNucAssembly()
   this->Parameters = new cmbAssyParameters;
   this->DifferentFromFile = true;
   this->DifferentFromCub = true;
+  this->Connection = new cmbNucAssemblyConnection();
+  this->Connection->v = this;
+
+  QObject::connect(AssyDuct.GetConnection(), SIGNAL(Changed()),
+                   this->Connection, SLOT(dataChanged()));
 }
 
 cmbNucAssembly::~cmbNucAssembly()
 {
   AssyPartObj::deleteObjs(this->PinCells);
   delete this->Parameters;
+  delete this->Connection;
 }
 
 QColor cmbNucAssembly::GetLegendColor() const
@@ -81,6 +93,8 @@ void cmbNucAssembly::UpdateGrid()
 
 void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
+  QObject::connect(pincell->GetConnection(), SIGNAL(Changed()),
+                   this->Connection, SLOT(dataChanged()));
   this->PinCells.push_back(pincell);
 }
 
@@ -103,34 +117,6 @@ void cmbNucAssembly::RemovePinCell(const std::string &label)
   }
 }
 
-void cmbNucAssembly::RemoveMaterial(const std::string &name)
-{
-  // update all places that references materials: ducts, pins
-  bool change = false;
-   for(size_t i = 0; i < this->AssyDuct.Ducts.size(); i++)
-    {
-    Duct *duct = this->AssyDuct.Ducts[i];
-    for(size_t j = 0; j < duct->materials.size(); j++)
-      {
-      if(duct->materials[j].material == name)
-        {
-        duct->materials[j].material = "";
-        change = true;
-        }
-     }
-    }
-  for(size_t i = 0; i < this->PinCells.size(); i++)
-    {
-    PinCell* pincell = this->PinCells[i];
-    change |= pincell->RemoveMaterial(name);
-    }
-  if(change)
-  {
-    setAndTestDiffFromFiles(true);
-    CreateData();
-  }
-}
-
 PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
@@ -142,6 +128,20 @@ PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
     }
 
   return 0;
+}
+
+PinCell* cmbNucAssembly::GetPinCell(int pc) const
+{
+  if(pc < this->PinCells.size())
+  {
+    return this->PinCells[pc];
+  }
+  return NULL;
+}
+
+std::size_t cmbNucAssembly::GetNumberOfPinCells() const
+{
+  return this->PinCells.size();
 }
 
 bool cmbNucAssembly::IsHexType()
@@ -162,10 +162,6 @@ void cmbNucAssembly::ReadFile(const std::string &FileName)
   freader.read(*this);
 }
 
-#define WRITE_PARAM_VALUE(X)\
-if(this->Parameters->isValueSet(this->Parameters->X))\
-   output << #X << " " << this->Parameters->X << std::endl
-
 void cmbNucAssembly::WriteFile(const std::string &fname)
 {
   inpFileWriter::write(fname, *this, true);
@@ -184,7 +180,7 @@ void cmbNucAssembly::updateMaterialColors(
 
   std::string pinMaterial = "pin";
   int numAssyBlocks = this->AssyLattice.GetNumberOfCells() +
-                      this->AssyDuct.Ducts.size();
+                      this->AssyDuct.numberOfDucts();
   for(unsigned int idx = 0; idx < this->AssyLattice.GetNumberOfCells(); ++idx)
   {
     realflatidx++;
@@ -193,46 +189,29 @@ void cmbNucAssembly::updateMaterialColors(
 
     if(pinCell)
     {
-      std::string pinMaterial;
-
-      for(unsigned int cidx = 0; cidx < pinCell->cylinders.size(); cidx++)
+      for(unsigned int cidx = 0; cidx < pinCell->GetNumberOfParts(); cidx++)
       {
-        realflatidx++; // increase one for this cylinder
+        realflatidx++; // increase one for this Part
         for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
         {
-          pinMaterial = pinCell->cylinders[cidx]->materials[k];
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
-        }
-      }
-      for(unsigned int fidx = 0; fidx < pinCell->frustums.size(); fidx++)
-      {
-        realflatidx++; // increase one for this frustum
-        for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
-        {
-          pinMaterial = pinCell->frustums[fidx]->materials[k];
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, pinMaterial);
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
+                                             pinCell->GetPart(cidx)->GetMaterial(k));
         }
       }
     }
   }
-  for(unsigned int idx = 0; idx < this->AssyDuct.Ducts.size(); ++idx)
+  for(unsigned int idx = 0; idx < this->AssyDuct.numberOfDucts(); ++idx)
   {
     realflatidx++;
     if(vtkMultiBlockDataSet* ductBlock =
        vtkMultiBlockDataSet::SafeDownCast(this->Data->GetBlock(this->AssyLattice.GetNumberOfCells()+idx)))
     {
-      Duct* duct = this->AssyDuct.Ducts[idx];
+      Duct* duct = this->AssyDuct.getDuct(idx);
       unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
       for(unsigned int b = 0; b < numBlocks; b++)
       {
-        std::string layerMaterial =
-           (duct && b < duct->materials.size()) ? duct->materials[b].material : "duct";
-        if(layerMaterial.empty())
-        {
-          layerMaterial = "duct";
-        }
-        layerMaterial = QString(layerMaterial.c_str()).toLower().toStdString();
-        matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, layerMaterial);
+        matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
+                                           duct->getMaterial(b));
       }
     }
   }
@@ -308,12 +287,11 @@ void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 {
-  if(this->AssyDuct.Ducts.size()==0 || this->AssyLattice.Grid.size() == 0)
+  if(this->AssyDuct.numberOfDucts()==0 || this->AssyLattice.Grid.size() == 0)
     {
     return NULL;
     }
   double currentLaticePoint[] = {0,0};
-  std::vector<Duct*> & tmpDucts = this->AssyDuct.Ducts;
   double latticeOffset[2];
 
   std::vector< std::vector< double > > offX, offY;
@@ -338,13 +316,14 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
     maxLatPt[0] = offX[r][c];
     maxLatPt[1] = offY[r][c];
     double m2[] = {0,0};
-    for(unsigned int i = 0; i < tmpDucts.size(); ++i)
+    for(unsigned int i = 0; i < this->AssyDuct.numberOfDucts(); ++i)
     {
-      for(unsigned int j = 0; j < tmpDucts[i]->materials.size(); ++j)
+      Duct * tmpd = this->AssyDuct.getDuct(i);
+      for(unsigned int j = 0; j < tmpd->NumberOfLayers(); ++j)
         {
-        double t =tmpDucts[i]->GetLayerThick(j, 0);
+        double t =tmpd->GetLayerThick(j, 0);
         if(t > m2[0]) m2[0] = t;
-        t = tmpDucts[i]->GetLayerThick(j, 1);
+        t = tmpd->GetLayerThick(j, 1);
         if(t > m2[1]) m2[1] = t;
         }
     }
@@ -354,10 +333,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
   // setup data
   this->Data->SetNumberOfBlocks(this->AssyLattice.GetNumberOfCells() +
-                                this->AssyDuct.Ducts.size());
+                                this->AssyDuct.numberOfDucts());
 
   // For Hex type
-  Duct *hexDuct = tmpDucts[0];
+  Duct *hexDuct = this->AssyDuct.getDuct(0);
   double layerCorners[8][2], hexRadius, hexDiameter, layerRadius;
   hexDiameter = hexDuct->thickness[0];
   hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
@@ -388,7 +367,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
       if(!type.empty() && type != "xx" && type != "XX")
         {
         PinCell* pincell = this->GetPinCell(type);
-        if(pincell && (pincell->cylinders.size()+pincell->frustums.size())>0)
+        if(pincell && (pincell->GetNumberOfParts())>0)
           {
           // create polydata for the pincell
           if(!pincell->CachedData)
@@ -490,10 +469,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
   // setup ducts
   double z, deltaZ, height;
-  size_t numDucts = tmpDucts.size();
+  size_t numDucts = this->AssyDuct.numberOfDucts();
   for(size_t i = 0; i < numDucts; i++)
     {
-    Duct *duct = tmpDucts[i];
+    Duct *duct = this->AssyDuct.getDuct(i);
 
     vtkCmbDuctSource *ductSource = vtkCmbDuctSource::New();
     z = duct->z1;
@@ -520,7 +499,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
       this->AssyLattice.GetGeometryType()== HEXAGONAL ?
       CMBNUC_ASSY_HEX_DUCT : CMBNUC_ASSY_RECT_DUCT);
 
-    for(size_t j = 0; j < duct->materials.size(); j++)
+    for(size_t j = 0; j < duct->NumberOfLayers(); j++)
       {
       ductSource->AddLayer(duct->GetLayerThick(j,0), duct->GetLayerThick(j,1));
       }
@@ -538,32 +517,33 @@ void cmbNucAssembly::GetDuctWidthHeight(double r[2])
 {
   r[0] = 0;
   r[1] = 0;
-  for(unsigned int i = 0; i < this->AssyDuct.Ducts.size(); ++i)
+  for(unsigned int i = 0; i < this->AssyDuct.numberOfDucts(); ++i)
     {
-    double t =this->AssyDuct.Ducts[i]->thickness[0];
+    Duct * tmpd = this->AssyDuct.getDuct(i);
+    double t =tmpd->thickness[0];
     if(t > r[0]) r[0] = t;
-    t = this->AssyDuct.Ducts[i]->thickness[1];
+    t = tmpd->thickness[1];
     if(t > r[1]) r[1] = t;
     }
 }
 
 vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, bool cutaway)
 {
-  if(pincell->cylinders.size() + pincell->frustums.size() == 0)
+  if(pincell->GetNumberOfParts() == 0)
     {
     return vtkMultiBlockDataSet::New();
     }
 
   // There are two child multibock, one for cylinders, one for frustums
   vtkMultiBlockDataSet *dataSet = vtkMultiBlockDataSet::New();
-  dataSet->SetNumberOfBlocks(pincell->cylinders.size() + pincell->frustums.size());
+  dataSet->SetNumberOfBlocks(pincell->GetNumberOfParts());
 
   // build all cylinders and frustums
   const int PinCellResolution = 16;
-  size_t numCyls = pincell->cylinders.size();
+  size_t numCyls = pincell->NumberOfCylinders();
   for(size_t j = 0; j < numCyls; j++)
     {
-    Cylinder *cylinder = pincell->cylinders[j];
+    Cylinder *cylinder = pincell->GetCylinder(j);
 
     vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
       vtkSmartPointer<vtkCmbLayeredConeSource>::New();
@@ -614,9 +594,9 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       }
     }
 
-  for(size_t j = 0; j < pincell->frustums.size(); j++)
+  for(size_t j = 0; j < pincell->NumberOfFrustums(); j++)
     {
-    Frustum* frustum = pincell->frustums[j];
+    Frustum* frustum = pincell->GetFrustum(j);
 
     vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
       vtkSmartPointer<vtkCmbLayeredConeSource>::New();
@@ -715,4 +695,14 @@ void cmbNucAssembly::clear()
   this->PinCells.clear();
   delete this->Parameters;
   this->Parameters = new cmbAssyParameters;
+}
+
+QSet< cmbNucMaterial* > cmbNucAssembly::getMaterials()
+{
+  QSet< cmbNucMaterial* > result = AssyDuct.getMaterials();
+  for(unsigned int i = 0; i < PinCells.size(); ++i)
+  {
+    result.unite(PinCells[i]->getMaterials());
+  }
+  return result;
 }

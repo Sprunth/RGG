@@ -40,6 +40,7 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
 #include "cmbNucPreferencesDialog.h"
+#include "cmbNucMaterial.h"
 #include "inpFileIO.h"
 
 #include "vtkCmbLayeredConeSource.h"
@@ -195,6 +196,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   QString materialfile =
     QCoreApplication::applicationDirPath() + "/materialcolors.ini";
   this->MaterialColors->OpenFile(materialfile);
+
+  connect(this->MaterialColors, SIGNAL(materialColorChanged()), this, SLOT(Render()));
 
   this->initPanels();
 
@@ -801,9 +804,7 @@ void cmbNucMainWindow::clearAll()
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
 
-  if(this->MaterialColors) delete this->MaterialColors;
-
-  this->MaterialColors = new cmbNucMaterialColors(true);
+  this->MaterialColors->clear();
   QString materialfile =
      QCoreApplication::applicationDirPath() + "/materialcolors.ini";
   this->MaterialColors->OpenFile(materialfile);
@@ -847,31 +848,18 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
 
-  size_t numCyls = pin->cylinders.size();
-  size_t numFrus = pin->frustums.size();
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
   unsigned int flat_index = 1; // start from first child
   for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
     {
-    std::string pinMaterial;
     vtkMultiBlockDataSet* aSection = vtkMultiBlockDataSet::SafeDownCast(
       this->Internal->CurrentDataset->GetBlock(idx));
-    if(idx < numCyls)
       {
-      flat_index++; // increase one for this cylinder
+      flat_index++;
       for(int k = 0; k < pin->GetNumberOfLayers(); k++)
         {
-        pinMaterial = pin->cylinders[idx]->materials[k];
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++, pinMaterial);
-        }
-      }
-    else
-      {
-      flat_index++; // increase one for this frustum
-      for(int k = 0; k < pin->GetNumberOfLayers(); k++)
-        {
-        pinMaterial = pin->frustums[idx-numCyls]->materials[k];
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++, pinMaterial);
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
+                                           pin->GetPart(idx)->GetMaterial(k));
         }
       }
     }
@@ -977,6 +965,19 @@ void cmbNucMainWindow::ResetView()
   this->ui->qvtkWidget->update();
 }
 
+void cmbNucMainWindow::Render()
+{
+  if(this->Internal->WasMeshTab)
+  {
+    this->onChangeMeshColorMode(this->InputsWidget->getMeshColorState());
+    return;
+  }
+  this->updateCoreMaterialColors();
+  this->Mapper->Modified();
+  this->Renderer->Render();
+  this->ui->qvtkWidget->update();
+}
+
 void cmbNucMainWindow::onChangeToModelTab()
 {
 #ifdef BUILD_WITH_MOAB
@@ -1000,6 +1001,7 @@ void cmbNucMainWindow::onSelectionChange()
 
 QString createMaterialLabel(const char * name)
 {
+  if(name == NULL) return QString();
   QString result(name);
   if(result.endsWith("_top_ss"))
   {
@@ -1047,30 +1049,14 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
       case 3:
       {
         int offset = sec->GetNumberOfBlocks()-1;
-        QMap<QString, cmbNucMaterial>& colors = this->MaterialColors->MaterialColorMap();
         for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
         {
           const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
-          if(name != NULL) qDebug() << idx << name << createMaterialLabel(name);
-          QMap<QString, cmbNucMaterial>::const_iterator at;
-          if(( name != NULL && strlen(name) != 0 &&
-               (at = colors.find(createMaterialLabel(name))) != colors.end()) ||
-             (at = colors.find(QString("mesh_unknown"))) != colors.end() )
-          {
-            color = at->Color;
-            visible = at->Visible;
-          }
-          else
-          {
-            unsigned int cind = idx%(numAssemblyDefaultColors-1);
-            color = QColor(defaultAssemblyColors[cind][0],
-                           defaultAssemblyColors[cind][1],
-                           defaultAssemblyColors[cind][2], 180);
-            visible = true;
-          }
-          add_color(att, idx, color, visible);
+          QPointer<cmbNucMaterial> m =
+              this->MaterialColors->getMaterialByName(createMaterialLabel(name));
+          add_color(att, idx, m->getColor(), m->isVisible());
+         }
         }
-      }
         break;
       default:
       {

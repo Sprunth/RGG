@@ -27,14 +27,18 @@ SET(RGGNuclear_Srcs
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
   cmbNucNewDialog.cxx
+  cmbNucMaterial.cxx
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
   vtkCmbConeSource.cxx
   vtkCmbDuctSource.cxx
   vtkCmbLayeredConeSource.cxx
   cmbNucPartsTreeItem.cxx
+  cmbNucMaterialTreeItem.cxx
   cmbNucDragLabel.cxx
+  cmbNucPinCell.cxx
   cmbNucPinCellEditor.cxx
+  cmbNucDuctCell.cxx
   cmbNucHexLattice.cxx
   HexLatticeItem.cxx
   cmbNucExport.cxx
@@ -60,15 +64,21 @@ SET(RGGNuclear_UI
 )
 
 SET(RGGNuclear_Headers
+  cmbNucAssembly.h
   cmbNucCore.h
   cmbNucMainWindow.h
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
+  cmbNucMaterial.h
+  cmbNucMaterialColors.h
   cmbNucNewDialog.h
   cmbNucPartsTreeItem.h
+  cmbNucMaterialTreeItem.h
   cmbNucAssemblyEditor.h
   cmbNucDragLabel.h
+  cmbNucPinCell.h
   cmbNucPinCellEditor.h
+  cmbNucDuctCell.h
   cmbNucHexLattice.h
   HexLatticeItem.h
   cmbNucExport.h

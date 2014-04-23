@@ -23,7 +23,9 @@ typedef std::vector<NeumannSetType> NeumannSetTypeVec;
 class inpFileHelper
 {
 public:
-  std::map<std::string, std::string> materialLabelMap;
+  std::map<std::string, QPointer<cmbNucMaterial> > materialLabelMap;
+  typedef std::map<std::string, QPointer<cmbNucMaterial> >::iterator map_iter;
+  bool labelIsDifferent;
   template <typename TYPE>
   void readGeometryType( std::stringstream & input,
                          TYPE &v, Lattice &lat)
@@ -253,9 +255,9 @@ bool inpFileReader
   if(Type != ASSEMBLY_TYPE)
     return false;
   inpFileHelper helper;
+  helper.labelIsDifferent = false;
   assembly.FileName = FileName;
   assembly.clear();
-  assembly.setAndTestDiffFromFiles(false); //Should not be different
   std::stringstream input(CleanFile);
   while(!input.eof())
   {
@@ -348,6 +350,7 @@ bool inpFileReader
       helper.readUnknown(input, value, assembly.Parameters->UnknownParams);
       }
     }
+  assembly.setAndTestDiffFromFiles(helper.labelIsDifferent); //Should not be different
   return true;
 }
 
@@ -616,20 +619,12 @@ void inpFileHelper::writeHeader( std::ofstream & output, std::string type )
 void inpFileHelper::writeMaterials( std::ofstream &output,
                                     cmbNucAssembly & assembly )
 {
-  QMap<std::string, std::string> materials;
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->GetAssemblyMaterials(&assembly, materials);
+  QSet<cmbNucMaterial*> materials = assembly.getMaterials();
   output << "Materials " << materials.count();
-  foreach(std::string name, materials.keys())
-    {
-    std::string material_name = materials[name];
-    if(material_name.empty())
-      {
-      material_name = name;
-      }
-
-    output << " " << name << " " << material_name;
-    }
+  foreach( QPointer<cmbNucMaterial> mat, materials)
+  {
+    output << " " << mat->getName().toStdString() << ' ' << mat->getLabel().toStdString();
+  }
   output << "\n";
 }
 
@@ -646,32 +641,42 @@ void inpFileHelper::readMaterials( std::stringstream & input,
     std::string mname;
     input >> mname;
     input >> mlabel;
-    std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+    QPointer< cmbNucMaterial > mat;
 
-    materialLabelMap[mlabel] = mname;
-    std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
-    if(!matColorMap->MaterialColorMap().contains(mname.c_str()))
+    if(!matColorMap->nameUsed(mname.c_str()))
       {
-      matColorMap->AddMaterial(mname.c_str(), mlabel.c_str());
+      QString savedLabel = mlabel.c_str();
+      int count = 0;
+      while(matColorMap->labelUsed(savedLabel))
+        {
+        savedLabel = QString(mlabel.c_str()) + QString::number(count++);
+        labelIsDifferent = true;
+        }
+      mat = matColorMap->AddMaterial(mname.c_str(), savedLabel);
       }
     else
       {
       // replace the label
-      const QColor &color = matColorMap->MaterialColorMap()[mname.c_str()].Color;
-      matColorMap->AddMaterial(mname.c_str(), mlabel.c_str(), color);
+      mat = matColorMap->getMaterialByName(mname.c_str());
+      if(mat->getLabel().toLower() != QString(mlabel.c_str()).toLower())
+        {
+        labelIsDifferent = true;
+        }
       }
+    std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+    materialLabelMap[mlabel] = mat;
     }
 }
 
 void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly )
 {
-  for(size_t i = 0; i < assembly.AssyDuct.Ducts.size(); i++)
+  for(size_t i = 0; i < assembly.AssyDuct.numberOfDucts(); i++)
   {
-    Duct *duct = assembly.AssyDuct.Ducts[i];
+    Duct *duct = assembly.AssyDuct.getDuct(i);
 
-    output << "duct " << duct->materials.size() << " ";
+    output << "duct " << duct->NumberOfLayers() << " ";
     output << std::showpoint << duct->x << " " << duct->y << " " << duct->z1 << " " << duct->z2;
-    for(int i = 0; i <  duct->materials.size(); i++)
+    for(int i = 0; i <  duct->NumberOfLayers(); i++)
       {
       output << " " << duct->GetLayerThick(i, 0);
       if(!assembly.IsHexType())
@@ -679,9 +684,9 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly 
           output << " " << duct->GetLayerThick(i, 1);
         }
       }
-    for(size_t j = 0; j < duct->materials.size(); j++)
+    for(size_t j = 0; j < duct->NumberOfLayers(); j++)
       {
-      output << " " << duct->materials[j].material;
+      output << " " << duct->getMaterial(j)->getLabel().toStdString();
       }
     output << "\n";
   }
@@ -699,7 +704,7 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
         >> duct->z1
         >> duct->z2;
 
-  duct->materials.resize(materials);
+  duct->SetNumberOfLayers(materials);
   double maxV[] = {0,0};
   for(int i = 0; i < materials; i++)
   {
@@ -715,8 +720,9 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
     }
     if(tmpD[0]> maxV[0]) maxV[0] = tmpD[0];
     if(tmpD[1]> maxV[1]) maxV[1] = tmpD[1];
-    duct->materials[i].normThickness[0] = tmpD[0];
-    duct->materials[i].normThickness[1] = tmpD[1];
+
+    duct->getNormThick(i)[0] = tmpD[0];
+    duct->getNormThick(i)[1] = tmpD[1];
   }
   if(assembly.IsHexType())
     {
@@ -729,21 +735,25 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
   for(int i = 0; i < materials; i++)
     {
     input >> mlabel;
+    QPointer< cmbNucMaterial > mat = cmbNucMaterialColors::instance()->getUnknownMaterial();
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
-    duct->materials[i].material = mlabel;
-    duct->materials[i].normThickness[0] /= maxV[0];
-    duct->materials[i].normThickness[1] /= maxV[1];
+    map_iter it = materialLabelMap.find(mlabel);
+    if(it != materialLabelMap.end())
+      mat = it->second;
+    else
+      labelIsDifferent = true;
+    duct->setMaterial(i, mat);
+    duct->getNormThick(i)[0] /= maxV[0];
+    duct->getNormThick(i)[1] /= maxV[1];
     }
 
-  assembly.AssyDuct.Ducts.push_back(duct);
+  assembly.AssyDuct.AddDuct(duct);
 }
 
 void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
 {
   output << "pincells " << assembly.PinCells.size() << "\n";
-  QMap<std::string, std::string> materials;
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->GetAssemblyMaterials(&assembly, materials);
 
   for(size_t i = 0; i < assembly.PinCells.size(); i++)
     {
@@ -752,8 +762,8 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     // count of attribute lines for the pincell. equal to the number
     // of frustums plus cylinders plus one for the pitch.
     // We are writing multiple cylinders/frustums on one line.
-    size_t count = (pincell->cylinders.size()>0 ? 1: 0) +
-                   (pincell->frustums.size()>0 ? 1 : 0) + 1;
+    size_t count = (pincell->NumberOfCylinders()>0 ? 1: 0) +
+                   (pincell->NumberOfFrustums()>0 ? 1 : 0) + 1;
 
     output << pincell->name << " " << pincell->label << " " << count << "\n";
 
@@ -768,30 +778,30 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
       }
     output << "\n";
 
-    for(size_t j = 0; j < pincell->cylinders.size(); j++)
+    for(size_t j = 0; j < pincell->NumberOfCylinders(); j++)
       {
       if(j==0) output << "cylinder " << pincell->GetNumberOfLayers() << " ";
-      Cylinder* cylinder = pincell->cylinders[j];
+      Cylinder* cylinder = pincell->GetCylinder(j);
       output << std::showpoint
              << cylinder->x << " "
              << cylinder->y << " "
              << cylinder->z1 << " "
              << cylinder->z2 << " ";
-      for(int material = 0; material < cylinder->materials.size(); material++)
+      for(int material = 0; material < cylinder->GetNumberOfLayers(); material++)
         {
         output << std::showpoint << pincell->radii[material]*cylinder->r << " ";
         }
-      for(int material = 0; material < cylinder->materials.size(); material++)
+      for(int material = 0; material < cylinder->GetNumberOfLayers(); material++)
         {
-        output << materials[cylinder->materials[material]] << " ";
+        output << cylinder->GetMaterial(material)->getLabel().toStdString() << " ";
         }
-      if(j==pincell->cylinders.size()-1) output << "\n";
+      if(j==pincell->NumberOfCylinders()-1) output << "\n";
       }
 
-    for(size_t j = 0; j < pincell->frustums.size(); j++)
+    for(size_t j = 0; j < pincell->NumberOfFrustums(); j++)
       {
       if(j==0) output << "frustum " << pincell->GetNumberOfLayers() << " ";
-      Frustum* frustum = pincell->frustums[j];
+      Frustum* frustum = pincell->GetFrustum(j);
       output << std::showpoint
              << frustum->x << " "
              << frustum->y << " "
@@ -799,16 +809,16 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
              << frustum->z2 << " ";
       double r1 = frustum->r1;
       double r2 = frustum->r2;
-      for(int atr = 0; atr < frustum->materials.size(); atr+=2)
+      for(int atr = 0; atr < frustum->GetNumberOfLayers(); atr+=2)
         {
         output << std::showpoint << pincell->radii[atr*2+0]*r2 << " ";
         output << std::showpoint << pincell->radii[atr*2+1]*r1 << " ";
         }
-      for(int material = 0; material < frustum->materials.size(); material++)
+      for(int material = 0; material < frustum->GetNumberOfLayers(); material++)
         {
-        output << materials[frustum->materials[material]] << " ";
+        output << frustum->GetMaterial(material)->getLabel().toStdString() << " ";
         }
-      if(j==pincell->frustums.size()-1) output << "\n";
+      if(j==pincell->NumberOfFrustums()-1) output << "\n";
       }
     }
 }
@@ -832,11 +842,13 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
       }
     }
 
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+
   for(int i = 0; i < count; i++)
     {
     int lc = i % 10; // Pick a default pin color (for now!)
     PinCell* pincell = new PinCell();
-    std::string firstMaterial;
+    QPointer<cmbNucMaterial> firstMaterial = NULL;
     int attribute_count = 0;
     input >> pincell->name;
 
@@ -876,7 +888,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         Cylinder* cylinder = new Cylinder();
         if(layers > pincell->GetNumberOfLayers())
           {
-          cylinder->materials.resize(layers);
+          cylinder->SetNumberOfLayers(layers);
           pincell->radii.resize(layers);
           }
 
@@ -890,7 +902,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           }
 
         cylinder->r = pincell->radii.back();
-        pincell->cylinders.push_back(cylinder);
+        pincell->AddCylinder(cylinder);
 
         // let alpha be the normalization factor for the layers (outer most would be 1.0)
         double alpha = 1.0 / cylinder->r;
@@ -901,17 +913,20 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 
           // Get the material of the layer - note that we read in the material label that
           // maps to the actual material
-          std::string mname;
           input >> mlabel;
+          QPointer< cmbNucMaterial > tmp = cmbNucMaterialColors::instance()->getUnknownMaterial();
           std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
-          mname = materialLabelMap[mlabel];
-          std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+          map_iter it = materialLabelMap.find(mlabel);
+          if(it != materialLabelMap.end())
+            tmp = it->second;
+          else
+            labelIsDifferent = true;
           // Lets save the first material to use to set the pin's color legend
-          if (firstMaterial == "")
+          if (firstMaterial == NULL)
             {
-            firstMaterial = mname;
+            firstMaterial = tmp;
             }
-          cylinder->materials[c] = mname;
+          cylinder->SetMaterial(c,tmp);
           }
         }
       else if(value == "cellmaterial")
@@ -928,7 +943,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         Frustum* frustum = new Frustum();
         if(layers > pincell->GetNumberOfLayers())
           {
-          frustum->materials.resize(layers);
+          frustum->SetNumberOfLayers(layers);
           pincell->radii.resize(layers*2);
           }
 
@@ -945,7 +960,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 
         frustum->r1 = pincell->radii[(2*layers)-1];
         frustum->r2 = pincell->radii[(2*layers)-2];
-        pincell->frustums.push_back(frustum);
+        pincell->AddFrustum(frustum);
 
         // let alpha be the normalization factor for the layers (outer most would be 1.0) for first end of the frustrum
         // let beta be the normalization factor for the layers (outer most would be 1.0) for other end of the frustrum
@@ -961,22 +976,23 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           // maps to the actual material
           std::string mname;
           input >> mlabel;
-          std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
-          mname = materialLabelMap[mlabel];
-          std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
+          QPointer<cmbNucMaterial> tmp = matColorMap->getMaterialByLabel(mlabel.c_str());
           // Lets save the first material to use to set the pin's color legend
-          if (firstMaterial == "")
+          if (firstMaterial == NULL)
             {
-            firstMaterial = mname;
+            firstMaterial = tmp;
             }
-          frustum->materials[c] = mname;
+          frustum->SetMaterial(c,tmp);
           }
 
         // normalize radii
         }
       }
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-    pincell->SetLegendColor(matColorMap->MaterialColorMap()[firstMaterial.c_str()].Color);
+    if(firstMaterial != NULL)
+      {
+      pincell->SetLegendColor(firstMaterial->getColor());
+      }
     assembly.AddPinCell(pincell);
     }
 }

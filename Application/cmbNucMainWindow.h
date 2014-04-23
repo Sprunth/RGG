@@ -20,6 +20,9 @@ class vtkRenderer;
 class QVTKWidget;
 class cmbNucAssembly;
 class cmbNucCore;
+class PinCell;
+class Frustum;
+class Cylinder;
 class cmbNucInputPropertiesWidget;
 class cmbNucInputListWidget;
 class cmbNucMaterialColors;
@@ -59,6 +62,7 @@ public slots:
   void saveCoreFile(const QString &fileName);
   void exportVTKFile(const QString &fileName);
   void ResetView();
+  void Render();
   void onInteractionTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);
   void checkForNewCUBH5MFiles();

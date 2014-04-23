@@ -105,21 +105,19 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
     this, SLOT(onNewAssembly()));
-  //QObject::connect(this->Internal->Action_NewCylinder, SIGNAL(triggered()),
-  //  this, SLOT(onNewCylinder()));
   QObject::connect(this->Internal->Action_NewDuct, SIGNAL(triggered()),
     this, SLOT(onNewDuct()));
-  //QObject::connect(this->Internal->Action_NewFrustum, SIGNAL(triggered()),
-  // this, SLOT(onNewFrustum()));
   QObject::connect(this->Internal->Action_NewPin, SIGNAL(triggered()),
     this, SLOT(onNewPin()));
   QObject::connect(this->Internal->Action_DeletePart, SIGNAL(triggered()),
     this, SLOT(onRemoveSelectedPart()));
 
   QObject::connect(this->Internal->newMaterial, SIGNAL(clicked()),
-    this, SLOT(onNewMaterial()));
+                   cmbNucMaterialColors::instance(), SLOT(CreateNewMaterial()));
   QObject::connect(this->Internal->delMaterial, SIGNAL(clicked()),
-    this, SLOT(onRemoveMaterial()));
+                   cmbNucMaterialColors::instance(), SLOT(deleteSelected()));
+  QObject::connect(this->Internal->showJustUsedMaterial, SIGNAL(clicked(bool)),
+                   cmbNucMaterialColors::instance(), SLOT(showJustUsed(bool)));
   QObject::connect(this->Internal->importMaterial, SIGNAL(clicked()),
     this, SLOT(onImportMaterial()));
   QObject::connect(this->Internal->saveMaterial, SIGNAL(clicked()),
@@ -355,40 +353,6 @@ void cmbNucInputListWidget::onNewAssembly()
 }
 
 //----------------------------------------------------------------------------
-void cmbNucInputListWidget::onNewCylinder()
-{
-  cmbNucPartsTreeItem* selItem = this->getSelectedItem(
-    this->Internal->PartsList);
-  if(!selItem || !selItem->getPartObject())
-    {
-    return;
-    }
-
-  cmbNucPartsTreeItem* pinItem = selItem;
-  if(selItem->getPartObject()->GetType() == CMBNUC_ASSY_CYLINDER_PIN ||
-    selItem->getPartObject()->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
-    {
-    pinItem = dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent());
-    }
-  PinCell* pincell = dynamic_cast<PinCell*>(pinItem->getPartObject());
-  if(pincell)
-    {
-    Cylinder* newcy = new Cylinder();
-    pincell->cylinders.push_back(newcy);
-    cmbNucPartsTreeItem* cNode = new cmbNucPartsTreeItem(selItem, newcy);
-    cNode->setText(0, QString("cylinder").append(
-      QString::number(pincell->cylinders.size())));
-    Qt::ItemFlags itemFlags(
-      Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    cNode->setFlags(itemFlags);
-    selItem->setSelected(false);
-    selItem->setExpanded(true);
-    cNode->setSelected(true);
-    this->onPartsSelectionChanged();
-    }
-}
-
-//----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewDuct()
 {
   QTreeWidgetItem* ductsNode = this->getDuctCellNode(
@@ -398,10 +362,10 @@ void cmbNucInputListWidget::onNewDuct()
     return;
     }
   Duct* newduct = new Duct();
-  this->getCurrentAssembly()->AssyDuct.Ducts.push_back(newduct);
+  this->getCurrentAssembly()->AssyDuct.AddDuct(newduct);
   cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, newduct);
   dNode->setText(0, QString("duct").append(QString::number(
-    this->getCurrentAssembly()->AssyDuct.Ducts.size())));
+    this->getCurrentAssembly()->AssyDuct.numberOfDucts())));
   Qt::ItemFlags itemFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   dNode->setFlags(itemFlags); // not editable
@@ -415,47 +379,13 @@ void cmbNucInputListWidget::onNewDuct()
   dNode->setSelected(true);
   this->onPartsSelectionChanged();
 }
-//----------------------------------------------------------------------------
-void cmbNucInputListWidget::onNewFrustum()
-{
-  cmbNucPartsTreeItem* selItem = this->getSelectedItem(
-    this->Internal->PartsList);
-  if(!selItem || !selItem->getPartObject())
-    {
-    return;
-    }
-  cmbNucPartsTreeItem* pinItem = selItem;
-  if(selItem->getPartObject()->GetType() == CMBNUC_ASSY_CYLINDER_PIN ||
-    selItem->getPartObject()->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
-    {
-    pinItem = dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent());
-    }
-  PinCell* pincell = dynamic_cast<PinCell*>(pinItem->getPartObject());
-  if(pincell)
-    {
-    Frustum* newfrust = new Frustum();
-    pincell->frustums.push_back(newfrust);
-    cmbNucPartsTreeItem* fNode = new cmbNucPartsTreeItem(selItem, newfrust);
-    fNode->setText(0, QString("frustum").append(
-      QString::number(pincell->frustums.size())));
-    Qt::ItemFlags itemFlags(
-      Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    fNode->setFlags(itemFlags);
-
-    selItem->setSelected(false);
-    selItem->setExpanded(true);
-    fNode->setSelected(true);
-
-    this->onPartsSelectionChanged();
-    }
-}
 
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewPin()
 {
   PinCell* newpin = new PinCell();
   QString pinname = QString("PinCell").append(
-    QString::number(this->getCurrentAssembly()->PinCells.size()+1));
+    QString::number(this->getCurrentAssembly()->GetNumberOfPinCells()+1));
   newpin->name = newpin->label = pinname.toStdString();
   this->getCurrentAssembly()->AddPinCell(newpin);
   QTreeWidgetItem* partsRoot = this->getCurrentAssemblyNode();
@@ -575,17 +505,6 @@ void cmbNucInputListWidget::onDeleteAssembly(QTreeWidgetItem* item)
 }
 
 //----------------------------------------------------------------------------
-void cmbNucInputListWidget::onNewMaterial()
-{
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  size_t numM = matColorMap->MaterialColorMap().size();
-  QString matname = QString("material").append(
-    QString::number(numM+1));
-
-  this->createMaterialItem(matname, matname, QColor::fromRgbF(1.0, 1.0, 1.0));
-}
-
-//----------------------------------------------------------------------------
 void cmbNucInputListWidget::createMaterialItem(
   const QString& name, const QString& label, const QColor& color)
 {
@@ -610,20 +529,6 @@ void cmbNucInputListWidget::createMaterialItem(
   this->onMaterialSelectionChanged();
 }
 
-//----------------------------------------------------------------------------
-void cmbNucInputListWidget::onRemoveMaterial()
-{
-  cmbNucPartsTreeItem* selItem = this->getSelectedItem(
-    this->Internal->MaterialTree);
-  if(!selItem)
-    {
-    return;
-    }
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->RemoveMaterial(selItem->text(1));
-  this->getCurrentAssembly()->RemoveMaterial(selItem->text(1).toStdString());
-  delete selItem;
-}
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onImportMaterial()
 {
@@ -683,8 +588,10 @@ void cmbNucInputListWidget::onMaterialClicked(QTreeWidgetItem* item, int col)
     bgBrush.setColor(color);
     item->setBackground(col, bgBrush);
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+    /* TODO COLOR
     matColorMap->AddMaterial(item->text(1), item->text(2), color);
     emit this->materialColorChanged(item->text(1));
+     */
     }
   //if(!item->isSelected())
   //  {
@@ -749,6 +656,10 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     this->Internal->RootCoreNode, assy);
   connect(this, SIGNAL(checkSavedAndGenerate()),
           assyNode->connection, SLOT(checkSaveAndGenerate()));
+  connect(assy->GetConnection(), SIGNAL(dataChangedSig()),
+          assyNode->connection, SLOT(checkSaveAndGenerate()));
+  connect(assy->GetConnection(), SIGNAL(dataChangedSig()),
+          this->Internal->PartsList, SLOT(update()));
   assyNode->setText(0, assy->label.c_str());
   assyNode->setFlags(itemFlags); // not editable
   assyNode->setChildIndicatorPolicy(
@@ -767,18 +678,18 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   ductsNode->setFlags(itemFlags); // not editable
   ductsNode->setChildIndicatorPolicy(
     QTreeWidgetItem::DontShowIndicatorWhenChildless);
-  for(size_t i = 0; i < assy->AssyDuct.Ducts.size(); i++)
+  for(size_t i = 0; i < assy->AssyDuct.numberOfDucts(); i++)
     {
-    Duct *duct = assy->AssyDuct.Ducts[i];
+    Duct *duct = assy->AssyDuct.getDuct(i);
     cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, duct);
     dNode->setText(0, QString("duct").append(QString::number(i+1)));
     dNode->setFlags(itemFlags); // not editable
     }
 
   // pincells
-  for(size_t i = 0; i < assy->PinCells.size(); i++)
+  for(size_t i = 0; i < assy->GetNumberOfPinCells(); i++)
     {
-    PinCell *pincell = assy->PinCells[i];
+    PinCell *pincell = assy->GetPinCell(i);
     cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, pincell);
     //pinNode->setText(0, QString("PinCell").append(QString::number(i+1)));
     pinNode->setText(0, QString::fromStdString(pincell->label));
@@ -868,7 +779,7 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
   case CMBNUC_ASSY_RECT_DUCT:
     // keep at lease one duct
     this->Internal->Action_DeletePart->setEnabled(
-          this->getCurrentAssembly()->AssyDuct.Ducts.size()>1 ? true : false);
+          this->getCurrentAssembly()->AssyDuct.numberOfDucts()>1 ? true : false);
     break;
   default:
     break;
@@ -909,7 +820,7 @@ void cmbNucInputListWidget::onMaterialSelectionChanged()
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputListWidget::onMaterialChanged(
+void cmbNucInputListWidget::onMaterialChanged(  //TODO COLOR
  QTreeWidgetItem* item, int col)
 {
   cmbNucPartsTreeItem* selItem = dynamic_cast<cmbNucPartsTreeItem*>(item);
@@ -922,7 +833,7 @@ void cmbNucInputListWidget::onMaterialChanged(
   if(col == 0)
     {
     material = selItem->text(1);
-    matColorMap->SetMaterialVisibility(material, selItem->checkState(0));
+    //matColorMap->SetMaterialVisibility(material, selItem->checkState(0));
     emit this->materialVisibilityChanged(material);
     return;
     }
@@ -938,7 +849,7 @@ void cmbNucInputListWidget::onMaterialChanged(
     label = selItem->text(2);
     }
 
-  if(matColorMap->MaterialColorMap().contains(prematerial))
+  /*if(matColorMap->MaterialColorMap().contains(prematerial))
     {
     if(col == 1)
       {
@@ -947,6 +858,7 @@ void cmbNucInputListWidget::onMaterialChanged(
     matColorMap->AddMaterial(material, label,
       matColorMap->MaterialColorMap()[material].Color);
     }
+    */
 
   emit this->materialColorChanged(prematerial);
 }
@@ -993,12 +905,7 @@ void cmbNucInputListWidget::initMaterialsTree()
   treeWidget->setContextMenuPolicy(Qt::NoContextMenu);
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  foreach(QString material, matColorMap->MaterialColorMap().keys())
-    {
-    this->createMaterialItem(material,
-      matColorMap->MaterialColorMap()[material].Label,
-      matColorMap->MaterialColorMap()[material].Color);
-    }
+  matColorMap->buildTree(treeWidget);
 
   treeWidget->blockSignals(false);
 }
