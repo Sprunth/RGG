@@ -110,6 +110,7 @@ public slots:
   void dataChanged();
 signals:
   void dataChangedSig();
+  void colorChanged();
 };
 
 // Represents an assembly. Assemblies are composed of pin cells (cmbNucPinCell)
@@ -183,6 +184,9 @@ public:
   void GetDuctWidthHeight(double r[2]);
 
   void clear();
+
+  QSet< cmbNucMaterial* > getMaterials();
+
 
   // Expose assembly parts for UI access
   DuctCell AssyDuct;

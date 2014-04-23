@@ -116,6 +116,8 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
                    cmbNucMaterialColors::instance(), SLOT(CreateNewMaterial()));
   QObject::connect(this->Internal->delMaterial, SIGNAL(clicked()),
                    cmbNucMaterialColors::instance(), SLOT(deleteSelected()));
+  QObject::connect(this->Internal->showJustUsedMaterial, SIGNAL(clicked(bool)),
+                   cmbNucMaterialColors::instance(), SLOT(showJustUsed(bool)));
   QObject::connect(this->Internal->importMaterial, SIGNAL(clicked()),
     this, SLOT(onImportMaterial()));
   QObject::connect(this->Internal->saveMaterial, SIGNAL(clicked()),

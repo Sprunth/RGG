@@ -70,6 +70,7 @@ public:
   bool isUsed();
 
   void emitMaterialChange();
+  void emitColorChange();
 
 public slots:
   void setVisible(bool b);
@@ -82,6 +83,7 @@ signals:
   void invalidName();
   void invalidLabel();
   void materialChanged();
+  void colorChanged();
   void nameHasChanged(QString oldN, QPointer<cmbNucMaterial> mat);
   void labelHasChanged(QString oldL, QPointer<cmbNucMaterial> mat);
 

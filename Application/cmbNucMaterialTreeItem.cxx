@@ -13,12 +13,22 @@ void cmbNucMaterialTreeItemConnection::revert()
   v->setHidden(false);
 }
 
+void cmbNucMaterialTreeItemConnection::show(bool justUsed)
+{
+  if(this->v->Material == NULL)
+  {
+    this->v->setHidden(true);
+    return;
+  }
+  this->v->setHidden(justUsed && !this->v->Material->isUsed());
+}
+
 //-----------------------------------------------------------------------------
 cmbNucMaterialTreeItem::cmbNucMaterialTreeItem( QTreeWidgetItem* pNode,
                                                 QPointer<cmbNucMaterial> mat)
 : QTreeWidgetItem(pNode), Material(mat)
 {
-  Connection = new cmbNucMaterialTreeItemConnection;
+  Connection = new cmbNucMaterialTreeItemConnection();
   Connection->v = this;
   Qt::ItemFlags matFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable |
                          Qt::ItemIsEditable | Qt::ItemIsUserCheckable);
@@ -28,15 +38,12 @@ cmbNucMaterialTreeItem::cmbNucMaterialTreeItem( QTreeWidgetItem* pNode,
   this->setBackground(3, bgBrush);
   this->setFlags(matFlags);
   this->setCheckState(0, Qt::Checked);
-  //QObject::connect(mat, SIGNAL(invalidName()), Connection, SLOT(revert()));
-  //QObject::connect(mat, SIGNAL(invalidLabel()), Connection, SLOT(revert()));
 }
 
 //-----------------------------------------------------------------------------
 cmbNucMaterialTreeItem::~cmbNucMaterialTreeItem()
 {
   delete this->Connection;
-  //TODO tell color manager to delete material
 }
 
 //-----------------------------------------------------------------------------
@@ -56,7 +63,16 @@ void cmbNucMaterialTreeItem::setData ( int column, int role,
                                        const QVariant & value )
 {
   QVariant sv = value;
-  if(column == 1 && role == Qt::EditRole)
+  if(column == 0 && role == Qt::CheckStateRole)
+  {
+    bool cs = this->checkState(0)==0;
+    if( cs != Material->isVisible() )
+    {
+      Material->setVisible(cs);
+      Material->emitColorChange();
+    }
+  }
+  else if(column == 1 && role == Qt::EditRole)
   {
     if(value.toString()!=Material->getName())
       Material->setName(value.toString());
@@ -68,9 +84,14 @@ void cmbNucMaterialTreeItem::setData ( int column, int role,
       Material->setLabel(value.toString());
     sv = QVariant(Material->getLabel());
   }
-  else if(column == 3 && role == Qt::EditRole)
+  else if(column == 3 && role == Qt::BackgroundRole)
   {
-    Material->setColor(value.value<QColor>());
+    QColor tmp = value.value<QColor>();
+    if(Material->getColor()!=tmp)
+    {
+      Material->setColor(tmp);
+      Material->emitColorChange();
+    }
   }
   this->QTreeWidgetItem::setData(column, role, sv);
 }

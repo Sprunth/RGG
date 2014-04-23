@@ -80,6 +80,7 @@ cmbNucMaterialColors* cmbNucMaterialColors::instance()
 cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
   : MaterialTree(NULL), Llimit(0.1), Ulimit(0.9), numNewMaterials(0), newID(0)
 {
+  justUsed = false;
   UnknownMaterial = new cmbNucMaterial("!!!!UnknownMaterial!!!!",
                                        "!!!!Unknown!!!!",
                                        QColor::fromRgbF(1.0,1.0,1.0));
@@ -436,7 +437,8 @@ void cmbNucMaterialColors::buildTree(QTreeWidget * tree)
 {
   this->MaterialTree = tree;
   this->MaterialTree->clear();
-  this->addToTree(UnknownMaterial)->setSelected(true);
+  UnknownMaterialTreeItem = this->addToTree(UnknownMaterial);
+  UnknownMaterialTreeItem->setSelected(true);
   foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
     {
     this->addToTree(mat);
@@ -450,6 +452,8 @@ cmbNucMaterialColors::addToTree(QPointer<cmbNucMaterial> mat)
   cmbNucMaterialTreeItem* mNode =
       new cmbNucMaterialTreeItem(MaterialTree->invisibleRootItem(),
                                  mat);
+  connect(this, SIGNAL(showJustUsedSig(bool)),
+          mNode->getConnection(), SLOT(show(bool)));
   return mNode;
 }
 
@@ -496,7 +500,17 @@ void cmbNucMaterialColors::deleteSelected()
     cmbNucMaterialTreeItem * cnmti = dynamic_cast<cmbNucMaterialTreeItem *>(selitem);
     if(cnmti == NULL) continue;
     if(cnmti->getMaterial() == UnknownMaterial) continue;
+    disconnect( this, SIGNAL(showJustUsedSig(bool)),
+                cnmti->getConnection(), SLOT(show(bool)) );
     this->RemoveMaterialByName(cnmti->getMaterial()->getName());
+    UnknownMaterialTreeItem->getConnection()->show(this->justUsed);
     delete cnmti;
   }
+}
+
+//------------------------------------------------------------------------------
+void cmbNucMaterialColors::showJustUsed(bool b)
+{
+  this->justUsed = b;
+  emit showJustUsedSig(b);
 }

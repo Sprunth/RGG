@@ -72,6 +72,11 @@ public:
 
   void buildTree(QTreeWidget * tree);
 
+public slots:
+  void showJustUsed(bool);
+  void CreateNewMaterial();
+  void deleteSelected();
+
 signals:
   void materialChanged();
   void materialSelected(QPointer<cmbNucMaterial>);
@@ -81,8 +86,10 @@ protected slots:
   void testAndRelabel(QString oldl, QPointer<cmbNucMaterial> material);
   void sendMaterialFromName(QString const& name);
   void sendMaterialFromLabel(QString const& label);
-  void CreateNewMaterial();
-  void deleteSelected();
+
+signals:
+  void showJustUsedSig(bool);
+
 private:
 
   QString generateString(QString prefix, QMap<QString, QPointer<cmbNucMaterial> > const& );
@@ -94,12 +101,14 @@ private:
   QTreeWidget* MaterialTree;
 
   QPointer< cmbNucMaterial > UnknownMaterial;
+  cmbNucMaterialTreeItem * UnknownMaterialTreeItem;
 
   QMap<QString, QPointer<cmbNucMaterial> > NameToMaterial;
   QMap<QString, QPointer<cmbNucMaterial> > LabelToMaterial;
   double Ulimit, Llimit;  // luminance range when creating colors
   int numNewMaterials;
   int newID;
+  bool justUsed;
 };
 
 #endif

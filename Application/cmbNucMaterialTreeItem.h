@@ -27,6 +27,8 @@ public:
   const QString& previousText() const{return this->PreviousText;}
   void setHightlights(bool fileChange, bool needGeneration);
 
+  cmbNucMaterialTreeItemConnection * getConnection()
+  { return Connection; }
 protected:
   QPointer<cmbNucMaterial> Material;
   QString PreviousText;
@@ -45,6 +47,7 @@ public:
 signals:
 public slots:
   void revert();
+  void show(bool justUsed);
 };
 
 

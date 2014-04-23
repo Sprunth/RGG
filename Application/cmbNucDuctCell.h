@@ -3,6 +3,7 @@
 #include "cmbNucPartDefinition.h"
 
 #include <QObject>
+#include <QSet>
 
 class DuctConnection : public QObject
 {
@@ -41,6 +42,8 @@ public:
 
   bool operator==(const Duct& obj);
 
+  QSet< cmbNucMaterial* > getMaterials();
+
   double x;
   double y;
   double z1;
@@ -64,6 +67,7 @@ public:
   void AddDuct(Duct* duct);
   size_t numberOfDucts() const;
   Duct * getDuct(int i);
+  QSet< cmbNucMaterial* > getMaterials();
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

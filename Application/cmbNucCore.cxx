@@ -81,6 +81,8 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
   this->Assemblies.push_back(assembly);
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SIGNAL(dataChangedSig()));
+  QObject::connect(assembly->GetConnection(), SIGNAL(colorChanged()),
+                   this->Connection, SIGNAL(colorChanged()));
   if(this->Assemblies.size() == 1)
     {
     this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());

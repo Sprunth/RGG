@@ -2,6 +2,7 @@
 #define _cmbNucPinCell_h_
 
 #include <QObject>
+#include <QSet>
 
 #include "cmbNucPartDefinition.h"
 #include "cmbNucMaterial.h"
@@ -18,7 +19,7 @@ public:
   }
 signals:
   void Changed();
-  void MaterialColorChanged();
+  void ColorChanged();
 };
 
 class PinSubPart: public AssyPartObj
@@ -34,6 +35,7 @@ public:
   void SetNumberOfLayers(int numLayers);
   std::size_t GetNumberOfLayers() const;
   void setConnection(cmbNucMaterialLayer & layer);
+  QSet< cmbNucMaterial* > getMaterials();
   double x;
   double y;
   double z1;
@@ -117,6 +119,7 @@ public:
   size_t GetNumberOfParts() const;
 
   PinConnection* GetConnection() const;
+  QSet< cmbNucMaterial* > getMaterials();
 
   std::string name;
   std::string label;

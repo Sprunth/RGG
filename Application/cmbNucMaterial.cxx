@@ -43,12 +43,16 @@ void cmbNucMaterialLayer::changeMaterial(QPointer<cmbNucMaterial> m)
                            this->Connection, SLOT(materialDeleted()) );
       QObject::disconnect( this->Material, SIGNAL(materialChanged()),
                            this->Connection, SIGNAL(materialChanged()) );
+      QObject::disconnect( this->Material, SIGNAL(colorChanged()),
+                           this->Connection, SIGNAL(colorChanged()) );
     }
     this->Material = m;
     QObject::connect( this->Material, SIGNAL(hasBeenDeleted()),
                       this->Connection, SLOT(materialDeleted()) );
     QObject::connect( this->Material, SIGNAL(materialChanged()),
                       this->Connection, SIGNAL(materialChanged()) );
+    QObject::connect( this->Material, SIGNAL(colorChanged()),
+                      this->Connection, SIGNAL(colorChanged()) );
     this->Material->inc();
     this->Connection->emitMaterialChange();
   }
@@ -148,6 +152,11 @@ bool cmbNucMaterial::isUsed()
 void cmbNucMaterial::emitMaterialChange()
 {
   emit materialChanged();
+}
+
+void cmbNucMaterial::emitColorChange()
+{
+  emit colorChanged();
 }
 
 void cmbNucMaterial::revertName(QString name)

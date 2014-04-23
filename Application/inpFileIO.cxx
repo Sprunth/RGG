@@ -616,23 +616,13 @@ void inpFileHelper::writeHeader( std::ofstream & output, std::string type )
 void inpFileHelper::writeMaterials( std::ofstream &output,
                                     cmbNucAssembly & assembly )
 {
-  QMap<std::string, std::string> materials;
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  /* TODO COLOR
-  matColorMap->GetAssemblyMaterials(&assembly, materials);
+  QSet<cmbNucMaterial*> materials = assembly.getMaterials();
   output << "Materials " << materials.count();
-  foreach(std::string name, materials.keys())
-    {
-    std::string material_name = materials[name];
-    if(material_name.empty())
-      {
-      material_name = name;
-      }
-
-    output << " " << name << " " << material_name;
-    }
+  foreach( QPointer<cmbNucMaterial> mat, materials)
+  {
+    output << " " << mat->getName().toStdString() << ' ' << mat->getLabel().toStdString();
+  }
   output << "\n";
-   */
 }
 
 void inpFileHelper::readMaterials( std::stringstream & input,
@@ -772,9 +762,7 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
 void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
 {
   output << "pincells " << assembly.PinCells.size() << "\n";
-  QMap<std::string, std::string> materials;
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  //matColorMap->GetAssemblyMaterials(&assembly, materials); TODO COLOR
 
   for(size_t i = 0; i < assembly.PinCells.size(); i++)
     {

@@ -71,12 +71,16 @@ void Duct::SetNumberOfLayers(int i)
   {
     QObject::disconnect(this->Materials[at].GetConnection(), SIGNAL(materialChanged()),
                         this->Connection, SIGNAL(Changed()));
+    QObject::disconnect(this->Materials[at].GetConnection(), SIGNAL(colorChanged()),
+                        this->Connection, SIGNAL(ColorChanged()));
   }
   Materials.resize(i);
   for(size_t at = 0; at < this->Materials.size(); at++)
   {
     QObject::connect( this->Materials[at].GetConnection(), SIGNAL(materialChanged()),
                       this->Connection, SIGNAL(Changed()) );
+    QObject::connect( this->Materials[at].GetConnection(), SIGNAL(colorChanged()),
+                      this->Connection, SIGNAL(ColorChanged()) );
   }
 }
 
@@ -101,6 +105,16 @@ void Duct::setMaterial( int i, QPointer<cmbNucMaterial> mat )
 {
   if(i >= this->Materials.size()) return;
   this->Materials[i].changeMaterial(mat);
+}
+
+QSet< cmbNucMaterial* > Duct::getMaterials()
+{
+  QSet< cmbNucMaterial* > result;
+  for( unsigned int i = 0; i < this->Materials.size(); ++i )
+  {
+    result.insert(this->Materials[i].getMaterial());
+  }
+  return result;
 }
 
 /*******************************************************************************/
@@ -133,6 +147,8 @@ void DuctCell::AddDuct(Duct* duct)
 {
   QObject::connect( duct->GetConnection(), SIGNAL(Changed()),
                     this->Connection, SIGNAL(Changed()) );
+  QObject::connect( duct->GetConnection(), SIGNAL(ColorChanged()),
+                   this->Connection, SIGNAL(ColorChanged()) );
   this->Ducts.push_back(duct);
 }
 
@@ -145,4 +161,14 @@ Duct * DuctCell::getDuct(int i)
 {
   if (i > this->Ducts.size()) return NULL;
   return this->Ducts[i];
+}
+
+QSet< cmbNucMaterial* > DuctCell::getMaterials()
+{
+  QSet< cmbNucMaterial* > result;
+  for(unsigned int i = 0; i < Ducts.size(); ++i)
+  {
+    result.unite(Ducts[i]->getMaterials());
+  }
+  return result;
 }

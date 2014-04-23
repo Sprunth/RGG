@@ -49,6 +49,8 @@ cmbNucAssembly::cmbNucAssembly()
 
   QObject::connect(AssyDuct.GetConnection(), SIGNAL(Changed()),
                    this->Connection, SLOT(dataChanged()));
+  QObject::connect(AssyDuct.GetConnection(), SIGNAL(ColorChanged()),
+                   this->Connection, SIGNAL(colorChanged()));
 }
 
 cmbNucAssembly::~cmbNucAssembly()
@@ -95,6 +97,8 @@ void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
   QObject::connect(pincell->GetConnection(), SIGNAL(Changed()),
                    this->Connection, SLOT(dataChanged()));
+  QObject::connect(pincell->GetConnection(), SIGNAL(ColorChanged()),
+                   this->Connection, SIGNAL(colorChanged()));
   this->PinCells.push_back(pincell);
 }
 
@@ -695,4 +699,14 @@ void cmbNucAssembly::clear()
   this->PinCells.clear();
   delete this->Parameters;
   this->Parameters = new cmbAssyParameters;
+}
+
+QSet< cmbNucMaterial* > cmbNucAssembly::getMaterials()
+{
+  QSet< cmbNucMaterial* > result = AssyDuct.getMaterials();
+  for(unsigned int i = 0; i < PinCells.size(); ++i)
+  {
+    result.unite(PinCells[i]->getMaterials());
+  }
+  return result;
 }

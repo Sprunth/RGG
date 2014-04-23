@@ -161,6 +161,7 @@ public slots:
   void dataChanged();
 signals:
   void dataChangedSig();
+  void colorChanged();
 };
 
 // Represents the core which is composed of multiple assemblies
