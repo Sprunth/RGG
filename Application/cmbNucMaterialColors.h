@@ -70,13 +70,6 @@ public:
 
   void CalcRGB(double &r, double &g, double &b);
 
-  QString generateString(QString prefix)
-  {
-    size_t numM = this->NameToMaterial.size();
-    QString matname = prefix.append(QString::number(numM+1));
-    return matname;
-  }
-
   void buildTree(QTreeWidget * tree);
 
 signals:
@@ -89,7 +82,10 @@ protected slots:
   void sendMaterialFromName(QString const& name);
   void sendMaterialFromLabel(QString const& label);
   void CreateNewMaterial();
+  void deleteSelected();
 private:
+
+  QString generateString(QString prefix, QMap<QString, QPointer<cmbNucMaterial> > const& );
 
   static cmbNucMaterialColors* Instance;
 
@@ -103,6 +99,7 @@ private:
   QMap<QString, QPointer<cmbNucMaterial> > LabelToMaterial;
   double Ulimit, Llimit;  // luminance range when creating colors
   int numNewMaterials;
+  int newID;
 };
 
 #endif

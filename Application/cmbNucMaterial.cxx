@@ -1,5 +1,6 @@
 #include "cmbNucMaterial.h"
 #include "cmbNucMaterialColors.h"
+#include <QDebug>
 
 void cmbNucMaterialLayerConnection::materialDeleted()
 {
@@ -9,26 +10,47 @@ void cmbNucMaterialLayerConnection::materialDeleted()
 cmbNucMaterialLayer::cmbNucMaterialLayer()
 :Material(NULL), Connection(NULL)
 {
+  this->Connection = new cmbNucMaterialLayerConnection();
+  this->Connection->v = this;
   this->changeMaterial(cmbNucMaterialColors::instance()->getUnknownMaterial());
+}
+
+cmbNucMaterialLayer::cmbNucMaterialLayer( const cmbNucMaterialLayer & ml )
+:Material(NULL), Connection(NULL)
+{
+  this->Connection = new cmbNucMaterialLayerConnection();
+  this->Connection->v = this;
+  this->changeMaterial(ml.Material);
 }
 
 cmbNucMaterialLayer::~cmbNucMaterialLayer()
 {
   if(Material) this->Material->dec();
+  delete Connection;
+  Connection = NULL;
 }
+
 void cmbNucMaterialLayer::changeMaterial(QPointer<cmbNucMaterial> m)
 {
+
   if(m == NULL) m = cmbNucMaterialColors::instance()->getUnknownMaterial();
   if(m != this->Material)
   {
-    if(Material) this->Material->dec();
-    delete Connection;
-    Connection = new cmbNucMaterialLayerConnection();
-    Connection->v = this;
+    if(Material)
+    {
+      this->Material->dec();
+      QObject::disconnect( this->Material, SIGNAL(hasBeenDeleted()),
+                           this->Connection, SLOT(materialDeleted()) );
+      QObject::disconnect( this->Material, SIGNAL(materialChanged()),
+                           this->Connection, SIGNAL(materialChanged()) );
+    }
     this->Material = m;
-    QObject::connect( Material, SIGNAL(hasBeenDeleted()),
+    QObject::connect( this->Material, SIGNAL(hasBeenDeleted()),
                       this->Connection, SLOT(materialDeleted()) );
+    QObject::connect( this->Material, SIGNAL(materialChanged()),
+                      this->Connection, SIGNAL(materialChanged()) );
     this->Material->inc();
+    this->Connection->emitMaterialChange();
   }
 }
 
@@ -121,6 +143,11 @@ void cmbNucMaterial::dec()
 bool cmbNucMaterial::isUsed()
 {
   return NumberReferenced != 0;
+}
+
+void cmbNucMaterial::emitMaterialChange()
+{
+  emit materialChanged();
 }
 
 void cmbNucMaterial::revertName(QString name)

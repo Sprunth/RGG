@@ -148,6 +148,21 @@ public slots:
 
 };
 
+class cmbNucCore;
+
+class cmbNucCoreConnection: public QObject
+{
+  Q_OBJECT
+
+  friend class cmbNucCore;
+private:
+  cmbNucCore * v;
+public slots:
+  void dataChanged();
+signals:
+  void dataChangedSig();
+};
+
 // Represents the core which is composed of multiple assemblies
 // (cmbNucAssembly). Assemblies are layed out on a lattice.
 class cmbNucCore : public AssyPartObj
@@ -157,12 +172,15 @@ public:
   friend class inpFileReader;
   friend class inpFileHelper;
   friend class inpFileWriter;
+  friend class cmbNucCoreConnection;
 
   // Creates an empty Core.
   cmbNucCore();
 
   // Destroys the Core.
   ~cmbNucCore();
+
+  cmbNucCoreConnection* GetConnection(){return this->Connection;}
 
   virtual enumNucPartsType GetType() {return CMBNUC_CORE;}
 
@@ -251,6 +269,7 @@ public:
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
   std::vector<cmbNucAssembly*> Assemblies;
+  cmbNucCoreConnection * Connection;
 
 };
 

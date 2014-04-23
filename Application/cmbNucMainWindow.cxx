@@ -118,6 +118,9 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->setupUi(this);
   this->NuclearCore = new cmbNucCore();
 
+  connect(this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
+          this, SLOT(Render()));
+
   this->NewDialog = new cmbNucNewDialog(this);
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
@@ -802,6 +805,9 @@ void cmbNucMainWindow::clearAll()
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
 
+  connect(this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
+          this, SLOT(Render()));
+
   this->MaterialColors->clear();
   QString materialfile =
      QCoreApplication::applicationDirPath() + "/materialcolors.ini";
@@ -846,30 +852,18 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
 
-  size_t numCyls = pin->cylinders.size();
-  size_t numFrus = pin->frustums.size();
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
   unsigned int flat_index = 1; // start from first child
   for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
     {
     vtkMultiBlockDataSet* aSection = vtkMultiBlockDataSet::SafeDownCast(
       this->Internal->CurrentDataset->GetBlock(idx));
-    if(idx < numCyls)
       {
-      flat_index++; // increase one for this cylinder
+      flat_index++;
       for(int k = 0; k < pin->GetNumberOfLayers(); k++)
         {
         matColorMap->SetBlockMaterialColor(attributes, flat_index++,
-                                           pin->cylinders[idx]->GetMaterial(k));
-        }
-      }
-    else
-      {
-      flat_index++; // increase one for this frustum
-      for(int k = 0; k < pin->GetNumberOfLayers(); k++)
-        {
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
-                                           pin->frustums[idx-numCyls]->GetMaterial(k));
+                                           pin->GetPart(idx)->GetMaterial(k));
         }
       }
     }
@@ -972,6 +966,14 @@ void cmbNucMainWindow::zScaleChanged(int value)
 void cmbNucMainWindow::ResetView()
 {
   this->Renderer->ResetCamera();
+  this->ui->qvtkWidget->update();
+}
+
+void cmbNucMainWindow::Render()
+{
+  this->updateCoreMaterialColors();
+  this->Mapper->Modified();
+  this->Renderer->Render();
   this->ui->qvtkWidget->update();
 }
 

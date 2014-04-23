@@ -8,6 +8,7 @@
 #include "vtkCompositeDataDisplayAttributes.h"
 
 #include "cmbNucPartDefinition.h"
+#include "cmbNucPinCell.h"
 #include "cmbNucAssembly.h"
 #include "cmbNucMaterialColors.h"
 
@@ -207,11 +208,11 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pincell, bool h)
                                                    << "Origin Y");
 
   std::vector<PinCellComponent> components;
-  for(size_t i = 0; i < pincell->cylinders.size(); i++){
-    components.push_back(PinCellComponent(pincell->cylinders[i]));
+  for(size_t i = 0; i < pincell->NumberOfCylinders(); i++){
+    components.push_back(PinCellComponent(pincell->GetCylinder(i)));
   }
-  for(size_t i = 0; i < pincell->frustums.size(); i++){
-    components.push_back(PinCellComponent(pincell->frustums[i]));
+  for(size_t i = 0; i < pincell->NumberOfFrustums(); i++){
+    components.push_back(PinCellComponent(pincell->GetFrustum(i)));
   }
   std::sort(components.begin(), components.end(), sort_by_z1);
 
@@ -384,7 +385,7 @@ AssyPartObj* cmbNucPinCellEditor::createComponentObject(int i, double& z)
       cylinder->z1 = z;
       cylinder->z2 = z + l;
       cylinder->r = r1;
-      this->PinCellObject->cylinders.push_back(cylinder);
+      this->PinCellObject->AddCylinder(cylinder);
       retObj = cylinder;
   }
   else if(comboBox->currentText() == "Frustum"){
@@ -396,7 +397,7 @@ AssyPartObj* cmbNucPinCellEditor::createComponentObject(int i, double& z)
       frustum->z2 = z + l;
       frustum->r1 = r1;
       frustum->r2 = r2;
-      this->PinCellObject->frustums.push_back(frustum);
+      this->PinCellObject->AddFrustum(frustum);
       retObj = frustum;
   }
   z += l;

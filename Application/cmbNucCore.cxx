@@ -21,6 +21,12 @@
 #include <QDir>
 #include <QDebug>
 
+void cmbNucCoreConnection::dataChanged()
+{
+  v->setAndTestDiffFromFiles(true);
+  emit dataChangedSig();
+}
+
 cmbNucCore::cmbNucCore()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
@@ -28,6 +34,7 @@ cmbNucCore::cmbNucCore()
   this->HexSymmetry = 1;
   DifferentFromFile = true;
   DifferentFromH5M = true;
+  this->Connection = new cmbNucCoreConnection();
 }
 
 cmbNucCore::~cmbNucCore()
@@ -41,6 +48,7 @@ cmbNucCore::~cmbNucCore()
       }
     }
   this->Assemblies.clear();
+  delete this->Connection;
 }
 
 void cmbNucCore::SetDimensions(int i, int j)
@@ -71,6 +79,8 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
     this->SetDimensions(1, 1);
     }
   this->Assemblies.push_back(assembly);
+  QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
+                   this->Connection, SIGNAL(dataChangedSig()));
   if(this->Assemblies.size() == 1)
     {
     this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
@@ -141,14 +151,14 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
     return NULL;
     }
   // we need at least one duct
-  if(Assemblies[0]->AssyDuct.Ducts.size()==0)
+  if(Assemblies[0]->AssyDuct.numberOfDucts()==0)
     {
     return NULL;
     }
 
-  double startX = this->Assemblies[0]->AssyDuct.Ducts[0]->x;
-  double startY = this->Assemblies[0]->AssyDuct.Ducts[0]->y;
-  double outerDuctHeight = this->Assemblies[0]->AssyDuct.Ducts[0]->thickness[0];
+  double startX = this->Assemblies[0]->AssyDuct.getDuct(0)->x;
+  double startY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
+  double outerDuctHeight = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[0];
 
   // Is this Hex type?
   bool isHex = Assemblies[0]->AssyLattice.GetGeometryType() == HEXAGONAL;
@@ -184,7 +194,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 
         if(isHex)
           {
-          Duct *hexDuct = assembly->AssyDuct.Ducts[0];
+          Duct *hexDuct = assembly->AssyDuct.getDuct(0);
           double layerCorners[6][2], hexDiameter, layerRadius;
           hexDiameter = hexDuct->thickness[0];
 

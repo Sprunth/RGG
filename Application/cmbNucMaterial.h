@@ -16,8 +16,20 @@ class cmbNucMaterialLayerConnection: public QObject
 {
   Q_OBJECT
 public:
-  void materialDeleted();
   cmbNucMaterialLayer * v;
+  void emitMaterialChange()
+  {
+    emit materialChanged();
+  }
+  void emitColorChange()
+  {
+    emit colorChanged();
+  }
+signals:
+  void materialChanged();
+  void colorChanged();
+public slots:
+  void materialDeleted();
 };
 
 class cmbNucMaterialLayer
@@ -25,10 +37,14 @@ class cmbNucMaterialLayer
 public:
   friend class cmbNucMaterialLayerConnection;
   cmbNucMaterialLayer();
-  cmbNucMaterialLayer( const cmbNucMaterial & ml );
+  cmbNucMaterialLayer( const cmbNucMaterialLayer & ml );
   ~cmbNucMaterialLayer();
   void changeMaterial(QPointer<cmbNucMaterial> m);
   QPointer<cmbNucMaterial> getMaterial() const;
+  cmbNucMaterialLayerConnection * GetConnection()
+  {
+    return Connection;
+  }
 protected:
   QPointer<cmbNucMaterial> Material;
   void materialDeleted();
@@ -53,6 +69,8 @@ public:
   void dec();
   bool isUsed();
 
+  void emitMaterialChange();
+
 public slots:
   void setVisible(bool b);
   void setName(QString s);
@@ -63,6 +81,7 @@ signals:
   void hasBeenDeleted();
   void invalidName();
   void invalidLabel();
+  void materialChanged();
   void nameHasChanged(QString oldN, QPointer<cmbNucMaterial> mat);
   void labelHasChanged(QString oldL, QPointer<cmbNucMaterial> mat);
 

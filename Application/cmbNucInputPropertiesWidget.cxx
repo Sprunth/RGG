@@ -6,6 +6,7 @@
 #include "cmbNucAssemblyEditor.h"
 #include "cmbNucCore.h"
 #include "cmbNucPinCellEditor.h"
+#include "cmbNucPinCell.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucMainWindow.h"
 #include "cmbCoreParametersWidget.h"
@@ -337,9 +338,9 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
     return;
   }
   //Check to make sure new label is unique
-  for(unsigned int i = 0; i < this->Assembly->PinCells.size(); ++i)
+  for(unsigned int i = 0; i < this->Assembly->GetNumberOfPinCells(); ++i)
   {
-    PinCell * tpc = this->Assembly->PinCells[i];
+    PinCell * tpc = this->Assembly->GetPinCell(i);
     if(tpc != NULL && pincell != tpc)
     {
       if(tpc->label == current.toStdString())
@@ -375,9 +376,9 @@ void cmbNucInputPropertiesWidget::pinNameChanged(PinCell* pincell,
     return;
   }
   //Check to make sure new label is unique
-  for(unsigned int i = 0; i < this->Assembly->PinCells.size(); ++i)
+  for(unsigned int i = 0; i < this->Assembly->GetNumberOfPinCells(); ++i)
   {
-    PinCell * tpc = this->Assembly->PinCells[i];
+    PinCell * tpc = this->Assembly->GetPinCell(i);
     if(tpc != NULL && pincell != tpc)
     {
       if(tpc->name == current.toStdString())
@@ -489,9 +490,9 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     QStringList actionList;
     actionList.append("xx");
     // pincells
-    for(size_t i = 0; i < this->Assembly->PinCells.size(); i++)
+    for(size_t i = 0; i < this->Assembly->GetNumberOfPinCells(); i++)
       {
-      PinCell *pincell = this->Assembly->PinCells[i];
+      PinCell *pincell = this->Assembly->GetPinCell(i);
       actionList.append(pincell->label.c_str());
       }
     if(this->GeometryType == RECTILINEAR)
@@ -882,26 +883,26 @@ void cmbNucInputPropertiesWidget::setUpDuctTable(bool isHex, Duct* duct)
   tmpTable->horizontalHeader()->setStretchLastSection(true);
   if(duct == NULL) return;
   tmpTable->blockSignals(true);
-  tmpTable->setRowCount(duct->materials.size());
+  tmpTable->setRowCount(duct->NumberOfLayers());
 
-  for(size_t i = 0; i < duct->materials.size(); i++)
+  for(size_t i = 0; i < duct->NumberOfLayers(); i++)
   {
     // Private helper method to create the UI for a duct layer
     QComboBox* comboBox = new QComboBox;
     size_t row = i;
-    Duct::MaterialLayer m = duct->materials[i];
+    double* thick = duct->getNormThick(i);
 
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
     matColorMap->setUp(comboBox);
-    matColorMap->selectIndex(comboBox, m.getMaterial());
+    matColorMap->selectIndex(comboBox, duct->getMaterial(i));
 
     tmpTable->setCellWidget(row, 0, comboBox);
 
     QTableWidgetItem* thick1Item = new DuctLayerThicknessEditor;
     QTableWidgetItem* thick2Item = new DuctLayerThicknessEditor;
 
-    thick1Item->setText(QString::number(m.normThickness[0]));
-    thick2Item->setText(QString::number(m.normThickness[1]));
+    thick1Item->setText(QString::number(thick[0]));
+    thick2Item->setText(QString::number(thick[1]));
 
     tmpTable->setItem(row, 1, thick1Item);
     tmpTable->setItem(row, 2, thick2Item);
@@ -914,18 +915,18 @@ bool cmbNucInputPropertiesWidget::setDuctValuesFromTable(Duct* duct)
 {
   if(duct == NULL) return false;
   QTableWidget * table = this->Internal->DuctLayers;
-  bool change = duct->materials.size() != table->rowCount();
-  duct->materials.resize(table->rowCount());
+  bool change = duct->NumberOfLayers() != table->rowCount();
+  duct->SetNumberOfLayers(table->rowCount());
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
   for(int i = 0; i < table->rowCount(); i++)
   {
-    Duct::MaterialLayer & m = duct->materials[i];
+    double* nthick = duct->getNormThick(i);
     QPointer<cmbNucMaterial> mat =
       matColorMap->getMaterial(qobject_cast<QComboBox *>(table->cellWidget(i, 0)));
-    set_and_test_for_change(m.getMaterial(), mat);
-    set_and_test_for_change(m.normThickness[0],
+    duct->setMaterial(i, mat);
+    set_and_test_for_change(nthick[0],
                             table->item(i, 1)->data(Qt::DisplayRole).toDouble());
-    set_and_test_for_change(m.normThickness[1],
+    set_and_test_for_change(nthick[1],
                             table->item(i, 2)->data(Qt::DisplayRole).toDouble());
   }
   return change;

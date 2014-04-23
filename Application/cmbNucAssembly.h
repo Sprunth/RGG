@@ -4,10 +4,13 @@
 #include <string>
 #include <vector>
 #include <QColor>
+#include <QObject>
 #include <QDebug>
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
+#include "cmbNucPinCell.h"
+#include "cmbNucDuctCell.h"
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
 
@@ -34,7 +37,6 @@ FUN_SIMPLE(std::string, QString, SuperBlocks,              superblocks,         
 FUN_SIMPLE(std::string, QString, CreateSideset,            createsideset,            ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(int,         QString, EdgeInterval,             edgeinterval,             ASSY_NOT_SET_VALUE, "") \
 FUN_SIMPLE(double,      QString, MergeTolerance,           mergetolerance,           ASSY_NOT_SET_VALUE, "")
-
 
 class cmbAssyParameters
 {
@@ -96,6 +98,20 @@ public:
   std::vector<std::string> UnknownParams;
 };
 
+class cmbNucAssembly;
+
+class cmbNucAssemblyConnection: public QObject
+{
+  Q_OBJECT
+  friend class cmbNucAssembly;
+private:
+  cmbNucAssembly * v;
+public slots:
+  void dataChanged();
+signals:
+  void dataChangedSig();
+};
+
 // Represents an assembly. Assemblies are composed of pin cells (cmbNucPinCell)
 // and the surrounding ducting. Assemblies can be loaded and stored to files
 // with the ReadFile() and Write() file methods. Assemblies are grouped together
@@ -107,12 +123,15 @@ public:
   friend class inpFileReader;
   friend class inpFileHelper;
   friend class inpFileWriter;
+  friend class cmbNucAssemblyConnection;
 
   // Creates an empty assembly.
   cmbNucAssembly();
 
   // Destroys the assembly.
   ~cmbNucAssembly();
+
+  cmbNucAssemblyConnection * GetConnection() {return this->Connection; }
 
   virtual enumNucPartsType GetType() {return CMBNUC_ASSEMBLY;}
 
@@ -129,6 +148,8 @@ public:
   // Returns the pincell with label. Returns 0 if no pincell with
   // label exists.
   PinCell* GetPinCell(const std::string &label);
+  PinCell* GetPinCell(int pc) const;
+  std::size_t GetNumberOfPinCells() const;
 
   // Reads an assembly from a ".inp" file.
   void ReadFile(const std::string &FileName);
@@ -148,10 +169,6 @@ public:
   // the assembly. This is used to render the assembly in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
 
-  // Remove a material by name, which will also update the material
-  // assignment of the ducts and pincells inside this assembly
-  void RemoveMaterial(const std::string &name);
-
   // creates the multiblock used to render the pincell. if cutaway is true the
   // pincell will be cut in half length-wise to show the interior layers.
   static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell, bool cutaway = false);
@@ -168,7 +185,6 @@ public:
   void clear();
 
   // Expose assembly parts for UI access
-  std::vector<PinCell*> PinCells;
   DuctCell AssyDuct;
   Lattice AssyLattice;
   std::string label;
@@ -177,7 +193,8 @@ public:
 
   std::string GeometryType;
 
-protected :
+protected:
+  std::vector<PinCell*> PinCells;
 
   cmbAssyParameters *Parameters;
 
@@ -196,6 +213,8 @@ private:
 
   bool DifferentFromFile;
   bool DifferentFromCub;
+
+  cmbNucAssemblyConnection * Connection;
 
 };
 

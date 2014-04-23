@@ -93,13 +93,9 @@ private slots:
 
   // Description:
   // Tree widget context menu related slots
-  void onNewCylinder();
   void onNewDuct();
-  void onNewFrustum();
   void onNewPin();
   void onRemoveSelectedPart();
-  void onNewMaterial();
-  void onRemoveMaterial();
   void onImportMaterial();
   void onSaveMaterial();
 

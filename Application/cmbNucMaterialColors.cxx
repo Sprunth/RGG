@@ -78,7 +78,7 @@ cmbNucMaterialColors* cmbNucMaterialColors::instance()
 
 //-----------------------------------------------------------------------------
 cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
-  : MaterialTree(NULL), Llimit(0.1), Ulimit(0.9), numNewMaterials(0)
+  : MaterialTree(NULL), Llimit(0.1), Ulimit(0.9), numNewMaterials(0), newID(0)
 {
   UnknownMaterial = new cmbNucMaterial("!!!!UnknownMaterial!!!!",
                                        "!!!!Unknown!!!!",
@@ -346,6 +346,7 @@ void cmbNucMaterialColors::testAndRename(QString oldn,
       this->NameToMaterial.find(oldn);
   this->NameToMaterial.erase(it);
   this->NameToMaterial.insert(newN, material);
+  material->emitMaterialChange();
 }
 
 //----------------------------------------------------------------------------
@@ -363,6 +364,7 @@ void cmbNucMaterialColors::testAndRelabel(QString oldl,
       this->LabelToMaterial.find(oldl);
   this->LabelToMaterial.erase(it);
   this->LabelToMaterial.insert(newL, material);
+  material->emitMaterialChange();
 }
 
 //----------------------------------------------------------------------------
@@ -452,11 +454,27 @@ cmbNucMaterialColors::addToTree(QPointer<cmbNucMaterial> mat)
 }
 
 //----------------------------------------------------------------------------
+QString
+cmbNucMaterialColors
+::generateString(QString prefix,
+                QMap<QString, QPointer<cmbNucMaterial> > const& mat)
+{
+  QString matname;
+  while(true)
+  {
+    matname = prefix + QString::number(newID);
+    if(mat.find(matname) == mat.end()) break;
+    newID++;
+  }
+  return matname;
+}
+
+//----------------------------------------------------------------------------
 void cmbNucMaterialColors::CreateNewMaterial()
 {
   QPointer<cmbNucMaterial> mat =
-      this->AddMaterial( generateString("!MATERIAL_"),
-                         generateString("!LABEL_") );
+      this->AddMaterial( generateString("MATERIAL_", NameToMaterial),
+                         generateString("LABEL_", LabelToMaterial) );
   if(mat == NULL)
   {
     qDebug() << "ERROR creating new material should not be null";
@@ -468,4 +486,17 @@ void cmbNucMaterialColors::CreateNewMaterial()
     selItems[0]->setSelected(false);
   }
   node->setSelected(true);
+}
+
+void cmbNucMaterialColors::deleteSelected()
+{
+  if(MaterialTree == NULL) return;
+  foreach(QTreeWidgetItem* selitem, MaterialTree->selectedItems())
+  {
+    cmbNucMaterialTreeItem * cnmti = dynamic_cast<cmbNucMaterialTreeItem *>(selitem);
+    if(cnmti == NULL) continue;
+    if(cnmti->getMaterial() == UnknownMaterial) continue;
+    this->RemoveMaterialByName(cnmti->getMaterial()->getName());
+    delete cnmti;
+  }
 }
