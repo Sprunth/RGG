@@ -259,7 +259,6 @@ void cmbNucMainWindow::initPanels()
 #endif
 
   this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
-  this->PropertyWidget->updateMaterials();
   this->ui->InputsDock->setWidget(this->InputsWidget);
   this->ui->InputsDock->setFeatures(
     QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
@@ -298,12 +297,6 @@ void cmbNucMainWindow::initPanels()
   QObject::connect(this->PropertyWidget,
     SIGNAL(currentObjectNameChanged(const QString&)), this,
     SLOT(updatePropertyDockTitle(const QString&)));
-  QObject::connect(this->InputsWidget,
-    SIGNAL(materialColorChanged(const QString&)), this,
-    SLOT(onObjectModified()));
-  QObject::connect(this->InputsWidget,
-    SIGNAL(materialVisibilityChanged(const QString&)), this,
-    SLOT(onObjectModified()));
   QObject::connect(this->InputsWidget, SIGNAL(deleteCore()),
                    this, SLOT(clearCore()));
 }
@@ -533,7 +526,6 @@ void cmbNucMainWindow::onFileOpen()
   this->updateCoreMaterialColors();
 
   // In case the loaded core adds new materials
-  this->PropertyWidget->updateMaterials();
   this->InputsWidget->updateUI(numNewAssy);
   this->unsetCursor();
 

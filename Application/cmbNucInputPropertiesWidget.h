@@ -37,10 +37,6 @@ public:
   void setAssembly(cmbNucAssembly*);
   cmbNucAssembly* getAssembly(){return this->Assembly;}
 
-  // Description:
-  // Update material lists
-  void updateMaterials();
-
   // Geometry type we are working with (hex or rect)
   void setGeometryType(enumGeometryType g);
   enumGeometryType getGeometryType();
@@ -69,8 +65,6 @@ protected slots:
   void onReset();
   // reset property panel with given object
   void resetPinCell(PinCell* pincell);
-  void resetFrustum(Frustum* frust);
-  void resetCylinder(Cylinder* cylin);
   void resetDuct(Duct* duct);
   void resetLattice(Lattice* lattice);
   void resetAssemblyLattice();
@@ -78,8 +72,6 @@ protected slots:
 
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
-  void applyToFrustum(Frustum* frust);
-  void applyToCylinder(Cylinder* cylin);
   void applyToDuct(Duct* duct);
   void applyToLattice(Lattice* lattice);
   void applyToAssembly(cmbNucAssembly* assy);

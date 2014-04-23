@@ -126,11 +126,6 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   QObject::connect(this->Internal->PartsList, SIGNAL(itemSelectionChanged()),
     this, SLOT(onPartsSelectionChanged()), Qt::QueuedConnection);
 
-
-  QObject::connect(this->Internal->MaterialTree, SIGNAL(itemSelectionChanged()),
-    this, SLOT(onMaterialSelectionChanged()), Qt::QueuedConnection);
-  QObject::connect(this->Internal->MaterialTree, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
-    this, SLOT(onMaterialChanged(QTreeWidgetItem*, int)));
   QObject::connect(this->Internal->MaterialTree, SIGNAL(itemClicked (QTreeWidgetItem*, int)),
     this, SLOT(onMaterialClicked(QTreeWidgetItem*, int)), Qt::QueuedConnection);
 
@@ -306,7 +301,6 @@ void cmbNucInputListWidget::onTabChanged(int currentTab)
     }
   else if(currentTab == 1) // materials
     {
-    this->onMaterialSelectionChanged();
     emit switchToNonModelTab(1);
     }
   else if(currentTab) //model
@@ -526,7 +520,6 @@ void cmbNucInputListWidget::createMaterialItem(
     selItem->setSelected(false);
     }
   mNode->setSelected(true);
-  this->onMaterialSelectionChanged();
 }
 
 //----------------------------------------------------------------------------
@@ -588,16 +581,7 @@ void cmbNucInputListWidget::onMaterialClicked(QTreeWidgetItem* item, int col)
     bgBrush.setColor(color);
     item->setBackground(col, bgBrush);
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-    /* TODO COLOR
-    matColorMap->AddMaterial(item->text(1), item->text(2), color);
-    emit this->materialColorChanged(item->text(1));
-     */
     }
-  //if(!item->isSelected())
-  //  {
-  //  this->Internal->MaterialTree->setCurrentItem(item);
-  //  item->setSelected(true);
-  //  }
 }
 
 //-----------------------------------------------------------------------------
@@ -810,57 +794,6 @@ void cmbNucInputListWidget::fireObjectSelectedSignal(
     {
     emit this->objectSelected(NULL, NULL);
     }
-}
-//-----------------------------------------------------------------------------
-void cmbNucInputListWidget::onMaterialSelectionChanged()
-{
-  //cmbNucPartsTreeItem* selItem = this->getSelectedItem(
-  //  this->Internal->MaterialTree);
-  //this->fireObjectSelectedSignal(selItem);
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucInputListWidget::onMaterialChanged(  //TODO COLOR
- QTreeWidgetItem* item, int col)
-{
-  cmbNucPartsTreeItem* selItem = dynamic_cast<cmbNucPartsTreeItem*>(item);
-  if(!selItem || (col != 0 && col != 1 && col != 2))
-    {
-    return;
-    }
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  QString prematerial, material, label;
-  if(col == 0)
-    {
-    material = selItem->text(1);
-    //matColorMap->SetMaterialVisibility(material, selItem->checkState(0));
-    emit this->materialVisibilityChanged(material);
-    return;
-    }
-  else if(col == 1)
-    {
-    prematerial = selItem->previousText();
-    material = selItem->text(1);
-    label = selItem->text(2);
-    }
-  else// if(col == 2)
-    {
-    prematerial = material = selItem->text(1);
-    label = selItem->text(2);
-    }
-
-  /*if(matColorMap->MaterialColorMap().contains(prematerial))
-    {
-    if(col == 1)
-      {
-      matColorMap->RemoveMaterial(prematerial);
-      }
-    matColorMap->AddMaterial(material, label,
-      matColorMap->MaterialColorMap()[material].Color);
-    }
-    */
-
-  emit this->materialColorChanged(prematerial);
 }
 
 //-----------------------------------------------------------------------------

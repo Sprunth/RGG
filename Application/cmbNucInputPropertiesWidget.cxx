@@ -19,6 +19,7 @@
 #include <QtDebug>
 #include <QColorDialog>
 #include <QMessageBox>
+#include <QComboBox>
 
 #define set_and_test_for_change(X, Y)\
    change |= ((Y) != (X)); \
@@ -164,24 +165,6 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::updateMaterials()
-{
-  // update materials
-  this->Internal->FrustumMaterial->blockSignals(true);
-  this->Internal->CylinderMaterial->blockSignals(true);
-
-  this->Internal->FrustumMaterial->clear();
-  this->Internal->CylinderMaterial->clear();
-
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->setUp(this->Internal->FrustumMaterial);
-  matColorMap->setUp(this->Internal->CylinderMaterial);
-
-  this->Internal->FrustumMaterial->blockSignals(false);
-  this->Internal->CylinderMaterial->blockSignals(false);
-}
-
-//-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
 {
   if(this->Assembly == assyObj)
@@ -195,6 +178,7 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
   HexAssyConf->setAssembly(assyObj);
   RectAssyConf->setAssembly(assyObj);
 }
+
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onApply()
@@ -227,12 +211,8 @@ void cmbNucInputPropertiesWidget::onApply()
       this->applyToPinCell(pincell);
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
-      frust = dynamic_cast<Frustum*>(selObj);
-      this->applyToFrustum(frust);
-      break;
     case CMBNUC_ASSY_CYLINDER_PIN:
-      cylin = dynamic_cast<Cylinder*>(selObj);
-      this->applyToCylinder(cylin);
+      /*handled in the pin editor*/
       break;
     case CMBNUC_ASSY_RECT_DUCT:
     case CMBNUC_ASSY_HEX_DUCT:
@@ -304,16 +284,8 @@ void cmbNucInputPropertiesWidget::onReset()
 
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageFrustumPin);
-      frust = dynamic_cast<Frustum*>(selObj);
-      this->resetFrustum(frust);
-      break;
     case CMBNUC_ASSY_CYLINDER_PIN:
-      this->Internal->stackedWidget->setCurrentWidget(
-        this->Internal->pageCylinderPin);
-      cylin = dynamic_cast<Cylinder*>(selObj);
-      this->resetCylinder(cylin);
+      /*handled in pin editor*/
       break;
     case CMBNUC_ASSY_RECT_DUCT:
     case CMBNUC_ASSY_HEX_DUCT:
@@ -407,38 +379,6 @@ void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::resetFrustum(Frustum* frust)
-{
-  this->Internal->FrustumXPos->setText(QString::number(frust->x));
-  this->Internal->FrustumYPos->setText(QString::number(frust->y));
-  this->Internal->FrustumZPos1->setText(QString::number(frust->z1));
-  this->Internal->FrustumZPos2->setText(QString::number(frust->z2));
-
-  this->Internal->FrustumRadius1->setText(QString::number(frust->r1));
-  this->Internal->FrustumRadius2->setText(QString::number(frust->r2));
-
-  this->Internal->FrustumMaterial->setVisible(false); // should be a table for layers
-  this->Internal->labelFruMaterial->setVisible(false);
-
-  //this->Internal->FrustumMaterial->setCurrentIndex(
-  //  this->Internal->FrustumMaterial->findText(frust->material.c_str()));
-}
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::resetCylinder(Cylinder* cylin)
-{
-  this->Internal->CylinderXPos->setText(QString::number(cylin->x));
-  this->Internal->CylinderYPos->setText(QString::number(cylin->y));
-  this->Internal->CylinderZPos1->setText(QString::number(cylin->z1));
-  this->Internal->CylinderZPos2->setText(QString::number(cylin->z2));
-
-  this->Internal->CylinderRadius->setText(QString::number(cylin->r));
-  this->Internal->CylinderMaterial->setVisible(false); // should be a table for layers
-  this->Internal->labelCylMaterial->setVisible(false);
-
-  //this->Internal->CylinderMaterial->setCurrentIndex(
-  //  this->Internal->CylinderMaterial->findText(cylin->material.c_str()));
-}
-//-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
 {
   this->Internal->DuctXPos->setText(QString::number(duct->x));
@@ -453,6 +393,7 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
 
   this->setUpDuctTable(this->GeometryType == HEXAGONAL, duct);
 }
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
 {
@@ -516,44 +457,7 @@ void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
   this->Internal->PinCellEditor->Apply();
   emit this->objGeometryChanged(pincell);
 }
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::applyToFrustum(Frustum* frust)
-{
-  bool change = false;
-  set_and_test_for_change(frust->x,
-                          this->Internal->FrustumXPos->text().toDouble());
-  set_and_test_for_change(frust->y,
-                          this->Internal->FrustumYPos->text().toDouble());
-  set_and_test_for_change(frust->z1,
-                          this->Internal->FrustumZPos1->text().toDouble());
-  set_and_test_for_change(frust->z2,
-                          this->Internal->FrustumZPos2->text().toDouble());
-  set_and_test_for_change(frust->r1,
-                          this->Internal->FrustumRadius1->text().toDouble());
-  set_and_test_for_change(frust->r2,
-                          this->Internal->FrustumRadius2->text().toDouble());
-  if(change) emit valuesChanged();
 
-  emit this->objGeometryChanged(frust);
-}
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::applyToCylinder(Cylinder* cylin)
-{
-  bool change = false;
-  set_and_test_for_change(cylin->x,
-                          this->Internal->CylinderXPos->text().toDouble());
-  set_and_test_for_change(cylin->y,
-                          this->Internal->CylinderYPos->text().toDouble());
-  set_and_test_for_change(cylin->z1,
-                          this->Internal->CylinderZPos1->text().toDouble());
-  set_and_test_for_change(cylin->z2,
-                          this->Internal->CylinderZPos2->text().toDouble());
-  set_and_test_for_change(cylin->r,
-                          this->Internal->CylinderRadius->text().toDouble());
-  if(change) emit valuesChanged();
-
-  emit this->objGeometryChanged(cylin);
-}
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
 {
