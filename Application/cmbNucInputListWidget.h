@@ -47,8 +47,6 @@ signals:
   // Fired when a part/material is selected in the tree
   void objectSelected(AssyPartObj*, const char* name);
   void objectRemoved();
-  void materialColorChanged(const QString& name);
-  void materialVisibilityChanged(const QString& name);
 
   void pinsModified(cmbNucAssembly*);
   void assembliesModified(cmbNucCore*);
@@ -84,8 +82,6 @@ private slots:
   // Description:
   // Tree widget interactions related slots
   virtual void onPartsSelectionChanged();
-  virtual void onMaterialSelectionChanged();
-  virtual void onMaterialChanged(QTreeWidgetItem*, int col);
   virtual void onTabChanged(int);
   void onMaterialClicked(QTreeWidgetItem*, int col);
   void onDeleteAssembly(QTreeWidgetItem*);
