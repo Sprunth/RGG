@@ -243,6 +243,7 @@ cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label,
           this, SLOT(testAndRename(QString, QPointer<cmbNucMaterial>)));
   connect(mat, SIGNAL(labelHasChanged(QString, QPointer<cmbNucMaterial>)),
           this, SLOT(testAndRelabel(QString, QPointer<cmbNucMaterial>)));
+  connect(mat, SIGNAL(colorChanged()), this, SIGNAL(materialColorChanged()));
   return mat;
 }
 
@@ -264,8 +265,13 @@ void cmbNucMaterialColors::RemoveMaterialByName(const QString& name)
       if(it.value())
         {
         QString label = it.value()->getLabel();
+        bool is_used = it.value()->isUsed();
         delete it.value();
         RemoveMaterialByLabel(label);
+        if(is_used)
+          {
+          emit materialColorChanged();
+          }
         }
     this->NameToMaterial.erase(it);
     }

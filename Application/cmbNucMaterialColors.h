@@ -80,6 +80,7 @@ public slots:
 signals:
   void materialChanged();
   void materialSelected(QPointer<cmbNucMaterial>);
+  void materialColorChanged();
 
 protected slots:
   void testAndRename(QString oldn, QPointer<cmbNucMaterial> material);

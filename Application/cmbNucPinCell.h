@@ -19,7 +19,6 @@ public:
   }
 signals:
   void Changed();
-  void ColorChanged();
 };
 
 class PinSubPart: public AssyPartObj

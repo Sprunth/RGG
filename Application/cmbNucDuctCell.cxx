@@ -71,16 +71,12 @@ void Duct::SetNumberOfLayers(int i)
   {
     QObject::disconnect(this->Materials[at].GetConnection(), SIGNAL(materialChanged()),
                         this->Connection, SIGNAL(Changed()));
-    QObject::disconnect(this->Materials[at].GetConnection(), SIGNAL(colorChanged()),
-                        this->Connection, SIGNAL(ColorChanged()));
   }
   Materials.resize(i);
   for(size_t at = 0; at < this->Materials.size(); at++)
   {
     QObject::connect( this->Materials[at].GetConnection(), SIGNAL(materialChanged()),
                       this->Connection, SIGNAL(Changed()) );
-    QObject::connect( this->Materials[at].GetConnection(), SIGNAL(colorChanged()),
-                      this->Connection, SIGNAL(ColorChanged()) );
   }
 }
 
@@ -147,8 +143,6 @@ void DuctCell::AddDuct(Duct* duct)
 {
   QObject::connect( duct->GetConnection(), SIGNAL(Changed()),
                     this->Connection, SIGNAL(Changed()) );
-  QObject::connect( duct->GetConnection(), SIGNAL(ColorChanged()),
-                   this->Connection, SIGNAL(ColorChanged()) );
   this->Ducts.push_back(duct);
 }
 

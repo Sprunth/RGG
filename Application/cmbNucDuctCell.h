@@ -11,7 +11,6 @@ class DuctConnection : public QObject
 public:
 signals:
   void Changed();
-  void ColorChanged();
 };
 
 class Duct : public AssyPartObj

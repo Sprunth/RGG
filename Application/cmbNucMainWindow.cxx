@@ -118,11 +118,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->setupUi(this);
   this->NuclearCore = new cmbNucCore();
 
-  connect(this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
-          this, SLOT(Render()));
-  connect(this->NuclearCore->GetConnection(), SIGNAL(colorChanged()),
-          this, SLOT(Render()));
-
   this->NewDialog = new cmbNucNewDialog(this);
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
@@ -201,6 +196,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   QString materialfile =
     QCoreApplication::applicationDirPath() + "/materialcolors.ini";
   this->MaterialColors->OpenFile(materialfile);
+
+  connect(this->MaterialColors, SIGNAL(materialColorChanged()), this, SLOT(Render()));
 
   this->initPanels();
 
@@ -806,11 +803,6 @@ void cmbNucMainWindow::clearAll()
   this->InputsWidget->clearTable();
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
-
-  connect(this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
-          this, SLOT(Render()));
-  connect(this->NuclearCore->GetConnection(), SIGNAL(colorChanged()),
-          this, SLOT(Render()));
 
   this->MaterialColors->clear();
   QString materialfile =

@@ -44,8 +44,6 @@ void PinSubPart::SetNumberOfLayers(int numLayers)
   {
     QObject::disconnect(this->Materials[at].GetConnection(), SIGNAL(materialChanged()),
                         this->Connection, SIGNAL(Changed()));
-    QObject::disconnect(this->Materials[at].GetConnection(), SIGNAL(colorChanged()),
-                        this->Connection, SIGNAL(ColorChanged()));
   }
   this->Materials.resize(numLayers);
   for(size_t at = 0; at < this->Materials.size(); at++)
@@ -63,8 +61,6 @@ void PinSubPart::setConnection(cmbNucMaterialLayer & layer)
 {
   QObject::connect(layer.GetConnection(), SIGNAL(materialChanged()),
                    this->Connection, SIGNAL(Changed()));
-  QObject::connect(layer.GetConnection(), SIGNAL(colorChanged()),
-                   this->Connection, SIGNAL(ColorChanged()));
 }
 
 QSet< cmbNucMaterial* > PinSubPart::getMaterials()
@@ -228,8 +224,6 @@ void PinCell::AddCylinder(Cylinder* cylinder)
 {
   QObject::connect(cylinder->GetConnection(), SIGNAL(Changed()),
                    this->Connection, SIGNAL(Changed()));
-  QObject::connect(cylinder->GetConnection(), SIGNAL(ColorChanged()),
-                   this->Connection, SIGNAL(ColorChanged()));
   this->Cylinders.push_back(cylinder);
 }
 
@@ -237,8 +231,6 @@ void PinCell::AddFrustum(Frustum* frustum)
 {
   QObject::connect(frustum->GetConnection(), SIGNAL(Changed()),
                    this->Connection, SIGNAL(Changed()));
-  QObject::connect(frustum->GetConnection(), SIGNAL(ColorChanged()),
-                   this->Connection, SIGNAL(ColorChanged()));
   this->Frustums.push_back(frustum);
 }
 
