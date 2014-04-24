@@ -789,7 +789,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
              << cylinder->z2 << " ";
       for(int material = 0; material < cylinder->GetNumberOfLayers(); material++)
         {
-        output << std::showpoint << pincell->radii[material]*cylinder->r << " ";
+        output << std::showpoint << cylinder->getRadius(material) << " ";
         }
       for(int material = 0; material < cylinder->GetNumberOfLayers(); material++)
         {
@@ -807,12 +807,10 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
              << frustum->y << " "
              << frustum->z1 << " "
              << frustum->z2 << " ";
-      double r1 = frustum->r1;
-      double r2 = frustum->r2;
       for(int atr = 0; atr < frustum->GetNumberOfLayers(); atr+=2)
         {
-        output << std::showpoint << pincell->radii[atr*2+0]*r2 << " ";
-        output << std::showpoint << pincell->radii[atr*2+1]*r1 << " ";
+        output << std::showpoint << frustum->getRadius(atr, Frustum::BOTTOM) << " ";
+        output << std::showpoint << frustum->getRadius(atr, Frustum::TOP) << " ";
         }
       for(int material = 0; material < frustum->GetNumberOfLayers(); material++)
         {
@@ -886,11 +884,8 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         int layers;
         input >> layers;
         Cylinder* cylinder = new Cylinder();
-        if(layers > pincell->GetNumberOfLayers())
-          {
-          cylinder->SetNumberOfLayers(layers);
-          pincell->radii.resize(layers);
-          }
+        std::vector<double> radii(layers);
+        cylinder->SetNumberOfLayers(layers);
 
         input >> cylinder->x
               >> cylinder->y
@@ -898,19 +893,16 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
               >> cylinder->z2;
         for(int c=0; c < layers; c++)
           {
-          input >> pincell->radii[c];
+          input >> radii[c];
           }
 
-        cylinder->r = pincell->radii.back();
+        cylinder->r = radii.back();
         pincell->AddCylinder(cylinder);
 
         // let alpha be the normalization factor for the layers (outer most would be 1.0)
         double alpha = 1.0 / cylinder->r;
         for(int c=0; c < layers; c++)
           {
-          // Normalize the layer
-          pincell->radii[c] *= alpha;
-
           // Get the material of the layer - note that we read in the material label that
           // maps to the actual material
           input >> mlabel;
@@ -927,6 +919,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
             firstMaterial = tmp;
             }
           cylinder->SetMaterial(c,tmp);
+          cylinder->setNormalizedThickness(c, radii[c] * alpha);
           }
         }
       else if(value == "cellmaterial")
@@ -941,11 +934,8 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         int layers;
         input >> layers;
         Frustum* frustum = new Frustum();
-        if(layers > pincell->GetNumberOfLayers())
-          {
-          frustum->SetNumberOfLayers(layers);
-          pincell->radii.resize(layers*2);
-          }
+        std::vector<double> radii(layers*2);
+        frustum->SetNumberOfLayers(layers);
 
         input >> frustum->x
               >> frustum->y
@@ -954,24 +944,20 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 
         for(int c=0; c < layers; c++)
           {
-          input >> pincell->radii[c*2+0];
-          input >> pincell->radii[c*2+1];
+          input >> radii[c*2+Frustum::TOP];
+          input >> radii[c*2+Frustum::BOTTOM];
           }
 
-        frustum->r1 = pincell->radii[(2*layers)-1];
-        frustum->r2 = pincell->radii[(2*layers)-2];
+        frustum->r[Frustum::TOP]    = radii[(2*layers) - Frustum::TOP - 1];
+        frustum->r[Frustum::BOTTOM] = radii[(2*layers) - Frustum::BOTTOM - 1];
         pincell->AddFrustum(frustum);
 
         // let alpha be the normalization factor for the layers (outer most would be 1.0) for first end of the frustrum
         // let beta be the normalization factor for the layers (outer most would be 1.0) for other end of the frustrum
-        double alpha = 1.0 / frustum->r2;
-        double beta = 1.0 / frustum->r1;
+        double normF[2] = {1.0 / frustum->r[Frustum::TOP],
+                           1.0 / frustum->r[Frustum::BOTTOM]};
         for(int c=0; c < layers; c++)
           {
-          // Normalize the layer
-          pincell->radii[2*c] *= alpha;
-          pincell->radii[(2*c)+1] *= beta;
-
           // Get the material of the layer - note that we read in the material label that
           // maps to the actual material
           std::string mname;
@@ -983,9 +969,11 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
             firstMaterial = tmp;
             }
           frustum->SetMaterial(c,tmp);
+          frustum->setNormalizedThickness( c, Frustum::TOP,
+                                           radii[2*c+Frustum::TOP]*normF[Frustum::TOP]);
+          frustum->setNormalizedThickness( c, Frustum::BOTTOM,
+                                           radii[(2*c)+Frustum::BOTTOM]*normF[Frustum::BOTTOM]);
           }
-
-        // normalize radii
         }
       }
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();

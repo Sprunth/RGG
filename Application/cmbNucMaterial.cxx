@@ -12,6 +12,8 @@ cmbNucMaterialLayer::cmbNucMaterialLayer()
 {
   this->Connection = new cmbNucMaterialLayerConnection();
   this->Connection->v = this;
+  this->Thickness[0] = 1.0;
+  this->Thickness[1] = 1.0;
   this->changeMaterial(cmbNucMaterialColors::instance()->getUnknownMaterial());
 }
 
@@ -67,6 +69,23 @@ cmbNucMaterialLayer::getMaterial() const
 void cmbNucMaterialLayer::materialDeleted()
 {
   this->changeMaterial(cmbNucMaterialColors::instance()->getUnknownMaterial());
+}
+
+double * cmbNucMaterialLayer::getThickness()
+{
+  return this->Thickness;
+}
+
+double const* cmbNucMaterialLayer::getThickness() const
+{
+  return this->Thickness;
+}
+
+bool cmbNucMaterialLayer::operator==( const cmbNucMaterialLayer & other ) const
+{
+  return  this->Material == other.Material &&
+          this->Thickness[0] == other.Thickness[0] &&
+          this->Thickness[1] == other.Thickness[1];
 }
 
 cmbNucMaterial::cmbNucMaterial()

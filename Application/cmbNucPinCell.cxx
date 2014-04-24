@@ -90,11 +90,27 @@ bool Cylinder::operator==(const Cylinder& obj)
   this->r==obj.r;
 }
 
+double Cylinder::getNormalizedThickness(int layer)
+{
+  return this->Materials[layer].getThickness()[0];
+}
+
+void Cylinder::Cylinder::setNormalizedThickness(int layer, double t)
+{
+  double * thick = this->Materials[layer].getThickness();
+  thick[0] = thick[1] = t;
+}
+
+double Cylinder::getRadius(int layer)
+{
+  return this->Materials[layer].getThickness()[0]*this->r;
+}
+
 //*********************************************************//
 
 Frustum::Frustum() : PinSubPart()
 {
-  r1=1.6;r2=1.4;
+  r[TOP]=1.6; r[BOTTOM] = 1.4;
 }
 
 enumNucPartsType Frustum::GetType()
@@ -104,19 +120,33 @@ bool Frustum::operator==(const Frustum& obj)
 {
   return this->x==obj.x && this->y==obj.y &&
   this->z1==obj.z1 && this->z2==obj.z2 &&
-  this->r1==obj.r2 && this->r2==obj.r2;
+  this->r[TOP]==obj.r[TOP] && this->r[BOTTOM]==obj.r[BOTTOM];
+}
+
+double Frustum::getNormalizedThickness(int layer, Frustum::End end)
+{
+  return this->Materials[layer].getThickness()[end];
+}
+
+void Frustum::setNormalizedThickness(int layer, Frustum::End end, double t)
+{
+  double * thick = this->Materials[layer].getThickness();
+  thick[end] = t;
+}
+
+double Frustum::getRadius(int layer, Frustum::End end)
+{
+  return this->Materials[layer].getThickness()[end]*this->r[end];
 }
 
 //*********************************************************//
 
 PinCell::PinCell()
-: radii(1)
 {
   pitchX=0.0;
   pitchY=0.0;
   pitchZ=0.0;
   name=label="p1";
-  radii[0] = 1.0;
   legendColor = Qt::white;
   cutaway = false;
   Connection = new PinConnection();
@@ -164,11 +194,27 @@ void PinCell::RemoveFrustum(Frustum* frustum)
 }
 
 double PinCell::Radius(int idx) const
-{return this->radii[idx];}
+{
+  if(!this->Cylinders.empty())
+  {
+    return this->Cylinders[0]->getNormalizedThickness(idx);
+  }
+  else if(!this->Frustums.empty())
+  {
+    return this->Frustums[0]->getNormalizedThickness(idx, Frustum::TOP);
+  }
+  return 1;
+}
 
 void PinCell::SetRadius(int idx, double radius)
 {
-  this->radii[idx] = radius;
+  for(size_t i = 0; i < this->Cylinders.size(); i++){
+    this->Cylinders[i]->setNormalizedThickness(idx, radius);
+  }
+  for(size_t i = 0; i < this->Frustums.size(); i++){
+    this->Frustums[i]->setNormalizedThickness(idx, Frustum::TOP, radius);
+    this->Frustums[i]->setNormalizedThickness(idx, Frustum::BOTTOM, radius);
+  }
 }
 
 void PinCell::SetMaterial(int idx, QPointer<cmbNucMaterial> material)
@@ -211,12 +257,6 @@ void PinCell::SetNumberOfLayers(int numLayers)
   }
   for(size_t i = 0; i < this->Frustums.size(); i++){
     this->Frustums[i]->SetNumberOfLayers(numLayers);
-  }
-  size_t curNum = this->radii.size();
-  this->radii.resize(numLayers);
-  for(size_t i = curNum; i < numLayers; i++)
-  {
-    this->radii[i] = 1.0;
   }
 }
 

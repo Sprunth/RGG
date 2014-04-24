@@ -50,17 +50,24 @@ public:
   Cylinder();
   enumNucPartsType GetType();
   bool operator==(const Cylinder& obj);
+  double getNormalizedThickness(int layer);
+  void setNormalizedThickness(int layer, double thick);
+  double getRadius(int layer);
   double r;
 };
 
 class Frustum : public PinSubPart
 {
 public:
+  enum End{TOP=0, BOTTOM=1};
   Frustum();
   enumNucPartsType GetType();
   bool operator==(const Frustum& obj);
-  double r1;
-  double r2;
+  double getNormalizedThickness(int layer, Frustum::End end);
+  void setNormalizedThickness(int layer, Frustum::End end, double thick);
+  double getRadius(int layer, Frustum::End end);
+
+  double r[2];
 };
 
 // Represents a single pin cell. Pin cells can have multiple
@@ -125,7 +132,6 @@ public:
   double pitchX;
   double pitchY;
   double pitchZ;
-  std::vector<double> radii;
   QColor legendColor;
   vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
   bool cutaway;

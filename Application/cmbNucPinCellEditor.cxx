@@ -43,8 +43,8 @@ public:
       y(frustum->y),
       z1(frustum->z1),
       z2(frustum->z2),
-      r1(frustum->r1),
-      r2(frustum->r2),
+      r1(frustum->r[Frustum::TOP]),
+      r2(frustum->r[Frustum::BOTTOM]),
       PartObj(frustum)
   {
   }
@@ -350,8 +350,8 @@ void cmbNucPinCellEditor::updateComponentObject(int i, double& z)
       set_and_test(frustum->y, y);
       set_and_test(frustum->z1, z);
       set_and_test(frustum->z2, z + l);
-      set_and_test(frustum->r1, r1);
-      set_and_test(frustum->r2, r2);
+      set_and_test(frustum->r[Frustum::TOP], r1);
+      set_and_test(frustum->r[Frustum::BOTTOM], r2);
   }
   z += l;
   this->Ui->piecesTable->blockSignals(false);
@@ -395,8 +395,8 @@ AssyPartObj* cmbNucPinCellEditor::createComponentObject(int i, double& z)
       frustum->y = y;
       frustum->z1 = z;
       frustum->z2 = z + l;
-      frustum->r1 = r1;
-      frustum->r2 = r2;
+      frustum->r[Frustum::TOP] = r1;
+      frustum->r[Frustum::BOTTOM] = r2;
       this->PinCellObject->AddFrustum(frustum);
       retObj = frustum;
   }
@@ -699,7 +699,7 @@ void cmbNucPinCellEditor::layerTableCellChanged(int row, int col)
     QTableWidgetItem *item = this->Ui->layersTable->item(row, col);
     if(item)
       {
-      this->PinCellObject->radii[row] = item->text().toDouble();
+      this->PinCellObject->SetRadius(row, item->text().toDouble());
       }
     }
   this->UpdateData();
@@ -756,7 +756,7 @@ void cmbNucPinCellEditor::onPieceSelected()
       cmbNucMaterialColors::instance()->selectIndex(comboBox, selMat);
 
       QTableWidgetItem *item = new LayerRadiusEditor;
-      item->setText(QString::number(pincell->radii[i]));
+      item->setText(QString::number(pincell->Radius(i)));
       this->Ui->layersTable->setItem(i, 1, item);
 
       QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
