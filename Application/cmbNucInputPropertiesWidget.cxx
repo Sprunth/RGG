@@ -376,6 +376,10 @@ void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
   QPalette palette = this->Internal->colorSwatch->palette();
   palette.setColor(this->Internal->colorSwatch->backgroundRole(), pincell->GetLegendColor());
   this->Internal->colorSwatch->setPalette(palette);
+  if(this->Internal->PinCellEditor)
+  {
+    this->Internal->PinCellEditor->Reset();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -456,6 +460,7 @@ void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 {
   this->Internal->PinCellEditor->Apply();
   emit this->objGeometryChanged(pincell);
+  this->Internal->PinCellEditor->UpdateData();
 }
 
 //-----------------------------------------------------------------------------

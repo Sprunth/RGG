@@ -19,7 +19,7 @@ public:
   Duct(enumNucPartsType type=CMBNUC_ASSY_RECT_DUCT);
   ~Duct();
   DuctConnection * GetConnection();
-  enumNucPartsType GetType();
+  enumNucPartsType GetType() const;
   void SetType(enumNucPartsType type);
   double GetLayerThick(size_t layer, size_t t = 0) const;
 
@@ -53,7 +53,7 @@ public:
   DuctCell();
   ~DuctCell();
   DuctConnection * GetConnection();
-  enumNucPartsType GetType();
+  enumNucPartsType GetType() const;
   void RemoveDuct(Duct* duct);
   //Takes ownership
   void AddDuct(Duct* duct);

@@ -9,8 +9,28 @@
 
 class QComboBox;
 class PinCell;
+class PinSubPart;
 class cmbNucAssembly;
 class AssyPartObj;
+
+class CellConnection : public QObject
+{
+  Q_OBJECT
+public:
+  public slots:
+  void SetValue(double d)
+  { this->SetValueImp(d); }
+  void NeighborRowDeleted(int r)
+  {
+    this->NeighborDeleteIMP(r);
+  }
+signals:
+  void ValueChanged(double);
+  void Deleted(int);
+protected:
+  virtual void SetValueImp(double){}
+  virtual void NeighborDeleteIMP(int){}
+};
 
 // the pin cell editor widget. this dialog allows the user to modify a
 // single pin cell in an assembly. the sections (cylinders/frustums) can
@@ -38,6 +58,7 @@ signals:
 
 public slots:
   void Apply();
+  void Reset();
   void UpdatePinCell();
   void UpdateData();
   void onUpdateLayerMaterial();
@@ -45,35 +66,29 @@ public slots:
   void badName(QString);
 
 private slots:
-  void tableCellChanged(int row, int col);
+  void tableCellChanged();
   void addComponent();
   void deleteComponent();
   void addLayerBefore();
   void addLayerAfter();
   void deleteLayer();
-  void numberOfLayersChanged(int layers);
   void sectionTypeComboBoxChanged(const QString &type);
   void setupMaterialComboBox(QComboBox *comboBox);
-  void layerTableCellChanged(int row, int col);
-  void UpdateLayerMaterials();
   void onPieceSelected();
-  AssyPartObj* createComponentObject(int i, double& z);
-  void updateComponentObject(int i, double& z);
-  void createComponentItem(int row, double default_length,
-                           double default_radius1,
-                           double default_radius2,
-                           double x, double y);
-  void onCutAwayCheckBoxToggled(bool state);
+  PinSubPart* createComponentObject(int i, PinSubPart * );
+  void createComponentItem(int row, PinSubPart *);
 
 private:
-  AssyPartObj* getSelectedPiece();
+  PinSubPart* getSelectedPiece();
   void rebuildLayersFromTable();
 
+  void createMaterialRow(int row, PinSubPart *);
+
   Ui::cmbNucPinCellEditor *Ui;
-  PinCell *PinCellObject;
+  PinCell *InternalPinCell;
+  PinCell *ExternalPinCell;
   cmbNucAssembly *AssemblyObject;
   bool isHex;
-
 };
 
 #endif // __cmbNucPinCellEditor_h

@@ -341,7 +341,7 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
       }
     if(selPin)
       {
-      this->updatePinCellMaterialColors(selPin);
+      //this->updatePinCellMaterialColors(selPin);
       this->ResetView();
       }
     }

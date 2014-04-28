@@ -606,8 +606,8 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
 
     for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
       {
-      coneSource->SetBaseRadius(k, frustum->getRadius(k,Frustum::TOP));
-      coneSource->SetTopRadius(k, frustum->getRadius(k,Frustum::BOTTOM));
+      coneSource->SetBaseRadius(k, frustum->getRadius(k,Frustum::BOTTOM));
+      coneSource->SetTopRadius(k, frustum->getRadius(k,Frustum::TOP));
       }
     coneSource->SetResolution(PinCellResolution);
     double direction[] = { 0, 0, 1 };

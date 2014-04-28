@@ -807,7 +807,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
              << frustum->y << " "
              << frustum->z1 << " "
              << frustum->z2 << " ";
-      for(int atr = 0; atr < frustum->GetNumberOfLayers(); atr+=2)
+      for(int atr = 0; atr < frustum->GetNumberOfLayers(); atr++)
         {
         output << std::showpoint << frustum->getRadius(atr, Frustum::BOTTOM) << " ";
         output << std::showpoint << frustum->getRadius(atr, Frustum::TOP) << " ";

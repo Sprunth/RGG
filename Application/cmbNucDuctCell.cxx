@@ -22,7 +22,7 @@ DuctConnection * Duct::GetConnection()
   return Connection;
 }
 
-enumNucPartsType Duct::GetType()
+enumNucPartsType Duct::GetType() const
 { return enType;}
 
 void Duct::SetType(enumNucPartsType type)
@@ -110,7 +110,7 @@ DuctConnection * DuctCell::GetConnection()
   return this->Connection;
 }
 
-enumNucPartsType DuctCell::GetType()
+enumNucPartsType DuctCell::GetType() const
 { return CMBNUC_ASSY_DUCTCELL;}
 
 void DuctCell::RemoveDuct(Duct* duct)

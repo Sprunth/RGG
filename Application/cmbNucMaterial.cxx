@@ -23,6 +23,8 @@ cmbNucMaterialLayer::cmbNucMaterialLayer( const cmbNucMaterialLayer & ml )
   this->Connection = new cmbNucMaterialLayerConnection();
   this->Connection->v = this;
   this->changeMaterial(ml.Material);
+  this->Thickness[0] = ml.Thickness[0];
+  this->Thickness[1] = ml.Thickness[1];
 }
 
 cmbNucMaterialLayer::~cmbNucMaterialLayer()
