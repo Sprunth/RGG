@@ -24,6 +24,7 @@ signals:
 class PinSubPart: public AssyPartObj
 {
 public:
+  enum End{BOTTOM=0, TOP=1};
   PinSubPart();
   virtual ~PinSubPart();
 
@@ -35,6 +36,20 @@ public:
   std::size_t GetNumberOfLayers() const;
   void setConnection(cmbNucMaterialLayer & layer);
   QSet< cmbNucMaterial* > getMaterials();
+
+  //sets others values here if they are different.
+  //If values have changed, we return true.
+  virtual bool fill(PinSubPart const* other);
+  virtual PinSubPart * clone() const = 0;
+
+  virtual double getNormalizedThickness(int layer, PinSubPart::End end) = 0;
+  virtual void setNormalizedThickness(int layer, PinSubPart::End end, double thick) = 0;
+  virtual double getRadius(int layer, PinSubPart::End end) = 0;
+  virtual double getRadius(PinSubPart::End end) const = 0;
+  virtual void setRadius(PinSubPart::End end, double r) = 0;
+  virtual double length() const { return z2 - z1; }
+  virtual void reverseRadii() {};
+
   double x;
   double y;
   double z1;
@@ -48,8 +63,39 @@ class Cylinder : public PinSubPart
 {
 public:
   Cylinder();
-  enumNucPartsType GetType();
+  virtual enumNucPartsType GetType() const;
   bool operator==(const Cylinder& obj);
+  double getNormalizedThickness(int layer);
+  void setNormalizedThickness(int layer, double thick);
+  double getRadius(int layer);
+
+  PinSubPart * clone() const;
+
+  virtual double getNormalizedThickness(int layer, PinSubPart::End end)
+  {
+    return this->getNormalizedThickness(layer);
+  }
+
+  virtual void setNormalizedThickness(int layer, PinSubPart::End end, double thick)
+  {
+    this->setNormalizedThickness(layer, thick);
+  }
+
+  virtual double getRadius(int layer, PinSubPart::End end)
+  {
+    return this->getRadius(layer);
+  }
+
+  virtual double getRadius(PinSubPart::End) const
+  {
+    return r;
+  }
+
+  virtual void setRadius(PinSubPart::End, double rin)
+  {
+    this->r = rin;
+  }
+
   double r;
 };
 
@@ -57,10 +103,31 @@ class Frustum : public PinSubPart
 {
 public:
   Frustum();
-  enumNucPartsType GetType();
+  virtual enumNucPartsType GetType() const;
   bool operator==(const Frustum& obj);
-  double r1;
-  double r2;
+  double getNormalizedThickness(int layer, PinSubPart::End end);
+  void setNormalizedThickness(int layer, PinSubPart::End end, double thick);
+  double getRadius(int layer, PinSubPart::End end);
+  virtual void reverseRadii()
+  {
+    double t = r[0];
+    r[0] = r[1];
+    r[1] = t;
+  }
+
+  PinSubPart * clone() const;
+
+  virtual double getRadius(PinSubPart::End end) const
+  {
+    return r[end];
+  }
+
+  virtual void setRadius(PinSubPart::End end, double rin)
+  {
+    this->r[end] = rin;
+  }
+
+  double r[2];
 };
 
 // Represents a single pin cell. Pin cells can have multiple
@@ -80,7 +147,7 @@ public:
 
   ~PinCell();
 
-  enumNucPartsType GetType();
+  enumNucPartsType GetType() const;
 
   int NumberOfSections() const;
 
@@ -91,10 +158,13 @@ public:
   void RemoveFrustum(Frustum* frustum);
 
   double Radius(int idx) const;
+  QPointer<cmbNucMaterial> Material(int layer);
 
   void SetRadius(int idx, double radius);
-
   void SetMaterial(int idx, QPointer<cmbNucMaterial> material);
+
+  void InsertLayer(int layer);
+  void DeleteLayer(int layer);
 
   QColor GetLegendColor() const;
 
@@ -104,9 +174,12 @@ public:
 
   void SetNumberOfLayers(int numLayers);
 
+  bool fill(PinCell const* other);
+
   //These take ownership
   void AddCylinder(Cylinder* cylinder);
   void AddFrustum(Frustum* frustum);
+  void AddPart(PinSubPart * part);
 
   size_t NumberOfCylinders() const;
   size_t NumberOfFrustums() const;
@@ -125,7 +198,6 @@ public:
   double pitchX;
   double pitchY;
   double pitchZ;
-  std::vector<double> radii;
   QColor legendColor;
   vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
   bool cutaway;

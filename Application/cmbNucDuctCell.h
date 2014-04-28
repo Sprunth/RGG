@@ -16,17 +16,10 @@ signals:
 class Duct : public AssyPartObj
 {
 public:
-  struct MaterialLayer : public cmbNucMaterialLayer
-  {
-    MaterialLayer();
-    MaterialLayer(const MaterialLayer & ml);
-    double normThickness[2];
-    bool operator==( const Duct::MaterialLayer & other ) const;
-  };
   Duct(enumNucPartsType type=CMBNUC_ASSY_RECT_DUCT);
   ~Duct();
   DuctConnection * GetConnection();
-  enumNucPartsType GetType();
+  enumNucPartsType GetType() const;
   void SetType(enumNucPartsType type);
   double GetLayerThick(size_t layer, size_t t = 0) const;
 
@@ -50,7 +43,7 @@ public:
   double thickness[2];
   enumNucPartsType enType;
 protected:
-  std::vector<Duct::MaterialLayer> Materials;
+  std::vector<cmbNucMaterialLayer> Materials;
   DuctConnection * Connection;
 };
 
@@ -60,7 +53,7 @@ public:
   DuctCell();
   ~DuctCell();
   DuctConnection * GetConnection();
-  enumNucPartsType GetType();
+  enumNucPartsType GetType() const;
   void RemoveDuct(Duct* duct);
   //Takes ownership
   void AddDuct(Duct* duct);

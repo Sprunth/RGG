@@ -36,7 +36,7 @@ enum enumGeometryType {
   {
   public:
     AssyPartObj(){}
-    virtual enumNucPartsType GetType() {return CMBNUC_ASSY_BASEOBJ;}
+    virtual enumNucPartsType GetType() const {return CMBNUC_ASSY_BASEOBJ;}
     bool operator==(const AssyPartObj&){return false;}
     template<class T> static void removeObj(T* obj, std::vector<T*>& objs)
       {
@@ -234,7 +234,7 @@ enum enumGeometryType {
         }
       }
 
-    enumNucPartsType GetType()
+    enumNucPartsType GetType() const
       { return CMBNUC_ASSY_LATTICE;}
 
     // get number of cells

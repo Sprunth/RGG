@@ -183,7 +183,7 @@ public:
 
   cmbNucCoreConnection* GetConnection(){return this->Connection;}
 
-  virtual enumNucPartsType GetType() {return CMBNUC_CORE;}
+  virtual enumNucPartsType GetType() const {return CMBNUC_CORE;}
 
   void clearExceptAssembliesAndGeom();
 

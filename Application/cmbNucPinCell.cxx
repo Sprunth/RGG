@@ -1,4 +1,7 @@
 #include "cmbNucPinCell.h"
+#include "cmbNucMaterialColors.h"
+
+#include <QDebug>
 
 PinSubPart::PinSubPart() : Materials(1)
 {
@@ -72,6 +75,61 @@ QSet< cmbNucMaterial* > PinSubPart::getMaterials()
   }
   return result;
 }
+namespace
+{
+
+template<class TYPE> bool setIfDifferent(TYPE const& a, TYPE & b)
+{
+  if(a != b)
+  {
+    b = a;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+}
+
+bool PinSubPart::fill(PinSubPart const* other)
+{
+  bool changed = false;
+  changed |= setIfDifferent(other->x, this->x);
+  changed |= setIfDifferent(other->y, this->y);
+  changed |= setIfDifferent(other->z1, this->z1);
+  changed |= setIfDifferent(other->z2, this->z2);
+
+  if( other->Materials.size() != this->Materials.size() )
+  {
+    changed = true;
+    this->SetNumberOfLayers(other->Materials.size());
+  }
+
+  for(unsigned int i = 0; i < this->Materials.size(); ++i)
+  {
+    changed |= setIfDifferent(other->Materials[i].getThickness()[0],
+                              this->Materials[i].getThickness()[0]);
+    changed |= setIfDifferent(other->Materials[i].getThickness()[1],
+                              this->Materials[i].getThickness()[1]);
+    //changing material will send it own signal if different
+    this->Materials[i].changeMaterial(other->Materials[i].getMaterial());
+  }
+
+  double otherRs[] = {other->getRadius(PinSubPart::BOTTOM),
+                      other->getRadius(PinSubPart::TOP)};
+  double thisRs[] = {this->getRadius(PinSubPart::BOTTOM),
+                     this->getRadius(PinSubPart::TOP)};
+
+  changed |= setIfDifferent(otherRs[0], thisRs[0]);
+  changed |= setIfDifferent(otherRs[1], thisRs[1]);
+
+  this->setRadius(PinSubPart::BOTTOM, thisRs[0]);
+  this->setRadius(PinSubPart::TOP, thisRs[1]);
+
+  return changed;
+}
 
 //*********************************************************//
 
@@ -80,7 +138,7 @@ Cylinder::Cylinder() : PinSubPart()
   r=1.6;
 }
 
-enumNucPartsType Cylinder::GetType()
+enumNucPartsType Cylinder::GetType() const
 { return CMBNUC_ASSY_CYLINDER_PIN;}
 
 bool Cylinder::operator==(const Cylinder& obj)
@@ -90,33 +148,77 @@ bool Cylinder::operator==(const Cylinder& obj)
   this->r==obj.r;
 }
 
+double Cylinder::getNormalizedThickness(int layer)
+{
+  return this->Materials[layer].getThickness()[0];
+}
+
+void Cylinder::Cylinder::setNormalizedThickness(int layer, double t)
+{
+  double * thick = this->Materials[layer].getThickness();
+  thick[0] = thick[1] = t;
+}
+
+double Cylinder::getRadius(int layer)
+{
+  return this->Materials[layer].getThickness()[0]*this->r;
+}
+
+PinSubPart * Cylinder::clone() const
+{
+  PinSubPart * r = new Cylinder();
+  r->fill(this);
+  return r;
+}
+
 //*********************************************************//
 
 Frustum::Frustum() : PinSubPart()
 {
-  r1=1.6;r2=1.4;
+  r[TOP]=1.6; r[BOTTOM] = 1.4;
 }
 
-enumNucPartsType Frustum::GetType()
+enumNucPartsType Frustum::GetType() const
 { return CMBNUC_ASSY_FRUSTUM_PIN;}
 
 bool Frustum::operator==(const Frustum& obj)
 {
   return this->x==obj.x && this->y==obj.y &&
   this->z1==obj.z1 && this->z2==obj.z2 &&
-  this->r1==obj.r2 && this->r2==obj.r2;
+  this->r[TOP]==obj.r[TOP] && this->r[BOTTOM]==obj.r[BOTTOM];
+}
+
+double Frustum::getNormalizedThickness(int layer, Frustum::End end)
+{
+  return this->Materials[layer].getThickness()[end];
+}
+
+void Frustum::setNormalizedThickness(int layer, Frustum::End end, double t)
+{
+  double * thick = this->Materials[layer].getThickness();
+  thick[end] = t;
+}
+
+double Frustum::getRadius(int layer, Frustum::End end)
+{
+  return this->Materials[layer].getThickness()[end]*this->r[end];
+}
+
+PinSubPart * Frustum::clone() const
+{
+  PinSubPart * r = new Frustum();
+  r->fill(this);
+  return r;
 }
 
 //*********************************************************//
 
 PinCell::PinCell()
-: radii(1)
 {
   pitchX=0.0;
   pitchY=0.0;
   pitchZ=0.0;
   name=label="p1";
-  radii[0] = 1.0;
   legendColor = Qt::white;
   cutaway = false;
   Connection = new PinConnection();
@@ -129,7 +231,7 @@ PinCell::~PinCell()
   delete Connection;
 }
 
-enumNucPartsType PinCell::GetType()
+enumNucPartsType PinCell::GetType() const
 { return CMBNUC_ASSY_PINCELL;}
 
 int PinCell::NumberOfSections() const
@@ -164,11 +266,40 @@ void PinCell::RemoveFrustum(Frustum* frustum)
 }
 
 double PinCell::Radius(int idx) const
-{return this->radii[idx];}
+{
+  if(!this->Cylinders.empty())
+  {
+    return this->Cylinders[0]->getNormalizedThickness(idx);
+  }
+  else if(!this->Frustums.empty())
+  {
+    return this->Frustums[0]->getNormalizedThickness(idx, Frustum::TOP);
+  }
+  return 1;
+}
+
+QPointer<cmbNucMaterial> PinCell::Material(int layer)
+{
+  if(!this->Cylinders.empty())
+  {
+    return this->Cylinders[0]->GetMaterial(layer);
+  }
+  else if(!this->Frustums.empty())
+  {
+    return this->Frustums[0]->GetMaterial(layer);
+  }
+  return cmbNucMaterialColors::instance()->getUnknownMaterial();
+}
 
 void PinCell::SetRadius(int idx, double radius)
 {
-  this->radii[idx] = radius;
+  for(size_t i = 0; i < this->Cylinders.size(); i++){
+    this->Cylinders[i]->setNormalizedThickness(idx, radius);
+  }
+  for(size_t i = 0; i < this->Frustums.size(); i++){
+    this->Frustums[i]->setNormalizedThickness(idx, Frustum::TOP, radius);
+    this->Frustums[i]->setNormalizedThickness(idx, Frustum::BOTTOM, radius);
+  }
 }
 
 void PinCell::SetMaterial(int idx, QPointer<cmbNucMaterial> material)
@@ -212,12 +343,6 @@ void PinCell::SetNumberOfLayers(int numLayers)
   for(size_t i = 0; i < this->Frustums.size(); i++){
     this->Frustums[i]->SetNumberOfLayers(numLayers);
   }
-  size_t curNum = this->radii.size();
-  this->radii.resize(numLayers);
-  for(size_t i = curNum; i < numLayers; i++)
-  {
-    this->radii[i] = 1.0;
-  }
 }
 
 void PinCell::AddCylinder(Cylinder* cylinder)
@@ -232,6 +357,22 @@ void PinCell::AddFrustum(Frustum* frustum)
   QObject::connect(frustum->GetConnection(), SIGNAL(Changed()),
                    this->Connection, SIGNAL(Changed()));
   this->Frustums.push_back(frustum);
+}
+
+void PinCell::AddPart(PinSubPart * part)
+{
+  switch(part->GetType())
+  {
+    case CMBNUC_ASSY_CYLINDER_PIN:
+      AddCylinder(dynamic_cast<Cylinder*>(part));
+      break;
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+      AddFrustum(dynamic_cast<Frustum*>(part));
+      break;
+    default:
+      //DO NOTHING
+      break;
+  }
 }
 
 size_t PinCell::NumberOfCylinders() const
@@ -286,4 +427,102 @@ QSet< cmbNucMaterial* > PinCell::getMaterials()
     result.unite(Frustums[at]->getMaterials());
   }
   return result;
+}
+
+bool PinCell::fill(PinCell const* other)
+{
+  bool changed = false;
+  changed |= setIfDifferent(other->name, this->name);
+  changed |= setIfDifferent(other->label, this->label);
+  changed |= setIfDifferent(other->pitchX, this->pitchX);
+  changed |= setIfDifferent(other->pitchY, this->pitchY);
+  changed |= setIfDifferent(other->pitchZ, this->pitchZ);
+  setIfDifferent(other->legendColor, this->legendColor);
+
+  if(other->Cylinders.size() < this->Cylinders.size())
+  {
+    changed = true;
+    unsigned int i = other->Cylinders.size();
+    for(;i < this->Cylinders.size(); ++i)
+    {
+      delete this->Cylinders[i];
+    }
+    this->Cylinders.resize(other->Cylinders.size());
+  }
+  while (other->Cylinders.size() != this->Cylinders.size())
+  {
+    changed = true;
+    Cylinder * c = new Cylinder();
+    this->AddCylinder(c);
+  }
+  for(unsigned int i = 0; i < this->Cylinders.size(); ++i)
+  {
+    changed |= this->Cylinders[i]->fill(other->Cylinders[i]);
+  }
+
+  if(other->Frustums.size() < this->Frustums.size())
+  {
+    changed = true;
+    unsigned int i = other->Frustums.size();
+    for(;i < this->Frustums.size(); ++i)
+    {
+      delete this->Frustums[i];
+    }
+    this->Frustums.resize(other->Frustums.size());
+  }
+  while (other->Frustums.size() != this->Frustums.size())
+  {
+    changed = true;
+    Frustum * f = new Frustum();
+    this->AddFrustum(f);
+  }
+  for(unsigned int i = 0; i < this->Frustums.size(); ++i)
+  {
+    changed |= this->Frustums[i]->fill(other->Frustums[i]);
+  }
+
+  return changed;
+}
+
+void PinCell::InsertLayer(int layer)
+{
+  if(layer < 0 && layer > GetNumberOfLayers()) return; //do nothing
+  this->SetNumberOfLayers(GetNumberOfLayers()+1);
+  for(int i = GetNumberOfLayers()-1; i > layer; --i)
+  {
+    SetRadius(i, Radius(i-1));
+    SetMaterial(i, Material(i-1));
+  }
+  SetMaterial(layer, cmbNucMaterialColors::instance()->getUnknownMaterial());
+  if(layer == GetNumberOfLayers()-1)
+  {
+    if(GetNumberOfLayers() > 3)
+    {
+      SetRadius(layer-1, (Radius(layer-2)+1.0)*0.5);
+    }
+    else if(GetNumberOfLayers() == 2)
+    {
+      SetRadius(layer-1, 0.5);
+    }
+    SetRadius(layer, 1.0);
+  }
+  else if(layer == 0) SetRadius(layer, Radius(layer+1)*0.5);
+  else
+  {
+    double r1 = Radius(layer-1);
+    double r2 = Radius(layer+1);
+    SetRadius(layer, (r1+r2)*0.5);
+  }
+}
+
+void PinCell::DeleteLayer(int layer)
+{
+  if(layer < 0 && layer >= GetNumberOfLayers()) return; //do nothing
+  for(int i = layer; i < GetNumberOfLayers()-1; ++i)
+  {
+    SetRadius(i, Radius(i+1));
+    SetMaterial(i, Material(i+1));
+  }
+  this->SetNumberOfLayers(GetNumberOfLayers()-1);
+  SetRadius(GetNumberOfLayers()-1, 1.0);
 }

@@ -45,8 +45,12 @@ public:
   {
     return Connection;
   }
+  double * getThickness();
+  double const* getThickness() const;
+  bool operator==( const cmbNucMaterialLayer & other ) const;
 protected:
   QPointer<cmbNucMaterial> Material;
+  double Thickness[2];
   void materialDeleted();
   cmbNucMaterialLayerConnection * Connection;
 };

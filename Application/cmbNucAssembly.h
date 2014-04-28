@@ -134,7 +134,7 @@ public:
 
   cmbNucAssemblyConnection * GetConnection() {return this->Connection; }
 
-  virtual enumNucPartsType GetType() {return CMBNUC_ASSEMBLY;}
+  virtual enumNucPartsType GetType() const {return CMBNUC_ASSEMBLY;}
 
   // Adds a new pincell to the assebly. After adding the pincell it
   // can be placed in the assembly with the SetCell() method.
