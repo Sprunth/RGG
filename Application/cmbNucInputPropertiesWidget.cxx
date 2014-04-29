@@ -879,9 +879,15 @@ void cmbNucInputPropertiesWidget::deleteDuctLayer()
   {
     return;
   }
-  QTableWidgetItem* selItem =
-  table->selectedItems().value(0);
-  table->removeRow(selItem->row());
+  QTableWidgetItem* selItem = table->selectedItems().value(0);
+  int row = selItem->row();
+  table->removeRow(row);
+  if( row != 0 &&
+      row == table->rowCount() )
+  {
+    table->item(row-1,1)->setText("1.0");
+    table->item(row-1,2)->setText("1.0");
+  }
   table->blockSignals(false);
 }
 
