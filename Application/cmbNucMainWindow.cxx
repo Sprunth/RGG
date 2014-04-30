@@ -638,10 +638,10 @@ void cmbNucMainWindow::onSaveProjectAs()
   for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
     NuclearCore->GetAssembly(i)->FileName = dir.toStdString() +
-                                            "/Assembly_" +
+                                            "/assembly_" +
                                             NuclearCore->GetAssembly(i)->label + ".inp";
   }
-  NuclearCore->FileName =dir.toStdString() + "/Core.inp";
+  NuclearCore->FileName =dir.toStdString() + "/core.inp";
   this->saveAll(false, true);
   emit checkSave();
 }
@@ -689,10 +689,11 @@ void cmbNucMainWindow::save(cmbNucAssembly* assembly, bool request_file_name, bo
   QString fileName = assembly->FileName.c_str();
   if(request_file_name || fileName.isEmpty())
   {
-    QString defaultName = (fileName.isEmpty())?(assembly->label+".inp").c_str():fileName;
+    QString defaultName = (fileName.isEmpty())?(std::string("assembly_") + assembly->label + ".inp").c_str():fileName;
     fileName = cmbNucMainWindow::requestInpFileName(defaultName, "Assembly");
   }
   if(fileName.isEmpty()) return;
+
   if(force_save || assembly->changeSinceLastSave())
   {
     assembly->WriteFile(fileName.toStdString());
@@ -762,6 +763,8 @@ QString cmbNucMainWindow::requestInpFileName(QString name,
   {
     fileName = saveQD.selectedFiles().first();
   }
+  if( !fileName.endsWith(".inp") )
+    fileName += ".inp";
 
   if(!fileName.isEmpty())
   {
