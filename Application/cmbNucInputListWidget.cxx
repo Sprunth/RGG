@@ -849,8 +849,11 @@ void cmbNucInputListWidget::assemblyModified(cmbNucPartsTreeItem* assyNode)
   if(assem)
   {
     assem->setAndTestDiffFromFiles(true);
+    NuclearCore->checkUsedAssembliesForGen();
     assyNode->setHightlights(assem->changeSinceLastSave(),
                              assem->changeSinceLastGenerate());
+    Internal->RootCoreNode->setHightlights(NuclearCore->changeSinceLastSave(),
+                                           NuclearCore->changeSinceLastGenerate());
     this->Internal->PartsList->repaint();
   }
 }
