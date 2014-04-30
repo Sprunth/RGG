@@ -567,7 +567,7 @@ bool inpFileWriter::write(std::string fname,
     {
     QFile src(core.Params.BackgroundFullPath.c_str());
     QFile dest( QFileInfo(info.dir(), core.Params.Background.c_str()).absoluteFilePath() );
-    if(!dest.exists() || dest.remove())
+    if(src.fileName() != dest.fileName()  && (!dest.exists() || dest.remove()))
       {
       src.copy(dest.fileName());
       }
@@ -1234,14 +1234,19 @@ void inpFileHelper::readAssemblies( std::stringstream &input,
     {
 
     std::string assyfilename, assylabel, tmpPath = strPath;
+    QString assyQString;
     input >> assyfilename >> assylabel;
-    tmpPath.append("/").append(assyfilename);
-    QFileInfo tmpInfo(tmpPath.c_str());
-    tmpPath = strPath + "/" + tmpInfo.completeBaseName().toStdString() + ".inp";
-    QFileInfo assyInfo(tmpPath.c_str());
+    assyQString = QString(assyfilename.c_str());
+    assyQString.replace(".cub",".inp");
+    QFileInfo assyInfo(assyQString);
+    if(!assyInfo.exists())
+      {
+      //relative path
+      assyInfo = QFileInfo(QString(tmpPath.c_str()) + "/" + assyQString);
+      }
     if(assyInfo.exists() && readAssy)
       {
-      subAssembly = core.loadAssemblyFromFile(tmpPath, assylabel);
+      subAssembly = core.loadAssemblyFromFile(assyInfo.absoluteFilePath().toStdString(), assylabel);
       }
     }
 }
