@@ -159,6 +159,7 @@ private:
   cmbNucCore * v;
 public slots:
   void dataChanged();
+  void assemblyChanged();
 signals:
   void dataChangedSig();
   void colorChanged();
@@ -266,6 +267,8 @@ public:
   bool DifferentFromH5M;
 
   cmbNucCoreParams Params;
+
+  void checkUsedAssembliesForGen();
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;

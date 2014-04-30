@@ -222,6 +222,7 @@ void cmbNucExportDialog::runCoregen()
 void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
 {
   this->AssygenFileList.clear();
+  MainWindow->checkForNewCUBH5MFiles();
   for (size_t i = 0; i < Core->GetNumberOfAssemblies(); ++i)
   {
     cmbNucAssembly * assy = this->Core->GetAssembly(i);
@@ -254,6 +255,7 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
 void cmbNucExportDialog::GetRunnableCoreFile(bool force)
 {
   CoregenFile = QString();
+  MainWindow->checkForNewCUBH5MFiles();
   if(force || Core->changeSinceLastGenerate())
   {
     if(Core->changeSinceLastSave())

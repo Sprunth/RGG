@@ -27,6 +27,12 @@ void cmbNucCoreConnection::dataChanged()
   emit dataChangedSig();
 }
 
+void cmbNucCoreConnection::assemblyChanged()
+{
+  v->checkUsedAssembliesForGen();
+  emit dataChangedSig();
+}
+
 cmbNucCore::cmbNucCore()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
@@ -83,6 +89,8 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
                    this->Connection, SIGNAL(dataChangedSig()));
   QObject::connect(assembly->GetConnection(), SIGNAL(colorChanged()),
                    this->Connection, SIGNAL(colorChanged()));
+  QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
+                   this->Connection, SLOT(assemblyChanged()));
   if(this->Assemblies.size() == 1)
     {
     this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
@@ -432,8 +440,6 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   //QFileInfo h5mFI();
   QDateTime inpLM = inpInfo.lastModified();
   QFileInfo h5mInfo(inpInfo.dir(), h5mFile.c_str());
-  qDebug() << h5mFile.c_str();
-  qDebug() << h5mInfo.absoluteFilePath();
   if(!h5mInfo.exists())
   {
     this->DifferentFromH5M = true;
@@ -441,6 +447,21 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   }
   QDateTime h5mLM = h5mInfo.lastModified();
   this->DifferentFromH5M = h5mLM < inpLM;
+  this->checkUsedAssembliesForGen();
+}
+
+void cmbNucCore::checkUsedAssembliesForGen()
+{
+  if(this->DifferentFromH5M) return;
+  QFileInfo h5mInfo(QFileInfo(this->FileName.c_str()).dir(), this->h5mFile.c_str());
+  std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
+  for(unsigned int i = 0; i < assy.size() && !this->DifferentFromH5M; ++i)
+  {
+    this->DifferentFromH5M |= assy[i]->changeSinceLastGenerate();
+    QFileInfo inpInfo(assy[i]->FileName.c_str());
+    QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName() + ".cub");
+    this->DifferentFromH5M |= !cubInfo.exists() || h5mInfo.lastModified() < cubInfo.lastModified();
+  }
 }
 
 bool cmbNucCore::changeSinceLastSave() const
