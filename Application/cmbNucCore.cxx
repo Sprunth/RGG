@@ -41,6 +41,7 @@ cmbNucCore::cmbNucCore()
   DifferentFromFile = true;
   DifferentFromH5M = true;
   this->Connection = new cmbNucCoreConnection();
+  this->Connection->v = this;
 }
 
 cmbNucCore::~cmbNucCore()
