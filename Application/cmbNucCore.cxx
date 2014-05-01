@@ -416,9 +416,9 @@ void cmbNucCore::computePitch()
   }
 }
 
-int cmbNucCore::GetNumberOfAssemblies()
+int cmbNucCore::GetNumberOfAssemblies() const
 {
-  return (int)this->Assemblies.size();
+  return static_cast<int>(this->Assemblies.size());
 }
 
 void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)

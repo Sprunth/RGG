@@ -26,7 +26,6 @@ SET(RGGNuclear_Srcs
   cmbNucCore.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
-  cmbNucNewDialog.cxx
   cmbNucMaterial.cxx
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
@@ -51,7 +50,6 @@ SET(RGGNuclear_Srcs
 
 SET(RGGNuclear_UI
   qNucMainWindow.ui
-  qNucNewDialog.ui
   qInputListWidget.ui
   qInputPropertiesWidget.ui
   cmbNucPinCellEditor.ui
@@ -71,7 +69,6 @@ SET(RGGNuclear_Headers
   cmbNucInputPropertiesWidget.h
   cmbNucMaterial.h
   cmbNucMaterialColors.h
-  cmbNucNewDialog.h
   cmbNucPartsTreeItem.h
   cmbNucMaterialTreeItem.h
   cmbNucAssemblyEditor.h
