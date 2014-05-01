@@ -79,6 +79,7 @@ protected:
   void save(cmbNucAssembly*, bool request_file_name, bool force);
   void save(cmbNucCore*, bool request_file_name, bool force);
   QString requestInpFileName(QString name, QString type);
+  virtual void closeEvent(QCloseEvent *event);
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);

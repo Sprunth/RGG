@@ -417,7 +417,22 @@ void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
 
 void cmbNucMainWindow::onExit()
 {
-  qApp->exit();
+  if(checkFilesBeforePreceeding())
+  {
+    qApp->exit();
+  }
+}
+
+void cmbNucMainWindow::closeEvent(QCloseEvent *event)
+{
+  if(checkFilesBeforePreceeding())
+  {
+    event->accept();
+  }
+  else
+  {
+    event->ignore();
+  }
 }
 
 void cmbNucMainWindow::onNewCore()
