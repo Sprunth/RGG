@@ -104,7 +104,7 @@ bool cmbNucAssemblyEditor::updateLatticeWithGrid(
     {
     for(int j = 0; j < y; j++)
       {
-      change |= Grid[k][j].label != Grid[k][j].label;
+      change |= this->CurrentGrid[k][j].label != Grid[k][j].label;
       Grid[k][j] = this->CurrentGrid[k][j];
       }
     }
