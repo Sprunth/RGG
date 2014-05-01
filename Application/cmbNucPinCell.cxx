@@ -437,7 +437,6 @@ bool PinCell::fill(PinCell const* other)
   changed |= setIfDifferent(other->pitchX, this->pitchX);
   changed |= setIfDifferent(other->pitchY, this->pitchY);
   changed |= setIfDifferent(other->pitchZ, this->pitchZ);
-  setIfDifferent(other->legendColor, this->legendColor);
 
   if(other->Cylinders.size() < this->Cylinders.size())
   {
