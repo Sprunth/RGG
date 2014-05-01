@@ -169,6 +169,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 
   double startX = this->Assemblies[0]->AssyDuct.getDuct(0)->x;
   double startY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
+  double outerDuctWidth = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[1];
   double outerDuctHeight = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[0];
 
   // Is this Hex type?
@@ -258,8 +259,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           }
         else
           {
-          double tX = startX + i * (outerDuctHeight+0.5);
-          double tY = startY + j * (outerDuctHeight+0.5);
+          double tX = startX + i * (outerDuctWidth);
+          double tY = startY + j * (outerDuctHeight);
           transform->Translate(tY, tX, 0);
           }
  // transform block by block --- got to have better ways
