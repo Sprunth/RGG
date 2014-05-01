@@ -29,13 +29,13 @@
 #include <QTemporaryFile>
 #include <QSettings>
 #include <QTimer>
+#include <QMessageBox>
 
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
 #include "cmbNucInputPropertiesWidget.h"
 #include "cmbNucInputListWidget.h"
 #include "cmbNucMaterialColors.h"
-#include "cmbNucNewDialog.h"
 #include "cmbNucExportDialog.h"
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
@@ -118,7 +118,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->setupUi(this);
   this->NuclearCore = new cmbNucCore();
 
-  this->NewDialog = new cmbNucNewDialog(this);
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
   Internal = new NucMainInternal();
@@ -126,8 +125,6 @@ cmbNucMainWindow::cmbNucMainWindow()
 #ifdef BUILD_WITH_MOAB
   this->Internal->MoabSource = NULL;
 #endif
-
-  connect(this->NewDialog, SIGNAL(accepted()), this, SLOT(onNewDialogAccept()));
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -183,7 +180,12 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionReloadAll,      SIGNAL(triggered()), this, SLOT(onReloadAll()));
   connect(this->ui->actionReloadSelected, SIGNAL(triggered()), this, SLOT(onReloadSelected()));
 
-  connect(this->ui->actionNew, SIGNAL(triggered()), this, SLOT(onFileNew()));
+  connect( this->ui->actionNew_Hexagonal_Core, SIGNAL(triggered()),
+           this,                               SLOT(onNewCore()) );
+  connect( this->ui->actionNew_Rectilinear_Core, SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
+  this->ui->actionNew_Assembly->setEnabled(false);
+
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
           this->Preferences, SLOT(setPreferences()));
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
@@ -237,9 +239,13 @@ cmbNucMainWindow::~cmbNucMainWindow()
 
 void cmbNucMainWindow::initPanels()
 {
+  delete this->InputsWidget;
   this->InputsWidget = new cmbNucInputListWidget(this);
+  this->InputsWidget->setCreateOptions(this->ui->menuCreate);
 
   connect(this, SIGNAL(checkSave()), this->InputsWidget, SIGNAL(checkSavedAndGenerate()));
+  connect( this->ui->actionNew_Assembly, SIGNAL(triggered()),
+           this->InputsWidget,           SLOT(onNewAssembly()));
 
 #ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
@@ -258,6 +264,7 @@ void cmbNucMainWindow::initPanels()
 
 #endif
 
+  delete this->PropertyWidget;
   this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
   this->ui->InputsDock->setWidget(this->InputsWidget);
   this->ui->InputsDock->setFeatures(
@@ -413,31 +420,48 @@ void cmbNucMainWindow::onExit()
   qApp->exit();
 }
 
-void cmbNucMainWindow::onFileNew()
+void cmbNucMainWindow::onNewCore()
 {
-  this->NewDialog->show();
-  emit checkSave();
-}
-
-void cmbNucMainWindow::onNewDialogAccept()
-{
-  this->PropertyWidget->setGeometryType(this->NewDialog->getSelectedGeometry());
-  this->PropertyWidget->setObject(NULL, NULL);
-  this->PropertyWidget->setAssembly(NULL);
-  this->NuclearCore->CoreLattice.SetGeometryType(
-    this->PropertyWidget->getGeometryType());
-  switch(this->NewDialog->getSelectedGeometry())
+  //Is saving needed for current?
+  if(!checkFilesBeforePreceeding()) return;
+  //Get the action that called this.
+  QObject * sender = QObject::sender();
+  QAction * act = dynamic_cast<QAction*>(sender);
+  if(act != NULL)
+  {
+    QString type = act->text();
+    std::string geoType;
+    enumGeometryType geoTypeEnum;
+    if(type.contains("Hexagonal"))
     {
-    case RECTILINEAR:
-      NuclearCore->GeometryType = "Rectangular";
-      break;
-    case HEXAGONAL:
-      NuclearCore->GeometryType = "HexFlat";
-      break;
+      geoTypeEnum = HEXAGONAL;
+      geoType = "HexFlat";
     }
-  this->InputsWidget->onNewAssembly();
-  this->Renderer->ResetCamera();
-  this->Renderer->Render();
+    else if(type.contains("Rectilinear"))
+    {
+      geoTypeEnum = RECTILINEAR;
+      geoType = "Rectangular";
+    }
+    else
+    {
+      qDebug() << "New action is connected to: " << type << " and that action is not supported.";
+      return;
+    }
+    this->doClearAll();
+    this->NuclearCore->GeometryType = geoType;
+    this->PropertyWidget->setGeometryType(geoTypeEnum);
+    this->PropertyWidget->setObject(NULL, NULL);
+    this->PropertyWidget->setAssembly(NULL);
+    this->NuclearCore->CoreLattice.SetGeometryType(geoTypeEnum);
+    this->InputsWidget->onNewAssembly();
+    this->ui->actionNew_Assembly->setEnabled(true);
+    this->Renderer->ResetCamera();
+    this->Renderer->Render();
+  }
+  else
+  {
+    qDebug() << "Currently only action hook senders are supported.";
+  }
 }
 
 void cmbNucMainWindow::onFileOpen()
@@ -475,7 +499,17 @@ void cmbNucMainWindow::onFileOpen()
         cmbNucAssembly *assembly = new cmbNucAssembly();
         assembly->label = label;
         freader.read(*assembly);
-        assembly->setAndTestDiffFromFiles(false);
+        if(this->InputsWidget->isEnabled() &&
+           assembly->IsHexType() != NuclearCore->IsHexType())
+        {
+          QMessageBox msgBox;
+          msgBox.setText("Not the same type");
+          msgBox.setInformativeText(fileNames[i]+" is not the same geometry type as current core.");
+          int ret = msgBox.exec();
+          delete assembly;
+          this->unsetCursor();
+          return;
+        }
         int acolorIndex = numExistingAssy +
                           this->NuclearCore->GetNumberOfAssemblies() % numAssemblyDefaultColors;
 
@@ -485,17 +519,20 @@ void cmbNucMainWindow::onFileOpen()
         assembly->SetLegendColor(acolor);
         this->NuclearCore->AddAssembly(assembly);
         need_to_use_assem = true;
+        this->ui->actionNew_Assembly->setEnabled(true);
         break;
       }
       case inpFileReader::CORE_TYPE:
         // clear old assembly
-        clearAll();
+        if(!checkFilesBeforePreceeding()) return;
+        doClearAll();
         this->PropertyWidget->setObject(NULL, NULL);
         this->PropertyWidget->setAssembly(NULL);
         freader.read(*(this->NuclearCore));
         this->NuclearCore->setAndTestDiffFromFiles(false);
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
+        this->ui->actionNew_Assembly->setEnabled(true);
         break;
       default:
         qDebug() << "could not open" << fileNames[i];
@@ -510,9 +547,10 @@ void cmbNucMainWindow::onFileOpen()
   }
   else if(numNewAssy)
   {
-    this->PropertyWidget->setGeometryType(
-          this->NuclearCore->GetAssembly(0)->AssyLattice.GetGeometryType());
-    switch(this->NuclearCore->GetAssembly(0)->AssyLattice.GetGeometryType())
+    enumGeometryType geoType =
+        this->NuclearCore->GetAssembly(int(0))->AssyLattice.GetGeometryType();
+    this->PropertyWidget->setGeometryType(geoType);
+    switch(geoType)
     {
       case RECTILINEAR:
         NuclearCore->GeometryType = "Rectangular";
@@ -795,9 +833,18 @@ void cmbNucMainWindow::saveCoreFile(const QString &fileName)
 
 void cmbNucMainWindow::clearAll()
 {
+  if(this->checkFilesBeforePreceeding())
+  {
+    this->doClearAll();
+  }
+}
+
+void cmbNucMainWindow::doClearAll()
+{
   this->InputsWidget->clearTable();
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
+  this->ui->actionNew_Assembly->setEnabled(false);
 
   this->MaterialColors->clear();
   QString materialfile =
@@ -1161,4 +1208,36 @@ void cmbNucMainWindow::updatePropertyDockTitle(const QString& title)
     {
     this->ui->PropertyDock->setWindowTitle(title);
     }
+}
+
+bool cmbNucMainWindow::checkFilesBeforePreceeding()
+{
+  if(!this->InputsWidget->isEnabled()) return true;
+  bool changed = false;
+  changed |= NuclearCore->changeSinceLastSave();
+
+  for(int i = 0; !changed && i < NuclearCore->GetNumberOfAssemblies(); ++i)
+  {
+    cmbNucAssembly* assy = NuclearCore->GetAssembly(i);
+    if(assy && assy->changeSinceLastSave())
+    {
+      changed = true;
+    }
+  }
+  if(!changed) return true;
+
+  QMessageBox msgBox;
+  msgBox.setText("This action will result in lost of changes since last save.");
+  msgBox.setInformativeText("Do you want to continue?");
+  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No );
+  msgBox.setDefaultButton(QMessageBox::No);
+  int ret = msgBox.exec();
+  switch (ret)
+  {
+    case QMessageBox::No:
+      return false;
+    default:
+      break;
+  }
+  return true;
 }

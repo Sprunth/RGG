@@ -11,6 +11,7 @@ class cmbNucInputListWidgetInternal;
 class QTreeWidget;
 class QTreeWidgetItem;
 class cmbNucPartsTreeItem;
+class QMenu;
 
 class cmbNucInputListWidget : public QWidget
 {
@@ -41,6 +42,8 @@ public:
   bool getMeshEdgeState();
 
   void clearTable();
+
+  void setCreateOptions(QMenu * qm) const;
 
 signals:
   // Description:

@@ -26,7 +26,6 @@ class Cylinder;
 class cmbNucInputPropertiesWidget;
 class cmbNucInputListWidget;
 class cmbNucMaterialColors;
-class cmbNucNewDialog;
 class cmbNucExportDialog;
 class cmbNucPreferencesDialog;
 class NucMainInternal;
@@ -42,10 +41,12 @@ public:
 
   double getZScale() const { return this->ZScale; }
 
+  //Returns true if it is ok to proceed
+  bool checkFilesBeforePreceeding();
+
 public slots:
   void onExit();
-  void onFileNew();
-  void onNewDialogAccept();
+  void onNewCore();
   void onFileOpen();
   void onFileOpenMoab();
   void onSaveSelected();
@@ -110,13 +111,14 @@ private:
   // Designer form
   Ui_qNucMainWindow *ui;
 
+  void doClearAll();
+
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
   vtkSmartPointer<vtkActor> Actor;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
 
   cmbNucCore *NuclearCore;
-  cmbNucNewDialog *NewDialog;
   cmbNucExportDialog *ExportDialog;
   cmbNucPreferencesDialog *Preferences;
 

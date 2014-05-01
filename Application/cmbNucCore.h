@@ -203,7 +203,7 @@ public:
   std::vector< cmbNucAssembly* > GetUsedAssemblies();
 
   // Return the number of assemblies in the core
-  int GetNumberOfAssemblies();
+  int GetNumberOfAssemblies() const;
 
   // Sets the dimensions of the Assembly Core.
   void SetDimensions(int i, int j);
