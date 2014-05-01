@@ -507,6 +507,7 @@ void cmbNucMainWindow::onFileOpen()
           msgBox.setInformativeText(fileNames[i]+" is not the same geometry type as current core.");
           int ret = msgBox.exec();
           delete assembly;
+          this->unsetCursor();
           return;
         }
         int acolorIndex = numExistingAssy +
