@@ -176,6 +176,10 @@ void cmbNucMaterialColors::clear()
   }
   this->NameToMaterial.clear();
   this->LabelToMaterial.clear();
+  this->Llimit = 0.1;
+  this->Ulimit = 0.9;
+  this->numNewMaterials = 0;
+  this->newID = 0;
 }
 
 //-----------------------------------------------------------------------------
