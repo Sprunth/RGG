@@ -20,6 +20,9 @@ public:
 public slots:
   void setPreferences();
 
+signals:
+  void actionParallelProjection(bool);
+
 protected slots:
   void browserAssygenExecutable();
   void browserCubitExecutable();
