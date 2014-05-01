@@ -17,6 +17,8 @@ cmbNucPreferencesDialog::cmbNucPreferencesDialog(cmbNucMainWindow *mainWindow)
           this, SLOT(browserCoregenExecutable()) );
   connect( this->ui->buttonBox, SIGNAL(accepted()),
           this, SLOT(setValues() ));
+  connect(this->ui->parallel_Projection, SIGNAL(clicked(bool)),
+          this, SIGNAL(actionParallelProjection(bool)));
 }
 
 cmbNucPreferencesDialog::~cmbNucPreferencesDialog()

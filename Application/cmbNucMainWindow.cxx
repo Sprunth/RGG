@@ -187,7 +187,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
           this->Preferences, SLOT(setPreferences()));
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
-  connect(this->ui->actionParallel_Projection, SIGNAL(triggered(bool)),
+  connect(this->Preferences, SIGNAL(actionParallelProjection(bool)),
           this, SLOT(useParallelProjection(bool)));
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
 

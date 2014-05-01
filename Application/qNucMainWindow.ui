@@ -93,7 +93,6 @@
      <string>Edit</string>
     </property>
     <addaction name="actionPreferences"/>
-    <addaction name="actionParallel_Projection"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
