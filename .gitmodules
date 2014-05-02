@@ -1,0 +1,3 @@
+[submodule "TestingData"]
+	path = TestingData
+	url = git@www.kitware.com:cmbTestingDataNE.git
