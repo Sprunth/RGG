@@ -762,8 +762,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     // count of attribute lines for the pincell. equal to the number
     // of frustums plus cylinders plus one for the pitch.
     // We are writing multiple cylinders/frustums on one line.
-    size_t count = (pincell->NumberOfCylinders()>0 ? 1: 0) +
-                   (pincell->NumberOfFrustums()>0 ? 1 : 0) + 1;
+    size_t count = pincell->NumberOfCylinders() + pincell->NumberOfFrustums() + 1;
 
     output << pincell->name << " " << pincell->label << " " << count << "\n";
 
@@ -780,7 +779,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
 
     for(size_t j = 0; j < pincell->NumberOfCylinders(); j++)
       {
-      if(j==0) output << "cylinder " << pincell->GetNumberOfLayers() << " ";
+      output << "cylinder " << pincell->GetNumberOfLayers() << " ";
       Cylinder* cylinder = pincell->GetCylinder(j);
       output << std::showpoint
              << cylinder->x << " "
@@ -795,12 +794,12 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
         {
         output << cylinder->GetMaterial(material)->getLabel().toStdString() << " ";
         }
-      if(j==pincell->NumberOfCylinders()-1) output << "\n";
+      output << "\n";
       }
 
     for(size_t j = 0; j < pincell->NumberOfFrustums(); j++)
       {
-      if(j==0) output << "frustum " << pincell->GetNumberOfLayers() << " ";
+      output << "frustum " << pincell->GetNumberOfLayers() << " ";
       Frustum* frustum = pincell->GetFrustum(j);
       output << std::showpoint
              << frustum->x << " "
@@ -816,7 +815,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
         {
         output << frustum->GetMaterial(material)->getLabel().toStdString() << " ";
         }
-      if(j==pincell->NumberOfFrustums()-1) output << "\n";
+      output << "\n";
       }
     }
 }
