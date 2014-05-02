@@ -230,7 +230,6 @@ void setValue(QCheckBox * to, bool &from)
   FUN(SectionXYZ) \
   FUN(SectionOffset) \
   FUN(StartPinId) \
-  FUN(CellMaterial) \
   FUN(CreateMatFiles) \
   FUN(Save_Exodus) \
   FUN(List_NeumannSet_StartId) \
