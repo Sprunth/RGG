@@ -688,6 +688,9 @@ void cmbNucMainWindow::onSaveProjectAs()
   QString	dir = QFileDialog::getExistingDirectory( this,
                                                    "Save Project To Single Directory",
                                                    tdir.path() );
+
+  if(dir.isEmpty()) return;
+  QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
   for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
     NuclearCore->GetAssembly(i)->FileName = dir.toStdString() +
@@ -815,6 +818,10 @@ QString cmbNucMainWindow::requestInpFileName(QString name,
   if(saveQD.exec()== QDialog::Accepted)
   {
     fileName = saveQD.selectedFiles().first();
+  }
+  else
+  {
+    return QString();
   }
   if( !fileName.endsWith(".inp") )
     fileName += ".inp";
