@@ -24,6 +24,10 @@ cmbAssyParametersWidget::cmbAssyParametersWidget(QWidget *p)
   this->Internal->setupUi(this);
   this->initUI();
   this->Assembly = NULL;
+  this->Internal->AxialMeshLayout->setVisible(false);
+  this->Internal->EdgeIntervalLayout->setVisible(false);
+  this->Internal->MeshTypeLayout_2->setVisible(false);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -230,7 +234,6 @@ void setValue(QCheckBox * to, bool &from)
   FUN(SectionXYZ) \
   FUN(SectionOffset) \
   FUN(StartPinId) \
-  FUN(CellMaterial) \
   FUN(CreateMatFiles) \
   FUN(Save_Exodus) \
   FUN(List_NeumannSet_StartId) \

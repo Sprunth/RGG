@@ -46,7 +46,7 @@ vtkCmbDuctSource::vtkCmbDuctSource()
   std::fill(this->Origin, this->Origin + 3, 0.0);
   this->Height = 0.0;
   this->SetNumberOfInputPorts(0);
-  this->GeometryType = CMBNUC_ASSY_RECT_DUCT;
+  this->GeometryType = RECTILINEAR;
 }
 
 //----------------------------------------------------------------------------
@@ -68,7 +68,7 @@ int vtkCmbDuctSource::RequestData(
       outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   // create HEX duct
-  if(this->GeometryType == CMBNUC_ASSY_HEX_DUCT)
+  if(this->GeometryType == HEXAGONAL)
     {
     int numLayers = this->GetNumberOfLayers();
     // get parameters for the layer

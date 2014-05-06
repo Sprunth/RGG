@@ -3,9 +3,9 @@
 
 #include <QDebug>
 
-PinSubPart::PinSubPart() : Materials(1)
+PinSubPart::PinSubPart(double z1in, double z2in) : Materials(1)
 {
-  x=0.0; y=0.0; z1=0.0; z2=4.0;
+  x=0.0; y=0.0; z1=z1in; z2=z2in;
   Connection = new PinConnection();
   this->setConnection(Materials[0]);
 }
@@ -133,9 +133,15 @@ bool PinSubPart::fill(PinSubPart const* other)
 
 //*********************************************************//
 
-Cylinder::Cylinder() : PinSubPart()
+Cylinder::Cylinder(double rin, double z1in, double z2in)
+: PinSubPart(z1in, z2in)
 {
-  r=1.6;
+  r=rin;
+}
+
+Cylinder::Cylinder(PinSubPart const* other)
+{
+  this->fill(other);
 }
 
 enumNucPartsType Cylinder::GetType() const
@@ -166,16 +172,23 @@ double Cylinder::getRadius(int layer)
 
 PinSubPart * Cylinder::clone() const
 {
-  PinSubPart * r = new Cylinder();
-  r->fill(this);
-  return r;
+  PinSubPart * result = new Cylinder(r,z1,z2);
+  result->fill(this);
+  return result;
 }
 
 //*********************************************************//
 
-Frustum::Frustum() : PinSubPart()
+Frustum::Frustum(double const* rin,
+                 double z1in, double z2in)
+: PinSubPart(z1in, z2in)
 {
-  r[TOP]=1.6; r[BOTTOM] = 1.4;
+  r[TOP]=rin[TOP]; r[BOTTOM] = rin[BOTTOM];
+}
+
+Frustum::Frustum(PinSubPart const* other)
+{
+  this->fill(other);
 }
 
 enumNucPartsType Frustum::GetType() const
@@ -206,17 +219,17 @@ double Frustum::getRadius(int layer, Frustum::End end)
 
 PinSubPart * Frustum::clone() const
 {
-  PinSubPart * r = new Frustum();
-  r->fill(this);
-  return r;
+  PinSubPart * result = new Frustum(r, z1, z2);
+  result->fill(this);
+  return result;
 }
 
 //*********************************************************//
 
-PinCell::PinCell()
+PinCell::PinCell(double px, double py)
 {
-  pitchX=0.0;
-  pitchY=0.0;
+  pitchX=px;
+  pitchY=py;
   pitchZ=0.0;
   name=label="p1";
   legendColor = Qt::white;
@@ -451,7 +464,7 @@ bool PinCell::fill(PinCell const* other)
   while (other->Cylinders.size() != this->Cylinders.size())
   {
     changed = true;
-    Cylinder * c = new Cylinder();
+    Cylinder * c = new Cylinder(0,0,0);
     this->AddCylinder(c);
   }
   for(unsigned int i = 0; i < this->Cylinders.size(); ++i)
@@ -472,7 +485,8 @@ bool PinCell::fill(PinCell const* other)
   while (other->Frustums.size() != this->Frustums.size())
   {
     changed = true;
-    Frustum * f = new Frustum();
+    double r[2];
+    Frustum * f = new Frustum(r, 0, 0);
     this->AddFrustum(f);
   }
   for(unsigned int i = 0; i < this->Frustums.size(); ++i)

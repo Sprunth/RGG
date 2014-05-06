@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "cmbNucPartDefinition.h"
 #include <QStringList>
+#include <QPointer>
 
 class cmbNucInputPropertiesWidgetInternal;
 class cmbNucAssemblyEditor;
@@ -18,6 +19,7 @@ class DuctCell;
 class cmbNucHexLattice;
 class cmbCoreParametersWidget;
 class cmbAssyParametersWidget;
+class cmbNucDefaultWidget;
 
 class cmbNucInputPropertiesWidget : public QWidget
 {
@@ -114,5 +116,9 @@ private:
   cmbCoreParametersWidget* RectCoreProperties;
   cmbAssyParametersWidget* HexAssyConf;
   cmbAssyParametersWidget* RectAssyConf;
+  QPointer<cmbNucDefaultWidget> hexCoreDefaults;
+  QPointer<cmbNucDefaultWidget> rectCoreDefaults;
+  QPointer<cmbNucDefaultWidget> hexAssyDefaults;
+  QPointer<cmbNucDefaultWidget> rectAssyDefaults;
 };
 #endif

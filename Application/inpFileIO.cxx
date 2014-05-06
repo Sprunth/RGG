@@ -350,7 +350,8 @@ bool inpFileReader
       helper.readUnknown(input, value, assembly.Parameters->UnknownParams);
       }
     }
-  assembly.setAndTestDiffFromFiles(helper.labelIsDifferent); //Should not be different
+  assembly.computeDefaults();
+  assembly.setAndTestDiffFromFiles(helper.labelIsDifferent);
   return true;
 }
 
@@ -439,6 +440,7 @@ bool inpFileReader
         helper.readUnknown(input, value, core.Params.UnknownKeyWords);
       }
     }
+  core.calculateDefaults();
   core.setAndTestDiffFromFiles(false);
   return true;
 }
@@ -471,7 +473,6 @@ bool inpFileWriter::write(std::string fname,
   helper.writeHeader(output,"Assembly");
   cmbAssyParameters * params = assembly.Parameters;
 
-  WRITE_PARAM_VALUE(MeshType, MeshType);
   output << "GeometryType " << assembly.GeometryType << "\n";
   WRITE_PARAM_VALUE(Geometry, Geometry);
   helper.writeMaterials( output, assembly );
@@ -694,7 +695,7 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly 
 
 void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assembly )
 {
-  Duct* duct = new Duct();
+  Duct* duct = new Duct(0,0,0);
   int materials;
   std::string mlabel;
 
@@ -724,10 +725,6 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
     duct->getNormThick(i)[0] = tmpD[0];
     duct->getNormThick(i)[1] = tmpD[1];
   }
-  if(assembly.IsHexType())
-    {
-    duct->SetType(CMBNUC_ASSY_HEX_DUCT);
-    }
 
   duct->thickness[0] = maxV[0];
   duct->thickness[1] = maxV[1];
@@ -844,7 +841,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
   for(int i = 0; i < count; i++)
     {
     int lc = i % 10; // Pick a default pin color (for now!)
-    PinCell* pincell = new PinCell();
+    PinCell* pincell = new PinCell(0,0);
     QPointer<cmbNucMaterial> firstMaterial = NULL;
     int attribute_count = 0;
     input >> pincell->name;
@@ -882,7 +879,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         {
         int layers;
         input >> layers;
-        Cylinder* cylinder = new Cylinder();
+        Cylinder* cylinder = new Cylinder(0,0,0);
         std::vector<double> radii(layers);
         cylinder->SetNumberOfLayers(layers);
 
@@ -932,7 +929,8 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         {
         int layers;
         input >> layers;
-        Frustum* frustum = new Frustum();
+        double t[] = {0,0};
+        Frustum* frustum = new Frustum(t,0,0);
         std::vector<double> radii(layers*2);
         frustum->SetNumberOfLayers(layers);
 

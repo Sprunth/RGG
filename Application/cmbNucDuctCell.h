@@ -9,6 +9,7 @@ class DuctConnection : public QObject
 {
   Q_OBJECT
 public:
+  void sendChange();
 signals:
   void Changed();
 };
@@ -16,11 +17,11 @@ signals:
 class Duct : public AssyPartObj
 {
 public:
-  Duct(enumNucPartsType type=CMBNUC_ASSY_RECT_DUCT);
+  Duct(double height, double thickX, double thickY);
+  Duct(Duct * previous);
   ~Duct();
   DuctConnection * GetConnection();
   enumNucPartsType GetType() const;
-  void SetType(enumNucPartsType type);
   double GetLayerThick(size_t layer, size_t t = 0) const;
 
   void SetNumberOfLayers(int i);
@@ -41,7 +42,6 @@ public:
   double z1;
   double z2;
   double thickness[2];
-  enumNucPartsType enType;
 protected:
   std::vector<cmbNucMaterialLayer> Materials;
   DuctConnection * Connection;
@@ -59,7 +59,11 @@ public:
   void AddDuct(Duct* duct);
   size_t numberOfDucts() const;
   Duct * getDuct(int i);
+  Duct * getPrevious();
   QSet< cmbNucMaterial* > getMaterials();
+  bool GetInnerDuctSize(double & x, double & y);
+  double getLength();
+  void setLength(double l);
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

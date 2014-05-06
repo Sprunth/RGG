@@ -6,6 +6,7 @@
 #include "cmbNucCore.h"
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucDefaults.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -94,6 +95,7 @@ public:
 cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   : QWidget(_p)
 {
+  this->NuclearCore = NULL;
   this->Internal = new cmbNucInputListWidgetInternal;
   this->Internal->setupUi(this);
   this->Internal->initActions();
@@ -166,7 +168,17 @@ void cmbNucInputListWidget::setCore(cmbNucCore* core)
     {
     return;
     }
+  if(this->NuclearCore!=NULL)
+  {
+    disconnect(this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
+               this, SLOT(repaintList()));
+  }
   this->NuclearCore = core;
+  if(this->NuclearCore!=NULL)
+  {
+    connect( this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
+             this, SLOT(repaintList()) );
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -259,8 +271,7 @@ cmbNucPartsTreeItem* cmbNucInputListWidget::getCurrentAssemblyNode()
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
     case CMBNUC_ASSY_CYLINDER_PIN:
-    case CMBNUC_ASSY_RECT_DUCT:
-    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_DUCT:
       pItem = selItem->parent()->parent();
       break;
     case CMBNUC_ASSEMBLY:
@@ -350,6 +361,8 @@ void cmbNucInputListWidget::onNewAssembly()
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
 
   this->NuclearCore->AddAssembly(assembly);
+  assembly->setFromDefaults(this->NuclearCore->GetDefaults());
+  assembly->computeDefaults();
 
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
@@ -365,11 +378,21 @@ void cmbNucInputListWidget::onNewDuct()
     {
     return;
     }
-  Duct* newduct = new Duct();
-  this->getCurrentAssembly()->AssyDuct.AddDuct(newduct);
+  cmbNucAssembly * assy = this->getCurrentAssembly();
+  double thickX, thickY, height;
+  assy->getDefaults()->getDuctThickness(thickX,thickY);
+  assy->getDefaults()->getHeight(height);
+  Duct * previous = assy->AssyDuct.getPrevious();
+  Duct* newduct;
+  if(previous == NULL)
+    newduct = new Duct(height, thickX, thickY);
+  else
+    newduct = new Duct(previous);
+
+  assy->AssyDuct.AddDuct(newduct);
   cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, newduct);
-  dNode->setText(0, QString("duct").append(QString::number(
-    this->getCurrentAssembly()->AssyDuct.numberOfDucts())));
+  QString number = QString::number(assy->AssyDuct.numberOfDucts());
+  dNode->setText(0, QString("duct").append(number));;
   Qt::ItemFlags itemFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   dNode->setFlags(itemFlags); // not editable
@@ -387,11 +410,18 @@ void cmbNucInputListWidget::onNewDuct()
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewPin()
 {
-  PinCell* newpin = new PinCell();
+  cmbNucAssembly * assy = this->getCurrentAssembly();
+  double px, py;
+  if(!assy->getDefaults()->getPitch(px,py))
+  {
+    assy->calculatePitch(px,py);
+  }
+  assy->calculatePitch(px, py);
+  PinCell* newpin = new PinCell(px,py);
   QString pinname = QString("PinCell").append(
     QString::number(this->getCurrentAssembly()->GetNumberOfPinCells()+1));
   newpin->name = newpin->label = pinname.toStdString();
-  this->getCurrentAssembly()->AddPinCell(newpin);
+  assy->AddPinCell(newpin);
   QTreeWidgetItem* partsRoot = this->getCurrentAssemblyNode();
   if(!partsRoot)
     {
@@ -478,7 +508,7 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
         }
       }
     break;
-  case CMBNUC_ASSY_RECT_DUCT:
+  case CMBNUC_ASSY_DUCT:
     this->getCurrentAssembly()->AssyDuct.RemoveDuct(dynamic_cast<Duct*>(selObj));
     delete selItem;
     break;
@@ -756,21 +786,15 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_PINCELL:
-    //this->Internal->Action_NewFrustum->setEnabled(true);
-    //this->Internal->Action_NewCylinder->setEnabled(true);
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_FRUSTUM_PIN:
-    //this->Internal->Action_NewFrustum->setEnabled(true);
-    //this->Internal->Action_NewCylinder->setEnabled(true);
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_CYLINDER_PIN:
-    //this->Internal->Action_NewFrustum->setEnabled(true);
-    //this->Internal->Action_NewCylinder->setEnabled(true);
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
-  case CMBNUC_ASSY_RECT_DUCT:
+  case CMBNUC_ASSY_DUCT:
     // keep at lease one duct
     this->Internal->Action_DeletePart->setEnabled(
           this->getCurrentAssembly()->AssyDuct.numberOfDucts()>1 ? true : false);
@@ -868,6 +892,14 @@ void cmbNucInputListWidget::assemblyModified(cmbNucPartsTreeItem* assyNode)
   }
 }
 
+void cmbNucInputListWidget::repaintList()
+{
+  if(Internal->RootCoreNode != NULL)
+    Internal->RootCoreNode->setHightlights(NuclearCore->changeSinceLastSave(),
+                                           NuclearCore->changeSinceLastGenerate());
+  this->Internal->PartsList->repaint();
+}
+
 void cmbNucInputListWidget::coreModified()
 {
   cmbNucPartsTreeItem* selItem = this->getSelectedPartNode();
@@ -897,8 +929,7 @@ void cmbNucInputListWidget::valueChanged()
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
     case CMBNUC_ASSY_CYLINDER_PIN:
-    case CMBNUC_ASSY_RECT_DUCT:
-    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_DUCT:
     case CMBNUC_ASSY_BASEOBJ:
       this->assemblyModified(dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()->parent()));
       break;
@@ -928,8 +959,7 @@ AssyPartObj* cmbNucInputListWidget::getSelectedCoreOrAssembly()
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
     case CMBNUC_ASSY_CYLINDER_PIN:
-    case CMBNUC_ASSY_RECT_DUCT:
-    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_DUCT:
     case CMBNUC_ASSY_BASEOBJ:
       return dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()->parent())->getPartObject();
       break;
