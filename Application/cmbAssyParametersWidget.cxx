@@ -24,6 +24,10 @@ cmbAssyParametersWidget::cmbAssyParametersWidget(QWidget *p)
   this->Internal->setupUi(this);
   this->initUI();
   this->Assembly = NULL;
+  this->Internal->AxialMeshLayout->setVisible(false);
+  this->Internal->EdgeIntervalLayout->setVisible(false);
+  this->Internal->MeshTypeLayout_2->setVisible(false);
+
 }
 
 //-----------------------------------------------------------------------------

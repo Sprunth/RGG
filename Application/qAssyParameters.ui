@@ -46,20 +46,6 @@
          </item>
         </layout>
        </item>
-       <item row="21" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_12">
-         <item>
-          <widget class="QLabel" name="label_12">
-           <property name="text">
-            <string>Edge Interval</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="EdgeInterval"/>
-         </item>
-        </layout>
-       </item>
        <item row="9" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_18">
          <item>
@@ -123,63 +109,6 @@
          </item>
          <item>
           <widget class="QLineEdit" name="List_NeumannSet_StartId"/>
-         </item>
-        </layout>
-       </item>
-       <item row="11" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_17">
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Axial Mesh Size</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="AxialMeshSize"/>
-         </item>
-        </layout>
-       </item>
-       <item row="30" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QLabel" name="label_24">
-           <property name="text">
-            <string>Mesh Type</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="MeshType">
-           <item>
-            <property name="text">
-             <string>NotSet</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Hex</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Tet</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </item>
@@ -599,6 +528,83 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item row="11" column="0">
+        <widget class="QWidget" name="AxialMeshLayout" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_17">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Axial Mesh Size</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="AxialMeshSize"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="21" column="0">
+        <widget class="QWidget" name="EdgeIntervalLayout" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Edge Interval</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="EdgeInterval"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="30" column="0">
+        <widget class="QWidget" name="MeshTypeLayout_2" native="true">
+         <layout class="QHBoxLayout" name="MeshTypeLayout">
+          <item>
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>Mesh Type</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="MeshType">
+            <item>
+             <property name="text">
+              <string>NotSet</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Hex</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Tet</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
       <zorder>Unknown</zorder>
