@@ -112,12 +112,10 @@ private:
 public slots:
   void dataChanged();
   void calculatePitch();
-  void calculateRadius();
 signals:
   void dataChangedSig();
   void colorChanged();
   void pitchResult(double x, double y);
-  void radiusResult(double r);
 };
 
 // Represents an assembly. Assemblies are composed of pin cells (cmbNucPinCell)

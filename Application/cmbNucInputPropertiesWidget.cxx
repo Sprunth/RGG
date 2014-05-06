@@ -12,6 +12,7 @@
 #include "cmbCoreParametersWidget.h"
 #include "cmbAssyParametersWidget.h"
 #include "cmbNucDefaultWidget.h"
+#include "cmbNucDefaults.h"
 
 #include "cmbNucHexLattice.h"
 
@@ -479,11 +480,22 @@ void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
 {
   bool change = false;
+  double z1 = this->Internal->DuctZPos1->text().toDouble();
+  double z2 = this->Internal->DuctZPos2->text().toDouble();
+  double length;
+  if(!this->getAssembly()->getDefaults()->getHeight(length))
+    length = this->getAssembly()->AssyDuct.getLength();
+  if(z2>length)
+  {
+    this->Internal->DuctZPos1->setText(QString::number(duct->z1));
+    this->Internal->DuctZPos2->setText(QString::number(duct->z2));
+    z1 = duct->z1; z2 = duct->z2;
+  }
 
   set_and_test_for_change(duct->x, this->Internal->DuctXPos->text().toDouble());
   set_and_test_for_change(duct->y, this->Internal->DuctYPos->text().toDouble());
-  set_and_test_for_change(duct->z1, this->Internal->DuctZPos1->text().toDouble());
-  set_and_test_for_change(duct->z2, this->Internal->DuctZPos2->text().toDouble());
+  set_and_test_for_change(duct->z1,z1);
+  set_and_test_for_change(duct->z2,z2);
 
   set_and_test_for_change(duct->thickness[0],
                           this->Internal->DuctThickX->text().toDouble());

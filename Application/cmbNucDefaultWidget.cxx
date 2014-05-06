@@ -37,20 +37,13 @@ void cmbNucDefaultWidget::set(QPointer<cmbNucDefaults> c, bool isCore, bool isHe
   this->Internal->ui->ductX->setVisible(!isHex);
   this->Internal->ui->ductY->setVisible(!isHex);
   this->Internal->ui->DuctThickY->setVisible(!isHex);
-  this->Internal->ui->ductForce->setVisible(false);
   this->Internal->ui->EdgeIntervalLayout->setVisible(isCore);
-  this->Internal->ui->HeightLayout->setVisible(!isCore);
-  this->Internal->ui->HeightForce->setVisible(false);
+  this->Internal->ui->HeightLayout->setVisible(isCore);
   this->Internal->ui->MeshTypeLayout->setVisible(isCore);
-  this->Internal->ui->PinRadiusLayout->setVisible(!isCore);
-  this->Internal->ui->pinRadiusForce->setVisible(false);
   this->Internal->ui->PitchLayout->setVisible(!isCore);
   this->Internal->ui->pitchXLabel->setVisible(!isHex);
   this->Internal->ui->pitchYLabel->setVisible(!isHex);
   this->Internal->ui->PitchY->setVisible(!isHex);
-  this->Internal->ui->pitchForce->setVisible(false);
-  this->Internal->ui->RadialMeshLayout->setVisible(isCore);
-  this->Internal->ui->RotateLayout->setVisible(isCore);
   this->setConnections();
   this->reset();
 }
@@ -183,13 +176,9 @@ void cmbNucDefaultWidget::setConnections()
   if(this->Current == NULL) return;
   QObject::connect(this->Internal->ui->computePitch, SIGNAL(clicked()),
                    this->Current, SIGNAL(calculatePitch()));
-  QObject::connect(this->Internal->ui->calculatePinRadius, SIGNAL(clicked()),
-                   this->Current, SIGNAL(calculatePinRadius()));
 
   QObject::connect(this->Current, SIGNAL(recieveCalculatedPitch(double, double)),
                    this,          SLOT(recievePitch(double, double)));
-  QObject::connect(this->Current, SIGNAL(recieveRadius(double)),
-                   this,          SLOT(recieveRadius(double)));
 }
 
 void cmbNucDefaultWidget::disConnect()
@@ -197,12 +186,8 @@ void cmbNucDefaultWidget::disConnect()
   if(this->Current == NULL) return;
   QObject::disconnect(this->Internal->ui->computePitch, SIGNAL(clicked()),
                       this->Current, SIGNAL(calculatePitch()));
-  QObject::disconnect(this->Internal->ui->calculatePinRadius, SIGNAL(clicked()),
-                      this->Current, SIGNAL(calculatePinRadius()));
   QObject::disconnect(this->Current, SIGNAL(recieveCalculatedPitch(double, double)),
                       this,          SLOT(recievePitch(double, double)));
-  QObject::disconnect(this->Current, SIGNAL(recieveRadius(double)),
-                      this,          SLOT(recieveRadius(double)));
 }
 
 void cmbNucDefaultWidget::recievePitch(double x, double y)
@@ -226,21 +211,4 @@ void cmbNucDefaultWidget::recievePitch(double x, double y)
     this->Internal->ui->PitchX->setText(QString::number(x));
     this->Internal->ui->PitchY->setText(QString::number(y));
   }
-}
-
-void cmbNucDefaultWidget::recieveRadius(double r)
-{
-  if(r<0)
-  {
-    double tmpX;
-    if(Current->getPinRadius(tmpX))
-    {
-      this->Internal->ui->PinRadius->setText(QString::number(tmpX));
-    }
-    else
-    {
-      getValue(this->Internal->ui->PinRadius, QString(""));
-    }
-  }
-  this->Internal->ui->PinRadius->setText(QString::number(r));
 }

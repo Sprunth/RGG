@@ -1,5 +1,10 @@
 #include "cmbNucDuctCell.h"
 
+void DuctConnection::sendChange()
+{
+  emit Changed();
+}
+
 /*******************************************************************************/
 
 Duct::Duct(double height, double thickX, double thickY)
@@ -16,8 +21,12 @@ Duct::Duct(Duct * previous)
   Connection = new DuctConnection();
   x=previous->x;
   y=previous->y;
+  double tz1 = previous->z1;
+  double tz2 = previous->z2;
+  double tl = previous->z2 - previous->z1;
+  previous->z2 = tz1 + tl*0.5;
   z1=previous->z2;
-  z2=2*previous->z2 - previous->z1;
+  z2=tz2;
   this->SetNumberOfLayers(previous->NumberOfLayers());
   thickness[0] = previous->thickness[0];
   thickness[1] = previous->thickness[1];
@@ -138,6 +147,7 @@ void DuctCell::AddDuct(Duct* duct)
   QObject::connect( duct->GetConnection(), SIGNAL(Changed()),
                     this->Connection, SIGNAL(Changed()) );
   this->Ducts.push_back(duct);
+  this->Connection->sendChange();
 }
 
 size_t DuctCell::numberOfDucts() const
@@ -192,4 +202,26 @@ double DuctCell::getLength()
     if(duct->z2>z2) z2 = duct->z2;
   }
   return z2 - z1;
+}
+
+void DuctCell::setLength(double l)
+{
+  if(this->Ducts.size() == 0) return;
+  double z1 = this->Ducts[0]->z1;
+  double z2 = this->Ducts[0]->z2;
+  for (unsigned int i = 1; i < this->Ducts.size(); ++i)
+  {
+    Duct * duct = Ducts[i];
+    if(duct->z1<z1) z1 = duct->z1;
+    if(duct->z2>z2) z2 = duct->z2;
+  }
+  double prevL = z2 - z1;
+  for (unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    Duct * duct = Ducts[i];
+    if(duct->z1==z1) duct->z1 = 0;
+    else duct->z1 = (duct->z1  - z1) / prevL * l;
+    if(duct->z2 == z2) duct->z2 = l;
+    else duct->z2 = (duct->z2 - z1) / prevL * l;
+  }
 }

@@ -475,10 +475,7 @@ void cmbNucPinCellEditor::addComponent()
   else
   {
     double r; double h;
-    if(!this->AssemblyObject->getDefaults()->getPinRadius(r))
-    {
-      this->AssemblyObject->calculateRadius(r);
-    }
+    this->AssemblyObject->calculateRadius(r);
     if(!this->AssemblyObject->getDefaults()->getHeight(h))
     {
       h = this->AssemblyObject->AssyDuct.getLength();

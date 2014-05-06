@@ -500,16 +500,13 @@ void cmbNucCore::calculateDefaults()
 
   double DuctThickX = -1;
   double DuctThickY = -1;
+  double length = -1;
   QString MeshType;
-  QString RotateXYZ;
-  double RotateAngle;
+
   for(unsigned int i = 0; i < assys.size(); ++i)
   {
     cmbNucAssembly * assy = assys[i];
     cmbAssyParameters* params =  assy->GetParameters();
-    if(params->isValueSet(params->RadialMeshSize) &&
-       params->RadialMeshSize < RadialMeshSize)
-      RadialMeshSize = params->RadialMeshSize;
     if(params->isValueSet(params->AxialMeshSize) &&
        params->AxialMeshSize < AxialMeshSize)
       AxialMeshSize = params->AxialMeshSize;
@@ -520,28 +517,19 @@ void cmbNucCore::calculateDefaults()
     {
       MeshType = params->MeshType.c_str();
     }
-    if(RotateXYZ.isEmpty() && params->isValueSet(params->RotateXYZ) &&
-       params->isValueSet(params->RotateAngle))
-    {
-      RotateXYZ = params->RotateXYZ.c_str();
-      RotateAngle = params->RotateAngle;
-    }
+    if(length < assy->AssyDuct.getLength()) length = assy->AssyDuct.getLength();
     double r[2];
     assy->GetDuctWidthHeight(r);
     if( r[0] > DuctThickX ) DuctThickX = r[0];
     if( r[1] > DuctThickY ) DuctThickY = r[1];
   }
-  if(RadialMeshSize != 1e23)
-    this->Defaults->setRadialMeshSize(RadialMeshSize);
   if(AxialMeshSize != 1e23)
     this->Defaults->setAxialMeshSize(AxialMeshSize);
   if(EdgeInterval != 2147483647)
     this->Defaults->setEdgeInterval(EdgeInterval);
   if(!MeshType.isEmpty()) this->Defaults->setMeshType(MeshType);
-  if(!RotateXYZ.isEmpty())
-  {
-    this->Defaults->setRotate(RotateXYZ,RotateAngle);
-  }
+  if(length != -1) this->Defaults->setHeight(length);
+
   this->Defaults->setDuctThickness(DuctThickX, DuctThickY);
   this->sendDefaults();
 }

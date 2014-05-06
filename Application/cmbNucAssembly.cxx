@@ -45,13 +45,6 @@ void cmbNucAssemblyConnection::calculatePitch()
   emit pitchResult(x, y);
 }
 
-void cmbNucAssemblyConnection::calculateRadius()
-{
-  double r;
-  v->calculateRadius(r);
-  emit radiusResult(r);
-}
-
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
@@ -68,12 +61,8 @@ cmbNucAssembly::cmbNucAssembly()
 
   QObject::connect(this->Defaults,   SIGNAL(calculatePitch()),
                    this->Connection, SLOT(calculatePitch()));
-  QObject::connect(this->Defaults,   SIGNAL(calculatePinRadius()),
-                   this->Connection, SLOT(calculateRadius()));
   QObject::connect(this->Connection, SIGNAL(pitchResult(double, double)),
                    this->Defaults,   SIGNAL(recieveCalculatedPitch(double, double)));
-  QObject::connect(this->Connection, SIGNAL(radiusResult(double)),
-                   this->Defaults,   SIGNAL(recieveRadius(double)));
 }
 
 cmbNucAssembly::~cmbNucAssembly()
@@ -557,8 +546,6 @@ void cmbNucAssembly::computeDefaults()
   if(l>0) Defaults->setHeight(l);
   this->calculatePitch(x, y);
   if(x>=0 && y >= 0) Defaults->setPitch(x,y);
-  this->calculateRadius(r);
-  if(r>0) Defaults->setPinRadius(r);
 }
 
 void cmbNucAssembly::calculatePitch(double & x, double & y)
@@ -797,11 +784,6 @@ void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
   double tmpD;
   int tmpI;
   QString tmpS;
-  if(d->getRadialMeshSize(tmpD))
-  {
-    change |= Parameters->RadialMeshSize != tmpD;
-    Parameters->RadialMeshSize = tmpD;
-  }
   if(d->getAxialMeshSize(tmpD))
   {
     change |= Parameters->AxialMeshSize != tmpD;
@@ -818,15 +800,9 @@ void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
     change |= Parameters->MeshType != tmp;
     Parameters->MeshType = tmp;
   }
-  if(d->getRotate(tmpS, tmpD))
-  {
-    change |= Parameters->RotateXYZ != tmpS.toStdString();
-    change |= Parameters->RotateAngle != tmpD;
-    Parameters->RotateXYZ = tmpS.toStdString();
-    Parameters->RotateAngle = tmpD;
-  }
 
   double tmpd2;
+  bool generate_data = false;
   if(d->getDuctThickness(tmpD,tmpd2))
   {
     for(unsigned int i = 0; i < this->AssyDuct.numberOfDucts(); ++i)
@@ -838,7 +814,18 @@ void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
       duct->thickness[1] = tmpd2;
     }
     this->Defaults->setDuctThickness(tmpD,tmpd2);
-    this->CreateData();
+    generate_data = true;
   }
+  if(d->getHeight(tmpD))
+  {
+    if(tmpD != AssyDuct.getLength())
+    {
+      change = true;
+      generate_data = true;
+      AssyDuct.setLength(tmpD);
+    }
+    this->Defaults->setHeight(tmpD);
+  }
+  if(generate_data) this->CreateData();
   if(change) this->Connection->dataChanged();
 }

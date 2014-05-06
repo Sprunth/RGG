@@ -20,7 +20,6 @@ public slots:
   void apply();
   void reset();
   void recievePitch(double, double);
-  void recieveRadius(double);
 protected:
   void setConnections();
   void disConnect();

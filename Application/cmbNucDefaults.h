@@ -6,15 +6,12 @@
 
 
 #define EASY_DEFAULT_PARAMS_MACRO()\
-  FUN1(double, RadialMeshSize) \
   FUN1(double, AxialMeshSize) \
   FUN1(int, EdgeInterval)\
-  FUN2(QString, RotateXYZ, double, RotateAngle, Rotate)\
   FUN1(QString, MeshType) \
   FUN1(double, Height) \
   FUN2(double, DuctThickX, double, DuctThickY, DuctThickness) \
   FUN2(double, PitchX, double, PitchY, Pitch) \
-  FUN1(double, PinRadius)
 
 class cmbNucDefaults : public QObject
 {
@@ -40,9 +37,7 @@ public:
   void set(cmbNucDefaults const& other);
 signals:
   void calculatePitch();
-  void calculatePinRadius();
   void recieveCalculatedPitch(double x, double y);
-  void recieveRadius(double r);
 protected:
 #define FUN1(T, X) \
   struct X##Paired\

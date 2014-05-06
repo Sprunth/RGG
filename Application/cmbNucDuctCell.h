@@ -9,6 +9,7 @@ class DuctConnection : public QObject
 {
   Q_OBJECT
 public:
+  void sendChange();
 signals:
   void Changed();
 };
@@ -62,6 +63,7 @@ public:
   QSet< cmbNucMaterial* > getMaterials();
   bool GetInnerDuctSize(double & x, double & y);
   double getLength();
+  void setLength(double l);
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;
