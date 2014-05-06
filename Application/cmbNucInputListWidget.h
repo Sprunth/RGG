@@ -98,6 +98,8 @@ private slots:
   void onImportMaterial();
   void onSaveMaterial();
 
+  void repaintList();
+
 signals:
   void deleteAssembly(QTreeWidgetItem*);
 

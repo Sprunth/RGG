@@ -10,6 +10,7 @@
 
 #include "vtkCmbDuctSource.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucDefaults.h"
 #include "vtkCmbConeSource.h"
 #include "vtkCmbLayeredConeSource.h"
 #include <vtkClipClosedSurface.h>
@@ -37,6 +38,20 @@ void cmbNucAssemblyConnection::dataChanged()
   emit dataChangedSig();
 }
 
+void cmbNucAssemblyConnection::calculatePitch()
+{
+  double x, y;
+  v->calculatePitch(x, y);
+  emit pitchResult(x, y);
+}
+
+void cmbNucAssemblyConnection::calculateRadius()
+{
+  double r;
+  v->calculateRadius(r);
+  emit radiusResult(r);
+}
+
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
@@ -46,9 +61,19 @@ cmbNucAssembly::cmbNucAssembly()
   this->DifferentFromCub = true;
   this->Connection = new cmbNucAssemblyConnection();
   this->Connection->v = this;
+  this->Defaults = new cmbNucDefaults();
 
   QObject::connect(AssyDuct.GetConnection(), SIGNAL(Changed()),
                    this->Connection, SLOT(dataChanged()));
+
+  QObject::connect(this->Defaults,   SIGNAL(calculatePitch()),
+                   this->Connection, SLOT(calculatePitch()));
+  QObject::connect(this->Defaults,   SIGNAL(calculatePinRadius()),
+                   this->Connection, SLOT(calculateRadius()));
+  QObject::connect(this->Connection, SIGNAL(pitchResult(double, double)),
+                   this->Defaults,   SIGNAL(recieveCalculatedPitch(double, double)));
+  QObject::connect(this->Connection, SIGNAL(radiusResult(double)),
+                   this->Defaults,   SIGNAL(recieveRadius(double)));
 }
 
 cmbNucAssembly::~cmbNucAssembly()
@@ -56,6 +81,7 @@ cmbNucAssembly::~cmbNucAssembly()
   AssyPartObj::deleteObjs(this->PinCells);
   delete this->Parameters;
   delete this->Connection;
+  delete this->Defaults;
 }
 
 QColor cmbNucAssembly::GetLegendColor() const
@@ -495,9 +521,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
     ductSource->SetOrigin(duct->x, duct->y, z);
     ductSource->SetHeight(height);
-    ductSource->SetGeometryType(
-      this->AssyLattice.GetGeometryType()== HEXAGONAL ?
-      CMBNUC_ASSY_HEX_DUCT : CMBNUC_ASSY_RECT_DUCT);
+    ductSource->SetGeometryType(this->AssyLattice.GetGeometryType());
 
     for(size_t j = 0; j < duct->NumberOfLayers(); j++)
       {
@@ -525,6 +549,66 @@ void cmbNucAssembly::GetDuctWidthHeight(double r[2])
     t = tmpd->thickness[1];
     if(t > r[1]) r[1] = t;
     }
+}
+
+void cmbNucAssembly::computeDefaults()
+{
+  double x, y, r, l = AssyDuct.getLength();
+  if(l>0) Defaults->setHeight(l);
+  this->calculatePitch(x, y);
+  if(x>=0 && y >= 0) Defaults->setPitch(x,y);
+  this->calculateRadius(r);
+  if(r>0) Defaults->setPinRadius(r);
+}
+
+void cmbNucAssembly::calculatePitch(double & x, double & y)
+{
+  double inDuctThick[2];
+  if(!this->AssyDuct.GetInnerDuctSize(inDuctThick[0],inDuctThick[1]) &&
+     !this->Defaults->getDuctThickness(inDuctThick[0],inDuctThick[1]))
+  {
+    inDuctThick[0] = inDuctThick[1] = 10;
+  }
+  if(this->IsHexType())
+  {
+    double l = AssyLattice.Grid.size();
+    x = y = (inDuctThick[0]*0.5)/(l-0.5);
+  }
+  else
+  {
+    double w = AssyLattice.Grid[0].size();
+    double h = AssyLattice.Grid.size();
+    x = (inDuctThick[0])/(w+0.5);
+    y = (inDuctThick[1])/(h+0.5);
+  }
+  if(x<0) x = -1;
+  if(y<0) y = -1;
+}
+
+void cmbNucAssembly::calculateRadius(double & r)
+{
+  double minWidth;
+  double maxNumber;
+  double inDuctThick[2];
+  if(!this->AssyDuct.GetInnerDuctSize(inDuctThick[0],inDuctThick[1]) &&
+     !this->Defaults->getDuctThickness(inDuctThick[0],inDuctThick[1]))
+  {
+    inDuctThick[0] = inDuctThick[1] = 10;
+  }
+  if(this->IsHexType())
+  {
+    minWidth = inDuctThick[0]/2.0;
+    maxNumber = AssyLattice.Grid.size()-0.5;
+  }
+  else
+  {
+    minWidth = std::min(inDuctThick[0],inDuctThick[1]);
+    maxNumber = std::max(AssyLattice.Grid[0].size(),
+                         AssyLattice.Grid.size());
+  }
+  r = (minWidth/maxNumber)*0.5;
+  r = r - r*0.25;
+  if(r<0) r = -1;
 }
 
 vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, bool cutaway)
@@ -705,4 +789,56 @@ QSet< cmbNucMaterial* > cmbNucAssembly::getMaterials()
     result.unite(PinCells[i]->getMaterials());
   }
   return result;
+}
+
+void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
+{
+  bool change = false;
+  double tmpD;
+  int tmpI;
+  QString tmpS;
+  if(d->getRadialMeshSize(tmpD))
+  {
+    change |= Parameters->RadialMeshSize != tmpD;
+    Parameters->RadialMeshSize = tmpD;
+  }
+  if(d->getAxialMeshSize(tmpD))
+  {
+    change |= Parameters->AxialMeshSize != tmpD;
+    Parameters->AxialMeshSize = tmpD;
+  }
+  if(d->getEdgeInterval(tmpI))
+  {
+    change |= Parameters->EdgeInterval != tmpI;
+    Parameters->EdgeInterval = tmpI;
+  }
+  if(d->getMeshType(tmpS))
+  {
+    std::string tmp = tmpS.toStdString();
+    change |= Parameters->MeshType != tmp;
+    Parameters->MeshType = tmp;
+  }
+  if(d->getRotate(tmpS, tmpD))
+  {
+    change |= Parameters->RotateXYZ != tmpS.toStdString();
+    change |= Parameters->RotateAngle != tmpD;
+    Parameters->RotateXYZ = tmpS.toStdString();
+    Parameters->RotateAngle = tmpD;
+  }
+
+  double tmpd2;
+  if(d->getDuctThickness(tmpD,tmpd2))
+  {
+    for(unsigned int i = 0; i < this->AssyDuct.numberOfDucts(); ++i)
+    {
+      Duct * duct = this->AssyDuct.getDuct(i);
+      change |= tmpD != duct->thickness[0];
+      duct->thickness[0] = tmpD;
+      change |= tmpd2 != duct->thickness[1];
+      duct->thickness[1] = tmpd2;
+    }
+    this->Defaults->setDuctThickness(tmpD,tmpd2);
+    this->CreateData();
+  }
+  if(change) this->Connection->dataChanged();
 }

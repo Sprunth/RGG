@@ -65,7 +65,7 @@ public:
 
   // Description:
   // Set the type of the duct.
-  vtkSetClampMacro(GeometryType,int,CMBNUC_ASSY_RECT_DUCT,CMBNUC_ASSY_HEX_DUCT)
+  vtkSetClampMacro(GeometryType,int,RECTILINEAR,HEXAGONAL)
   vtkGetMacro(GeometryType,int);
 
 protected:

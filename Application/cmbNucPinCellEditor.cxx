@@ -13,6 +13,7 @@
 #include "cmbNucPinCell.h"
 #include "cmbNucAssembly.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucDefaults.h"
 
 #define set_and_test(X,Y) \
 change |= (Y) != X;\
@@ -201,7 +202,7 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
     AssemblyObject(0)
 {
   isHex = false;
-  InternalPinCell = new PinCell();
+  InternalPinCell = new PinCell(0,0);
   ExternalPinCell = NULL;
   this->Ui->setupUi(this);
 
@@ -417,14 +418,13 @@ PinSubPart* cmbNucPinCellEditor::createComponentObject(int r, PinSubPart * befor
   PinSubPart* retObj = NULL;
   if(comboBox->currentText() == "Cylinder")
   {
-    retObj = new Cylinder;
+    retObj = new Cylinder(before);
   }
   else if(comboBox->currentText() == "Frustum")
   {
-    retObj = new Frustum;
+    retObj = new Frustum(before);
   }
   if(retObj == NULL) return NULL;
-  retObj->fill(before);
   QVariant vdata;
   vdata.setValue((void*)(retObj));
   comboBox->setItemData(0, vdata);
@@ -474,7 +474,17 @@ void cmbNucPinCellEditor::addComponent()
   }
   else
   {
-    newObj = new Cylinder();
+    double r; double h;
+    if(!this->AssemblyObject->getDefaults()->getPinRadius(r))
+    {
+      this->AssemblyObject->calculateRadius(r);
+    }
+    if(!this->AssemblyObject->getDefaults()->getHeight(h))
+    {
+      h = this->AssemblyObject->AssyDuct.getLength();
+      if(h < 0) h = 10;
+    }
+    newObj = new Cylinder(r, 0, h);
   }
 
   this->createComponentItem(row, newObj);

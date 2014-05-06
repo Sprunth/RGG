@@ -15,6 +15,7 @@
 #include "vtkNew.h"
 #include "vtkTransformFilter.h"
 #include "vtkMath.h"
+#include "cmbNucDefaults.h"
 
 #include <QFileInfo>
 #include <QDateTime>
@@ -55,6 +56,7 @@ cmbNucCore::~cmbNucCore()
       }
     }
   this->Assemblies.clear();
+  delete this->Defaults;
   delete this->Connection;
 }
 
@@ -474,4 +476,81 @@ bool cmbNucCore::changeSinceLastSave() const
 bool cmbNucCore::changeSinceLastGenerate() const
 {
   return this->DifferentFromH5M;
+}
+
+QPointer<cmbNucDefaults> cmbNucCore::GetDefaults()
+{
+  return this->Defaults;
+}
+
+bool cmbNucCore::HasDefaults() const
+{
+  return this->Defaults != NULL;
+}
+
+void cmbNucCore::calculateDefaults()
+{
+  delete this->Defaults;
+  this->Defaults = new cmbNucDefaults();
+  std::vector< cmbNucAssembly* > assys = this->GetUsedAssemblies();
+
+  double RadialMeshSize = 1e23;
+  double AxialMeshSize = 1e23;
+  int    EdgeInterval = 2147483647;
+
+  double DuctThickX = -1;
+  double DuctThickY = -1;
+  QString MeshType;
+  QString RotateXYZ;
+  double RotateAngle;
+  for(unsigned int i = 0; i < assys.size(); ++i)
+  {
+    cmbNucAssembly * assy = assys[i];
+    cmbAssyParameters* params =  assy->GetParameters();
+    if(params->isValueSet(params->RadialMeshSize) &&
+       params->RadialMeshSize < RadialMeshSize)
+      RadialMeshSize = params->RadialMeshSize;
+    if(params->isValueSet(params->AxialMeshSize) &&
+       params->AxialMeshSize < AxialMeshSize)
+      AxialMeshSize = params->AxialMeshSize;
+    if(params->isValueSet(params->EdgeInterval) &&
+       params->EdgeInterval < EdgeInterval)
+      EdgeInterval = params->EdgeInterval;
+    if(MeshType.isEmpty() && params->isValueSet(params->MeshType))
+    {
+      MeshType = params->MeshType.c_str();
+    }
+    if(RotateXYZ.isEmpty() && params->isValueSet(params->RotateXYZ) &&
+       params->isValueSet(params->RotateAngle))
+    {
+      RotateXYZ = params->RotateXYZ.c_str();
+      RotateAngle = params->RotateAngle;
+    }
+    double r[2];
+    assy->GetDuctWidthHeight(r);
+    if( r[0] > DuctThickX ) DuctThickX = r[0];
+    if( r[1] > DuctThickY ) DuctThickY = r[1];
+  }
+  if(RadialMeshSize != 1e23)
+    this->Defaults->setRadialMeshSize(RadialMeshSize);
+  if(AxialMeshSize != 1e23)
+    this->Defaults->setAxialMeshSize(AxialMeshSize);
+  if(EdgeInterval != 2147483647)
+    this->Defaults->setEdgeInterval(EdgeInterval);
+  if(!MeshType.isEmpty()) this->Defaults->setMeshType(MeshType);
+  if(!RotateXYZ.isEmpty())
+  {
+    this->Defaults->setRotate(RotateXYZ,RotateAngle);
+  }
+  this->Defaults->setDuctThickness(DuctThickX, DuctThickY);
+  this->sendDefaults();
+}
+
+void cmbNucCore::sendDefaults()
+{
+  std::vector< cmbNucAssembly* > assys = this->GetUsedAssemblies();
+  for(unsigned int i = 0; i < assys.size(); ++i)
+  {
+    assys[i]->setFromDefaults(this->Defaults);
+  }
 }

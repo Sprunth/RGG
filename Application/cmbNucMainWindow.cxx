@@ -532,7 +532,10 @@ void cmbNucMainWindow::onFileOpen()
                       defaultAssemblyColors[acolorIndex][1],
                       defaultAssemblyColors[acolorIndex][2]);
         assembly->SetLegendColor(acolor);
+        bool need_to_calc_defaults = this->NuclearCore->GetNumberOfAssemblies() == 0;
         this->NuclearCore->AddAssembly(assembly);
+        if(need_to_calc_defaults) this->NuclearCore->calculateDefaults();
+        else assembly->setFromDefaults( this->NuclearCore->GetDefaults() );
         need_to_use_assem = true;
         this->ui->actionNew_Assembly->setEnabled(true);
         break;

@@ -25,7 +25,8 @@ class PinSubPart: public AssyPartObj
 {
 public:
   enum End{BOTTOM=0, TOP=1};
-  PinSubPart();
+  PinSubPart(){}
+  PinSubPart(double z1, double z2);
   virtual ~PinSubPart();
 
   PinConnection* GetConnection() const;
@@ -62,7 +63,8 @@ protected:
 class Cylinder : public PinSubPart
 {
 public:
-  Cylinder();
+  Cylinder(double rin, double z1, double z2);
+  Cylinder(PinSubPart const* other);
   virtual enumNucPartsType GetType() const;
   bool operator==(const Cylinder& obj);
   double getNormalizedThickness(int layer);
@@ -102,7 +104,8 @@ public:
 class Frustum : public PinSubPart
 {
 public:
-  Frustum();
+  Frustum(double const* rin, double z1, double z2);
+  Frustum(PinSubPart const* other);
   virtual enumNucPartsType GetType() const;
   bool operator==(const Frustum& obj);
   double getNormalizedThickness(int layer, PinSubPart::End end);
@@ -143,7 +146,7 @@ public:
 class PinCell : public AssyPartObj
 {
 public:
-  PinCell();
+  PinCell(double px, double py);
 
   ~PinCell();
 

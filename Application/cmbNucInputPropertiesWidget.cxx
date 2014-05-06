@@ -11,6 +11,7 @@
 #include "cmbNucMainWindow.h"
 #include "cmbCoreParametersWidget.h"
 #include "cmbAssyParametersWidget.h"
+#include "cmbNucDefaultWidget.h"
 
 #include "cmbNucHexLattice.h"
 
@@ -130,6 +131,15 @@ void cmbNucInputPropertiesWidget::initUI()
                     this, SLOT(addDuctLayerAfter()));
   QObject::connect(this->Internal->DeleteDuctMaterial, SIGNAL(clicked()),
                    this, SLOT(deleteDuctLayer()));
+
+  hexCoreDefaults = new cmbNucDefaultWidget();
+  this->Internal->hexCoreDefaults->addWidget(hexCoreDefaults);
+  rectCoreDefaults = new cmbNucDefaultWidget();
+  this->Internal->rectCoreDefaults->addWidget(rectCoreDefaults);
+  hexAssyDefaults = new cmbNucDefaultWidget();
+  this->Internal->hexAssyDefaults->addWidget(hexAssyDefaults);
+  rectAssyDefaults = new cmbNucDefaultWidget();
+  this->Internal->rectAssyDefaults->addWidget(rectAssyDefaults);
 }
 
 //-----------------------------------------------------------------------------
@@ -214,8 +224,7 @@ void cmbNucInputPropertiesWidget::onApply()
     case CMBNUC_ASSY_CYLINDER_PIN:
       /*handled in the pin editor*/
       break;
-    case CMBNUC_ASSY_RECT_DUCT:
-    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_DUCT:
       duct = dynamic_cast<Duct*>(selObj);
       this->applyToDuct(duct);
       break;
@@ -246,11 +255,13 @@ void cmbNucInputPropertiesWidget::onReset()
       nucCore = dynamic_cast<cmbNucCore*>(selObj);
       if(this->GeometryType == RECTILINEAR)
         {
+        this->rectCoreDefaults->set(nucCore->GetDefaults(), true, false);
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageCore);
         }
       else if(this->GeometryType == HEXAGONAL)
         {
+        this->hexCoreDefaults->set(nucCore->GetDefaults(), true, true);
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageHexCore);
         this->HexCore->setCore(nucCore);
@@ -261,11 +272,13 @@ void cmbNucInputPropertiesWidget::onReset()
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
       if(this->GeometryType == RECTILINEAR)
         {
+        this->rectAssyDefaults->set(assy->Defaults, false, false);
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageAssembly);
         }
       else if(this->GeometryType == HEXAGONAL)
         {
+        this->hexAssyDefaults->set(assy->Defaults, false, true);
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageHexAssy);
         }
@@ -287,8 +300,7 @@ void cmbNucInputPropertiesWidget::onReset()
     case CMBNUC_ASSY_CYLINDER_PIN:
       /*handled in pin editor*/
       break;
-    case CMBNUC_ASSY_RECT_DUCT:
-    case CMBNUC_ASSY_HEX_DUCT:
+    case CMBNUC_ASSY_DUCT:
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pageRectDuct);
       duct = dynamic_cast<Duct*>(selObj);
@@ -522,10 +534,12 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
   if(this->GeometryType == RECTILINEAR)
   {
     this->RectAssyConf->applyToAssembly(assy);
+    this->rectAssyDefaults->apply();
   }
   else if(this->GeometryType == HEXAGONAL)
   {
     this->HexAssyConf->applyToAssembly(assy);
+    this->hexAssyDefaults->apply();
   }
 
   emit this->objGeometryChanged(assy);
@@ -537,13 +551,16 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
   if(this->GeometryType == RECTILINEAR)
     {
     this->RectCoreProperties->applyToCore(nucCore);
+    this->rectCoreDefaults->apply();
     changed = this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
     }
   else if(this->GeometryType == HEXAGONAL)
     {
     this->HexCoreProperties->applyToCore(nucCore);
+    this->hexCoreDefaults->apply();
     changed = this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
+  nucCore->sendDefaults();
   if(changed) emit valuesChanged();
   emit this->objGeometryChanged(nucCore);
 }
@@ -647,6 +664,7 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
                       this, SIGNAL(valuesChanged()) );
     }
   this->Internal->PinCellEditor->SetPinCell(pincell,this->GeometryType == HEXAGONAL);
+  this->Internal->PinCellEditor->SetAssembly(this->getAssembly());
 }
 
 void cmbNucInputPropertiesWidget::choosePinLegendColor()

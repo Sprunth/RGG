@@ -2,14 +2,33 @@
 
 /*******************************************************************************/
 
-Duct::Duct(enumNucPartsType type)
+Duct::Duct(double height, double thickX, double thickY)
 {
   Connection = new DuctConnection();
-  x=0.0;y=0.0;z1=0.0;z2=4.0;
+  x=0.0;y=0.0;z1=0.0;z2=height;
   SetNumberOfLayers(1);
-  thickness[0] = 18;
-  thickness[1] = 18;
-  enType = type;
+  thickness[0] = thickX;
+  thickness[1] = thickY;
+}
+
+Duct::Duct(Duct * previous)
+{
+  Connection = new DuctConnection();
+  x=previous->x;
+  y=previous->y;
+  z1=previous->z2;
+  z2=2*previous->z2 - previous->z1;
+  this->SetNumberOfLayers(previous->NumberOfLayers());
+  thickness[0] = previous->thickness[0];
+  thickness[1] = previous->thickness[1];
+  for(unsigned int i = 0; i < previous->NumberOfLayers(); ++i)
+  {
+    this->setMaterial(i, previous->getMaterial(i));
+    double * prev =  previous->getNormThick(i);
+    double * me = this->getNormThick(i);
+    me[0] = prev[0];
+    me[1] = prev[1];
+  }
 }
 
 Duct::~Duct()
@@ -23,10 +42,7 @@ DuctConnection * Duct::GetConnection()
 }
 
 enumNucPartsType Duct::GetType() const
-{ return enType;}
-
-void Duct::SetType(enumNucPartsType type)
-{ enType = type;}
+{ return CMBNUC_ASSY_DUCT;}
 
 double Duct::GetLayerThick(size_t layer, size_t t) const
 {
@@ -36,11 +52,10 @@ double Duct::GetLayerThick(size_t layer, size_t t) const
 bool Duct::operator==(const Duct& obj)
 {
   return this->x==obj.x && this->y==obj.y &&
-  this->z1==obj.z1 && this->z2==obj.z2 &&
-  this->Materials==obj.Materials &&
-  this->thickness[0]==obj.thickness[0] &&
-  this->thickness[1]==obj.thickness[1] &&
-  this->enType == obj.enType;
+         this->z1==obj.z1 && this->z2==obj.z2 &&
+         this->Materials==obj.Materials &&
+         this->thickness[0]==obj.thickness[0] &&
+         this->thickness[1]==obj.thickness[1];
 }
 
 void Duct::SetNumberOfLayers(int i)
@@ -144,4 +159,37 @@ QSet< cmbNucMaterial* > DuctCell::getMaterials()
     result.unite(Ducts[i]->getMaterials());
   }
   return result;
+}
+
+bool DuctCell::GetInnerDuctSize(double & x, double & y)
+{
+  x = -1, y = -1;
+  for (unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    Duct * duct = Ducts[i];
+    double tx = duct->GetLayerThick(0, 0), ty = duct->GetLayerThick(0, 1);
+    if(x == -1 || x > tx) x = tx;
+    if(y == -1 || y > ty) y = ty;
+  }
+  return x != -1 && y != -1;
+}
+
+Duct * DuctCell::getPrevious()
+{
+  if(Ducts.empty()) return NULL;
+  return *Ducts.rbegin();
+}
+
+double DuctCell::getLength()
+{
+  if(this->Ducts.size() == 0) return 10;
+  double z1 = this->Ducts[0]->z1;
+  double z2 = this->Ducts[0]->z2;
+  for (unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    Duct * duct = Ducts[i];
+    if(duct->z1<z1) z1 = duct->z1;
+    if(duct->z2>z2) z2 = duct->z2;
+  }
+  return z2 - z1;
 }

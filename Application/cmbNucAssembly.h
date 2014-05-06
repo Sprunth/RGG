@@ -6,6 +6,7 @@
 #include <QColor>
 #include <QObject>
 #include <QDebug>
+#include <QPointer>
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
@@ -18,6 +19,7 @@ class vtkCompositeDataDisplayAttributes;
 class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
+class cmbNucDefaults;
 
 #define ASSY_NOT_SET_VALUE -100001
 #define ASSY_NOT_SET_KEY "NotSet"
@@ -106,11 +108,16 @@ class cmbNucAssemblyConnection: public QObject
   friend class cmbNucAssembly;
 private:
   cmbNucAssembly * v;
+  void sendPitch(double x, double y);
 public slots:
   void dataChanged();
+  void calculatePitch();
+  void calculateRadius();
 signals:
   void dataChangedSig();
   void colorChanged();
+  void pitchResult(double x, double y);
+  void radiusResult(double r);
 };
 
 // Represents an assembly. Assemblies are composed of pin cells (cmbNucPinCell)
@@ -187,6 +194,11 @@ public:
 
   QSet< cmbNucMaterial* > getMaterials();
 
+  void setFromDefaults(QPointer<cmbNucDefaults> d);
+  void computeDefaults();
+
+  void calculatePitch(double & x, double & y);
+  void calculateRadius(double & r);
 
   // Expose assembly parts for UI access
   DuctCell AssyDuct;
@@ -196,6 +208,11 @@ public:
   std::string FileName;
 
   std::string GeometryType;
+
+  QPointer<cmbNucDefaults> getDefaults()
+  { return this->Defaults; }
+
+  QPointer<cmbNucDefaults> Defaults;
 
 protected:
   std::vector<PinCell*> PinCells;

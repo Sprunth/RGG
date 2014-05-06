@@ -5,6 +5,7 @@
 #include <vector>
 #include <QColor>
 #include <QObject>
+#include <QPointer>
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
@@ -14,6 +15,7 @@ class cmbNucAssembly;
 class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
+class cmbNucDefaults;
 
 #define EXTRA_VARABLE_MACRO() \
    FUN_SIMPLE(std::string, QString, ProblemType, problemtype, "", "") \
@@ -268,12 +270,20 @@ public:
 
   cmbNucCoreParams Params;
 
+  QPointer<cmbNucDefaults> GetDefaults();
+  bool HasDefaults() const;
+  void calculateDefaults();
+  void sendDefaults();
+
+
   void checkUsedAssembliesForGen();
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
   std::vector<cmbNucAssembly*> Assemblies;
   cmbNucCoreConnection * Connection;
+
+  QPointer<cmbNucDefaults> Defaults;
 
 };
 

@@ -16,15 +16,16 @@ public:
   cmbNucDefaultWidget(QWidget *parent = 0);
   ~cmbNucDefaultWidget();
 public slots:
-  void set(QPointer<cmbNucDefaults> c, bool isCore);
+  void set(QPointer<cmbNucDefaults> c, bool isCore, bool isHex);
   void apply();
   void reset();
+  void recievePitch(double, double);
+  void recieveRadius(double);
 protected:
   void setConnections();
   void disConnect();
 
   QPointer<cmbNucDefaults> Current;
-  bool IsCore;
   cmbNucDefaultWidgetInternal * Internal;
 
 };

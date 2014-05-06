@@ -8,7 +8,7 @@
 #define EASY_DEFAULT_PARAMS_MACRO()\
   FUN1(double, RadialMeshSize) \
   FUN1(double, AxialMeshSize) \
-  FUN1(double, EdgeInterval)\
+  FUN1(int, EdgeInterval)\
   FUN2(QString, RotateXYZ, double, RotateAngle, Rotate)\
   FUN1(QString, MeshType) \
   FUN1(double, Height) \
@@ -24,22 +24,25 @@ public:
   cmbNucDefaults();
   ~cmbNucDefaults();
 public:
-#define FUN1(T,X) \
-  void set##X(T vin); \
+#define FUN1(T,X)      \
+  void set##X(T vin);  \
+  bool has##X() const; \
+  void clear##X();     \
   bool get##X(T& vout);
 #define FUN2(T1, X, T2, Y, L) \
-  void set##L(T1 v1, T2 v2); \
+  void set##L(T1 v1, T2 v2);  \
+  bool has##L() const;        \
+  void clear##L();            \
   bool get##L(T1& v1, T2& v2);
   EASY_DEFAULT_PARAMS_MACRO()
 #undef FUN1
 #undef FUN2
   void set(cmbNucDefaults const& other);
-public slots:
-  void recieveCalculatedPitch(double x, double y);
-  void recieveRadius(double r);
 signals:
   void calculatePitch();
   void calculatePinRadius();
+  void recieveCalculatedPitch(double x, double y);
+  void recieveRadius(double r);
 protected:
 #define FUN1(T, X) \
   struct X##Paired\
