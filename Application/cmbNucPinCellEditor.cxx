@@ -230,6 +230,9 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
           this, SLOT(UpdateData()));
   connect(this->Ui->cutAwayViewCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(UpdateData()));
+
+  connect(this->Ui->CalculatePitch, SIGNAL(clicked()),
+          this, SLOT(calculatePitch()));
 }
 
 cmbNucPinCellEditor::~cmbNucPinCellEditor()
@@ -256,18 +259,10 @@ void cmbNucPinCellEditor::Reset()
   this->Ui->nameLineEdit->setText(this->InternalPinCell->name.c_str());
   this->Ui->labelLineEdit->setText(this->InternalPinCell->label.c_str());
   this->Ui->cutAwayViewCheckBox->setChecked(this->InternalPinCell->cutaway);
-  if(isHex)
-  {
-    this->Ui->label_7->setVisible(false);
-    this->Ui->label_8->setVisible(false);
-    this->Ui->pitchY->setVisible(false);
-  }
-  else
-  {
-    this->Ui->label_7->setVisible(true);
-    this->Ui->label_8->setVisible(true);
-    this->Ui->pitchY->setVisible(true);
-  }
+  this->Ui->label_7->setVisible(!isHex);
+  this->Ui->label_8->setVisible(!isHex);
+  this->Ui->pitchY->setVisible(!isHex);
+
   this->Ui->pitchX->setText(QString::number(this->InternalPinCell->pitchX));
   this->Ui->pitchY->setText(QString::number(this->InternalPinCell->pitchY));
 
@@ -789,4 +784,28 @@ void cmbNucPinCellEditor::rebuildLayersFromTable()
     this->InternalPinCell->SetMaterial(layer, matPtr);
     this->InternalPinCell->SetRadius(layer, item->text().toDouble());
     }
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucPinCellEditor::calculatePitch()
+{
+  if(this->AssemblyObject != NULL)
+  {
+    double x, y;
+    this->AssemblyObject->calculatePitch(x,y);
+    this->Ui->pitchX->setText(QString::number(x));
+    this->Ui->pitchY->setText(QString::number(x));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void cmbNucPinCellEditor::SetAssembly(cmbNucAssembly *assembly)
+{
+  if(assembly)
+  {
+    this->Ui->pitchX->setEnabled(!assembly->isPinsAutoCentered());
+    this->Ui->pitchY->setEnabled(!assembly->isPinsAutoCentered());
+    this->Ui->CalculatePitch->setEnabled(!assembly->isPinsAutoCentered());
+  }
+  this->AssemblyObject = assembly;
 }

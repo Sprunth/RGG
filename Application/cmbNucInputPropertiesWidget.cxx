@@ -71,13 +71,9 @@ void cmbNucInputPropertiesWidget::initUI()
   connect(this->RectCoreProperties, SIGNAL(valuesChanged()),
           this, SIGNAL(valuesChanged()));
 
-  this->HexAssyConf = new cmbAssyParametersWidget(this);
-  this->Internal->HexAssyConfLayout->addWidget(this->HexAssyConf);
-  connect(this->HexAssyConf, SIGNAL(valuesChanged()),
-          this, SIGNAL(valuesChanged()));
-  this->RectAssyConf = new cmbAssyParametersWidget(this);
-  this->Internal->RectAssyConfLayout->addWidget(this->RectAssyConf);
-  connect(this->RectAssyConf, SIGNAL(valuesChanged()),
+  this->assyConf = new cmbAssyParametersWidget(this);
+  this->Internal->AssyConfLayout->addWidget(this->assyConf);
+  connect(this->assyConf, SIGNAL(valuesChanged()),
           this, SIGNAL(valuesChanged()));
 
   //this->CoreProperties->hide();
@@ -87,11 +83,10 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->hexLatticeContainer->addWidget(this->HexCore);
 
   this->HexAssy = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
-  this->Internal->hexLatticeAssyContainer->addWidget(this->HexAssy);
+  this->Internal->hexLatticeAssyContainer_2->layout()->addWidget(this->HexAssy);
 
   this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
   this->Internal->assyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
-  this->Internal->hexAssyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
 
   this->Internal->DuctLayers->setColumnCount(3);
   this->Internal->DuctLayers->horizontalHeader()->setStretchLastSection(true);
@@ -114,7 +109,7 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onCoreDimensionChanged()));
   QObject::connect(this->Internal->hexLattice, SIGNAL(valueChanged(int)),
     this, SLOT(onCoreLayersChanged()));
-  QObject::connect(this->Internal->hexLatticeAssy, SIGNAL(valueChanged(int)),
+  QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
     this, SLOT(onAssyLayersChanged()));
 
   // pincell related connections
@@ -122,8 +117,6 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(choosePinLegendColor()));
   QObject::connect(this->Internal->assyColorSelectButton, SIGNAL(clicked()),
     this, SLOT(chooseAssyLegendColor()));
-  QObject::connect(this->Internal->hexAssyColorSelectButton, SIGNAL(clicked()),
-    this, SLOT(chooseHexAssyLegendColor()));
 
   // Connect the layer buttons
   QObject::connect(this->Internal->AddDuctMaterialBefore, SIGNAL(clicked()),
@@ -137,10 +130,8 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->hexCoreDefaults->addWidget(hexCoreDefaults);
   rectCoreDefaults = new cmbNucDefaultWidget();
   this->Internal->rectCoreDefaults->addWidget(rectCoreDefaults);
-  hexAssyDefaults = new cmbNucDefaultWidget();
-  this->Internal->hexAssyDefaults->addWidget(hexAssyDefaults);
-  rectAssyDefaults = new cmbNucDefaultWidget();
-  this->Internal->rectAssyDefaults->addWidget(rectAssyDefaults);
+  assyDefaults = new cmbNucDefaultWidget();
+  this->Internal->AssyDefaults->addWidget(assyDefaults);
 }
 
 //-----------------------------------------------------------------------------
@@ -186,8 +177,7 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
   this->AssemblyEditor->setAssembly(assyObj);
   this->CoreEditor->setAssembly(assyObj);
   this->HexAssy->setAssembly(assyObj);
-  HexAssyConf->setAssembly(assyObj);
-  RectAssyConf->setAssembly(assyObj);
+  assyConf->setAssembly(assyObj);
 }
 
 // Invoked when Apply button clicked
@@ -250,17 +240,19 @@ void cmbNucInputPropertiesWidget::onReset()
   Lattice* lattice = NULL;
   cmbNucCore* nucCore = NULL;
   cmbNucAssembly* assy = NULL;
+  bool isRect = this->GeometryType == RECTILINEAR;
+  bool isHex = this->GeometryType == HEXAGONAL;
   switch(selObj->GetType())
     {
     case CMBNUC_CORE:
       nucCore = dynamic_cast<cmbNucCore*>(selObj);
-      if(this->GeometryType == RECTILINEAR)
+      if(isRect)
         {
         this->rectCoreDefaults->set(nucCore->GetDefaults(), true, false);
         this->Internal->stackedWidget->setCurrentWidget(
           this->Internal->pageCore);
         }
-      else if(this->GeometryType == HEXAGONAL)
+      else if(isHex)
         {
         this->hexCoreDefaults->set(nucCore->GetDefaults(), true, true);
         this->Internal->stackedWidget->setCurrentWidget(
@@ -271,18 +263,20 @@ void cmbNucInputPropertiesWidget::onReset()
       break;
     case CMBNUC_ASSEMBLY:
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      this->Internal->AssemblyLabelY->setVisible(isRect);
+      this->Internal->latticeY->setVisible(isRect);
+      this->Internal->latticecontainerLayout_2->setVisible(isRect);
+      this->Internal->hexLatticeAssyContainer_2->setVisible(isHex);
+      this->assyDefaults->set(assy->Defaults, false, isHex);
       if(this->GeometryType == RECTILINEAR)
         {
-        this->rectAssyDefaults->set(assy->Defaults, false, false);
-        this->Internal->stackedWidget->setCurrentWidget(
-          this->Internal->pageAssembly);
+        this->Internal->AssemblyLabelX->setText("X:");
         }
       else if(this->GeometryType == HEXAGONAL)
         {
-        this->hexAssyDefaults->set(assy->Defaults, false, true);
-        this->Internal->stackedWidget->setCurrentWidget(
-          this->Internal->pageHexAssy);
+        this->Internal->AssemblyLabelX->setText("Number Of Layers");
         }
+      this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
       this->resetAssembly(assy);
       this->resetLattice(&assy->AssyLattice);
       break;
@@ -414,22 +408,15 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
 {
+  this->Internal->latticeX->blockSignals(true);
+  this->Internal->latticeX->setValue(lattice->GetDimensions().first);
+  this->Internal->latticeX->blockSignals(false);
   if(this->GeometryType == RECTILINEAR)
     {
     this->Internal->latticeX->blockSignals(true);
-    this->Internal->latticeY->blockSignals(true);
-    this->Internal->latticeX->setValue(lattice->GetDimensions().first);
     this->Internal->latticeY->setValue(lattice->GetDimensions().second);
-    this->Internal->latticeX->blockSignals(false);
     this->Internal->latticeY->blockSignals(false);
     }
-  else if(this->GeometryType == HEXAGONAL)
-    {
-    this->Internal->hexLatticeAssy->blockSignals(true);
-    this->Internal->hexLatticeAssy->setValue(lattice->GetDimensions().first);
-    this->Internal->hexLatticeAssy->blockSignals(false);
-  }
-
   this->resetAssemblyLattice();
 }
 
@@ -512,6 +499,7 @@ void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onLatticeDimensionChanged()
 {
+  if(this->GeometryType != RECTILINEAR) return;
   this->AssemblyEditor->clearUI(false);
   this->AssemblyEditor->updateLatticeView(this->Internal->latticeX->value(),
     this->Internal->latticeY->value());
@@ -520,6 +508,7 @@ void cmbNucInputPropertiesWidget::onLatticeDimensionChanged()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
 {
+  if(this->GeometryType != RECTILINEAR) return;
   this->CoreEditor->clearUI(false);
   this->CoreEditor->updateLatticeView(this->Internal->coreLatticeX->value(),
     this->Internal->coreLatticeY->value());
@@ -537,23 +526,19 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
     {
     change = this->HexAssy->applyToGrid(lattice->Grid);
     }
-  if(change) emit valuesChanged();
+  if(change)
+  {
+    if(this->Assembly->isPinsAutoCentered()) this->Assembly->centerPins();
+    emit valuesChanged();
+  }
   emit this->objGeometryChanged(lattice);
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
-  if(this->GeometryType == RECTILINEAR)
-  {
-    this->RectAssyConf->applyToAssembly(assy);
-    this->rectAssyDefaults->apply();
-  }
-  else if(this->GeometryType == HEXAGONAL)
-  {
-    this->HexAssyConf->applyToAssembly(assy);
-    this->hexAssyDefaults->apply();
-  }
-
+  this->assyConf->applyToAssembly(assy);
+  this->assyDefaults->apply();
+  assy->setCenterPins(this->Internal->CenterPins->isChecked());
   emit this->objGeometryChanged(assy);
 }
 //-----------------------------------------------------------------------------
@@ -579,13 +564,11 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 {
-  //this->Internal->MeshSize->setText(QString::number(assy->MeshSize));
-  this->HexAssyConf->resetAssembly(assy);
-  this->RectAssyConf->resetAssembly(assy);
+  this->assyConf->resetAssembly(assy);
+  this->Internal->CenterPins->setChecked(assy->isPinsAutoCentered());
 
   // Show color swatch with legendColor
-  QLabel* swatch = this->GeometryType == RECTILINEAR ?
-    this->Internal->assyColorSwatch : this->Internal->hexAssyColorSwatch;
+  QLabel* swatch = this->Internal->assyColorSwatch;
 
   QPalette palette = swatch->palette();
   palette.setColor(swatch->backgroundRole(), assy->GetLegendColor());
@@ -656,22 +639,22 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
                      SIGNAL(pincellModified(AssyPartObj*)),
                      this, SIGNAL(objGeometryChanged(AssyPartObj*)));
     QObject::connect( this->Internal->PinCellEditor,
-                       SIGNAL(resetView()),
-                       this, SIGNAL(resetView()));
+                      SIGNAL(resetView()),
+                      this, SIGNAL(resetView()));
     QObject::connect( this->Internal->PinCellEditor,
                       SIGNAL(labelChanged(PinCell*, QString, QString)),
                       this, SLOT(pinLabelChanged(PinCell*, QString, QString)));
     QObject::connect( this->Internal->PinCellEditor,
-                       SIGNAL(nameChanged(PinCell*, QString, QString)),
-                       this, SLOT(pinNameChanged(PinCell*, QString, QString)));
+                      SIGNAL(nameChanged(PinCell*, QString, QString)),
+                      this, SLOT(pinNameChanged(PinCell*, QString, QString)));
     QObject::connect( this,
                       SIGNAL(badPinLabel(QString)),
                       this->Internal->PinCellEditor,
                       SLOT(badLabel(QString)));
     QObject::connect( this,
-                       SIGNAL(badPinName(QString)),
-                       this->Internal->PinCellEditor,
-                       SLOT(badName(QString)));
+                      SIGNAL(badPinName(QString)),
+                      this->Internal->PinCellEditor,
+                      SLOT(badName(QString)));
     QObject::connect( this->Internal->PinCellEditor, SIGNAL(valueChange()),
                       this, SIGNAL(valuesChanged()) );
     }
@@ -723,29 +706,6 @@ void cmbNucInputPropertiesWidget::chooseAssyLegendColor()
     }
 }
 
-void cmbNucInputPropertiesWidget::chooseHexAssyLegendColor()
-{
-  cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(this->CurrentObject);
-  if(!assy)
-    {
-    std::cerr << "Error: don't have assy" << std::endl;
-    return;
-    }
-  QColor selected = QColorDialog::getColor(assy->GetLegendColor(), this,
-    "Select key color for assembly type");
-  if(selected.isValid())
-    {
-    assy->SetLegendColor(selected);
-    QPalette palette = this->Internal->hexAssyColorSwatch->palette();
-    palette.setColor(this->Internal->hexAssyColorSwatch->backgroundRole(), selected);
-    this->Internal->hexAssyColorSwatch->setPalette(palette);
-
-    // We set this flag to denote that the grid should be rebuilt the
-    // next time we select the core
-    this->RebuildCoreGrid = true;
-    }
-}
-
 void cmbNucInputPropertiesWidget::onCoreLayersChanged()
 {
   this->HexCore->setLayers(this->Internal->hexLattice->value());
@@ -753,7 +713,8 @@ void cmbNucInputPropertiesWidget::onCoreLayersChanged()
 
 void cmbNucInputPropertiesWidget::onAssyLayersChanged()
 {
-  this->HexAssy->setLayers(this->Internal->hexLatticeAssy->value());
+  if(this->GeometryType != HEXAGONAL) return;
+  this->HexAssy->setLayers(this->Internal->latticeX->value());
 }
 
 // We use this class to validate the input to the radius fields for layers

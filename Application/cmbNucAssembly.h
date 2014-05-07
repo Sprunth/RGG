@@ -198,6 +198,15 @@ public:
   void calculatePitch(double & x, double & y);
   void calculateRadius(double & r);
 
+  void centerPins();
+
+  void setCenterPins(bool t);
+
+  bool isPinsAutoCentered()
+  {
+    return KeepPinsCentered;
+  }
+
   // Expose assembly parts for UI access
   DuctCell AssyDuct;
   Lattice AssyLattice;
@@ -214,6 +223,8 @@ public:
 
 protected:
   std::vector<PinCell*> PinCells;
+
+  bool KeepPinsCentered;
 
   cmbAssyParameters *Parameters;
 
