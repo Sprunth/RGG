@@ -47,6 +47,7 @@ void cmbNucAssemblyConnection::calculatePitch()
 
 cmbNucAssembly::cmbNucAssembly()
 {
+  KeepPinsCentered = false;
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->LegendColor = Qt::white;
   this->Parameters = new cmbAssyParameters;
@@ -352,10 +353,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
   // For Hex type
   Duct *hexDuct = this->AssyDuct.getDuct(0);
-  double layerCorners[8][2], hexRadius, hexDiameter, layerRadius;
-  hexDiameter = hexDuct->thickness[0];
-  hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
-  hexRadius = hexRadius / (double)(2*this->AssyLattice.Grid.size()-1);
+  double layerCorners[8][2], layerRadius;
 
   double overallDx = 0;
   for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
@@ -558,8 +556,8 @@ void cmbNucAssembly::calculatePitch(double & x, double & y)
   }
   if(this->IsHexType())
   {
-    double l = AssyLattice.Grid.size();
-    x = y = (inDuctThick[0]*0.5)/(l-0.5);
+    double tmp =  inDuctThick[0]/ (cos(30.0 * vtkMath::Pi() / 180.0));
+    x = y = tmp / (2.0*this->AssyLattice.Grid.size()-1.0);
   }
   else
   {
@@ -815,6 +813,7 @@ void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
     }
     this->Defaults->setDuctThickness(tmpD,tmpd2);
     generate_data = true;
+    if(KeepPinsCentered) this->centerPins();
   }
   if(d->getHeight(tmpD))
   {
@@ -827,5 +826,31 @@ void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
     this->Defaults->setHeight(tmpD);
   }
   if(generate_data) this->CreateData();
+  if(change) this->Connection->dataChanged();
+}
+
+void cmbNucAssembly::setCenterPins(bool t)
+{
+  KeepPinsCentered = t;
+  if(KeepPinsCentered)
+  {
+    this->centerPins();
+    this->CreateData();
+  }
+}
+
+void cmbNucAssembly::centerPins()
+{
+  bool change = false;
+  double px, py;
+  calculatePitch(px,py);
+  for(unsigned int i = 0; i < PinCells.size(); ++i)
+  {
+    PinCell * pc = PinCells[i];
+    change |= pc->pitchX != px;
+    pc->pitchX = px;
+    change |= pc->pitchY != py;
+    pc->pitchY = py;
+  }
   if(change) this->Connection->dataChanged();
 }

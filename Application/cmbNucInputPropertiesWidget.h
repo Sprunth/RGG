@@ -89,7 +89,6 @@ protected slots:
   void onAssyLayersChanged();
   void choosePinLegendColor();
   void chooseAssyLegendColor();
-  void chooseHexAssyLegendColor();
 
   void addDuctLayerBefore();
   void addDuctLayerAfter();
@@ -114,11 +113,9 @@ private:
   cmbNucHexLattice* HexAssy;
   cmbCoreParametersWidget* HexCoreProperties;
   cmbCoreParametersWidget* RectCoreProperties;
-  cmbAssyParametersWidget* HexAssyConf;
-  cmbAssyParametersWidget* RectAssyConf;
+  cmbAssyParametersWidget* assyConf;
   QPointer<cmbNucDefaultWidget> hexCoreDefaults;
   QPointer<cmbNucDefaultWidget> rectCoreDefaults;
-  QPointer<cmbNucDefaultWidget> hexAssyDefaults;
-  QPointer<cmbNucDefaultWidget> rectAssyDefaults;
+  QPointer<cmbNucDefaultWidget> assyDefaults;
 };
 #endif

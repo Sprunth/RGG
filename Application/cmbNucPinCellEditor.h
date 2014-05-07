@@ -47,7 +47,7 @@ public:
   void SetPinCell(PinCell *pincell, bool hex);
   PinCell* GetPinCell();
 
-  void SetAssembly(cmbNucAssembly *assembly) { this->AssemblyObject = assembly; }
+  void SetAssembly(cmbNucAssembly *assembly);
 
 signals:
   void pincellModified(AssyPartObj*);
@@ -64,6 +64,7 @@ public slots:
   void onUpdateLayerMaterial();
   void badLabel(QString);
   void badName(QString);
+  void calculatePitch();
 
 private slots:
   void tableCellChanged();
