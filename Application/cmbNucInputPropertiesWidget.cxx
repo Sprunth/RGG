@@ -268,11 +268,11 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->latticecontainerLayout_2->setVisible(isRect);
       this->Internal->hexLatticeAssyContainer_2->setVisible(isHex);
       this->assyDefaults->set(assy->Defaults, false, isHex);
-      if(this->GeometryType == RECTILINEAR)
+      if(isRect)
         {
         this->Internal->AssemblyLabelX->setText("X:");
         }
-      else if(this->GeometryType == HEXAGONAL)
+      else if(isHex)
         {
         this->Internal->AssemblyLabelX->setText("Number Of Layers");
         }
@@ -286,10 +286,6 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pagePinCell);
       this->showPinCellEditor();
-      // if the pincell is empty bring up the pin cell editor
-      // if (pincell->NumberOfSections() == 0)
-      //  {this->showPinCellEditor();}
-
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
     case CMBNUC_ASSY_CYLINDER_PIN:

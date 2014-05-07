@@ -249,7 +249,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
               }
             }
 
-          double tX=startX, tY=startY, tZ=0.0;
+          double tX=startX, tY=startY;
           int cornerIdx;
           if(i == 1)
             {
@@ -281,7 +281,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
               }
             }
 
-          transform->Translate(tX, tY, tZ);
+          transform->Translate(tX, -tY, 0.0);
           }
         else
           {
