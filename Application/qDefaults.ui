@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>qDefaults</class>
+ <widget class="QWidget" name="qDefaults">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>402</width>
+    <height>524</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>400</width>
+        <height>522</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QWidget" name="AxialMeshLayout" native="true">
+         <layout class="QHBoxLayout" name="axialMeshLayout">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Axial Mesh Size</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="AxialMeshSize"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="EdgeIntervalLayout" native="true">
+         <layout class="QHBoxLayout" name="edgeIntervalLayout">
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Edge Interval</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="EdgeInterval"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="MeshTypeLayout" native="true">
+         <layout class="QHBoxLayout" name="meshTypeLayout">
+          <item>
+           <widget class="QLabel" name="label_24">
+            <property name="text">
+             <string>Mesh Type</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="MeshType">
+            <item>
+             <property name="text">
+              <string>NotSet</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Hex</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Tet</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="HeightLayout" native="true">
+         <layout class="QHBoxLayout" name="lengthLayout">
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Height</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="Height"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="DuctThicknessLayout" native="true">
+         <layout class="QHBoxLayout" name="ductThicknessLayout">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Duct Thickness </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="ductX">
+            <property name="text">
+             <string>X:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="DuctThickX"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="ductY">
+            <property name="text">
+             <string>Y:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="DuctThickY"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="PitchLayout" native="true">
+         <layout class="QHBoxLayout" name="pitchLayout">
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Pitch</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="pitchXLabel">
+            <property name="text">
+             <string>X:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="PitchX"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="pitchYLabel">
+            <property name="text">
+             <string>Y:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="PitchY"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="computePitch">
+            <property name="text">
+             <string>Calculate</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>AxialMeshSize</tabstop>
+  <tabstop>EdgeInterval</tabstop>
+  <tabstop>MeshType</tabstop>
+  <tabstop>Height</tabstop>
+  <tabstop>DuctThickX</tabstop>
+  <tabstop>DuctThickY</tabstop>
+  <tabstop>PitchX</tabstop>
+  <tabstop>PitchY</tabstop>
+  <tabstop>computePitch</tabstop>
+  <tabstop>scrollArea</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
