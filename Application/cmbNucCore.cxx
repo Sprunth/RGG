@@ -206,6 +206,30 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
         vtkSmartPointer<vtkMultiBlockDataSet> assemblyData = assembly->GetData();
         vtkNew<vtkTransform> transform;
 
+          cmbAssyParameters* params = assembly->GetParameters();
+          if(params->isValueSet(params->RotateXYZ))
+          {
+            std::string axis = params->RotateXYZ;
+            std::transform(axis.begin(), axis.end(), axis.begin(), ::tolower);
+            double angle = 0;
+            if(params->isValueSet(params->RotateAngle))
+            {
+              angle = params->RotateAngle;
+            }
+            if(axis == "x")
+            {
+              transform->RotateX(angle);
+            }
+            else if(axis == "y")
+            {
+              transform->RotateY(angle);
+            }
+            else if(axis == "z")
+            {
+              transform->RotateZ(angle);
+            }
+          }
+
         if(isHex)
           {
           Duct *hexDuct = assembly->AssyDuct.getDuct(0);
@@ -265,7 +289,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           double tY = startY + j * (outerDuctHeight);
           transform->Translate(tY, tX, 0);
           }
- // transform block by block --- got to have better ways
+        // transform block by block --- got to have better ways
         vtkNew<vtkMultiBlockDataSet> blockData;
         blockData->SetNumberOfBlocks(assemblyData->GetNumberOfBlocks());
         // move the assembly to the correct position
