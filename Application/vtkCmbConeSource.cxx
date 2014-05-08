@@ -162,7 +162,7 @@ int vtkCmbConeSource::RequestData(
   newPoints = vtkPoints::New();
   newPoints->SetDataTypeToDouble(); //used later during transformation
   newPoints->Allocate(numPts);
-  
+
   // Create cone
   //
   // Are we dealing with a tuncated cone?
@@ -331,7 +331,20 @@ int vtkCmbConeSource::RequestData(
     
     t->Delete();
     }
-  
+  if(Resolution == 6)
+  {
+    vtkTransform *t = vtkTransform::New();
+    t->RotateZ(30);
+    double *ipts=
+    static_cast<vtkDoubleArray *>(newPoints->GetData())->GetPointer(0);
+    for (i=0; i<numPts; i++, ipts+=3)
+    {
+      t->TransformPoint(ipts,ipts);
+    }
+
+    t->Delete();
+  }
+
   // Update ourselves
   //
   output->SetPoints(newPoints);
