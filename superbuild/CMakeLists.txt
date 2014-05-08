@@ -209,6 +209,7 @@ else()
   include(boost)
   include(hdf5)
   include(freetype)
+  include(libxml2)
   include(png)
   include(qt)
 endif()
@@ -228,6 +229,11 @@ include(netcdfcpp)
 include(szip)
 include(cgm)
 include(moab)
+
+if (UNIX AND NOT APPLE)
+    include(fontconfig)
+endif()
+
 
 include(nuclearRGG)
 
