@@ -189,7 +189,8 @@ endif()
 
 add_revision(remus
   GIT_REPOSITORY http://public.kitware.com/Remus.git
-  GIT_TAG v0.2.1)
+  GIT_TAG d537d404cdf1ce8dabc0d40962874b5a78582fe4
+  )
 
 add_revision(kml
   URL http://vtk.org/files/support/libkml_fa6c7d8.tar.gz
