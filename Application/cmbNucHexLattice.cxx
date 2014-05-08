@@ -116,12 +116,20 @@ void cmbNucHexLattice::addCell(
   double centerPos[2], double radius, int layer, int cellIdx)
 {
   QPolygon polygon;
-  polygon << QPoint(2 * radius, 0)
-            << QPoint(radius, -radius * 1.73)
-            << QPoint(-radius, -radius * 1.73)
-            << QPoint(-2 * radius, 0)
-            << QPoint(-radius, radius * 1.73)
-            << QPoint(radius, radius * 1.73);
+
+  /*polygon << QPoint( 2 * radius, 0)
+          << QPoint(radius, -radius * 1.73 )
+          << QPoint(-radius, -radius * 1.73)
+          << QPoint( -2 * radius, 0 )
+          << QPoint( -radius, radius * 1.73)
+          << QPoint( radius, radius * 1.73 );*/
+
+  polygon << QPoint(0, 2 * radius)
+            << QPoint(-radius * 1.73, radius )
+            << QPoint(-radius * 1.73, -radius)
+            << QPoint(0, -2 * radius )
+            << QPoint( radius * 1.73, -radius)
+            << QPoint( radius * 1.73, radius );
   HexLatticeItem* cell = new HexLatticeItem(polygon, layer, cellIdx,
     this->ItemShape);
 
@@ -179,8 +187,8 @@ void cmbNucHexLattice::rebuild()
       int cellIdx = 0;
       for(int c = 0; c < 6; c++)
         {
-        //double angle = 30.0*c*vtkMath::Pi()/180.0;
-        double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
+        double angle = 60.0*((c+4)%6)*vtkMath::Pi()/180.0;
+        //double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
         layerCorners[c][0] = layerRadius * cos(angle);
         layerCorners[c][1] = layerRadius * sin(angle);
         // draw the corner hex

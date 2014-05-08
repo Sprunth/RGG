@@ -130,6 +130,8 @@ int vtkCmbLayeredConeSource::RequestData(
       cone->Update();
       merger->AddInputData(cone->GetOutput());
       cone->Delete();
+      vtkTransform *rotate = vtkTransform::New();
+      rotate->RotateZ(30);
 
       double heights[] = { 0, this->Height };
       for(int height = 0; height < 2; height++)
@@ -193,13 +195,26 @@ int vtkCmbLayeredConeSource::RequestData(
             t->RotateWXYZ(180.0, (this->Direction[0]+vMag)/2.0,
                           this->Direction[1]/2.0, this->Direction[2]/2.0);
             }
-          vtkNew<vtkTransformPolyDataFilter> filter;
+          vtkNew<vtkTransformPolyDataFilter> filter, filter2;
           filter->SetTransform(t);
           t->Delete();
           filter->SetInputDataObject(cap);
           cap->Delete();
           filter->Update();
-          merger->AddInputData(filter->GetOutput());
+          if(Resolution == 6)
+            {
+            t = vtkTransform::New();
+            t->RotateZ(30);
+            filter2->SetTransform(t);
+            filter2->SetInputDataObject(filter->GetOutput());
+            t->Delete();
+            filter2->Update();
+            merger->AddInputData(filter2->GetOutput());
+            }
+          else
+            {
+            merger->AddInputData(filter->GetOutput());
+            }
           }
         else
           {
@@ -207,6 +222,7 @@ int vtkCmbLayeredConeSource::RequestData(
           cap->Delete();
           }
         }
+      rotate->Delete();
 
       // merge all polydata
       if (this->GenerateNormals)

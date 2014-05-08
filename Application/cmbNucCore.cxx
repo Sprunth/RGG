@@ -206,30 +206,6 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
         vtkSmartPointer<vtkMultiBlockDataSet> assemblyData = assembly->GetData();
         vtkNew<vtkTransform> transform;
 
-          cmbAssyParameters* params = assembly->GetParameters();
-          if(params->isValueSet(params->RotateXYZ))
-          {
-            std::string axis = params->RotateXYZ;
-            std::transform(axis.begin(), axis.end(), axis.begin(), ::tolower);
-            double angle = 0;
-            if(params->isValueSet(params->RotateAngle))
-            {
-              angle = params->RotateAngle;
-            }
-            if(axis == "x")
-            {
-              transform->RotateX(angle);
-            }
-            else if(axis == "y")
-            {
-              transform->RotateY(angle);
-            }
-            else if(axis == "z")
-            {
-              transform->RotateZ(angle);
-            }
-          }
-
         if(isHex)
           {
           Duct *hexDuct = assembly->AssyDuct.getDuct(0);
@@ -237,7 +213,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           hexDiameter = hexDuct->thickness[0];
 
           // For hex geometry type, figure out the six corners first
-          if(isHex && i>0)
+          if(i>0)
             {
             layerRadius = hexDiameter * i;
             for(int c = 0; c < 6; c++)
@@ -280,7 +256,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
               tY += centerPos[1];
               }
             }
-
+          transform->RotateZ(-60);
           transform->Translate(tX, -tY, 0.0);
           }
         else
@@ -288,6 +264,29 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           double tX = startX + i * (outerDuctWidth);
           double tY = startY + j * (outerDuctHeight);
           transform->Translate(tY, tX, 0);
+          }
+          cmbAssyParameters* params = assembly->GetParameters();
+          if(params->isValueSet(params->RotateXYZ))
+          {
+            std::string axis = params->RotateXYZ;
+            std::transform(axis.begin(), axis.end(), axis.begin(), ::tolower);
+            double angle = 0;
+            if(params->isValueSet(params->RotateAngle))
+            {
+              angle = params->RotateAngle;
+            }
+            if(axis == "x")
+            {
+              transform->RotateX(angle);
+            }
+            else if(axis == "y")
+            {
+              transform->RotateY(angle);
+            }
+            else if(axis == "z")
+            {
+              transform->RotateZ(angle);
+            }
           }
         // transform block by block --- got to have better ways
         vtkNew<vtkMultiBlockDataSet> blockData;
@@ -368,6 +367,67 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
     }
 
   return this->Data;
+}
+
+void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
+                               vtkMultiBlockDataSet * output,
+                               vtkTransform * xmform)
+{
+  output->SetNumberOfBlocks(input->GetNumberOfBlocks());
+  // move the assembly to the correct position
+  for(int idx=0; idx<input->GetNumberOfBlocks(); idx++)
+  {
+    // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
+    if(vtkDataObject* objBlock = input->GetBlock(idx))
+    {
+      if(vtkMultiBlockDataSet* assyPartBlock =
+         vtkMultiBlockDataSet::SafeDownCast(objBlock))
+      {
+        vtkNew<vtkMultiBlockDataSet> assyPartObjs;
+        assyPartObjs->SetNumberOfBlocks(assyPartBlock->GetNumberOfBlocks());
+        for(int b=0; b<assyPartBlock->GetNumberOfBlocks(); b++)
+        {
+          vtkDataObject* apBlock = assyPartBlock->GetBlock(b);
+          if(vtkMultiBlockDataSet* pinPartBlock =
+             vtkMultiBlockDataSet::SafeDownCast(apBlock)) // pins
+          {
+            vtkNew<vtkMultiBlockDataSet> pinPartObjs;
+            pinPartObjs->SetNumberOfBlocks(pinPartBlock->GetNumberOfBlocks());
+            for(int p=0; p<pinPartBlock->GetNumberOfBlocks(); p++)
+            {
+              vtkNew<vtkTransformFilter> filter;
+              filter->SetTransform(xmform);
+              filter->SetInputDataObject(pinPartBlock->GetBlock(p));
+              filter->Update();
+              pinPartObjs->SetBlock(p, filter->GetOutput());
+            }
+            assyPartObjs->SetBlock(b, pinPartObjs.GetPointer());
+          }
+          else // ducts
+          {
+            vtkNew<vtkTransformFilter> filter;
+            filter->SetTransform(xmform);
+            filter->SetInputDataObject(apBlock);
+            filter->Update();
+            assyPartObjs->SetBlock(b, filter->GetOutput());
+          }
+        }
+        output->SetBlock(idx, assyPartObjs.GetPointer());
+      }
+      else // pins
+      {
+        vtkNew<vtkTransformFilter> filter;
+        filter->SetTransform(xmform);
+        filter->SetInputDataObject(input->GetBlock(idx));
+        filter->Update();
+        output->SetBlock(idx, filter->GetOutput());
+      }
+    }
+    else
+    {
+      output->SetBlock(idx, NULL);
+    }
+  }
 }
 
 bool cmbNucCore::IsHexType()

@@ -10,6 +10,8 @@
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
 #include "vtkSmartPointer.h"
+#include "vtkMultiBlockDataSet.h"
+#include "vtkTransform.h"
 
 class cmbNucAssembly;
 class inpFileReader;
@@ -187,6 +189,10 @@ public:
   cmbNucCoreConnection* GetConnection(){return this->Connection;}
 
   virtual enumNucPartsType GetType() const {return CMBNUC_CORE;}
+
+  static void transformData(vtkMultiBlockDataSet * input,
+                            vtkMultiBlockDataSet * output,
+                            vtkTransform * xmform);
 
   void clearExceptAssembliesAndGeom();
 

@@ -2,11 +2,6 @@
 #include "cmbNucMainWindow.h"
 #include <vtkActor.h>
 #include <vtkAlgorithm.h>
-#include <vtkAxesActor.h>
-#include <vtkCamera.h>
-#include <vtkCompositeDataDisplayAttributes.h>
-#include <vtkCompositePolyDataMapper2.h>
-#include <vtkCompositeDataPipeline.h>
 #include <vtkDataObjectTreeIterator.h>
 #include <vtkEventQtSlotConnect.h>
 #include <vtkInformation.h>

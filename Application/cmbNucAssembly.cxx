@@ -448,6 +448,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                     }
                   }
 
+                transform->RotateZ(30);
                 transform->Translate(tX, -tY, tZ);
                 }
               else
