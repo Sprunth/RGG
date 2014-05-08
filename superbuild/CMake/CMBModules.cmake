@@ -25,6 +25,7 @@ macro (SetupCMBSuperBuild)
     ENABLE_ftgl
     ENABLE_oce
     ENABLE_freetype
+    ENABLE_libxml2
     )
 
   set(ENABLE_nuclearRGG ON CACHE BOOL "")

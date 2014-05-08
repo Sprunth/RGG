@@ -37,9 +37,11 @@ if (qt_ENABLED AND NOT USE_SYSTEM_qt)
   endif()
 
 #add the installer as a test
-add_test(NAME GenerateRGGackage
-         COMMAND ${CMAKE_CPACK_COMMAND} -G TGZ ${test_build_verbose}
-         WORKING_DIRECTORY ${SuperBuild_BINARY_DIR})
+if (BUILD_TESTING)
+  add_test(NAME GenerateRGGPackage
+           COMMAND ${CMAKE_CPACK_COMMAND} -G TGZ ${test_build_verbose}
+           WORKING_DIRECTORY ${SuperBuild_BINARY_DIR})
 set_tests_properties(GenerateRGGPackage PROPERTIES
                      LABELS "RGG"
                      TIMEOUT 1200)
+endif()
