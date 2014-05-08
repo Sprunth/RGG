@@ -29,14 +29,14 @@ class cmbNucExporterWorker: public QObject, public remus::worker::Worker
   QThread workerThread;
 public:
   static cmbNucExporterWorker *
-    AssygenWorker(std::vector<std::string> extra_args = std::vector<std::string>(),
-                  remus::worker::ServerConnection const& connection = remus::worker::ServerConnection());
+    AssygenWorker(remus::worker::ServerConnection const& connection,
+                  std::vector<std::string> extra_args = std::vector<std::string>());
   static cmbNucExporterWorker *
-    CoregenWorker(std::vector<std::string> extra_args = std::vector<std::string>(),
-                  remus::worker::ServerConnection const& connection = remus::worker::ServerConnection());
+    CoregenWorker(remus::worker::ServerConnection const& connection,
+                  std::vector<std::string> extra_args = std::vector<std::string>());
   static cmbNucExporterWorker *
-    CubitWorker(std::vector<std::string> extra_args = std::vector<std::string>(),
-                remus::worker::ServerConnection const& connection = remus::worker::ServerConnection());
+    CubitWorker(remus::worker::ServerConnection const& connection,
+                std::vector<std::string> extra_args = std::vector<std::string>());
 
 public slots:
   void start()
@@ -56,9 +56,9 @@ private:
                   const remus::worker::Job& job);
   std::vector< std::string > ExtraArgs;
 
-  cmbNucExporterWorker( remus::common::MeshIOType miotype,
-                       std::vector<std::string> extra_args = std::vector<std::string>(),
-                       remus::worker::ServerConnection const& connection = remus::worker::ServerConnection());
+  cmbNucExporterWorker( std::string label, remus::common::MeshIOType miotype,
+                        remus::worker::ServerConnection const& connection,
+                        std::vector<std::string> extra_args = std::vector<std::string>());
 };
 
 class cmbNucExporterWorker;
@@ -121,6 +121,7 @@ private:
   cmbNucExporterWorker * coregenWorker;
   cmbNucExporterWorker * cubitWorker;
   remus::server::Server * Server;
+  remus::worker::ServerConnection ServerConnection;
 };
 
 #endif //cmbNucExport_H
