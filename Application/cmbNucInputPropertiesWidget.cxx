@@ -406,13 +406,13 @@ void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
 {
   this->Internal->latticeX->blockSignals(true);
   this->Internal->latticeX->setValue(lattice->GetDimensions().first);
-  this->Internal->latticeX->blockSignals(false);
   if(this->GeometryType == RECTILINEAR)
     {
-    this->Internal->latticeX->blockSignals(true);
+    this->Internal->latticeY->blockSignals(true);
     this->Internal->latticeY->setValue(lattice->GetDimensions().second);
     this->Internal->latticeY->blockSignals(false);
     }
+  this->Internal->latticeX->blockSignals(false);
   this->resetAssemblyLattice();
 }
 

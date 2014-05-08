@@ -373,6 +373,7 @@ void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
                                vtkMultiBlockDataSet * output,
                                vtkTransform * xmform)
 {
+  if(input == NULL) return;
   output->SetNumberOfBlocks(input->GetNumberOfBlocks());
   // move the assembly to the correct position
   for(int idx=0; idx<input->GetNumberOfBlocks(); idx++)

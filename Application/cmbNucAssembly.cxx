@@ -779,6 +779,7 @@ QSet< cmbNucMaterial* > cmbNucAssembly::getMaterials()
 
 void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
 {
+  if(d == NULL) return;
   bool change = false;
   double tmpD;
   int tmpI;
