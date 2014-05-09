@@ -33,12 +33,6 @@ public:
     QString oldText;
     cmbNucPartsTreeItem * item = reinterpret_cast<cmbNucPartsTreeItem *>(rIndex.internalPointer());
 
-    if(item->fileChanged())
-    {
-      oldText = item->text(0);
-      item->setText(0, "!* "+item->text(0)+" *!");
-    }
-
     QColor ItemForegroundColor = rIndex.data(Qt::ForegroundRole).value<QColor>();
     if (ItemForegroundColor.isValid())
     {
@@ -48,10 +42,6 @@ public:
       }
     }
     QItemDelegate::paint(pPainter, ViewOption, rIndex);
-    if(item->fileChanged())
-    {
-      item->setText(0, oldText);
-    }
   }
 };
 
@@ -335,8 +325,6 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
   this->Internal->Action_NewAssembly->setEnabled(val);
   this->Internal->Action_NewPin->setEnabled(val);
   this->Internal->Action_NewDuct->setEnabled(val);
-  //this->Internal->Action_NewFrustum->setEnabled(val);
-  //this->Internal->Action_NewCylinder->setEnabled(val);
   this->Internal->Action_DeletePart->setEnabled(val);
 }
 //----------------------------------------------------------------------------
@@ -846,7 +834,7 @@ void cmbNucInputListWidget::initPartsTree()
 
   treeWidget->blockSignals(true);
   treeWidget->clear();
-  treeWidget->setHeaderLabel("Name");
+  treeWidget->setHeaderLabels(QStringList() << tr("Name") << tr("FileName"));
   treeWidget->setSelectionMode(QAbstractItemView::SingleSelection);
   treeWidget->setAcceptDrops(false);
   treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
