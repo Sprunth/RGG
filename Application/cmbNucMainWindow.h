@@ -108,6 +108,8 @@ protected slots:
   // called when the z-scale slider or spin box changes
   void zScaleChanged(int value);
 
+  void setTitle();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;

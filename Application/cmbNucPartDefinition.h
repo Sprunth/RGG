@@ -62,6 +62,8 @@ enum enumGeometryType {
         }
       objs.clear();
       }
+    virtual std::string getLabel() = 0;
+    virtual std::string getFileName(){return "";}
   };
 
   // Represents a cell in the lattice view widget, containing
@@ -82,6 +84,9 @@ enum enumGeometryType {
       this->enGeometryType = RECTILINEAR;
       this->SetDimensions(4, 4);
       }
+
+    std::string getLabel()
+      { return "Lattice"; }
 
     // Sets the dimensions of the cell assembly.
     // For Hex type, i is number of layers, j will be ignored.

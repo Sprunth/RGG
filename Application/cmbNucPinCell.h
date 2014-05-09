@@ -28,6 +28,7 @@ public:
   PinSubPart(){}
   PinSubPart(double z1, double z2);
   virtual ~PinSubPart();
+  std::string getLabel(){return "PinPart";}
 
   PinConnection* GetConnection() const;
 
@@ -195,6 +196,8 @@ public:
 
   PinConnection* GetConnection() const;
   QSet< cmbNucMaterial* > getMaterials();
+
+  std::string getLabel(){return label;}
 
   std::string name;
   std::string label;

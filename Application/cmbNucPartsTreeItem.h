@@ -35,6 +35,8 @@ public:
   virtual void setPartObject(AssyPartObj* obj)
     {this->PartObject=obj;}
 
+  QVariant data( int index, int role ) const;
+
   // column text
   virtual void setData ( int column, int role, const QVariant & value );
   void setText ( int column, const QString & text );

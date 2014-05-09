@@ -37,6 +37,8 @@ public:
 
   QSet< cmbNucMaterial* > getMaterials();
 
+  std::string getLabel(){return "Duct";}
+
   double x;
   double y;
   double z1;
@@ -64,6 +66,7 @@ public:
   bool GetInnerDuctSize(double & x, double & y);
   double getLength();
   void setLength(double l);
+  std::string getLabel(){return "Duct";}
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

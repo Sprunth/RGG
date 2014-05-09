@@ -119,6 +119,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui = new Ui_qNucMainWindow;
   this->ui->setupUi(this);
   this->NuclearCore = new cmbNucCore();
+  setTitle();
 
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
@@ -553,6 +554,7 @@ void cmbNucMainWindow::onFileOpen()
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
         this->ui->actionNew_Assembly->setEnabled(true);
+        setTitle();
         break;
       default:
         qDebug() << "could not open" << fileNames[i];
@@ -774,6 +776,7 @@ void cmbNucMainWindow::save(cmbNucCore* core, bool request_file_name, bool force
   {
     inpFileWriter::write(fileName.toStdString(), *core);
   }
+  setTitle();
 }
 
 void cmbNucMainWindow::checkForNewCUBH5MFiles()
@@ -902,6 +905,7 @@ void cmbNucMainWindow::clearCore()
     this->ui->qvtkWidget->update();
     this->Renderer->ResetCamera();
     this->Renderer->Render();
+    setTitle();
   }
 }
 
@@ -1294,4 +1298,10 @@ bool cmbNucMainWindow::checkFilesBeforePreceeding()
       break;
   }
   return true;
+}
+
+void cmbNucMainWindow::setTitle()
+{
+  std::string fname = NuclearCore->getFileName();
+  setWindowTitle(("RGG Nuclear Energy Reactor Geometry Generator (" + fname +")").c_str());
 }

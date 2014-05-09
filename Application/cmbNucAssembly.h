@@ -207,6 +207,9 @@ public:
     return KeepPinsCentered;
   }
 
+  std::string getLabel(){return label;}
+  std::string getFileName(){return FileName;}
+
   // Expose assembly parts for UI access
   DuctCell AssyDuct;
   Lattice AssyLattice;

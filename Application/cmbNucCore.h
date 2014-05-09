@@ -261,6 +261,9 @@ public:
   bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
 
+  std::string getLabel(){return "Core";}
+  std::string getFileName(){return FileName;}
+
   // Get/Set Assembly pitch
   double AssyemblyPitchX;
   double AssyemblyPitchY;

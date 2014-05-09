@@ -2,6 +2,7 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
+#include "QFileInfo.h"
 #include <QFont>
 #include <QBrush>
 
@@ -13,6 +14,16 @@ cmbNucPartsTreeItem::cmbNucPartsTreeItem(
 {
   this->connection = new cmbNucPartsTreeItemConnection();
   this->connection->v = this;
+  std::string fname = this->PartObject->getFileName();
+  if(fname.empty())
+  {
+    this->setText(1, "");
+  }
+  else
+  {
+    QFileInfo fi(fname.c_str());
+    this->setText(1, fi.fileName());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -90,6 +101,26 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
   tmp_font.setBold(FileChanged||NeedGeneration);
   this->setFont(0, tmp_font);
 
+  if( FileChanged )
+  {
+    this->setText( 0, ("!* " + PartObject->getLabel() + " *!").c_str() );
+  }
+  else
+  {
+    this->setText( 0, (PartObject->getLabel()).c_str() );
+  }
+
+  std::string fname = this->PartObject->getFileName();
+  if(fname.empty())
+  {
+    this->setText(1, "");
+  }
+  else
+  {
+    QFileInfo fi(fname.c_str());
+    this->setText(1, fi.fileName());
+  }
+
   if(NeedGeneration)
   {
     QBrush b (Qt::red);
@@ -100,4 +131,17 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
     QBrush b;
     setForeground( 0 , b );
   }
+}
+
+QVariant cmbNucPartsTreeItem::data( int index, int role ) const
+{
+  if(role == Qt::ToolTipRole && index == 1)
+  {
+    std::string fname = this->PartObject->getFileName();
+    if(!fname.empty())
+    {
+      return QVariant(fname.c_str());
+    }
+  }
+  return this->QTreeWidgetItem::data(index, role);
 }
