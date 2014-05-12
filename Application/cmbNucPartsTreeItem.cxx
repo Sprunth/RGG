@@ -2,7 +2,7 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
-#include "QFileInfo.h"
+#include <QFileInfo>
 #include <QFont>
 #include <QBrush>
 
