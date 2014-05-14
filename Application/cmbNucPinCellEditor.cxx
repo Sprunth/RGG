@@ -233,6 +233,9 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
 
   connect(this->Ui->CalculatePitch, SIGNAL(clicked()),
           this, SLOT(calculatePitch()));
+
+  connect(this->Ui->CellMaterial, SIGNAL(currentIndexChanged(const QString &)),
+          this,                   SLOT(onUpdateCellMaterial(const QString &)));
 }
 
 cmbNucPinCellEditor::~cmbNucPinCellEditor()
@@ -255,6 +258,10 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pc, bool h)
 void cmbNucPinCellEditor::Reset()
 {
   this->InternalPinCell->fill(this->ExternalPinCell);
+
+  this->setupMaterialComboBox(this->Ui->CellMaterial);
+  cmbNucMaterialColors::instance()->selectIndex(this->Ui->CellMaterial,
+                                                this->InternalPinCell->getCellMaterial());
 
   this->Ui->nameLineEdit->setText(this->InternalPinCell->name.c_str());
   this->Ui->labelLineEdit->setText(this->InternalPinCell->label.c_str());
@@ -446,7 +453,7 @@ void cmbNucPinCellEditor::UpdateData()
   bool cutaway = this->Ui->cutAwayViewCheckBox->isChecked();
   this->InternalPinCell->cutaway = cutaway;
   this->InternalPinCell->CachedData.TakeReference(
-    cmbNucAssembly::CreatePinCellMultiBlock(this->InternalPinCell, cutaway));
+    cmbNucAssembly::CreatePinCellMultiBlock(this->InternalPinCell, this->isHex, cutaway));
   emit this->pincellModified(this->InternalPinCell);
   emit resetView();
 }
@@ -621,6 +628,14 @@ void cmbNucPinCellEditor::onUpdateLayerMaterial()
       this->InternalPinCell->SetMaterial(i, mat);
     }
   }
+  this->UpdateData();
+}
+
+void cmbNucPinCellEditor::onUpdateCellMaterial( const QString & material )
+{
+  QPointer<cmbNucMaterial> mat =
+      cmbNucMaterialColors::instance()->getMaterialByName(material);
+  this->InternalPinCell->setCellMaterial(mat);
   this->UpdateData();
 }
 

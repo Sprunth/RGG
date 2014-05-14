@@ -31,7 +31,6 @@ SET(RGGNuclear_Srcs
   cmbNucMaterial.cxx
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
-  vtkCmbConeSource.cxx
   vtkCmbDuctSource.cxx
   vtkCmbLayeredConeSource.cxx
   cmbNucPartsTreeItem.cxx

@@ -439,6 +439,10 @@ QSet< cmbNucMaterial* > PinCell::getMaterials()
   {
     result.unite(Frustums[at]->getMaterials());
   }
+  if(this->cellMaterialSet())
+  {
+    result.insert(this->CellMaterial.getMaterial());
+  }
   return result;
 }
 
@@ -450,6 +454,11 @@ bool PinCell::fill(PinCell const* other)
   changed |= setIfDifferent(other->pitchX, this->pitchX);
   changed |= setIfDifferent(other->pitchY, this->pitchY);
   changed |= setIfDifferent(other->pitchZ, this->pitchZ);
+  if( other->CellMaterial.getMaterial() != this->CellMaterial.getMaterial())
+  {
+    changed = true;
+    this->CellMaterial.changeMaterial(other->CellMaterial.getMaterial());
+  }
 
   if(other->Cylinders.size() < this->Cylinders.size())
   {
@@ -538,4 +547,20 @@ void PinCell::DeleteLayer(int layer)
   }
   this->SetNumberOfLayers(GetNumberOfLayers()-1);
   SetRadius(GetNumberOfLayers()-1, 1.0);
+}
+
+QPointer<cmbNucMaterial> PinCell::getCellMaterial()
+{
+  return CellMaterial.getMaterial();
+}
+
+void PinCell::setCellMaterial(QPointer<cmbNucMaterial> material)
+{
+  CellMaterial.changeMaterial(material);
+}
+
+bool PinCell::cellMaterialSet() const
+{
+  return this->CellMaterial.getMaterial() !=
+  cmbNucMaterialColors::instance()->getUnknownMaterial();
 }

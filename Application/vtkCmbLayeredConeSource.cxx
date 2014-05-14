@@ -17,7 +17,7 @@
 #include <vtkAppendPolyData.h>
 #include <vtkDoubleArray.h>
 
-#include "vtkCmbConeSource.h"
+#include <cassert>
 
 vtkStandardNewMacro(vtkCmbLayeredConeSource);
 
@@ -32,9 +32,9 @@ vtkCmbLayeredConeSource::vtkCmbLayeredConeSource()
   this->BaseCenter[1] = 0.0;
   this->BaseCenter[2] = 0.0;
 
-  this->Direction[0] = 1.0;
+  this->Direction[0] = 0.0;
   this->Direction[1] = 0.0;
-  this->Direction[2] = 0.0;
+  this->Direction[2] = 1.0;
   this->GenerateNormals = 1;
 }
 
@@ -44,36 +44,63 @@ vtkCmbLayeredConeSource::~vtkCmbLayeredConeSource()
 
 void vtkCmbLayeredConeSource::SetNumberOfLayers(int layers)
 {
-  this->TopRadii.resize(layers);
-  this->BaseRadii.resize(layers);
+  this->LayerRadii.resize(layers);
   this->Modified();
 }
 
 int vtkCmbLayeredConeSource::GetNumberOfLayers()
 {
-  return this->TopRadii.size();
+  return this->LayerRadii.size();
+}
+
+void vtkCmbLayeredConeSource::SetTopRadius(int layer, double r1, double r2)
+{
+  this->LayerRadii[layer].TopRadii[0] = r1;
+  this->LayerRadii[layer].TopRadii[1] = r2;
+  this->Modified();
+}
+
+void vtkCmbLayeredConeSource::SetBaseRadius(int layer, double r1, double r2)
+{
+  this->LayerRadii[layer].BaseRadii[0] = r1;
+  this->LayerRadii[layer].BaseRadii[1] = r2;
+  this->Modified();
 }
 
 void vtkCmbLayeredConeSource::SetTopRadius(int layer, double radius)
 {
-  this->TopRadii[layer] = radius;
+  this->LayerRadii[layer].TopRadii[0] = this->LayerRadii[layer].TopRadii[1] = radius;
   this->Modified();
 }
 
 double vtkCmbLayeredConeSource::GetTopRadius(int layer)
 {
-  return this->TopRadii[layer];
+  return this->LayerRadii[layer].TopRadii[0];
 }
 
 void vtkCmbLayeredConeSource::SetBaseRadius(int layer, double radius)
 {
-  this->BaseRadii[layer] = radius;
+  this->LayerRadii[layer].BaseRadii[0] = this->LayerRadii[layer].BaseRadii[1] = radius;
   this->Modified();
+}
+
+#define ADD_DATA(IN)                         \
+if (this->GenerateNormals)                   \
+{                                            \
+  vtkNew<vtkPolyDataNormals> normals;        \
+  normals->SetInputDataObject(IN);           \
+  normals->ComputePointNormalsOn();          \
+  normals->Update();                         \
+  output->SetBlock(i, normals->GetOutput()); \
+}                                            \
+else                                         \
+{                                            \
+  output->SetBlock(i, IN);                   \
 }
 
 double vtkCmbLayeredConeSource::GetBaseRadius(int layer)
 {
-  return this->BaseRadii[layer];
+  return this->LayerRadii[layer].BaseRadii[0];
 }
 
 int vtkCmbLayeredConeSource::RequestData(
@@ -91,158 +118,176 @@ int vtkCmbLayeredConeSource::RequestData(
 
   // create and add each layer to the output
   output->SetNumberOfBlocks(this->GetNumberOfLayers());
+  int innerRes = 0;
+  int outerRes = this->Resolution;
+  double * innerBottomR = NULL;
+  double * innerTopR = NULL;
+  double * outerBottomR = NULL;
+  double * outerTopR = NULL;
+
+  vtkTransform *t = vtkTransform::New();
+  t->Translate(this->BaseCenter[0], this->BaseCenter[1], this->BaseCenter[2]);
+  if( this->Direction[0] != 0.0 || this->Direction[1] != 0.0 || this->Direction[2] != 1.0 )
+    {
+    assert(!"Change in direction is currently not supported");
+    }
+  vtkNew<vtkTransformPolyDataFilter> filter;
+  filter->SetTransform(t);
+  t->Delete();
 
   for(int i = 0; i < this->GetNumberOfLayers(); i++)
     {
-    vtkCmbConeSource *cone = vtkCmbConeSource::New();
-    cone->SetBaseRadius(this->GetBaseRadius(i));
-    cone->SetTopRadius(this->GetTopRadius(i));
-    cone->SetHeight(this->Height);
-    cone->SetBaseCenter(this->BaseCenter);
-    cone->SetResolution(this->Resolution);
-    cone->SetDirection(this->Direction);
+    outerBottomR = this->LayerRadii[i].BaseRadii;
+    outerTopR = this->LayerRadii[i].TopRadii;
+    vtkPolyData * tmpLayer = CreateLayer( this->Height,
+                                          innerBottomR, outerBottomR,
+                                          innerTopR,    outerTopR,
+                                          innerRes,     outerRes );
+    innerBottomR = outerBottomR;
+    innerTopR    = outerTopR;
+    innerRes     = outerRes;
+    if(tmpLayer == NULL)
+    {
+      output->SetBlock(i, tmpLayer);
+      continue;
+    }
 
-    if(i == 0)
+    filter->SetInputDataObject(tmpLayer);
+    if(tmpLayer != NULL) tmpLayer->Delete();
+    filter->Update();
+    if (this->GenerateNormals)
       {
-      cone->SetCapping(true);
-      if (this->GenerateNormals)
-        {
-        vtkNew<vtkPolyDataNormals> normals;
-        normals->SetInputConnection(cone->GetOutputPort());
-        normals->ComputePointNormalsOn();
-        normals->Update();
-        output->SetBlock(i, normals->GetOutput());
-        }
-      else
-        {
-        cone->Update();
-        output->SetBlock(i, cone->GetOutput());
-        }
-      cone->Delete();
+      vtkNew<vtkPolyDataNormals> normals;
+      normals->SetInputConnection(filter->GetOutputPort());
+      normals->ComputePointNormalsOn();
+      normals->Update();
+      output->SetBlock(i, normals->GetOutput());
       }
     else
       {
-      // create cap for layer
-      double angle = 2.0*3.141592654/this->Resolution;
-
-      vtkAppendPolyData *merger = vtkAppendPolyData::New();
-      cone->SetCapping(false);
-      cone->Update();
-      merger->AddInputData(cone->GetOutput());
-      cone->Delete();
-      vtkTransform *rotate = vtkTransform::New();
-      rotate->RotateZ(30);
-
-      double heights[] = { 0, this->Height };
-      for(int height = 0; height < 2; height++)
-        {
-        double h = heights[height];
-        double r1 = height == 0 ? this->GetBaseRadius(i-1) : this->GetTopRadius(i-1);
-        double r2 = height == 0 ? this->GetBaseRadius(i) : this->GetTopRadius(i);
-
-        vtkPolyData *cap = vtkPolyData::New();
-        cap->Allocate();
-        vtkPoints *points = vtkPoints::New();
-        vtkCellArray *cells = vtkCellArray::New();
-
-        // add base cap points
-        double point[3];
-        for(int j = 0; j < this->Resolution; j++)
-          {
-          point[0] = h;
-          point[1] = r1 * cos(j * angle);
-          point[2] = r1 * sin(j * angle);
-          points->InsertNextPoint(point);
-          }
-        for(int j = 0; j < this->Resolution; j++)
-          {
-          point[0] = h;
-          point[1] = r2 * cos(j * angle);
-          point[2] = r2 * sin(j * angle);
-          points->InsertNextPoint(point);
-          }
-
-        // add cells
-        for(int j = 0; j < this->Resolution; j++)
-          {
-          int res = this->Resolution;
-          vtkIdType cell[] = { j, (j + 1) % res, (j + 1) % res + res, j + res };
-          cells->InsertNextCell(4, cell);
-          }
-
-        cap->SetPoints(points);
-        cap->SetPolys(cells);
-        points->Delete();
-        cells->Delete();
-
-        // A non-default origin and/or direction requires transformation
-        if ( this->BaseCenter[0] != 0.0 || this->BaseCenter[1] != 0.0 ||
-             this->BaseCenter[2] != 0.0 || this->Direction[0] != 1.0 ||
-             this->Direction[1] != 0.0 || this->Direction[2] != 0.0 )
-          {
-          vtkTransform *t = vtkTransform::New();
-          t->Translate(this->BaseCenter[0], this->BaseCenter[1], this->BaseCenter[2]);
-          double vMag = vtkMath::Norm(this->Direction);
-          if ( this->Direction[0] < 0.0 )
-            {
-            // flip x -> -x to avoid instability
-            t->RotateWXYZ(180.0, (this->Direction[0]-vMag)/2.0,
-                          this->Direction[1]/2.0, this->Direction[2]/2.0);
-            t->RotateWXYZ(180.0, 0, 1, 0);
-            }
-          else
-            {
-            t->RotateWXYZ(180.0, (this->Direction[0]+vMag)/2.0,
-                          this->Direction[1]/2.0, this->Direction[2]/2.0);
-            }
-          vtkNew<vtkTransformPolyDataFilter> filter, filter2;
-          filter->SetTransform(t);
-          t->Delete();
-          filter->SetInputDataObject(cap);
-          cap->Delete();
-          filter->Update();
-          if(Resolution == 6)
-            {
-            t = vtkTransform::New();
-            t->RotateZ(30);
-            filter2->SetTransform(t);
-            filter2->SetInputDataObject(filter->GetOutput());
-            t->Delete();
-            filter2->Update();
-            merger->AddInputData(filter2->GetOutput());
-            }
-          else
-            {
-            merger->AddInputData(filter->GetOutput());
-            }
-          }
-        else
-          {
-          merger->AddInputData(cap);
-          cap->Delete();
-          }
-        }
-      rotate->Delete();
-
-      // merge all polydata
-      if (this->GenerateNormals)
-        {
-        vtkNew<vtkPolyDataNormals> normals;
-        normals->SetInputConnection(merger->GetOutputPort());
-        normals->ComputePointNormalsOn();
-        normals->Update();
-        output->SetBlock(i, normals->GetOutput());
-        }
-      else
-        {
-        merger->Update();
-        output->SetBlock(i, merger->GetOutput());
-        }
-      merger->Delete();
+      output->SetBlock(i, filter->GetOutput());
       }
     }
 
   return 1;
+}
+
+#define CREATE_END(OFFSET)                       \
+if(innerRes == 0)                                \
+{                                                \
+  for(int i = 0; i < outerRes; ++i)              \
+  {                                              \
+    pts[i] = i+OFFSET;                           \
+  }                                              \
+  cells->InsertNextCell(outerRes, pts);          \
+}                                                \
+else if(innerRes == outerRes)                    \
+{                                                \
+  for(int i = 0; i < innerRes; ++i)              \
+  {                                              \
+    pts[0] = i + OFFSET;                         \
+    pts[1] = (i+1)%innerRes + OFFSET;            \
+    pts[2] = (i+1)%innerRes + innerRes + OFFSET; \
+    pts[3] = i+innerRes + OFFSET;                \
+    cells->InsertNextCell(4, pts);               \
+  }                                              \
+}                                                \
+
+vtkPolyData *
+vtkCmbLayeredConeSource
+::CreateLayer( double h,
+               double * innerBottomR, double * outerBottomR,
+               double * innerTopR,    double * outerTopR,
+               int innerRes, int outerRes )
+{
+  if(outerTopR == NULL || outerBottomR == NULL) return NULL;
+  vtkPolyData *polyData = vtkPolyData::New();
+  polyData->Allocate();
+
+  vtkPoints *points = vtkPoints::New();
+  vtkCellArray *cells = vtkCellArray::New();
+
+  vtkIdType pts[VTK_CELL_SIZE];
+
+  points->SetDataTypeToDouble(); //used later during transformation
+  points->Allocate((innerRes + outerRes)*2);
+
+  //Points are order (OuterBottom, InnerBottom, OuterTop, InnerTop)
+  AddPoints(points, 0, outerBottomR, outerRes);
+  AddPoints(points, 0, innerBottomR, innerRes, 0.0005);
+  AddPoints(points, h, outerTopR,    outerRes);
+  AddPoints(points, h, innerTopR,    innerRes, 0.0005);
+
+
+
+  //Add bottom calls
+  if(1) { CREATE_END(0) }
+  //Create top
+  if(1) { const int offset = outerRes+innerRes; CREATE_END(offset) }
+  //Outer Wall;
+  if(1)
+  {
+    int offset = outerRes+innerRes;
+    for(unsigned int i = 0; i < outerRes; ++i)
+    {
+      pts[0] = i;
+      pts[1] = (i+1) % outerRes;
+      pts[2] = (i+1) % outerRes + offset;
+      pts[3] = i + offset;
+      cells->InsertNextCell(4, pts);
+    }
+  }
+  //Inner Wall
+  if(1)
+  {
+    int offset = outerRes+innerRes;
+    for(unsigned int i = 0; i < innerRes; ++i)
+    {
+      pts[0] = i + outerRes;
+      pts[1] = (i+1) % innerRes + outerRes;
+      pts[2] = (i+1) % innerRes + outerRes+ offset;
+      pts[3] = i + outerRes + offset;
+      cells->InsertNextCell(4, pts);
+    }
+  }
+  polyData->SetPoints(points);
+  polyData->SetPolys(cells);
+
+  points->Delete();
+  cells->Delete();
+
+  return polyData;
+}
+
+void
+vtkCmbLayeredConeSource
+::AddPoints(vtkPoints *points, double h, double * r, int res, double shift)
+{
+  double point[3];
+  point[2] = h;
+  if(res == 4)
+  {
+    point[0] = -r[0];
+    point[1] = -r[1];
+    points->InsertNextPoint(point);
+    point[0] =  r[0];
+    point[1] = -r[1];
+    points->InsertNextPoint(point);
+    point[0] =  r[0];
+    point[1] =  r[1];
+    points->InsertNextPoint(point);
+    point[0] = -r[0];
+    point[1] =  r[1];
+    points->InsertNextPoint(point);
+    return;
+  }
+  double angle = 2.0*3.141592654/res;
+  for(int j = 0; j < res; j++)
+  {
+    point[0] = (r[0] + shift) * cos(j * angle);
+    point[1] = (r[1] + shift) * sin(j * angle);
+    points->InsertNextPoint(point);
+  }
 }
 
 void vtkCmbLayeredConeSource::PrintSelf(ostream &os, vtkIndent indent)

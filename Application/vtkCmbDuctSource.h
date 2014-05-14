@@ -75,9 +75,6 @@ protected:
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
-  vtkPolyData* CreateLayer(int layer);
-  vtkPolyData* CreateHexLayer(int layer);
-
   double Height;
   double Origin[3];
   std::vector<double> Layers;

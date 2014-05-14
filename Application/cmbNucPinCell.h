@@ -199,6 +199,10 @@ public:
 
   std::string getLabel(){return label;}
 
+  QPointer<cmbNucMaterial> getCellMaterial();
+  void setCellMaterial(QPointer<cmbNucMaterial> material);
+  bool cellMaterialSet() const;
+
   std::string name;
   std::string label;
   double pitchX;
@@ -212,6 +216,7 @@ protected:
   std::vector<Cylinder*> Cylinders;
   std::vector<Frustum*> Frustums;
   PinConnection * Connection;
+  cmbNucMaterialLayer CellMaterial;
 };
 
 #endif

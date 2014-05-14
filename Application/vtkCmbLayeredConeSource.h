@@ -5,6 +5,9 @@
 
 #include <vtkMultiBlockDataSetAlgorithm.h>
 
+class vtkPolyData;
+class vtkPoints;
+
 // Creates a cone with multiple layers. Each layer is a separate block
 // in the multi-block output data-set so that individual layers property's
 // can be modified with the composite poly-data mapper.
@@ -19,9 +22,11 @@ public:
   int GetNumberOfLayers();
 
   void SetTopRadius(int layer, double radius);
+  void SetTopRadius(int layer, double r1, double r2);
   double GetTopRadius(int layer);
 
   void SetBaseRadius(int layer, double radius);
+  void SetBaseRadius(int layer, double r1, double r2);
   double GetBaseRadius(int layer);
 
   vtkSetMacro(Height, double);
@@ -48,9 +53,22 @@ protected:
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
+  //vtkMultiBlockDataSet * CreateLayer(double innerRadius, double outerRadius,
+  //                                   int res1, int res2);
+
+  vtkPolyData * CreateLayer(double h,
+                            double * innerBottomR, double * outerBottomR,
+                            double * innerTopR,    double * outerTopR,
+                            int innerRes, int outerRes);
+  void AddPoints(vtkPoints *points, double h, double * r, int res, double shift = 0);
+
   double Height;
-  std::vector<double> BaseRadii;
-  std::vector<double> TopRadii;
+  struct radii
+  {
+    double BaseRadii[2];
+    double TopRadii[2];
+  };
+  std::vector<radii> LayerRadii;
   double BaseCenter[3];
   double Direction[3];
   int Resolution;
