@@ -760,6 +760,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     // of frustums plus cylinders plus one for the pitch.
     // We are writing multiple cylinders/frustums on one line.
     size_t count = pincell->NumberOfCylinders() + pincell->NumberOfFrustums() + 1;
+    if(pincell->cellMaterialSet()) count++;
 
     output << pincell->name << " " << pincell->label << " " << count << "\n";
 
@@ -774,10 +775,15 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
       }
     output << "\n";
 
+    double minZ = 1e23;
+    double maxZ = 0;
+
     for(size_t j = 0; j < pincell->NumberOfCylinders(); j++)
       {
       output << "cylinder " << pincell->GetNumberOfLayers() << " ";
       Cylinder* cylinder = pincell->GetCylinder(j);
+      if(minZ > cylinder->z1) minZ = cylinder->z1;
+      if(maxZ < cylinder->z2) maxZ = cylinder->z2;
       output << std::showpoint
              << cylinder->x << " "
              << cylinder->y << " "
@@ -798,6 +804,8 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
       {
       output << "frustum " << pincell->GetNumberOfLayers() << " ";
       Frustum* frustum = pincell->GetFrustum(j);
+      if(minZ > frustum->z1) minZ = frustum->z1;
+      if(maxZ < frustum->z2) maxZ = frustum->z2;
       output << std::showpoint
              << frustum->x << " "
              << frustum->y << " "
@@ -813,6 +821,11 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
         output << frustum->GetMaterial(material)->getLabel().toStdString() << " ";
         }
       output << "\n";
+      }
+    if(pincell->cellMaterialSet())
+      {
+        output << "cellmaterial " << minZ << " " << maxZ << " "
+               << pincell->getCellMaterial()->getLabel().toStdString() << "\n";
       }
     }
 }
@@ -924,6 +937,14 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         double v;
         std::string material;
         input >> tmp >> v >> material;
+        QPointer< cmbNucMaterial > mat = cmbNucMaterialColors::instance()->getUnknownMaterial();
+        std::transform(material.begin(), material.end(), material.begin(), ::tolower);
+        map_iter it = materialLabelMap.find(material);
+        if(it != materialLabelMap.end())
+          mat = it->second;
+        else
+          labelIsDifferent = true;
+        pincell->setCellMaterial(mat);
         }
       else if(value == "frustum")
         {

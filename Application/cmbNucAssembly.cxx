@@ -609,18 +609,28 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
     coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
     coneSource->SetBaseCenter(0, 0, part->z1);
     coneSource->SetHeight(part->z2 - part->z1);
+    double lastR[2];
 
     for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
       {
+      lastR[0] = part->getRadius(k,Frustum::BOTTOM);
+      lastR[1] = part->getRadius(k,Frustum::TOP);
       coneSource->SetBaseRadius(k, part->getRadius(k,Frustum::BOTTOM));
       coneSource->SetTopRadius(k, part->getRadius(k,Frustum::TOP));
       coneSource->SetResolution(k, PinCellResolution);
       }
     if(pincell->cellMaterialSet())
       {
-      coneSource->SetBaseRadius(pincell->GetNumberOfLayers(), pincell->pitchX*0.5, pincell->pitchY*0.5);
-      coneSource->SetTopRadius(pincell->GetNumberOfLayers(), pincell->pitchX*0.5, pincell->pitchY*0.5);
-      coneSource->SetResolution(pincell->GetNumberOfLayers(), (isHex)?6:4);
+      double r[] = {pincell->pitchX*0.5, pincell->pitchY*0.5};
+      int res = 4;
+      if(isHex)
+        {
+        res = 6;
+        r[0] = r[1] = r[0]/0.86602540378;
+        }
+      coneSource->SetBaseRadius(pincell->GetNumberOfLayers(), r[0], r[1]);
+      coneSource->SetTopRadius(pincell->GetNumberOfLayers(), r[0], r[1]);
+      coneSource->SetResolution(pincell->GetNumberOfLayers(), res);
       }
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);

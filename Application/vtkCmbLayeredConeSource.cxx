@@ -207,7 +207,6 @@ namespace
   {
     double tmpPt[] = {pt0[0],pt0[1],pt0[2]};
     int id = points->InsertNextPoint(tmpPt);
-    if(number != 1) qDebug() << id << tmpPt[0] << tmpPt[1] << tmpPt[2] << "   " << number;
     double d[] = {pt1[0]-pt0[0],pt1[1]-pt0[1]};
     for(int i = 1; i < (number-1); ++i)
     {
@@ -215,7 +214,6 @@ namespace
       tmpPt[0] = pt0[0] + r*d[0];
       tmpPt[1] = pt0[1] + r*d[1];
       id = points->InsertNextPoint(tmpPt);
-      qDebug() << id << tmpPt[0] << tmpPt[1] << tmpPt[2];
     }
     pt0[0] = pt1[0];
     pt0[1] = pt1[1];
