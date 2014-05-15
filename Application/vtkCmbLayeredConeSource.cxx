@@ -17,7 +17,10 @@
 #include <vtkAppendPolyData.h>
 #include <vtkDoubleArray.h>
 
+#include <QDebug>
+
 #include <cassert>
+#include <algorithm>
 
 vtkStandardNewMacro(vtkCmbLayeredConeSource);
 
@@ -26,7 +29,6 @@ vtkCmbLayeredConeSource::vtkCmbLayeredConeSource()
   this->SetNumberOfInputPorts(0);
 
   this->Height = 1.0;
-  this->Resolution = 6;
 
   this->BaseCenter[0] = 0.0;
   this->BaseCenter[1] = 0.0;
@@ -84,6 +86,11 @@ void vtkCmbLayeredConeSource::SetBaseRadius(int layer, double radius)
   this->Modified();
 }
 
+void vtkCmbLayeredConeSource::SetResolution(int layer, int res)
+{
+  this->LayerRadii[layer].Resolution = res;
+}
+
 #define ADD_DATA(IN)                         \
 if (this->GenerateNormals)                   \
 {                                            \
@@ -119,7 +126,7 @@ int vtkCmbLayeredConeSource::RequestData(
   // create and add each layer to the output
   output->SetNumberOfBlocks(this->GetNumberOfLayers());
   int innerRes = 0;
-  int outerRes = this->Resolution;
+  int outerRes = 0;
   double * innerBottomR = NULL;
   double * innerTopR = NULL;
   double * outerBottomR = NULL;
@@ -139,6 +146,7 @@ int vtkCmbLayeredConeSource::RequestData(
     {
     outerBottomR = this->LayerRadii[i].BaseRadii;
     outerTopR = this->LayerRadii[i].TopRadii;
+    outerRes = this->LayerRadii[i].Resolution;
     vtkPolyData * tmpLayer = CreateLayer( this->Height,
                                           innerBottomR, outerBottomR,
                                           innerTopR,    outerTopR,
@@ -193,6 +201,110 @@ else if(innerRes == outerRes)                    \
   }                                              \
 }                                                \
 
+namespace
+{
+  void Upsample(vtkPoints *points, double * pt0, double * pt1, int number)
+  {
+    double tmpPt[] = {pt0[0],pt0[1],pt0[2]};
+    int id = points->InsertNextPoint(tmpPt);
+    if(number != 1) qDebug() << id << tmpPt[0] << tmpPt[1] << tmpPt[2] << "   " << number;
+    double d[] = {pt1[0]-pt0[0],pt1[1]-pt0[1]};
+    for(int i = 1; i < (number-1); ++i)
+    {
+      double r = static_cast<double>(i)/(number-1.0);
+      tmpPt[0] = pt0[0] + r*d[0];
+      tmpPt[1] = pt0[1] + r*d[1];
+      id = points->InsertNextPoint(tmpPt);
+      qDebug() << id << tmpPt[0] << tmpPt[1] << tmpPt[2];
+    }
+    pt0[0] = pt1[0];
+    pt0[1] = pt1[1];
+  }
+
+  class GeneratePoints
+  {
+  public:
+    GeneratePoints(int res)
+    {
+      bool rect = false;
+      if(res == 4)
+      {
+        res = 6;
+        rect = true;
+      }
+      multX.resize(res);
+      multY.resize(res);
+      if(rect)
+      {
+        multX[0] = 1;
+        multY[0] = 0;
+
+        multX[1] = 1;
+        multY[1] = 1;
+
+        multX[2] = -1;
+        multY[2] = 1;
+
+        multX[3] = -1;
+        multY[3] = 0;
+
+        multX[4] = -1;
+        multY[4] = -1;
+
+        multX[5] = 1;
+        multY[5] = -1;
+      }
+      else
+      {
+        double angle = 2.0*3.141592654/res;
+        for(int j = 0; j < res; j++)
+        {
+          multX[j] = cos(j * angle);
+          multY[j] = sin(j * angle);
+        }
+      }
+    }
+    int usedResolution() { return static_cast<int>(multX.size()); }
+    void AddPoints(vtkPoints *points, double h, double * r, double shift)
+    {
+      double point[] = {0,0,h};
+      int res = usedResolution();
+      for(int j = 0; j < res; j++)
+      {
+        compPt(j, point, r, shift);
+        points->InsertNextPoint(point);
+      }
+    }
+    void AddPointsUpsampled(vtkPoints *points, double h, double * r, int maxRes, double shift)
+    {
+      double start[] = {0,0,h};
+      double point[] = {0,0,h};
+      double prevPoint[] = {0,0,h};
+      int res = usedResolution();
+      if(res == 0) return;
+      int ptsPerSide = maxRes/res + 1;
+      assert(maxRes%res == 0); //right now only handle res that are multiples of each other
+      assert(multX[0] == 1 && multY[0] == 0);
+      start[0] = prevPoint[0] = (r[0] + shift);
+      start[1] = prevPoint[1] = 0;
+      for(int j = 1; j < res; j++)
+      {
+        compPt(j, point, r, shift);
+        Upsample(points, prevPoint, point, ptsPerSide);
+      }
+      Upsample(points, prevPoint, start, ptsPerSide);
+    }
+  protected:
+    std::vector<double> multX;
+    std::vector<double> multY;
+    inline void compPt(int i, double * point, double * r, double shift)
+    {
+      point[0] = (r[0] + shift) * multX[i];
+      point[1] = (r[1] + shift) * multY[i];
+    }
+  };
+};
+
 vtkPolyData *
 vtkCmbLayeredConeSource
 ::CreateLayer( double h,
@@ -201,24 +313,57 @@ vtkCmbLayeredConeSource
                int innerRes, int outerRes )
 {
   if(outerTopR == NULL || outerBottomR == NULL) return NULL;
+  if(outerRes == 0) return NULL;
   vtkPolyData *polyData = vtkPolyData::New();
   polyData->Allocate();
 
   vtkPoints *points = vtkPoints::New();
   vtkCellArray *cells = vtkCellArray::New();
 
+  points->SetDataTypeToDouble(); //used later during transformation
+
   vtkIdType pts[VTK_CELL_SIZE];
 
-  points->SetDataTypeToDouble(); //used later during transformation
-  points->Allocate((innerRes + outerRes)*2);
-
-  //Points are order (OuterBottom, InnerBottom, OuterTop, InnerTop)
-  AddPoints(points, 0, outerBottomR, outerRes);
-  AddPoints(points, 0, innerBottomR, innerRes, 0.0005);
-  AddPoints(points, h, outerTopR,    outerRes);
-  AddPoints(points, h, innerTopR,    innerRes, 0.0005);
-
-
+  if(innerRes == 0)
+  {
+    GeneratePoints gp(outerRes);
+    outerRes = gp.usedResolution();
+    points->Allocate(outerRes*2);
+    gp.AddPoints(points, 0, outerBottomR, 0);
+    gp.AddPoints(points, h, outerTopR, 0);
+  }
+  else if(innerRes == outerRes)
+  {
+    GeneratePoints gp(outerRes);
+    innerRes = outerRes = gp.usedResolution();
+    points->Allocate(outerRes*4);
+    gp.AddPoints(points, 0, outerBottomR, 0);
+    gp.AddPoints(points, 0, innerBottomR, 0.0005);
+    gp.AddPoints(points, h, outerTopR,    0);
+    gp.AddPoints(points, h, innerTopR,    0.0005);
+  }
+  else if(innerRes > outerRes)
+  {
+    GeneratePoints gpO(outerRes);
+    GeneratePoints gpI(innerRes);
+    innerRes = outerRes = gpI.usedResolution();
+    points->Allocate(outerRes*4);
+    gpO.AddPointsUpsampled(points, 0, outerBottomR, innerRes, 0);
+    gpI.AddPoints(points, 0, innerBottomR, 0.0005);
+    gpO.AddPointsUpsampled(points, h, outerTopR,    innerRes, 0);
+    gpI.AddPoints(points, h, innerTopR,    0.0005);
+  }
+  else // outerRes > innerRes
+  {
+    GeneratePoints gpO(outerRes);
+    GeneratePoints gpI(innerRes);
+    innerRes = outerRes = gpO.usedResolution();
+    points->Allocate(outerRes*4);
+    gpO.AddPoints(points, 0, outerBottomR, 0);
+    gpI.AddPointsUpsampled(points, 0, innerBottomR, innerRes, 0.0005);
+    gpO.AddPoints(points, h, outerTopR, 0);
+    gpI.AddPointsUpsampled(points, h, innerTopR, innerRes, 0.0005);
+  }
 
   //Add bottom calls
   if(1) { CREATE_END(0) }
@@ -257,37 +402,6 @@ vtkCmbLayeredConeSource
   cells->Delete();
 
   return polyData;
-}
-
-void
-vtkCmbLayeredConeSource
-::AddPoints(vtkPoints *points, double h, double * r, int res, double shift)
-{
-  double point[3];
-  point[2] = h;
-  if(res == 4)
-  {
-    point[0] = -r[0];
-    point[1] = -r[1];
-    points->InsertNextPoint(point);
-    point[0] =  r[0];
-    point[1] = -r[1];
-    points->InsertNextPoint(point);
-    point[0] =  r[0];
-    point[1] =  r[1];
-    points->InsertNextPoint(point);
-    point[0] = -r[0];
-    point[1] =  r[1];
-    points->InsertNextPoint(point);
-    return;
-  }
-  double angle = 2.0*3.141592654/res;
-  for(int j = 0; j < res; j++)
-  {
-    point[0] = (r[0] + shift) * cos(j * angle);
-    point[1] = (r[1] + shift) * sin(j * angle);
-    points->InsertNextPoint(point);
-  }
 }
 
 void vtkCmbLayeredConeSource::PrintSelf(ostream &os, vtkIndent indent)

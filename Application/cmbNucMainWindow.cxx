@@ -935,6 +935,11 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
                                            pin->GetPart(idx)->GetMaterial(k));
         }
       }
+      if(pin->cellMaterialSet())
+      {
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
+                                           pin->getCellMaterial());
+      }
     }
 }
 

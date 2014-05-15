@@ -29,11 +29,10 @@ public:
   void SetBaseRadius(int layer, double r1, double r2);
   double GetBaseRadius(int layer);
 
+  void SetResolution(int layer, int res);
+
   vtkSetMacro(Height, double);
   vtkGetMacro(Height, double);
-
-  vtkSetMacro(Resolution, int);
-  vtkGetMacro(Resolution, int);
 
   vtkSetVector3Macro(BaseCenter,double);
   vtkGetVectorMacro(BaseCenter,double,3);
@@ -60,11 +59,11 @@ protected:
                             double * innerBottomR, double * outerBottomR,
                             double * innerTopR,    double * outerTopR,
                             int innerRes, int outerRes);
-  void AddPoints(vtkPoints *points, double h, double * r, int res, double shift = 0);
 
   double Height;
   struct radii
   {
+    int Resolution;
     double BaseRadii[2];
     double TopRadii[2];
   };

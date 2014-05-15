@@ -259,7 +259,11 @@ void cmbNucPinCellEditor::Reset()
 {
   this->InternalPinCell->fill(this->ExternalPinCell);
 
+
+  this->Ui->CellMaterial->blockSignals(true);
   this->setupMaterialComboBox(this->Ui->CellMaterial);
+  this->Ui->CellMaterial->blockSignals(false);
+
   cmbNucMaterialColors::instance()->selectIndex(this->Ui->CellMaterial,
                                                 this->InternalPinCell->getCellMaterial());
 
@@ -355,7 +359,7 @@ void cmbNucPinCellEditor::Apply()
 
   this->Reset();
   this->ExternalPinCell->CachedData.TakeReference(
-        cmbNucAssembly::CreatePinCellMultiBlock(this->ExternalPinCell, false));
+        cmbNucAssembly::CreatePinCellMultiBlock(this->ExternalPinCell, this->isHex, false));
   if(change) emit valueChange();
 }
 

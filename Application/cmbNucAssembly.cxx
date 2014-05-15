@@ -193,7 +193,6 @@ void cmbNucAssembly::updateMaterialColors(
   int ducts_count = 0;
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
 
-  std::string pinMaterial = "pin";
   int numAssyBlocks = this->AssyLattice.GetNumberOfCells() +
                       this->AssyDuct.numberOfDucts();
   for(unsigned int idx = 0; idx < this->AssyLattice.GetNumberOfCells(); ++idx)
@@ -211,6 +210,11 @@ void cmbNucAssembly::updateMaterialColors(
         {
           matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
                                              pinCell->GetPart(cidx)->GetMaterial(k));
+        }
+        if(pinCell->cellMaterialSet())
+        {
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
+                                             pinCell->getCellMaterial());
         }
       }
     }
@@ -602,15 +606,21 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
 
     vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
       vtkSmartPointer<vtkCmbLayeredConeSource>::New();
-    coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers());
+    coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
     coneSource->SetBaseCenter(0, 0, part->z1);
     coneSource->SetHeight(part->z2 - part->z1);
-    coneSource->SetResolution(PinCellResolution);
 
     for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
       {
       coneSource->SetBaseRadius(k, part->getRadius(k,Frustum::BOTTOM));
       coneSource->SetTopRadius(k, part->getRadius(k,Frustum::TOP));
+      coneSource->SetResolution(k, PinCellResolution);
+      }
+    if(pincell->cellMaterialSet())
+      {
+      coneSource->SetBaseRadius(pincell->GetNumberOfLayers(), pincell->pitchX*0.5, pincell->pitchY*0.5);
+      coneSource->SetTopRadius(pincell->GetNumberOfLayers(), pincell->pitchX*0.5, pincell->pitchY*0.5);
+      coneSource->SetResolution(pincell->GetNumberOfLayers(), (isHex)?6:4);
       }
     double direction[] = { 0, 0, 1 };
     coneSource->SetDirection(direction);

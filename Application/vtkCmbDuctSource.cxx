@@ -84,25 +84,25 @@ int vtkCmbDuctSource::RequestData(
   if(this->GeometryType == HEXAGONAL)
     {
     double preDist = 0;
-    coneSource->SetResolution(6);
     for(int k = 0; k < numLayers; k++)
       {
       double distance = this->Layers[2*k]/2.0;
       double radius = distance / (double)(cos(30.0 * vtkMath::Pi() / 180.0));
       coneSource->SetBaseRadius(k, radius);
       coneSource->SetTopRadius(k, radius);
+      coneSource->SetResolution(k, 6);
       preDist = distance;
       }
     }
   else // create Rect duct
     {
-    coneSource->SetResolution(4);
     for(int k = 0; k < numLayers; k++)
       {
       double w = this->Layers[k*2+0];
       double l = this->Layers[k*2+1];
       coneSource->SetBaseRadius(k, w*0.5, l*0.5);
       coneSource->SetTopRadius(k, w*0.5, l*0.5);
+      coneSource->SetResolution(k, 4);
       }
     }
   coneSource->Update();
