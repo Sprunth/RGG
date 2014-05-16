@@ -185,7 +185,7 @@ if(innerRes == 0)                                \
 {                                                \
   for(int i = 0; i < outerRes; ++i)              \
   {                                              \
-    pts[i] = i+OFFSET;                           \
+    pts[outerRes - 1 - i] = i+OFFSET;                           \
   }                                              \
   cells->InsertNextCell(outerRes, pts);          \
 }                                                \
@@ -194,9 +194,9 @@ else if(innerRes == outerRes)                    \
   for(int i = 0; i < innerRes; ++i)              \
   {                                              \
     pts[0] = i + OFFSET;                         \
-    pts[1] = (i+1)%innerRes + OFFSET;            \
+    pts[3] = (i+1)%innerRes + OFFSET;            \
     pts[2] = (i+1)%innerRes + innerRes + OFFSET; \
-    pts[3] = i+innerRes + OFFSET;                \
+    pts[1] = i+innerRes + OFFSET;                \
     cells->InsertNextCell(4, pts);               \
   }                                              \
 }                                                \
@@ -387,9 +387,9 @@ vtkCmbLayeredConeSource
     for(unsigned int i = 0; i < innerRes; ++i)
     {
       pts[0] = i + outerRes;
-      pts[1] = (i+1) % innerRes + outerRes;
+      pts[3] = (i+1) % innerRes + outerRes;
       pts[2] = (i+1) % innerRes + outerRes+ offset;
-      pts[3] = i + outerRes + offset;
+      pts[1] = i + outerRes + offset;
       cells->InsertNextCell(4, pts);
     }
   }

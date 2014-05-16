@@ -21,6 +21,7 @@
 #include "vtkCellArray.h"
 #include "vtkPoints.h"
 #include "vtkPolyDataNormals.h"
+#include "vtkXMLMultiBlockDataWriter.h"
 #include "vtkNew.h"
 #include "vtkMath.h"
 
@@ -638,6 +639,11 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
 
     if(cutaway)
       {
+        //vtkSmartPointer<vtkXMLMultiBlockDataWriter> writer = vtkSmartPointer<vtkXMLMultiBlockDataWriter>::New();
+        //writer->SetFileName("/Users/jacobbecker/test_build_script/cmbnuclear/build/cone.vtm");
+        //writer->SetInputData(coneSource->GetOutput());
+        //writer->Update();
+        //writer->Write();
       vtkMultiBlockDataSet *coneData = coneSource->GetOutput();
       for(int block = 0; block < coneData->GetNumberOfBlocks(); block++)
         {
