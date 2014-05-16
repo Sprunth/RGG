@@ -15,6 +15,9 @@ endif()
 
 add_external_project(vtk
   DEPENDS qt
+  PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${SuperBuild_PROJECTS_DIR}/patches/vtk_filters_general_vtkContourTriangulator.cxx
+                <SOURCE_DIR>/Filters/General/vtkContourTriangulator.cxx
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     -DModule_vtkGUISupportQt:bool=ON
