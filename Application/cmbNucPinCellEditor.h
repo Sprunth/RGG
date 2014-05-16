@@ -62,6 +62,7 @@ public slots:
   void UpdatePinCell();
   void UpdateData();
   void onUpdateLayerMaterial();
+  void onUpdateCellMaterial( const QString & text );
   void badLabel(QString);
   void badName(QString);
   void calculatePitch();

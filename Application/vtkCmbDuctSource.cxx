@@ -67,22 +67,22 @@ int vtkCmbDuctSource::RequestData(
     vtkMultiBlockDataSet::SafeDownCast(
       outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
+  int numLayers = this->GetNumberOfLayers();
+  // get parameters for the layer
+  double x = this->Origin[0];
+  double y = this->Origin[1];
+  double z = this->Origin[2];
+  vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
+  vtkSmartPointer<vtkCmbLayeredConeSource>::New();
+  coneSource->SetNumberOfLayers(numLayers);
+  coneSource->SetBaseCenter(x, y, z);
+  double direction[] = { 0, 0, 1 };
+  coneSource->SetDirection(direction);
+  coneSource->SetHeight(this->Height);
+
   // create HEX duct
   if(this->GeometryType == HEXAGONAL)
     {
-    int numLayers = this->GetNumberOfLayers();
-    // get parameters for the layer
-    double x = this->Origin[0];
-    double y = this->Origin[1];
-    double z = this->Origin[2];
-    vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
-      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
-    coneSource->SetNumberOfLayers(numLayers);
-    coneSource->SetResolution(6);
-    coneSource->SetBaseCenter(x, y, z);
-    double direction[] = { 0, 0, 1 };
-    coneSource->SetDirection(direction);
-    coneSource->SetHeight(this->Height);
     double preDist = 0;
     for(int k = 0; k < numLayers; k++)
       {
@@ -90,23 +90,23 @@ int vtkCmbDuctSource::RequestData(
       double radius = distance / (double)(cos(30.0 * vtkMath::Pi() / 180.0));
       coneSource->SetBaseRadius(k, radius);
       coneSource->SetTopRadius(k, radius);
+      coneSource->SetResolution(k, 6);
       preDist = distance;
       }
-    coneSource->Update();
-    output->ShallowCopy(coneSource->GetOutput());
     }
   else // create Rect duct
     {
-    // create and add each layer to the output
-    output->SetNumberOfBlocks(this->GetNumberOfLayers());
-
-    for(int i = 0; i < this->GetNumberOfLayers(); i++)
+    for(int k = 0; k < numLayers; k++)
       {
-      vtkPolyData *polyData = this->CreateLayer(i);
-      output->SetBlock(i, polyData);
-      polyData->Delete();
+      double w = this->Layers[k*2+0];
+      double l = this->Layers[k*2+1];
+      coneSource->SetBaseRadius(k, w*0.5, l*0.5);
+      coneSource->SetTopRadius(k, w*0.5, l*0.5);
+      coneSource->SetResolution(k, 4);
       }
     }
+  coneSource->Update();
+  output->ShallowCopy(coneSource->GetOutput());
 
   return 1;
 }
@@ -120,111 +120,6 @@ int vtkCmbDuctSource::RequestInformation(
 //  vtkInformation *outInfo = outputVector->GetInformationObject(0);
 //  outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(), -1);
   return 1;
-}
-
-//----------------------------------------------------------------------------
-vtkPolyData* vtkCmbDuctSource::CreateLayer(int layer)
-{
-  // get parameters for the layer
-  double x = this->Origin[0];
-  double y = this->Origin[1];
-  double z = this->Origin[2];
-
-  // width (x), length (y), height (z)
-  double w = this->Layers[layer*2+0];
-  double l = this->Layers[layer*2+1];
-  double h = this->Height;
-
-  // adjust layer origin and size based on the sizes of the previous layers
-  x += (this->Layers[this->Layers.size()-2] - w)*0.5;
-  y += (this->Layers[this->Layers.size()-1] - l)*0.5;
-
-  vtkPolyData *polyData = vtkPolyData::New();
-  polyData->Allocate();
-
-  vtkPoints *points = vtkPoints::New();
-  vtkCellArray *cells = vtkCellArray::New();
-
-  // create outer layer
-  vtkIdType p0 = points->InsertNextPoint(x, y, z);
-  vtkIdType p1 = points->InsertNextPoint(x+w, y, z);
-  vtkIdType p2 = points->InsertNextPoint(x+w, y+l, z);
-  vtkIdType p3 = points->InsertNextPoint(x, y+l, z);
-
-  vtkIdType p4 = points->InsertNextPoint(x, y, z+h);
-  vtkIdType p5 = points->InsertNextPoint(x+w, y, z+h);
-  vtkIdType p6 = points->InsertNextPoint(x+w, y+l, z+h);
-  vtkIdType p7 = points->InsertNextPoint(x, y+l, z+h);
-
-  vtkIdType c0[] = { p0, p4, p5, p1 };
-  cells->InsertNextCell(4, c0);
-
-  vtkIdType c1[] = { p1, p5, p6, p2 };
-  cells->InsertNextCell(4, c1);
-
-  vtkIdType c2[] = { p2, p6, p7, p3 };
-  cells->InsertNextCell(4, c2);
-
-  vtkIdType c3[] = { p3, p7, p4, p0 };
-  cells->InsertNextCell(4, c3);
-
-  // create inner layer (for all but the innermost layer)
-  if(layer != 0)
-    {
-    double tx = (this->Layers[layer*2+0] - this->Layers[layer*2-2])*0.5;
-    double ty = (this->Layers[layer*2+1] - this->Layers[layer*2-1])*0.5;
-
-    vtkIdType p8 = points->InsertNextPoint(x+tx, y+ty, z);
-    vtkIdType p9 = points->InsertNextPoint(x+w-tx, y+ty, z);
-    vtkIdType p10 = points->InsertNextPoint(x+w-tx, y+l-ty, z);
-    vtkIdType p11 = points->InsertNextPoint(x+tx, y+l-ty, z);
-
-    vtkIdType p12 = points->InsertNextPoint(x+tx, y+ty, z+h);
-    vtkIdType p13 = points->InsertNextPoint(x+w-tx, y+ty, z+h);
-    vtkIdType p14 = points->InsertNextPoint(x+w-tx, y+l-ty, z+h);
-    vtkIdType p15 = points->InsertNextPoint(x+tx, y+l-ty, z+h);
-
-    vtkIdType c4[] = { p0, p1, p9, p8 };
-    cells->InsertNextCell(4, c4);
-
-    vtkIdType c5[] = { p1, p2, p10, p9 };
-    cells->InsertNextCell(4, c5);
-
-    vtkIdType c6[] = { p2, p3, p11, p10 };
-    cells->InsertNextCell(4, c6);
-
-    vtkIdType c7[] = { p0, p3, p11, p8 };
-    cells->InsertNextCell(4, c7);
-
-    vtkIdType c8[] = { p4, p5, p13, p12 };
-    cells->InsertNextCell(4, c8);
-
-    vtkIdType c9[] = { p5, p6, p14, p13 };
-    cells->InsertNextCell(4, c9);
-
-    vtkIdType c10[] = { p6, p7, p15, p14 };
-    cells->InsertNextCell(4, c10);
-
-    vtkIdType c11[] = { p4, p7, p15, p12 };
-    cells->InsertNextCell(4, c11);
-    }
-  else
-      {
-      // The inner layer is a square top and bottom
-      vtkIdType c4[] = { p0, p1, p2, p3 };
-      cells->InsertNextCell(4, c4);
-
-      vtkIdType c5[] = { p4, p5, p6, p7 };
-      cells->InsertNextCell(4, c5);
-      }
-
-  polyData->SetPoints(points);
-  polyData->SetPolys(cells);
-
-  points->Delete();
-  cells->Delete();
-
-  return polyData;
 }
 
 //----------------------------------------------------------------------------

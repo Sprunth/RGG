@@ -177,7 +177,9 @@ public:
 
   // creates the multiblock used to render the pincell. if cutaway is true the
   // pincell will be cut in half length-wise to show the interior layers.
-  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell, bool cutaway = false);
+  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell,
+                                                       bool isHex,
+                                                       bool cutaway = false);
 
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
