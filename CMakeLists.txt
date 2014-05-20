@@ -141,3 +141,8 @@ include_directories(${Remus_INCLUDE_DIR})
 # Application
 #
 add_subdirectory(Application)
+
+#-----------------------------------------------------------------------------
+# LaTeX User's Guide
+#
+add_subdirectory(Documentation)
