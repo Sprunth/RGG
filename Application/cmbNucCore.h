@@ -283,6 +283,7 @@ public:
   bool HasDefaults() const;
   void calculateDefaults();
   void sendDefaults();
+  void initDefaults();
 
 
   void checkUsedAssembliesForGen();
