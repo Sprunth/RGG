@@ -349,8 +349,8 @@ void cmbNucInputListWidget::onNewAssembly()
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
 
   this->NuclearCore->AddAssembly(assembly);
-  assembly->setFromDefaults(this->NuclearCore->GetDefaults());
   assembly->computeDefaults();
+  assembly->setFromDefaults(this->NuclearCore->GetDefaults());
 
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
