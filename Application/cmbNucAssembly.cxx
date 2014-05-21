@@ -547,8 +547,11 @@ void cmbNucAssembly::calculatePitch(double & x, double & y)
   }
   if(this->IsHexType())
   {
-    double tmp =  inDuctThick[0]/ (cos(30.0 * vtkMath::Pi() / 180.0));
-    x = y = tmp / (2.0*this->AssyLattice.Grid.size()-1.0);
+    const double d = inDuctThick[0]-inDuctThick[0]*0.035; // make it slightly smaller to make exporting happy
+    const double l = this->AssyLattice.Grid.size();
+    const double cost=0.86602540378443864676372317075294;
+    const double sint=0.5;
+    x = y = (cost*d)/(l+sint*(l-1));
   }
   else
   {
@@ -627,7 +630,7 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       if(isHex)
         {
         res = 6;
-        r[0] = r[1] = r[0]/0.86602540378;
+        r[0] = r[1] = r[0]/0.86602540378443864676372317075294;
         }
       coneSource->SetBaseRadius(pincell->GetNumberOfLayers(), r[0], r[1]);
       coneSource->SetTopRadius(pincell->GetNumberOfLayers(), r[0], r[1]);
@@ -795,7 +798,6 @@ void cmbNucAssembly::setCenterPins(bool t)
   if(KeepPinsCentered)
   {
     this->centerPins();
-    this->CreateData();
   }
 }
 
@@ -806,11 +808,21 @@ void cmbNucAssembly::centerPins()
   calculatePitch(px,py);
   for(unsigned int i = 0; i < PinCells.size(); ++i)
   {
+    bool regen = false;
     PinCell * pc = PinCells[i];
-    change |= pc->pitchX != px;
+    regen |= pc->pitchX != px;
     pc->pitchX = px;
-    change |= pc->pitchY != py;
+    regen |= pc->pitchY != py;
     pc->pitchY = py;
+    if(regen)
+    {
+      change = true;
+      pc->CachedData = NULL; //will be filled in create data
+    }
   }
-  if(change) this->Connection->dataChanged();
+  if(change)
+  {
+    this->CreateData();
+    this->Connection->dataChanged();
+  }
 }

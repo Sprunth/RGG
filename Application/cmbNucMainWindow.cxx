@@ -466,12 +466,14 @@ void cmbNucMainWindow::onNewCore()
       return;
     }
     this->doClearAll();
+    this->NuclearCore->initDefaults();
     this->NuclearCore->GeometryType = geoType;
     this->PropertyWidget->setGeometryType(geoTypeEnum);
     this->PropertyWidget->setObject(NULL, NULL);
     this->PropertyWidget->setAssembly(NULL);
     this->NuclearCore->CoreLattice.SetGeometryType(geoTypeEnum);
     this->InputsWidget->onNewAssembly();
+    this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);
     this->Renderer->ResetCamera();
     this->Renderer->Render();

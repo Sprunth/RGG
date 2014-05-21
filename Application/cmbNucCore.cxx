@@ -573,6 +573,18 @@ bool cmbNucCore::HasDefaults() const
   return this->Defaults != NULL;
 }
 
+void cmbNucCore::initDefaults()
+{
+  double DuctThickX = 10;
+  double DuctThickY = 10;
+  double length = 10;
+  delete this->Defaults;
+  this->Defaults = new cmbNucDefaults();
+  this->Defaults->setHeight(length);
+
+  this->Defaults->setDuctThickness(DuctThickX, DuctThickY);
+}
+
 void cmbNucCore::calculateDefaults()
 {
   delete this->Defaults;
