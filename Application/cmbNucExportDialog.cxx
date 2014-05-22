@@ -69,6 +69,7 @@ cmbNucExportDialog::~cmbNucExportDialog()
   delete this->Progress;
   Thread.quit();
   Thread.wait();
+  delete Exporter;
 }
 
 void cmbNucExportDialog::exportFile(cmbNucCore * core)

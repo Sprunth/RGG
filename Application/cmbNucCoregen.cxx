@@ -35,6 +35,7 @@ cmbNucCoregen::cmbNucCoregen(QTreeWidget * l)
 
 cmbNucCoregen::~cmbNucCoregen()
 {
+  this->MoabReader->Delete();
 }
 
 vtkSmartPointer<vtkDataObject>

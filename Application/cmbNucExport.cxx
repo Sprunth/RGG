@@ -86,6 +86,8 @@ class cmbNucExporterClient
 {
 public:
   cmbNucExporterClient(std::string label, std::string server = "");
+  ~cmbNucExporterClient()
+  {delete Client;}
   ExporterOutput getOutput(ExporterInput const& in);
 private:
   remus::client::ServerConnection Connection;
