@@ -52,13 +52,20 @@ protected slots:
   void GetRunnableCoreFile(bool);
 
 signals:
-  void process( const QString, const QStringList &,
-                const QString, const QString,
-                const QString, const QString );
+  void process( const QString,
+                const QString assygenLib,
+                const QStringList &,
+                const QString,
+                const QString,
+                const QString coregenLib,
+                const QString,
+                const QString );
   void process( const QString assygenExe,
+                const QString assygenLib,
                 const QStringList &assygenFile,
                 const QString cubitExe );
   void process( const QString coregenExe,
+                const QString coregenLib,
                 const QString coregenFile,
                 const QString CoreGenOutputFile );
 public:

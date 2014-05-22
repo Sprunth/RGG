@@ -45,19 +45,19 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
            this, SLOT(GetRunnableAssyFiles(bool)));
   connect( this->ui->forceCore, SIGNAL(clicked(bool)),
           this, SLOT(GetRunnableCoreFile(bool)));
-  connect( this, SIGNAL(process( const QString, const QStringList &,
-                                 const QString, const QString,
+  connect( this, SIGNAL(process( const QString, const QString, const QStringList &,
+                                 const QString, const QString, const QString,
                                  const QString, const QString)),
-           this->Exporter, SLOT(run( const QString, const QStringList &,
-                                     const QString, const QString,
+           this->Exporter, SLOT(run( const QString, const QString, const QStringList &,
+                                     const QString, const QString, const QString,
                                      const QString, const QString)));
-  connect( this, SIGNAL(process( const QString, const QStringList &,
+  connect( this, SIGNAL(process( const QString, const QString, const QStringList &,
                                  const QString)),
-           this->Exporter, SLOT(runAssy( const QString, const QStringList &,
+           this->Exporter, SLOT(runAssy( const QString, const QString, const QStringList &,
                                          const QString)));
-  connect( this, SIGNAL(process( const QString, const QString,
+  connect( this, SIGNAL(process( const QString, const QString, const QString,
                                 const QString)),
-           this->Exporter, SLOT(runCore( const QString, const QString,
+           this->Exporter, SLOT(runCore( const QString, const QString, const QString,
                                          const QString)));
   connect( this->Exporter, SIGNAL(fileDone()), this, SIGNAL(fileFinish()));
   Thread.start();
@@ -91,8 +91,10 @@ void cmbNucExportDialog::sendSignalToProcess()
   qDebug() << "SENDING TO THREAD";
   QSettings settings("CMBNuclear", "CMBNuclear");
   QString assygenExe = settings.value("EXPORTER/assygen_exe").toString();
+  QString assyGenLibs = settings.value("EXPORTER/assygen_libs").toString();
   QString coregenExe = settings.value("EXPORTER/coregen_exe").toString();
   QString cubitExe = settings.value("EXPORTER/cubit_exe").toString();
+  QString coreGenLibs = settings.value("EXPORTER/coregen_libs").toString();
   if(assygenExe.isEmpty())
   {
     qDebug() << "Failed assygen is empty";
@@ -140,14 +142,15 @@ void cmbNucExportDialog::sendSignalToProcess()
     qDebug() << outputMesh;
   }
 
-  emit process(assygenExe, this->AssygenFileList,
-               cubitExe, coregenExe, CoregenFile, outputMesh);
+  emit process(assygenExe, assyGenLibs, this->AssygenFileList,
+               cubitExe, coregenExe, coreGenLibs, CoregenFile, outputMesh);
 }
 
 void cmbNucExportDialog::runAssygen()
 {
   QSettings settings("CMBNuclear", "CMBNuclear");
   QString assygenExe = settings.value("EXPORTER/assygen_exe").toString();
+  QString assyGenLibs = settings.value("EXPORTER/assygen_libs").toString();
   this->hide();
 
   if(assygenExe.isEmpty())
@@ -171,7 +174,7 @@ void cmbNucExportDialog::runAssygen()
   }
 
   this->Progress->show();
-  emit process(assygenExe, this->AssygenFileList, cubitExe);
+  emit process(assygenExe, assyGenLibs, this->AssygenFileList, cubitExe);
 }
 
 void cmbNucExportDialog::runSelectedAssygen()
@@ -191,6 +194,7 @@ void cmbNucExportDialog::runCoregen()
   qDebug() << "SENDING TO THREAD";
   QSettings settings("CMBNuclear", "CMBNuclear");
   QString coregenExe = settings.value("EXPORTER/coregen_exe").toString();
+  QString coreGenLibs = settings.value("EXPORTER/coregen_libs").toString();
   this->hide();
   if(CoregenFile.isEmpty())
   {
@@ -216,7 +220,7 @@ void cmbNucExportDialog::runCoregen()
     qDebug() << outputMesh;
   }
 
-  emit process( coregenExe, CoregenFile, outputMesh);
+  emit process( coregenExe, coreGenLibs, CoregenFile, outputMesh);
 }
 
 void cmbNucExportDialog::GetRunnableAssyFiles(bool force)

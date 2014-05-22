@@ -31,10 +31,14 @@ void cmbNucPreferencesDialog::setPreferences()
   QSettings settings("CMBNuclear", "CMBNuclear");
   QString assygenexe = settings.value("EXPORTER/assygen_exe").toString();
   this->ui->assygenExecutable->setText(assygenexe);
+  QString libs = settings.value("EXPORTER/assygen_libs").toString();
+  this->ui->AssyGenLib->setText(libs);
   QString coregenexe = settings.value("EXPORTER/coregen_exe").toString();
   this->ui->coregenExecutable->setText(coregenexe);
   QString cubitexe = settings.value("EXPORTER/cubit_exe").toString();
   this->ui->cubitExecutable->setText(cubitexe);
+  libs = settings.value("EXPORTER/coregen_libs").toString();
+  this->ui->CoreGenLib->setText(libs);
   this->show();
 }
 
@@ -72,11 +76,14 @@ void cmbNucPreferencesDialog::browserCoregenExecutable()
 void cmbNucPreferencesDialog::setValues()
 {
   QString assygenExe = ui->assygenExecutable->text();
+  QString assygenLibs = ui->AssyGenLib->toPlainText();
   QString cubitExe = ui->cubitExecutable->text();
   QString coregenExe = ui->coregenExecutable->text();
+  QString coregenLibs = ui->CoreGenLib->toPlainText();
   QSettings settings("CMBNuclear", "CMBNuclear");
   settings.setValue("EXPORTER/assygen_exe", assygenExe);
+  settings.setValue("EXPORTER/assygen_libs", assygenLibs);
   settings.setValue("EXPORTER/coregen_exe", coregenExe);
   settings.setValue("EXPORTER/cubit_exe", cubitExe);
-
+  settings.setValue("EXPORTER/coregen_libs", coregenLibs);
 }
