@@ -238,6 +238,7 @@ cmbNucMainWindow::~cmbNucMainWindow()
   delete this->Internal->MoabSource;
   delete this->Internal;
 #endif
+  delete this->ui;
 }
 
 void cmbNucMainWindow::initPanels()

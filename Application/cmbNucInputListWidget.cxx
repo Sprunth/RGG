@@ -53,6 +53,7 @@ public:
   cmbNucInputListWidgetInternal()
   {
     this->RootCoreNode = NULL;
+    TreeItemDelegate = new MyItemDelegate();
   }
   virtual ~cmbNucInputListWidgetInternal()
   {
@@ -60,6 +61,7 @@ public:
     delete Action_NewPin;
     delete Action_NewDuct;
     delete Action_DeletePart;
+    delete TreeItemDelegate;
   }
   void initActions()
     {
@@ -79,6 +81,8 @@ public:
   QPointer<QAction> Action_DeletePart;
 
   cmbNucPartsTreeItem* RootCoreNode;
+
+  MyItemDelegate * TreeItemDelegate;
 };
 
 //-----------------------------------------------------------------------------
@@ -94,7 +98,7 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
 
   // set up the UI trees
   QTreeWidget* treeWidget = this->Internal->PartsList;
-  treeWidget->setItemDelegate(new MyItemDelegate());
+  treeWidget->setItemDelegate(this->Internal->TreeItemDelegate);
 
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),

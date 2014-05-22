@@ -45,6 +45,7 @@ cmbNucInputPropertiesWidget::cmbNucInputPropertiesWidget(cmbNucMainWindow *mainW
   this->initUI();
   this->CurrentObject = NULL;
   this->RebuildCoreGrid = false;
+  this->Assembly = NULL;
 }
 
 //-----------------------------------------------------------------------------

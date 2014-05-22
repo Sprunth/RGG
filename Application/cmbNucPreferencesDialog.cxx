@@ -23,6 +23,7 @@ cmbNucPreferencesDialog::cmbNucPreferencesDialog(cmbNucMainWindow *mainWindow)
 
 cmbNucPreferencesDialog::~cmbNucPreferencesDialog()
 {
+  delete this->ui;
 }
 
 void cmbNucPreferencesDialog::setPreferences()
