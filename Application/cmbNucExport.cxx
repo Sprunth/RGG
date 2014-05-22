@@ -22,6 +22,8 @@
 
 #include <iostream>
 
+#include <stdlib.h>
+
 #include "cmbNucExport.h"
 
 namespace
@@ -40,17 +42,18 @@ struct ExporterInput
 {
   std::string ExeDir;
   std::string Function;
+  std::string LibPath;
   std::string FileArg;
   operator std::string(void) const
   {
     std::stringstream ss;
-    ss << ExeDir << ';' << FileArg << ";" <<Function << ";";
-    qDebug() << "ToStr: " << ExeDir.c_str() << FileArg.c_str() << Function.c_str();
+    ss << ExeDir << ';' << FileArg << ";" <<Function << ";" << LibPath;
     return ss.str();
   }
   ExporterInput(std::string exeDir, std::string fun, std::string file)
   :ExeDir(exeDir), Function(fun),FileArg(file)
-  {  }
+  {
+  }
   ExporterInput(QString exeDir, QString fun, QString file)
   :ExeDir(exeDir.trimmed().toStdString()), Function(fun.trimmed().toStdString()),
    FileArg(file.trimmed().toStdString())
@@ -62,7 +65,7 @@ struct ExporterInput
     getline(ss, ExeDir,   ';');
     getline(ss, FileArg,  ';');
     getline(ss, Function, ';');
-    qDebug() << "Input: " << ExeDir.c_str() << FileArg.c_str() << Function.c_str();
+    getline(ss, LibPath,  ';');
   }
 };
 
@@ -180,6 +183,18 @@ void cmbNucExporterWorker::run()
     }
     args.push_back(input.FileArg);
 
+#ifdef __APPLE__
+    char* oldEnv = getenv("DYLD_LIBRARY_PATH");
+    std::string env(input.LibPath);
+    setenv("DYLD_LIBRARY_PATH", env.c_str(), 1);
+    qDebug() << env.c_str();
+    qDebug() << oldEnv;
+#elif  __linux
+    char* oldEnv = getenv("LD_LIBRARY_PATH");
+    std::string env(input.LibPath);
+    setenv("LD_LIBRARY_PATH", env.c_str(), 1);
+#endif
+
     remus::common::ExecuteProcess* process = new remus::common::ExecuteProcess( input.Function, args);
 
     //actually launch the new process
@@ -198,6 +213,18 @@ void cmbNucExporterWorker::run()
     }
     QDir::setCurrent( current );
     delete process;
+
+#ifdef __APPLE__
+    if(oldEnv != NULL)
+    {
+      setenv("DYLD_LIBRARY_PATH", oldEnv, 1);
+    }
+#elif  __linux
+    if(oldEnv != NULL)
+    {
+      setenv("LD_LIBRARY_PATH", oldEnv, 1);
+    }
+#endif
   }
 }
 
@@ -320,9 +347,11 @@ cmbNucExporterClient<JOB_REQUEST_IN, JOB_REQUEST_OUT>::getOutput(ExporterInput c
 }
 
 void cmbNucExport::run( const QString assygenExe,
+                        const QString assygenLib,
                         const QStringList &assygenFile,
                         const QString cubitExe,
                         const QString coregenExe,
+                        const QString coregenLib,
                         const QString coregenFile,
                         const QString CoreGenOutputFile )
 {
@@ -332,11 +361,11 @@ void cmbNucExport::run( const QString assygenExe,
 
   if(!this->startUpHelper(current, total_number_of_file)) return;
 
-  if(!this->runAssyHelper( assygenExe, assygenFile, cubitExe,
+  if(!this->runAssyHelper( assygenExe, assygenLib, assygenFile, cubitExe,
                            current, total_number_of_file) )
     return;
 
-  if(!this->runCoreHelper( coregenExe, coregenFile, CoreGenOutputFile,
+  if(!this->runCoreHelper( coregenExe, coregenLib, coregenFile, CoreGenOutputFile,
                            current, total_number_of_file ))
     return;
 
@@ -344,26 +373,28 @@ void cmbNucExport::run( const QString assygenExe,
 }
 
 void cmbNucExport::runAssy( const QString assygenExe,
+                            const QString assygenLib,
                             const QStringList &assygenFile,
                             const QString cubitExe )
 {
   double total_number_of_file = 2.0*assygenFile.count() + 5;
   double current = 0;
   if(!this->startUpHelper(current, total_number_of_file)) return;
-  if(!this->runAssyHelper( assygenExe, assygenFile, cubitExe,
+  if(!this->runAssyHelper( assygenExe, assygenLib, assygenFile, cubitExe,
                           current, total_number_of_file) )
     return;
   this->finish();
 }
 
 void cmbNucExport::runCore( const QString coregenExe,
+                            const QString coregenLib,
                             const QString coregenFile,
                             const QString CoreGenOutputFile )
 {
   double total_number_of_file = 6;
   double current = 0;
   if(!this->startUpHelper(current, total_number_of_file)) return;
-  if(!this->runCoreHelper( coregenExe, coregenFile, CoreGenOutputFile,
+  if(!this->runCoreHelper( coregenExe, coregenLib, coregenFile, CoreGenOutputFile,
                           current, total_number_of_file ))
     return;
 
@@ -394,6 +425,7 @@ void cmbNucExport::failedHelper(QString msg, QString pmsg)
 }
 
 bool cmbNucExport::runAssyHelper( const QString assygenExe,
+                                  const QString assygenLib,
                                   const QStringList &assygenFile,
                                   const QString cubitExe,
                                   double & count, double max_count )
@@ -414,7 +446,22 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
     QString pass = path + '/' + name;
     emit currentProcess("  assygen " + name);
     QFile::remove(pass + ".jou");
-    ExporterOutput lr = ae.getOutput(ExporterInput(path, assygenExe, pass));
+    ExporterInput in(path, assygenExe, pass);
+    {
+      in.LibPath = "";
+      std::stringstream ss(assygenLib.toStdString().c_str());
+      std::string line;
+      unsigned int i = 0;
+      while( std::getline(ss, line))
+      {
+        in.LibPath += line + ":";
+      }
+      QFileInfo libPaths(assygenExe);
+      in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
+      in.LibPath += ":"+ QFileInfo(cubitExe).absolutePath().toStdString();
+    }
+
+    ExporterOutput lr = ae.getOutput(in);
     count++;
     emit progress(static_cast<int>(count/max_count*100));
     if(!lr.Valid)
@@ -463,6 +510,7 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
 }
 
 bool cmbNucExport::runCoreHelper( const QString coregenExe,
+                                  const QString coregenLib,
                                   const QString coregenFile,
                                   const QString CoreGenOutputFile,
                                   double & count, double max_count )
@@ -479,7 +527,21 @@ bool cmbNucExport::runCoreHelper( const QString coregenExe,
   QString pass = path + '/' + name;
   emit currentProcess("  coregen " + name + ".inp");
   CoregenExporter coreExport("Coregen");
-  ExporterOutput r = coreExport.getOutput(ExporterInput(path, coregenExe, pass));
+  ExporterInput in(path, coregenExe, pass);
+  {
+    in.LibPath = "";
+    std::stringstream ss(coregenLib.toStdString().c_str());
+    std::string line;
+    unsigned int i = 0;
+    while( std::getline(ss, line))
+    {
+      in.LibPath += line + ":";
+    }
+
+    QFileInfo libPaths(coregenExe);
+    in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
+  }
+  ExporterOutput r = coreExport.getOutput(in);
   count++;
   emit progress(static_cast<int>(count/max_count*100));
   if(!r.Valid)

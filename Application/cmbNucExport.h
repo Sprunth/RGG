@@ -72,15 +72,19 @@ public:
   void setKeepGoing(bool);
 public slots:
   void run( const QString assygenExe,
+            const QString assygenLib,
             const QStringList &assygenFile,
             const QString cubitExe,
             const QString coregenExe,
+            const QString coregenLib,
             const QString coregenFile,
             const QString CoreGenOutputFile);
   void runAssy( const QString assygenExe,
+                const QString assygenLib,
                 const QStringList &assygenFile,
                 const QString cubitExe );
   void runCore(const QString coregenExe,
+               const QString coregenLib,
                const QString coregenFile,
                const QString CoreGenOutputFile);
   void cancel();
@@ -100,10 +104,12 @@ signals:
   void endWorkers();
 private:
   bool runAssyHelper( const QString assygenExe,
+                      const QString assygenLib,
                       const QStringList &assygenFile,
                       const QString cubitExe,
                       double & count, double max_count );
   bool runCoreHelper( const QString coregenExe,
+                      const QString coregenLib,
                       const QString coregenFile,
                       const QString CoreGenOutputFile,
                       double & count, double max_count );
