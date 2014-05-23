@@ -55,7 +55,7 @@ void cmbNucCoregen::openFile(QString file)
   List->clear();
   for (unsigned int i = 0; i < tmp->GetNumberOfBlocks(); ++i)
   {
-    if(this->GeoFilt[i] == NULL) this->GeoFilt[i] = vtkGeometryFilter::New();
+    if(this->GeoFilt[i] == NULL) this->GeoFilt[i] = vtkSmartPointer<vtkGeometryFilter>::New();
     const char * name = tmp->GetMetaData(i)->Get(vtkCompositeDataSet::NAME());
     this->GeoFilt[i]->SetInputData(tmp->GetBlock(i));
     this->GeoFilt[i]->Update();
