@@ -887,8 +887,6 @@ void cmbNucMainWindow::doClearAll()
   this->initPanels();
   emit checkSave();
   onChangeMeshEdgeMode(false);
-  //this->InputsWidget->updateUI(false);
-  //this->PropertyWidget->resetCore(NULL);
   this->Internal->CurrentDataset = NULL;
   this->Mapper->SetInputDataObject(NULL);
   this->ui->qvtkWidget->update();

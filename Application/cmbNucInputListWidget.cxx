@@ -384,7 +384,8 @@ void cmbNucInputListWidget::onNewDuct()
   assy->AssyDuct.AddDuct(newduct);
   cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, newduct);
   QString number = QString::number(assy->AssyDuct.numberOfDucts());
-  dNode->setText(0, QString("duct").append(number));;
+  dNode->setText(0, QString("duct").append(number));
+  newduct->label = QString("duct").append(number).toStdString();
   Qt::ItemFlags itemFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   dNode->setFlags(itemFlags); // not editable
@@ -699,6 +700,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     Duct *duct = assy->AssyDuct.getDuct(i);
     cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, duct);
     dNode->setText(0, QString("duct").append(QString::number(i+1)));
+    duct->label = QString("duct").append(QString::number(i+1)).toStdString();
     dNode->setFlags(itemFlags); // not editable
     }
 

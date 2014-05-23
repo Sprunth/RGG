@@ -162,7 +162,7 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
     return;
     }
   this->setEnabled(true);
-  emit currentObjectNameChanged(name);
+  emit currentObjectNameChanged(selObj->getTitle().c_str());
 
   this->onReset();
 }
@@ -338,7 +338,7 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
     this->Assembly->AssyLattice.replaceLabel(previous.toStdString(),
                                              current.toStdString());
   }
-  emit currentObjectNameChanged(current);
+  emit currentObjectNameChanged( selObj->getTitle().c_str() );
   emit sendLabelChange(current);
 }
 

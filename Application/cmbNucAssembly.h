@@ -211,6 +211,7 @@ public:
 
   std::string getLabel(){return label;}
   std::string getFileName(){return FileName;}
+  virtual std::string getTitle(){ return "Assembly: " + label; }
 
   // Expose assembly parts for UI access
   DuctCell AssyDuct;

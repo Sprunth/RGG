@@ -263,6 +263,7 @@ public:
 
   std::string getLabel(){return "Core";}
   std::string getFileName(){return FileName;}
+  virtual std::string getTitle(){ return "Core"; }
 
   // Get/Set Assembly pitch
   double AssyemblyPitchX;

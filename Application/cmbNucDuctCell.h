@@ -37,13 +37,15 @@ public:
 
   QSet< cmbNucMaterial* > getMaterials();
 
-  std::string getLabel(){return "Duct";}
+  std::string getLabel(){return label;}
+  virtual std::string getTitle(){ return "Duct: " + label; }
 
   double x;
   double y;
   double z1;
   double z2;
   double thickness[2];
+  std::string label;
 protected:
   std::vector<cmbNucMaterialLayer> Materials;
   DuctConnection * Connection;
@@ -67,6 +69,7 @@ public:
   double getLength();
   void setLength(double l);
   std::string getLabel(){return "Duct";}
+  virtual std::string getTitle(){ return "Duct"; }
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;
