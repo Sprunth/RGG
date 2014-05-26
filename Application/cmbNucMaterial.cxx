@@ -70,7 +70,11 @@ cmbNucMaterialLayer::getMaterial() const
 
 void cmbNucMaterialLayer::materialDeleted()
 {
-  this->changeMaterial(cmbNucMaterialColors::instance()->getUnknownMaterial());
+  cmbNucMaterialColors * colors = cmbNucMaterialColors::instance();
+  if(colors!=NULL)
+  {
+    this->changeMaterial(colors->getUnknownMaterial());
+  }
 }
 
 double * cmbNucMaterialLayer::getThickness()
