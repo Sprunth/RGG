@@ -665,7 +665,9 @@ void inpFileHelper::readMaterials( std::stringstream & input,
         }
       }
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+    std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
     materialLabelMap[mlabel] = mat;
+    materialLabelMap[mname] = mat;
     }
 }
 
@@ -738,7 +740,9 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
     if(it != materialLabelMap.end())
       mat = it->second;
     else
+      {
       labelIsDifferent = true;
+      }
     duct->setMaterial(i, mat);
     duct->getNormThick(i)[0] /= maxV[0];
     duct->getNormThick(i)[1] /= maxV[1];
