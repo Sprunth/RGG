@@ -18,6 +18,7 @@
 #include <QHeaderView>
 #include <QItemDelegate>
 #include <QMenu>
+#include <QHeaderView>
 
 class MyItemDelegate: public QItemDelegate
 {
@@ -95,6 +96,7 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   this->Internal->initActions();
 
   this->Internal->PartsList->setAlternatingRowColors(true);
+  this->Internal->PartsList->header()->setResizeMode(QHeaderView::ResizeToContents);
 
   // set up the UI trees
   QTreeWidget* treeWidget = this->Internal->PartsList;
@@ -709,32 +711,10 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     {
     PinCell *pincell = assy->GetPinCell(i);
     cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, pincell);
-    //pinNode->setText(0, QString("PinCell").append(QString::number(i+1)));
     pinNode->setText(0, QString::fromStdString(pincell->label));
     pinNode->setFlags(itemFlags); // not editable
     pinNode->setChildIndicatorPolicy(
       QTreeWidgetItem::DontShowIndicatorWhenChildless);
-
-    /// don't need this anymore, since the PinCellEditor is integrated into
-    /// Main UI panels
-
-/*
-    for(size_t j = 0; j < pincell->cylinders.size(); j++)
-      {
-      Cylinder *cylin = pincell->cylinders[j];
-      cmbNucPartsTreeItem* cNode = new cmbNucPartsTreeItem(pinNode, cylin);
-      cNode->setText(0, QString("cylinder").append(QString::number(j+1)));
-      cNode->setFlags(itemFlags);
-      }
-
-    for(size_t j = 0; j < pincell->frustums.size(); j++)
-      {
-      Frustum *frust = pincell->frustums[j];
-      cmbNucPartsTreeItem* fNode = new cmbNucPartsTreeItem(pinNode, frust);
-      fNode->setText(0, QString("frustum").append(QString::number(j+1)));
-      fNode->setFlags(itemFlags);
-      }
-*/
     }
 
   this->Internal->PartsList->blockSignals(false);
@@ -742,7 +722,6 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   if(select)
     {
     this->Internal->PartsList->setCurrentItem(partsRoot);
-    //partsRoot->setSelected(true); // select the assembly
     this->onPartsSelectionChanged();
     }
 }
