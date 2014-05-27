@@ -141,3 +141,36 @@ include_directories(${Remus_INCLUDE_DIR})
 # Application
 #
 add_subdirectory(Application)
+if(APPLE OR UNIX)
+  option(CMBNuc_BUILD_MESHKIT "Build Meshkit." OFF)
+  if(CMBNuc_BUILD_MESHKIT)
+    include(ExternalProject)
+    option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
+
+    if(BUILD_WITH_CUBIT)
+      set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
+      if(NOT IS_DIRECTORY ${CUBIT_PATH})
+        message(FATAL_ERROR "CUBIT_PATH needs to be set to a valid path")
+      endif()
+    endif()
+
+    if(APPLE)
+      if(BUILD_WITH_CUBIT)
+        message("Apple cubit currently only 32 bit, forcing to 32bit")
+        set(APPLE_OPTIONS -DCMAKE_OSX_ARCHITECTURES:STRING=i386 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET} -DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT})
+      else()
+        set(APPLE_OPTIONS -DCMAKE_OSX_ARCHITECTURES:STRING=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET} -DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT})
+      endif()
+    endif()
+
+    ExternalProject_Add(meshkit SOURCE_DIR ${CMAKE_SOURCE_DIR}/meshkit
+                                BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/meshkit
+                                CMAKE_ARGS ${APPLE_OPTIONS}
+                                           -DCMAKE_BUILD_TYPE:STRING=Release
+                                           -DBUILD_WITH_CUBIT:BOOL=${BUILD_WITH_CUBIT}
+                                           -DCUBIT_PATH:PATH=${CUBIT_PATH}
+                                           -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/meshkit)
+
+
+  endif()
+endif()
