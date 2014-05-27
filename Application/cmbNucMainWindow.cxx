@@ -557,6 +557,8 @@ void cmbNucMainWindow::onFileOpen()
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
         this->ui->actionNew_Assembly->setEnabled(true);
+        this->PropertyWidget->setGeometryType(
+              this->NuclearCore->CoreLattice.GetGeometryType());
         setTitle();
         break;
       default:
