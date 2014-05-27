@@ -160,12 +160,29 @@ std::size_t cmbNucAssembly::GetNumberOfPinCells() const
   return this->PinCells.size();
 }
 
+std::string cmbNucAssembly::getGeometryLabel() const
+{
+  return this->GeometryType;
+}
+
+void cmbNucAssembly::setGeometryLabel(std::string geomType)
+{
+  this->GeometryType = geomType;
+  std::transform(geomType.begin(), geomType.end(),
+                 geomType.begin(), ::tolower);
+  if(geomType == "hexagonal")
+  {
+    this->AssyLattice.SetGeometryType(HEXAGONAL);
+  }
+  else
+  {
+    this->AssyLattice.SetGeometryType(RECTILINEAR);
+  }
+}
+
 bool cmbNucAssembly::IsHexType()
 {
-  std::string strGeoType = this->GeometryType;
-  std::transform(this->GeometryType.begin(), this->GeometryType.end(),
-    strGeoType.begin(), ::tolower);
-  return strGeoType == "hexagonal";
+  return this->AssyLattice.GetGeometryType() == HEXAGONAL;
 }
 
 void cmbNucAssembly::ReadFile(const std::string &FileName)

@@ -431,12 +431,29 @@ void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
   }
 }
 
+std::string cmbNucCore::getGeometryLabel() const
+{
+  return this->GeometryType;
+}
+
+void cmbNucCore::setGeometryLabel(std::string geomType)
+{
+  this->GeometryType = geomType;
+  std::transform(geomType.begin(), geomType.end(), geomType.begin(), ::tolower);
+  if( geomType == "hexflat" || geomType == "hexvertex" )
+  {
+    CoreLattice.SetGeometryType(HEXAGONAL);
+  }
+  else
+  {
+    CoreLattice.SetGeometryType(RECTILINEAR);
+  }
+
+}
+
 bool cmbNucCore::IsHexType()
 {
-  std::string strGeoType = this->GeometryType;
-  std::transform(this->GeometryType.begin(), this->GeometryType.end(),
-    strGeoType.begin(), ::tolower);
-  return strGeoType == "hexflat" || strGeoType == "hexvertex";
+  return HEXAGONAL == CoreLattice.GetGeometryType();
 }
 
 void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3])
