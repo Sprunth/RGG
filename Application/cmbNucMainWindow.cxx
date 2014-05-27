@@ -468,11 +468,10 @@ void cmbNucMainWindow::onNewCore()
     }
     this->doClearAll();
     this->NuclearCore->initDefaults();
-    this->NuclearCore->GeometryType = geoType;
-    this->PropertyWidget->setGeometryType(geoTypeEnum);
+    this->NuclearCore->setGeometryLabel(geoType);
+    this->PropertyWidget->resetCore(this->NuclearCore);
     this->PropertyWidget->setObject(NULL, NULL);
     this->PropertyWidget->setAssembly(NULL);
-    this->NuclearCore->CoreLattice.SetGeometryType(geoTypeEnum);
     this->InputsWidget->onNewAssembly();
     this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);
@@ -557,8 +556,7 @@ void cmbNucMainWindow::onFileOpen()
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
         this->ui->actionNew_Assembly->setEnabled(true);
-        this->PropertyWidget->setGeometryType(
-              this->NuclearCore->CoreLattice.GetGeometryType());
+        this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
         break;
       default:
@@ -569,21 +567,20 @@ void cmbNucMainWindow::onFileOpen()
   int numNewAssy = this->NuclearCore->GetNumberOfAssemblies() - numExistingAssy;
   if(numNewAssy && !need_to_use_assem)
   {
-    this->PropertyWidget->setGeometryType(
-          this->NuclearCore->CoreLattice.GetGeometryType());
+    this->PropertyWidget->resetCore(this->NuclearCore);
   }
   else if(numNewAssy)
   {
     enumGeometryType geoType =
         this->NuclearCore->GetAssembly(int(0))->AssyLattice.GetGeometryType();
-    this->PropertyWidget->setGeometryType(geoType);
+    this->PropertyWidget->resetCore(this->NuclearCore);
     switch(geoType)
     {
       case RECTILINEAR:
-        NuclearCore->GeometryType = "Rectangular";
+        NuclearCore->setGeometryLabel("Rectangular");
         break;
       case HEXAGONAL:
-        NuclearCore->GeometryType = "HexFlat";
+        NuclearCore->setGeometryLabel("HexFlat");
         break;
     }
   }

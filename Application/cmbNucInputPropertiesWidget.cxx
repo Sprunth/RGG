@@ -40,12 +40,12 @@ cmbNucInputPropertiesWidget::cmbNucInputPropertiesWidget(cmbNucMainWindow *mainW
     MainWindow(mainWindow)
 {
   this->Internal = new cmbNucInputPropertiesWidgetInternal;
-  this->GeometryType = RECTILINEAR;
   this->Internal->setupUi(this);
   this->initUI();
   this->CurrentObject = NULL;
   this->RebuildCoreGrid = false;
   this->Assembly = NULL;
+  this->Core = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -133,18 +133,6 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->rectCoreDefaults->addWidget(rectCoreDefaults);
   assyDefaults = new cmbNucDefaultWidget();
   this->Internal->AssyDefaults->addWidget(assyDefaults);
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::setGeometryType(enumGeometryType g)
-{
-  this->GeometryType = g;
-}
-
-//-----------------------------------------------------------------------------
-enumGeometryType cmbNucInputPropertiesWidget::getGeometryType()
-{
-  return this->GeometryType;
 }
 
 //-----------------------------------------------------------------------------
@@ -241,41 +229,37 @@ void cmbNucInputPropertiesWidget::onReset()
   Lattice* lattice = NULL;
   cmbNucCore* nucCore = NULL;
   cmbNucAssembly* assy = NULL;
-  bool isRect = this->GeometryType == RECTILINEAR;
-  bool isHex = this->GeometryType == HEXAGONAL;
   switch(selObj->GetType())
     {
     case CMBNUC_CORE:
       nucCore = dynamic_cast<cmbNucCore*>(selObj);
-      if(isRect)
+      if(nucCore->IsHexType())
+        {
+          this->hexCoreDefaults->set(nucCore->GetDefaults(), true, true);
+          this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageHexCore);
+          this->HexCore->setCore(nucCore);
+        }
+      else
         {
         this->rectCoreDefaults->set(nucCore->GetDefaults(), true, false);
-        this->Internal->stackedWidget->setCurrentWidget(
-          this->Internal->pageCore);
-        }
-      else if(isHex)
-        {
-        this->hexCoreDefaults->set(nucCore->GetDefaults(), true, true);
-        this->Internal->stackedWidget->setCurrentWidget(
-          this->Internal->pageHexCore);
-        this->HexCore->setCore(nucCore);
+        this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
         }
       this->resetCore(nucCore);
       break;
     case CMBNUC_ASSEMBLY:
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
-      this->Internal->AssemblyLabelY->setVisible(isRect);
-      this->Internal->latticeY->setVisible(isRect);
-      this->Internal->latticecontainerLayout_2->setVisible(isRect);
-      this->Internal->hexLatticeAssyContainer_2->setVisible(isHex);
-      this->assyDefaults->set(assy->Defaults, false, isHex);
-      if(isRect)
-        {
-        this->Internal->AssemblyLabelX->setText("X:");
-        }
-      else if(isHex)
+      this->Internal->AssemblyLabelY->setVisible(!assy->IsHexType());
+      this->Internal->latticeY->setVisible(!assy->IsHexType());
+      this->Internal->latticecontainerLayout_2->setVisible(!assy->IsHexType()); //rect
+      this->Internal->hexLatticeAssyContainer_2->setVisible(assy->IsHexType());
+      this->assyDefaults->set(assy->Defaults, false, assy->IsHexType());
+      if(assy->IsHexType())
         {
         this->Internal->AssemblyLabelX->setText("Number Of Layers");
+        }
+      else
+        {
+        this->Internal->AssemblyLabelX->setText("X:");
         }
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
       this->resetAssembly(assy);
@@ -397,9 +381,9 @@ void cmbNucInputPropertiesWidget::resetDuct(Duct* duct)
   this->Internal->DuctThickX->setText(QString::number(duct->thickness[0]));
   this->Internal->DuctThickY->setText(QString::number(duct->thickness[1]));
 
-  this->Internal->DuctThickY->setVisible(this->GeometryType != HEXAGONAL);
+  this->Internal->DuctThickY->setVisible(!Assembly->IsHexType());
 
-  this->setUpDuctTable(this->GeometryType == HEXAGONAL, duct);
+  this->setUpDuctTable(Assembly->IsHexType(), duct);
 }
 
 //-----------------------------------------------------------------------------
@@ -407,7 +391,7 @@ void cmbNucInputPropertiesWidget::resetLattice(Lattice* lattice)
 {
   this->Internal->latticeX->blockSignals(true);
   this->Internal->latticeX->setValue(lattice->GetDimensions().first);
-  if(this->GeometryType == RECTILINEAR)
+  if(lattice->GetGeometryType() == RECTILINEAR)
     {
     this->Internal->latticeY->blockSignals(true);
     this->Internal->latticeY->setValue(lattice->GetDimensions().second);
@@ -437,16 +421,17 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       PinCell *pincell = this->Assembly->GetPinCell(i);
       actionList.append(pincell->label.c_str());
       }
-    if(this->GeometryType == RECTILINEAR)
-      {
-      this->Assembly->UpdateGrid();
-      this->AssemblyEditor->resetUI(
-        this->Assembly->AssyLattice.Grid, actionList);
-      }
-    else if(this->GeometryType == HEXAGONAL)
+    if(this->Assembly->IsHexType())
       {
       this->HexAssy->setActions(actionList);
       this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid);
+
+      }
+    else
+      {
+      this->Assembly->UpdateGrid();
+      this->AssemblyEditor->resetUI(this->Assembly->AssyLattice.Grid,
+                                    actionList);
       }
     }
 }
@@ -496,16 +481,16 @@ void cmbNucInputPropertiesWidget::applyToDuct(Duct* duct)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onLatticeDimensionChanged()
 {
-  if(this->GeometryType != RECTILINEAR) return;
+  if(this->getAssembly() == NULL || this->getAssembly()->IsHexType()) return;
   this->AssemblyEditor->clearUI(false);
   this->AssemblyEditor->updateLatticeView(this->Internal->latticeX->value(),
-    this->Internal->latticeY->value());
+                                          this->Internal->latticeY->value());
 }
 
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
 {
-  if(this->GeometryType != RECTILINEAR) return;
+  if(this->Core == NULL || this->Core->IsHexType()) return;
   this->CoreEditor->clearUI(false);
   this->CoreEditor->updateLatticeView(this->Internal->coreLatticeX->value(),
     this->Internal->coreLatticeY->value());
@@ -515,11 +500,11 @@ void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
 void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 {
   bool change = false;
-  if(this->GeometryType == RECTILINEAR)
+  if(lattice->GetGeometryType() == RECTILINEAR)
     {
     change = this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
     }
-  else if(this->GeometryType == HEXAGONAL)
+  else if(lattice->GetGeometryType() == HEXAGONAL)
     {
     change = this->HexAssy->applyToGrid(lattice->Grid);
     }
@@ -542,17 +527,17 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
   bool changed = false;
-  if(this->GeometryType == RECTILINEAR)
-    {
-    this->RectCoreProperties->applyToCore(nucCore);
-    this->rectCoreDefaults->apply();
-    changed = this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
-    }
-  else if(this->GeometryType == HEXAGONAL)
+  if(nucCore->IsHexType())
     {
     this->HexCoreProperties->applyToCore(nucCore);
     this->hexCoreDefaults->apply();
     changed = this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
+    }
+  else
+    {
+    this->RectCoreProperties->applyToCore(nucCore);
+    this->rectCoreDefaults->apply();
+    changed = this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
     }
   nucCore->sendDefaults();
   if(changed) emit valuesChanged();
@@ -576,6 +561,7 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
 {
   if(nucCore)
     {
+    this->Core = nucCore;
     this->CoreEditor->setCore(nucCore);
     this->HexCoreProperties->setCore(nucCore);
     this->HexCoreProperties->resetCore(nucCore);
@@ -603,17 +589,17 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       cmbNucAssembly *assy = nucCore->GetAssembly(i);
       actionList.append(assy->label.c_str());
       }
-    if(this->GeometryType == RECTILINEAR)
-      {
-      this->CoreEditor->resetUI(nucCore->CoreLattice.Grid, actionList);
-      }
-    else if(this->GeometryType == HEXAGONAL)
+    if(nucCore->IsHexType())
       {
       this->Internal->hexLattice->blockSignals(true);
       this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
       this->Internal->hexLattice->blockSignals(false);
       this->HexCore->setActions(actionList);
       this->HexCore->resetWithGrid(nucCore->CoreLattice.Grid);
+      }
+    else
+      {
+      this->CoreEditor->resetUI(nucCore->CoreLattice.Grid, actionList);
       }
     }
 }
@@ -655,7 +641,7 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
     QObject::connect( this->Internal->PinCellEditor, SIGNAL(valueChange()),
                       this, SIGNAL(valuesChanged()) );
     }
-  this->Internal->PinCellEditor->SetPinCell(pincell,this->GeometryType == HEXAGONAL);
+  this->Internal->PinCellEditor->SetPinCell(pincell, this->getAssembly()->IsHexType());
   this->Internal->PinCellEditor->SetAssembly(this->getAssembly());
 }
 
@@ -710,7 +696,7 @@ void cmbNucInputPropertiesWidget::onCoreLayersChanged()
 
 void cmbNucInputPropertiesWidget::onAssyLayersChanged()
 {
-  if(this->GeometryType != HEXAGONAL) return;
+  if(this->getAssembly() == NULL || !this->getAssembly()->IsHexType()) return;
   this->HexAssy->setLayers(this->Internal->latticeX->value());
 }
 

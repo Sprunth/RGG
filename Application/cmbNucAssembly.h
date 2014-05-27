@@ -220,12 +220,16 @@ public:
 
   std::string FileName;
 
-  std::string GeometryType;
+  std::string getGeometryLabel() const;
+  void setGeometryLabel(std::string geomType);
 
   QPointer<cmbNucDefaults> getDefaults()
   { return this->Defaults; }
 
   QPointer<cmbNucDefaults> Defaults;
+
+  // Check if GeometryType is Hexagonal
+  bool IsHexType();
 
 protected:
   std::vector<PinCell*> PinCells;
@@ -240,12 +244,12 @@ protected:
 
   void computeRecOffset(unsigned int i, unsigned int j, double &tx, double &ty);
 
+  std::string GeometryType;
+
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
   QColor LegendColor;
 
-  // Check if GeometryType is Hexagonal
-  bool IsHexType();
 
   bool DifferentFromFile;
   bool DifferentFromCub;

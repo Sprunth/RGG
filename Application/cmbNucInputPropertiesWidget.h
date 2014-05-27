@@ -39,10 +39,6 @@ public:
   void setAssembly(cmbNucAssembly*);
   cmbNucAssembly* getAssembly(){return this->Assembly;}
 
-  // Geometry type we are working with (hex or rect)
-  void setGeometryType(enumGeometryType g);
-  enumGeometryType getGeometryType();
-
 signals:
   // Description:
   // Fired when the current object is modified
@@ -101,13 +97,12 @@ private:
   bool RebuildCoreGrid;
   cmbNucInputPropertiesWidgetInternal* Internal;
 
-  enumGeometryType GeometryType;
-
   void initUI();
   AssyPartObj* CurrentObject;
   cmbNucAssemblyEditor *AssemblyEditor;
   cmbNucAssemblyEditor *CoreEditor;
   cmbNucAssembly *Assembly;
+  cmbNucCore *Core;
   cmbNucMainWindow *MainWindow;
   cmbNucHexLattice* HexCore;
   cmbNucHexLattice* HexAssy;
