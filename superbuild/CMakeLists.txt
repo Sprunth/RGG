@@ -255,6 +255,8 @@ SET (CMAKE_INSTALL_COMPONENT runtime)
 #-------------------------------------------------------------------------
 #-------------------------------------------------------------------------
 
+INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/bin DESTINATION bin )
+INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/lib DESTINATION lib )
 
 option(NIGHTLY_BINARY_TESTING "Run Nightly-Binary Nuclear RGG Testing" OFF)
 if (NIGHTLY_BINARY_TESTING)
