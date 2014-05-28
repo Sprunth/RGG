@@ -12,4 +12,5 @@ add_latex_document(
 		DisplayingMeshes.tex
 	DEFAULT_PDF
 	MANGLE_TARGET_NAMES
+	IMAGE_DIRS Images
 )

@@ -46,9 +46,20 @@
 \usepackage{url}
 % Use in the form \url{http://mysite.co.uk/~marcus/} or \url!http://mysite.co.uk/~marcus/!
 
+\usepackage[pdftex,final]{graphicx}
+\usepackage[pdftex]{color}
+\usepackage{setspace}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{wrapfig}
+
+
 \usepackage{colortbl}
 % 21st century - make some real links in the PDF, but keep the colors reasonable...
 \usepackage[colorlinks=true,urlcolor=blue,citecolor=black,linkcolor=black,final=true]{hyperref}
+
 
 \title{RGG User's Guide}
 \author{Kitware, Inc.}
@@ -68,7 +79,7 @@
 
 \chapter{Example -- Building a Rectangular Core}
 \label{chapter:Example -- Building a Rectangular Core}
-%\include{ExampleBuildingARectangularCore}
+\include{ExampleBuildingARectangularCore}
 
 \chapter{Example -- Building a Hexagonal Core}
 \label{chapter:Example -- Building a Hexagonal Core}
