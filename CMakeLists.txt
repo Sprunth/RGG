@@ -169,7 +169,7 @@ if(APPLE OR UNIX)
                                            -DCMAKE_BUILD_TYPE:STRING=Release
                                            -DBUILD_WITH_CUBIT:BOOL=${BUILD_WITH_CUBIT}
                                            -DCUBIT_PATH:PATH=${CUBIT_PATH}
-                                           -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/meshkit)
+                                           -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
 
 
   endif()

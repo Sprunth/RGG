@@ -77,5 +77,5 @@ add_project(moab REQUIRED)
 add_project(lasso REQUIRED)
 add_project(meshkit REQUIRED)
 
-INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/bin  )
-INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/lib )
+INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/bin DESTINATION meshkit )
+INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/lib DESTINATION meshkit )
