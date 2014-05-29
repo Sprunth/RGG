@@ -168,7 +168,7 @@ double Cylinder::getNormalizedThickness(int layer)
   return this->Materials[layer]->getThickness()[0];
 }
 
-void Cylinder::Cylinder::setNormalizedThickness(int layer, double t)
+void Cylinder::setNormalizedThickness(int layer, double t)
 {
   double * thick = this->Materials[layer]->getThickness();
   thick[0] = thick[1] = t;
