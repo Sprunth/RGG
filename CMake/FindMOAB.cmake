@@ -16,10 +16,6 @@
 #  MOAB_FOUND              System has MOAB libs/headers
 #  MOAB_INCLUDE_DIR        The location of MOAB headers
 
-if(EXISTS ${MOAB_ROOT_DIR}/lib/MOABConfig.cmake)
-   include(${MOAB_ROOT_DIR}/lib/MOABConfig.cmake)
-else()
-
 find_path(MOAB_ROOT_DIR
     NAMES include/MOAB/version.h
 )
@@ -28,6 +24,10 @@ find_path(MOAB_INCLUDE_DIR
     NAMES moab/Core.hpp
     HINTS ${MOAB_ROOT_DIR}/include/
 )
+
+if(EXISTS ${MOAB_ROOT_DIR}/lib/MOABConfig.cmake)
+   include(${MOAB_ROOT_DIR}/lib/MOABConfig.cmake)
+else()
 
 include(FindPackageHandleStandardArgs)
 
