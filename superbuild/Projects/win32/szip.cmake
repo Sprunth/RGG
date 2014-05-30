@@ -11,5 +11,5 @@ add_external_project(szip
 
 # any project depending on szip, inherits these cmake variables
 add_extra_cmake_args(
-    -DSZIP_LIBRARY:FILEPATH=<INSTALL_DIR>/lib/szip.lib
+    -DSZIP_LIBRARY:FILEPATH=<INSTALL_DIR>/lib/libszip.lib
     -DSZIP_INCLUDE_DIR:FILEPATH=<INSTALL_DIR>/include)
