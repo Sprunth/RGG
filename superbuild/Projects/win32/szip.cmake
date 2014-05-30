@@ -1,6 +1,6 @@
 add_external_project(szip
   CMAKE_ARGS
-    -DBUILD_SHARED_LIBS:BOOL=ON
+    -DBUILD_SHARED_LIBS:BOOL=OFF
     -DBUILD_TESTING:BOOL=OFF
   PATCH_COMMAND
 		# BUG: szip does not install ricehdf.h
