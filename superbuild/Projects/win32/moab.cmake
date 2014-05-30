@@ -1,0 +1,9 @@
+#
+add_external_project(moab
+  DEPENDS hdf5
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>
+    -DHDF5_DIR:path=<INSTALL_DIR>
+    -DMOAB_USE_CGM:BOOL=FALSE
+    -DMOAB_USE_NETCDF:BOOL=FALSE
+)
