@@ -18,8 +18,8 @@ add_revision(freetype
   URL_MD5 "5d82aaa9a4abc0ebbd592783208d9c76")
 
 add_revision(ftgl
-  URL "http://sourceforge.net/projects/ftgl/files/FTGL%20Source/2.1.3~rc5/ftgl-2.1.3-rc5.tar.gz"
-  URL_MD5 fcf4d0567b7de9875d4e99a9f7423633
+  GIT_REPOSITORY "https://github.com/ulrichard/ftgl.git"
+  GIT_TAG cf4d9957930e41c3b82a57b20207242c7ef69f18
   )
 
 add_revision(OCE
