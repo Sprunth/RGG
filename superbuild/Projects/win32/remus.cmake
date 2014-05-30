@@ -8,6 +8,6 @@ add_external_project(remus
     -DZeroMQ_ROOT_DIR=<INSTALL_DIR>
     -DBOOST_INCLUDEDIR=<INSTALL_DIR>/include/boost
     -DBOOST_LIBRARYDIR=<INSTALL_DIR>/lib
-  PATCH_COMMAND ${GIT_EXECUTABLE} apply --stat
+  PATCH_COMMAND ${GIT_EXECUTABLE} apply
                 ${SuperBuild_PROJECTS_DIR}/patches/remus.fix_windows_building.patch
   )
