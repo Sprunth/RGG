@@ -227,8 +227,6 @@ void setValue(QCheckBox * to, bool &from)
   FUN(EdgeInterval)\
   FUN(MergeTolerance) \
   FUN(CreateFiles) \
-  FUN(RotateXYZ) \
-  FUN(RotateAngle) \
   FUN(CenterXYZ) \
   FUN(Info) \
   FUN(SectionXYZ) \

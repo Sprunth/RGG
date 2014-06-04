@@ -954,28 +954,6 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
   cmbAssyParameters* params = assy->GetParameters();
   vtkNew<vtkTransform> transform;
   if(assy->IsHexType()) transform->RotateZ(-60);
-  if(params->isValueSet(params->RotateXYZ))
-  {
-    std::string axis = params->RotateXYZ;
-    std::transform(axis.begin(), axis.end(), axis.begin(), ::tolower);
-    double angle = 0;
-    if(params->isValueSet(params->RotateAngle))
-    {
-      angle = params->RotateAngle;
-    }
-    if(axis == "x")
-    {
-      transform->RotateX(angle);
-    }
-    else if(axis == "y")
-    {
-      transform->RotateY(angle);
-    }
-    else if(axis == "z")
-    {
-      transform->RotateZ(angle);
-    }
-  }
   this->Internal->CurrentDataset = assy->GetData()->New();
   cmbNucCore::transformData(assy->GetData(),this->Internal->CurrentDataset, transform.GetPointer());
 

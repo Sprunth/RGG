@@ -27,8 +27,19 @@ enum enumNucPartsType
 };
 
 enum enumGeometryType {
-  RECTILINEAR,
-  HEXAGONAL
+  RECTILINEAR = 0x0140,
+  HEXAGONAL = 0x0241,
+};
+
+enum enumGeometryControls
+{
+  FLAT = 0x0001,
+  VERTEX = 0x0002,
+  JUST_HEX_SUBTYPE = 0x00FF,
+  ANGLE_60 = 0x00100,
+  ANGLE_30 = 0x00200,
+  ANGLE_360 = 0x00400,
+  JUST_ANGLE = 0x0FF00,
 };
 
   class AssyPartObj
@@ -84,6 +95,7 @@ enum enumGeometryType {
       {
       this->enGeometryType = RECTILINEAR;
       this->SetDimensions(4, 4);
+      subType = FLAT | ANGLE_360;
       }
 
     std::string getLabel()
@@ -262,12 +274,21 @@ enum enumGeometryType {
       }
     // get/set Geometry type (hex or rect)
     void SetGeometryType(enumGeometryType type)
-    { this->enGeometryType = type; }
+    {
+      if(this->enGeometryType == type) return;
+      this->enGeometryType = type;
+      if(type == RECTILINEAR) this->SetDimensions(4, 4);
+      else this->SetDimensions(1, 1, true);
+    }
     enumGeometryType GetGeometryType()
     { return this->enGeometryType; }
 
+    void SetGeometrySubType(int type){subType = type;}
+    int GetGeometrySubType(){ return subType;}
+
     std::vector<std::vector<LatticeCell> > Grid;
     enumGeometryType enGeometryType;
+    int subType;
     };
 
   class HexMap

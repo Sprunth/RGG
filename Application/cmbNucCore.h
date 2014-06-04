@@ -269,13 +269,12 @@ public:
   double AssyemblyPitchX;
   double AssyemblyPitchY;
 
-  std::string getGeometryLabel() const;
   void setGeometryLabel(std::string geomType);
 
   Lattice CoreLattice;
   std::string FileName;
   std::string h5mFile;
-  int HexSymmetry;
+  void setHexSymmetry(int sym);
 
   bool DifferentFromFile;
   bool DifferentFromH5M;
@@ -298,7 +297,7 @@ private:
 
   QPointer<cmbNucDefaults> Defaults;
 
-  std::string GeometryType;
+  int HexSymmetry;
 
 };
 
