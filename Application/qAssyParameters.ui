@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
+        <y>-235</y>
         <width>463</width>
-        <height>876</height>
+        <height>1000</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -46,30 +46,6 @@
          </item>
         </layout>
        </item>
-       <item row="9" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_18">
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Radial Mesh Size</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="RadialMeshSize"/>
-         </item>
-        </layout>
-       </item>
-       <item row="38" column="0">
-        <widget class="QPlainTextEdit" name="Unknown"/>
-       </item>
-       <item row="37" column="0">
-        <widget class="QLabel" name="label_23">
-         <property name="text">
-          <string>User Defined</string>
-         </property>
-        </widget>
-       </item>
        <item row="25" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_10">
          <item>
@@ -81,20 +57,6 @@
          </item>
          <item>
           <widget class="QLineEdit" name="CreateFiles"/>
-         </item>
-        </layout>
-       </item>
-       <item row="17" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_14">
-         <item>
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Material Set Start Id</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="MaterialSet_StartId"/>
          </item>
         </layout>
        </item>
@@ -112,7 +74,7 @@
          </item>
         </layout>
        </item>
-       <item row="33" column="0">
+       <item row="32" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QLabel" name="label_6">
@@ -210,7 +172,7 @@
          </item>
         </layout>
        </item>
-       <item row="32" column="0">
+       <item row="31" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
           <widget class="QLabel" name="label_5">
@@ -272,44 +234,6 @@
          </item>
         </layout>
        </item>
-       <item row="31" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Rotate</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="RotateXYZ">
-           <item>
-            <property name="text">
-             <string>NotSet</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>X</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Y</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Z</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="RotateAngle"/>
-         </item>
-        </layout>
-       </item>
        <item row="29" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_8">
          <item>
@@ -338,7 +262,7 @@
          </item>
         </layout>
        </item>
-       <item row="34" column="0">
+       <item row="33" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <widget class="QLabel" name="label_8">
@@ -395,6 +319,35 @@
          </item>
         </layout>
        </item>
+       <item row="11" column="0">
+        <widget class="QWidget" name="AxialMeshLayout" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_17">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Axial Mesh Size</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="AxialMeshSize"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="37" column="0">
+        <widget class="QPlainTextEdit" name="Unknown"/>
+       </item>
+       <item row="36" column="0">
+        <widget class="QLabel" name="label_23">
+         <property name="text">
+          <string>User Defined</string>
+         </property>
+        </widget>
+       </item>
        <item row="7" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_19">
          <item>
@@ -423,52 +376,7 @@
          </item>
         </layout>
        </item>
-       <item row="36" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>Section</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="SectionXYZ">
-           <item>
-            <property name="text">
-             <string>NotSet</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>X</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Y</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Z</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="SectionOffset"/>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="SectionReverse">
-           <property name="text">
-            <string>Reverse</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="35" column="0">
+       <item row="34" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
           <widget class="QLabel" name="label_9">
@@ -529,25 +437,40 @@
          </item>
         </layout>
        </item>
-       <item row="11" column="0">
-        <widget class="QWidget" name="AxialMeshLayout" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout_17">
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Axial Mesh Size</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="AxialMeshSize"/>
-          </item>
-         </layout>
-        </widget>
+       <item row="17" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_14">
+         <item>
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Material Set Start Id</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="MaterialSet_StartId"/>
+         </item>
+        </layout>
+       </item>
+       <item row="9" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_18">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Radial Mesh Size</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="RadialMeshSize"/>
+         </item>
+        </layout>
        </item>
        <item row="21" column="0">
         <widget class="QWidget" name="EdgeIntervalLayout" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QLabel" name="label_12">
             <property name="text">
@@ -564,6 +487,9 @@
        <item row="30" column="0">
         <widget class="QWidget" name="MeshTypeLayout_2" native="true">
          <layout class="QHBoxLayout" name="MeshTypeLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QLabel" name="label_24">
             <property name="text">
@@ -606,9 +532,122 @@
          </layout>
         </widget>
        </item>
+       <item row="35" column="0">
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Transform</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QTableWidget" name="TransformTable">
+              <property name="minimumSize">
+               <size>
+                <width>300</width>
+                <height>100</height>
+               </size>
+              </property>
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <column>
+               <property name="text">
+                <string>Transform</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Axis</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string> Angle/Offset </string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Reverse</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_8">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="leftMargin">
+             <number>15</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="addRotation">
+              <property name="text">
+               <string>Add
+Rotation</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addSection">
+              <property name="text">
+               <string>Add
+Section</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="deleteSelected">
+              <property name="text">
+               <string>Delete
+Selected</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
       </layout>
+      <zorder>AxialMeshLayout</zorder>
+      <zorder>EdgeIntervalLayout</zorder>
+      <zorder>MeshTypeLayout_2</zorder>
       <zorder>Unknown</zorder>
       <zorder>label_23</zorder>
+      <zorder>groupBox</zorder>
      </widget>
     </widget>
    </item>
@@ -631,17 +670,15 @@
   <tabstop>NumSuperBlocks</tabstop>
   <tabstop>SuperBlocks</tabstop>
   <tabstop>MeshType</tabstop>
-  <tabstop>RotateXYZ</tabstop>
-  <tabstop>RotateAngle</tabstop>
   <tabstop>CenterXYZ</tabstop>
   <tabstop>MoveX</tabstop>
   <tabstop>MoveY</tabstop>
   <tabstop>MoveZ</tabstop>
   <tabstop>CreateSideSet</tabstop>
   <tabstop>Info</tabstop>
-  <tabstop>SectionXYZ</tabstop>
-  <tabstop>SectionOffset</tabstop>
-  <tabstop>SectionReverse</tabstop>
+  <tabstop>addRotation</tabstop>
+  <tabstop>addSection</tabstop>
+  <tabstop>deleteSelected</tabstop>
   <tabstop>Unknown</tabstop>
   <tabstop>scrollArea</tabstop>
  </tabstops>

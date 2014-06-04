@@ -36,8 +36,7 @@ public:
     lat.SetDimensions(0, 0);
   }
 
-  void readLattice( std::stringstream & input, bool isHex,
-                    int hexSymmetry, Lattice &lat);
+  void readLattice( std::stringstream & input, Lattice &lat);
   void readMaterials( std::stringstream & input, cmbNucAssembly &assembly );
   void readDuct( std::stringstream & input, cmbNucAssembly &assembly );
   void readPincell( std::stringstream & input, cmbNucAssembly &assembly );
@@ -63,8 +62,7 @@ public:
   void writeMaterials( std::ofstream &output, cmbNucAssembly &assembly );
   void writeDuct( std::ofstream &output, cmbNucAssembly &assembly );
   void writePincell( std::ofstream &output, cmbNucAssembly &assembly );
-  void writeLattice( std::ofstream &output, std::string key, bool isHex,
-                     int hexSymmetry, bool useAmp, Lattice &lat );
+  void writeLattice( std::ofstream &output, std::string key, bool useAmp, Lattice &lat );
   void writeAssemblies( std::ofstream &output, std::string outFileName,
                         cmbNucCore &core );
 
@@ -291,7 +289,7 @@ bool inpFileReader
       }
     else if(value == "assembly")
       {
-      helper.readLattice( input, assembly.IsHexType(), 1, assembly.AssyLattice );
+      helper.readLattice( input, assembly.AssyLattice );
       }
     else if(value == "tetmeshsize")
       {
@@ -307,7 +305,16 @@ bool inpFileReader
       }
     else if(value == "rotate")
       {
-      input >> assembly.Parameters->RotateXYZ >> assembly.Parameters->RotateAngle;
+      std::string tmp; double a;
+      input >> tmp >> a;
+      assembly.addTransform(new cmbNucAssembly::Rotate(tmp, a));
+      }
+    else if(value == "section")
+      {
+      std::string tmp, tmp1; double a;
+      input >> tmp >> a;
+      std::getline(input, tmp1);
+      assembly.addTransform(new cmbNucAssembly::Section(tmp, a, tmp1));
       }
     else if(value == "move")
       {
@@ -387,7 +394,9 @@ bool inpFileReader
       }
     else if(value == "symmetry")
       {
-      input >> core.HexSymmetry;
+      int sym;
+      input >> sym;
+      core.setHexSymmetry(sym);
       }
     else if(value == "assemblies")
       {
@@ -395,7 +404,7 @@ bool inpFileReader
       }
     else if(value == "lattice")
       {
-      helper.readLattice( input, core.IsHexType(), core.HexSymmetry, core.CoreLattice );
+      helper.readLattice( input, core.CoreLattice );
       }
     else if(value == "background")
       {
@@ -473,8 +482,7 @@ bool inpFileWriter::write(std::string fname,
   helper.writeDuct( output, assembly );
   helper.writePincell( output, assembly );
   helper.writeLattice( output, "Assembly",
-                       assembly.IsHexType(),
-                       1, false,
+                       false,
                        assembly.AssyLattice );
   //Other Parameters
   WRITE_PARAM_VALUE(TetMeshSize, TetMeshSize);
@@ -494,20 +502,9 @@ bool inpFileWriter::write(std::string fname,
   }
   output << "\n";
 
-  //Rotate
-  if(TEST_PARAM_VALUE(RotateXYZ) && TEST_PARAM_VALUE(RotateAngle))
+  for( int i = 0; i < assembly.getNumberOfTransforms(); ++i)
   {
-    output << "Rotate "
-           << params->RotateXYZ << ' '
-           << params->RotateAngle << "\n";
-  }
-
-  //Section
-  if (TEST_PARAM_VALUE(SectionXYZ) && TEST_PARAM_VALUE(SectionOffset))
-  {
-    output << "Section " << params->SectionXYZ << ' '
-           << params->SectionOffset << ' '
-           << ((params->SectionReverse)?1:0) << "\n";
+    assembly.getTransform(i)->write(output) << "\n";
   }
   WRITE_PARAM_VALUE(AxialMeshSize, AxialMeshSize);
   WRITE_PARAM_VALUE(HBlock, HBlock);
@@ -552,11 +549,24 @@ bool inpFileWriter::write(std::string fname,
   }
   core.computePitch();
   helper.writeHeader(output,"Assembly");
-  output << "Symmetry "  << core.HexSymmetry << "\n";
-  output << "GeometryType " << core.getGeometryLabel() << "\n";
+  int sym;
+  enumGeometryType type = core.CoreLattice.GetGeometryType();
+  int subType = core.CoreLattice.GetGeometrySubType();
+  if(subType & JUST_ANGLE)
+  {
+    output << "Symmetry ";
+    if(subType & ANGLE_360) output << 1 << "\n";
+    else if (subType & ANGLE_60) output << 6 << "\n";
+    else if (subType & ANGLE_30) output << 12 << "\n";
+    else output << -1 << "\n";
+  }
+  output << "GeometryType ";
+  if(type == RECTILINEAR) output << "Rectangular\n";
+  else if(subType & FLAT ) output << "hexflat\n";
+  else if(subType & VERTEX) output << "HexVertex\n";
+  else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
-  helper.writeLattice( output, "Lattice", core.IsHexType(),
-                       core.HexSymmetry, true, core.CoreLattice );
+  helper.writeLattice( output, "Lattice", true, core.CoreLattice );
   if( !core.Params.Background.empty() &&
       QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() )
     {
@@ -1001,23 +1011,21 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
     }
 }
 
-void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool isHex,
-                                 int hexSymmetry, bool useAmp, Lattice &lat )
+void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
+                                  bool useAmp, Lattice &lat )
 {
+  enumGeometryType type = lat.GetGeometryType();
+  int subType = lat.GetGeometrySubType();
   output << key;
-  if(!isHex)
+  if(type == RECTILINEAR)
     {
     output  << " " << lat.Grid[0].size();
-    output << " " << lat.Grid.size();
     }
-  else
-    {
-      output << " " << lat.Grid.size();
-    }
+  output << " " << lat.Grid.size();
   output << "\n";
-  if(isHex)
+  if(type == HEXAGONAL)
     {
-    if(hexSymmetry == 1)
+    if(subType & ANGLE_360)
       {
       size_t x = lat.Grid.size();
       size_t maxN = 2*x - 1;
@@ -1083,9 +1091,31 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool i
         output << "\n";
         }
       }
-    else if(hexSymmetry == 6 || hexSymmetry == 12)
+    else if(subType & (ANGLE_60|ANGLE_30))
       {
-      std::cout << "TODO" << std::endl;
+      size_t x = lat.Grid.size();
+      std::string tmpVal;
+      for(size_t i = 0; i < x; i++)
+        {
+        size_t start = (subType & FLAT)?(i):(i-(i)/2);
+        size_t cols = ((subType & FLAT)?(i+1):(((i+1)-(i+2)%2)))+start;
+          if(subType & ANGLE_30)
+          {
+            start = 2*i - i/2;
+            cols = (i%2 ? (i+1)/2 :(i+2)/2) + start;
+          }
+        for( size_t j = start; j < cols; j++)
+          {
+          std::string label = lat.Grid[i][j].label;
+          if(label.empty())
+            {
+            label = "xx";
+            }
+          output << label << " ";
+          }
+        if(i < x-1 && useAmp) output << "&";
+        output << "\n";
+        }
       }
     }
   else
@@ -1114,12 +1144,13 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key, bool i
 
 
 void inpFileHelper::readLattice( std::stringstream & input,
-                                 bool isHex, int hexSymmetry,
                                  Lattice &lattice )
 {
+  enumGeometryType type = lattice.GetGeometryType();
+  int subType = lattice.GetGeometrySubType();
   size_t cols=0;
   size_t rows=0;
-  if(isHex)
+  if(type == HEXAGONAL)
     {
     input >> rows;
     cols = rows;
@@ -1132,10 +1163,10 @@ void inpFileHelper::readLattice( std::stringstream & input,
 
   lattice.SetDimensions(rows, cols);
 
-  if(isHex)
+  if(type == HEXAGONAL)
     {
     size_t x = rows;
-    if(hexSymmetry == 1)
+    if(subType & ANGLE_360)
       {
       // a full hex assembly, NOT partial
       size_t maxN = 2*x - 1;
@@ -1192,17 +1223,19 @@ void inpFileHelper::readLattice( std::stringstream & input,
           }
         }
       }
-    else if(hexSymmetry == 6 || hexSymmetry == 12)
+    else if(subType & (ANGLE_60|ANGLE_30))
       {
       std::string tmpVal;
       for(size_t i = 0; i < x; i++)
         {
-        size_t cols = i + 1;
-        if(hexSymmetry == 12)
+        size_t start = (subType & FLAT)?(i):(i-(i)/2);
+        size_t cols = ((subType & FLAT)?(i+1):(((i+1)-(i+2)%2)))+start;
+        if(subType & ANGLE_30)
           {
-          cols = i%2 ? (i+1)/2 :(i+2)/2;
+          start = 2*i - i/2;
+          cols = (i%2 ? (i+1)/2 :(i+2)/2) + start;
           }
-        for( size_t j = 0; j < cols; j++)
+        for( size_t j = start; j < cols; j++)
           {
           input >> tmpVal;
           lattice.Grid[i][j].label = tmpVal;
