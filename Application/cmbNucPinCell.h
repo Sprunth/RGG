@@ -25,10 +25,10 @@ class PinSubPart: public AssyPartObj
 {
 public:
   enum End{BOTTOM=0, TOP=1};
-  PinSubPart(){}
-  PinSubPart(double z1, double z2);
+  PinSubPart(double z1 = 0, double z2= 10);
   virtual ~PinSubPart();
   std::string getLabel(){return "PinPart";}
+  virtual std::string getTitle(){ return "PinPart"; }
 
   PinConnection* GetConnection() const;
 
@@ -36,7 +36,6 @@ public:
   void SetMaterial(int i, QPointer<cmbNucMaterial> material);
   void SetNumberOfLayers(int numLayers);
   std::size_t GetNumberOfLayers() const;
-  void setConnection(cmbNucMaterialLayer & layer);
   QSet< cmbNucMaterial* > getMaterials();
 
   //sets others values here if they are different.
@@ -57,8 +56,12 @@ public:
   double z1;
   double z2;
 protected:
-  std::vector< cmbNucMaterialLayer > Materials;
+  void setConnection(cmbNucMaterialLayer * layer);
+  std::vector< cmbNucMaterialLayer * > Materials;
   PinConnection * Connection;
+private:
+  PinSubPart( const PinSubPart & )
+  {}
 };
 
 class Cylinder : public PinSubPart
@@ -198,6 +201,7 @@ public:
   QSet< cmbNucMaterial* > getMaterials();
 
   std::string getLabel(){return label;}
+  virtual std::string getTitle(){ return "PinCell: " + name + " (" + label + ")"; }
 
   QPointer<cmbNucMaterial> getCellMaterial();
   void setCellMaterial(QPointer<cmbNucMaterial> material);

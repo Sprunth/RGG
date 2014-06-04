@@ -25,6 +25,10 @@ find_path(MOAB_INCLUDE_DIR
     HINTS ${MOAB_ROOT_DIR}/include/
 )
 
+if(EXISTS ${MOAB_ROOT_DIR}/lib/MOABConfig.cmake)
+   include(${MOAB_ROOT_DIR}/lib/MOABConfig.cmake)
+else()
+
 include(FindPackageHandleStandardArgs)
 
 find_package_handle_standard_args(MOAB DEFAULT_MSG
@@ -38,3 +42,4 @@ mark_as_advanced(
     MOAB_ROOT_DIR
     MOAB_INCLUDE_DIR
 )
+endif()

@@ -431,12 +431,29 @@ void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
   }
 }
 
+std::string cmbNucCore::getGeometryLabel() const
+{
+  return this->GeometryType;
+}
+
+void cmbNucCore::setGeometryLabel(std::string geomType)
+{
+  this->GeometryType = geomType;
+  std::transform(geomType.begin(), geomType.end(), geomType.begin(), ::tolower);
+  if( geomType == "hexflat" || geomType == "hexvertex" )
+  {
+    CoreLattice.SetGeometryType(HEXAGONAL);
+  }
+  else
+  {
+    CoreLattice.SetGeometryType(RECTILINEAR);
+  }
+
+}
+
 bool cmbNucCore::IsHexType()
 {
-  std::string strGeoType = this->GeometryType;
-  std::transform(this->GeometryType.begin(), this->GeometryType.end(),
-    strGeoType.begin(), ::tolower);
-  return strGeoType == "hexflat" || strGeoType == "hexvertex";
+  return HEXAGONAL == CoreLattice.GetGeometryType();
 }
 
 void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3])
@@ -571,6 +588,18 @@ QPointer<cmbNucDefaults> cmbNucCore::GetDefaults()
 bool cmbNucCore::HasDefaults() const
 {
   return this->Defaults != NULL;
+}
+
+void cmbNucCore::initDefaults()
+{
+  double DuctThickX = 10;
+  double DuctThickY = 10;
+  double length = 10;
+  delete this->Defaults;
+  this->Defaults = new cmbNucDefaults();
+  this->Defaults->setHeight(length);
+
+  this->Defaults->setDuctThickness(DuctThickX, DuctThickY);
 }
 
 void cmbNucCore::calculateDefaults()

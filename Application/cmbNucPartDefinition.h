@@ -63,6 +63,7 @@ enum enumGeometryType {
       objs.clear();
       }
     virtual std::string getLabel() = 0;
+    virtual std::string getTitle() = 0;
     virtual std::string getFileName(){return "";}
   };
 
@@ -87,6 +88,8 @@ enum enumGeometryType {
 
     std::string getLabel()
       { return "Lattice"; }
+
+    virtual std::string getTitle(){ return "Lattice"; }
 
     // Sets the dimensions of the cell assembly.
     // For Hex type, i is number of layers, j will be ignored.

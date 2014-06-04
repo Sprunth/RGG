@@ -238,6 +238,7 @@ cmbNucMainWindow::~cmbNucMainWindow()
   delete this->Internal->MoabSource;
   delete this->Internal;
 #endif
+  delete this->ui;
 }
 
 void cmbNucMainWindow::initPanels()
@@ -466,12 +467,13 @@ void cmbNucMainWindow::onNewCore()
       return;
     }
     this->doClearAll();
-    this->NuclearCore->GeometryType = geoType;
-    this->PropertyWidget->setGeometryType(geoTypeEnum);
+    this->NuclearCore->initDefaults();
+    this->NuclearCore->setGeometryLabel(geoType);
+    this->PropertyWidget->resetCore(this->NuclearCore);
     this->PropertyWidget->setObject(NULL, NULL);
     this->PropertyWidget->setAssembly(NULL);
-    this->NuclearCore->CoreLattice.SetGeometryType(geoTypeEnum);
     this->InputsWidget->onNewAssembly();
+    this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);
     this->Renderer->ResetCamera();
     this->Renderer->Render();
@@ -554,6 +556,7 @@ void cmbNucMainWindow::onFileOpen()
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
         this->ui->actionNew_Assembly->setEnabled(true);
+        this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
         break;
       default:
@@ -564,21 +567,20 @@ void cmbNucMainWindow::onFileOpen()
   int numNewAssy = this->NuclearCore->GetNumberOfAssemblies() - numExistingAssy;
   if(numNewAssy && !need_to_use_assem)
   {
-    this->PropertyWidget->setGeometryType(
-          this->NuclearCore->CoreLattice.GetGeometryType());
+    this->PropertyWidget->resetCore(this->NuclearCore);
   }
   else if(numNewAssy)
   {
     enumGeometryType geoType =
         this->NuclearCore->GetAssembly(int(0))->AssyLattice.GetGeometryType();
-    this->PropertyWidget->setGeometryType(geoType);
+    this->PropertyWidget->resetCore(this->NuclearCore);
     switch(geoType)
     {
       case RECTILINEAR:
-        NuclearCore->GeometryType = "Rectangular";
+        NuclearCore->setGeometryLabel("Rectangular");
         break;
       case HEXAGONAL:
-        NuclearCore->GeometryType = "HexFlat";
+        NuclearCore->setGeometryLabel("HexFlat");
         break;
     }
   }
@@ -884,8 +886,6 @@ void cmbNucMainWindow::doClearAll()
   this->initPanels();
   emit checkSave();
   onChangeMeshEdgeMode(false);
-  //this->InputsWidget->updateUI(false);
-  //this->PropertyWidget->resetCore(NULL);
   this->Internal->CurrentDataset = NULL;
   this->Mapper->SetInputDataObject(NULL);
   this->ui->qvtkWidget->update();

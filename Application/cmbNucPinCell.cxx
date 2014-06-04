@@ -1,9 +1,11 @@
 #include "cmbNucPinCell.h"
 #include "cmbNucMaterialColors.h"
 
+#include <cassert>
+
 #include <QDebug>
 
-PinSubPart::PinSubPart(double z1in, double z2in) : Materials(1)
+PinSubPart::PinSubPart(double z1in, double z2in) : Materials(1, new cmbNucMaterialLayer())
 {
   x=0.0; y=0.0; z1=z1in; z2=z2in;
   Connection = new PinConnection();
@@ -12,6 +14,11 @@ PinSubPart::PinSubPart(double z1in, double z2in) : Materials(1)
 
 PinSubPart::~PinSubPart()
 {
+  for(unsigned i = 0; i < this->Materials.size(); ++i)
+  {
+    delete this->Materials[i];
+    this->Materials[i] = NULL;
+  }
   delete Connection;
 }
 
@@ -24,7 +31,7 @@ QPointer<cmbNucMaterial> PinSubPart::GetMaterial(int i)
 {
   if(i>=0 && i<this->Materials.size())
   {
-    return this->Materials[i].getMaterial();
+    return this->Materials[i]->getMaterial();
   }
   return NULL;
 }
@@ -35,22 +42,22 @@ PinSubPart::SetMaterial(int i,
 {
   if(i>=0 && i<this->Materials.size())
   {
-    this->Materials[i].changeMaterial( material );
+    this->Materials[i]->changeMaterial( material );
   }
 }
 
 void PinSubPart::SetNumberOfLayers(int numLayers)
 {
   if(this->Materials.size() == numLayers) return;
-  //Disconnect because copy constructors could be called
-  for(size_t at = 0; at < this->Materials.size(); at++)
+  for(int i = numLayers; i < this->Materials.size(); ++i)
   {
-    QObject::disconnect(this->Materials[at].GetConnection(), SIGNAL(materialChanged()),
-                        this->Connection, SIGNAL(Changed()));
+    delete this->Materials[i];
+    this->Materials[i] = NULL;
   }
-  this->Materials.resize(numLayers);
+  this->Materials.resize(numLayers, NULL);
   for(size_t at = 0; at < this->Materials.size(); at++)
   {
+    if(this->Materials[at] == NULL) this->Materials[at] = new cmbNucMaterialLayer();
     this->setConnection(this->Materials[at]);
   }
 }
@@ -60,9 +67,11 @@ std::size_t PinSubPart::GetNumberOfLayers() const
   return Materials.size();
 }
 
-void PinSubPart::setConnection(cmbNucMaterialLayer & layer)
+void PinSubPart::setConnection(cmbNucMaterialLayer * layer)
 {
-  QObject::connect(layer.GetConnection(), SIGNAL(materialChanged()),
+  assert(layer != NULL);
+  assert(this->Connection != NULL);
+  QObject::connect(layer->GetConnection(), SIGNAL(materialChanged()),
                    this->Connection, SIGNAL(Changed()));
 }
 
@@ -71,7 +80,7 @@ QSet< cmbNucMaterial* > PinSubPart::getMaterials()
   QSet< cmbNucMaterial* > result;
   for(size_t at = 0; at < this->Materials.size(); at++)
   {
-    result.insert(Materials[at].getMaterial());
+    result.insert(Materials[at]->getMaterial());
   }
   return result;
 }
@@ -109,12 +118,12 @@ bool PinSubPart::fill(PinSubPart const* other)
 
   for(unsigned int i = 0; i < this->Materials.size(); ++i)
   {
-    changed |= setIfDifferent(other->Materials[i].getThickness()[0],
-                              this->Materials[i].getThickness()[0]);
-    changed |= setIfDifferent(other->Materials[i].getThickness()[1],
-                              this->Materials[i].getThickness()[1]);
+    changed |= setIfDifferent(other->Materials[i]->getThickness()[0],
+                              this->Materials[i]->getThickness()[0]);
+    changed |= setIfDifferent(other->Materials[i]->getThickness()[1],
+                              this->Materials[i]->getThickness()[1]);
     //changing material will send it own signal if different
-    this->Materials[i].changeMaterial(other->Materials[i].getMaterial());
+    this->Materials[i]->changeMaterial(other->Materials[i]->getMaterial());
   }
 
   double otherRs[] = {other->getRadius(PinSubPart::BOTTOM),
@@ -156,18 +165,18 @@ bool Cylinder::operator==(const Cylinder& obj)
 
 double Cylinder::getNormalizedThickness(int layer)
 {
-  return this->Materials[layer].getThickness()[0];
+  return this->Materials[layer]->getThickness()[0];
 }
 
-void Cylinder::Cylinder::setNormalizedThickness(int layer, double t)
+void Cylinder::setNormalizedThickness(int layer, double t)
 {
-  double * thick = this->Materials[layer].getThickness();
+  double * thick = this->Materials[layer]->getThickness();
   thick[0] = thick[1] = t;
 }
 
 double Cylinder::getRadius(int layer)
 {
-  return this->Materials[layer].getThickness()[0]*this->r;
+  return this->Materials[layer]->getThickness()[0]*this->r;
 }
 
 PinSubPart * Cylinder::clone() const
@@ -203,18 +212,18 @@ bool Frustum::operator==(const Frustum& obj)
 
 double Frustum::getNormalizedThickness(int layer, Frustum::End end)
 {
-  return this->Materials[layer].getThickness()[end];
+  return this->Materials[layer]->getThickness()[end];
 }
 
 void Frustum::setNormalizedThickness(int layer, Frustum::End end, double t)
 {
-  double * thick = this->Materials[layer].getThickness();
+  double * thick = this->Materials[layer]->getThickness();
   thick[end] = t;
 }
 
 double Frustum::getRadius(int layer, Frustum::End end)
 {
-  return this->Materials[layer].getThickness()[end]*this->r[end];
+  return this->Materials[layer]->getThickness()[end]*this->r[end];
 }
 
 PinSubPart * Frustum::clone() const

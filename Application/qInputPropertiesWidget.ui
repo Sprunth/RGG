@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>389</width>
+    <width>441</width>
     <height>496</height>
    </rect>
   </property>
@@ -15,6 +15,12 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>350</width>
+    <height>100</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -61,6 +67,9 @@
            <string>Lattice</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_12">
+           <property name="margin">
+            <number>10</number>
+           </property>
            <item row="0" column="0">
             <widget class="QLabel" name="label_30">
              <property name="sizePolicy">
@@ -113,8 +122,8 @@
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>303</width>
-                  <height>331</height>
+                  <width>375</width>
+                  <height>343</height>
                  </rect>
                 </property>
                </widget>
@@ -161,6 +170,9 @@
      </widget>
      <widget class="QWidget" name="pageHexCore">
       <layout class="QGridLayout" name="gridLayout_4">
+       <property name="margin">
+        <number>10</number>
+       </property>
        <item row="0" column="0">
         <widget class="QTabWidget" name="HexCore">
          <property name="enabled">
@@ -249,6 +261,9 @@
      </widget>
      <widget class="QWidget" name="pageAssembly">
       <layout class="QGridLayout" name="gridLayout_14">
+       <property name="margin">
+        <number>10</number>
+       </property>
        <item row="0" column="0">
         <widget class="QTabWidget" name="tabWidget_3">
          <property name="currentIndex">
@@ -259,9 +274,15 @@
            <string>Lattice</string>
           </attribute>
           <layout class="QGridLayout" name="gridLayout_17">
+           <property name="margin">
+            <number>10</number>
+           </property>
            <item row="3" column="0">
             <widget class="QWidget" name="latticecontainerLayout_2" native="true">
              <layout class="QVBoxLayout" name="latticecontainerLayout">
+              <property name="margin">
+               <number>0</number>
+              </property>
               <item>
                <widget class="QScrollArea" name="assemblyLatticeContainer">
                 <property name="widgetResizable">
@@ -272,8 +293,8 @@
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>303</width>
-                   <height>272</height>
+                   <width>381</width>
+                   <height>290</height>
                   </rect>
                  </property>
                 </widget>

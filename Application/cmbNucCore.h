@@ -263,13 +263,16 @@ public:
 
   std::string getLabel(){return "Core";}
   std::string getFileName(){return FileName;}
+  virtual std::string getTitle(){ return "Core"; }
 
   // Get/Set Assembly pitch
   double AssyemblyPitchX;
   double AssyemblyPitchY;
 
+  std::string getGeometryLabel() const;
+  void setGeometryLabel(std::string geomType);
+
   Lattice CoreLattice;
-  std::string GeometryType;
   std::string FileName;
   std::string h5mFile;
   int HexSymmetry;
@@ -283,6 +286,7 @@ public:
   bool HasDefaults() const;
   void calculateDefaults();
   void sendDefaults();
+  void initDefaults();
 
 
   void checkUsedAssembliesForGen();
@@ -293,6 +297,8 @@ private:
   cmbNucCoreConnection * Connection;
 
   QPointer<cmbNucDefaults> Defaults;
+
+  std::string GeometryType;
 
 };
 

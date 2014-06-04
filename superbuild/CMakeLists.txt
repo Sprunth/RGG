@@ -194,7 +194,9 @@ option(USE_PARAVIEW_next "set paraview to use next instead of cmb tag")
 option(USE_PARAVIEW_master "set paraview to use master instead of cmb tag")
 
 #setup if we build with meshing support, we just pass this down to cmb proper
-option(USE_MESHING_SUPPORT "build cmb programs that require meshing" ON)
+option(USE_MESHING_SUPPORT "build rgg programs that require meshing" ON)
+
+option(BUILD_MESHKIT "Build meshkit tools (Assygen and Coregen)" OFF)
 
 #must before any including of projects
 SetupCMBSuperBuild()
@@ -214,7 +216,7 @@ else()
   include(qt)
 endif()
 
-#CMB dependencies
+#RGG dependencies
 
 include(zlib)
 include(zeroMQ)
@@ -253,6 +255,7 @@ SET (CMAKE_INSTALL_COMPONENT runtime)
 #-------------------------------------------------------------------------
 #-------------------------------------------------------------------------
 
+INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/bin DESTINATION rgg_nuclear )
 
 option(NIGHTLY_BINARY_TESTING "Run Nightly-Binary Nuclear RGG Testing" OFF)
 if (NIGHTLY_BINARY_TESTING)

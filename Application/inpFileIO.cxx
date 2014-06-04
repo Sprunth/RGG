@@ -30,15 +30,9 @@ public:
   void readGeometryType( std::stringstream & input,
                          TYPE &v, Lattice &lat)
   {
-    input >> v.GeometryType;
-    if(v.IsHexType())
-      {
-      lat.SetGeometryType(HEXAGONAL);
-      }
-    else
-      {
-      lat.SetGeometryType(RECTILINEAR);
-      }
+    std::string in;
+    input >> in;
+    v.setGeometryLabel(in);
     lat.SetDimensions(0, 0);
   }
 
@@ -473,7 +467,7 @@ bool inpFileWriter::write(std::string fname,
   helper.writeHeader(output,"Assembly");
   cmbAssyParameters * params = assembly.Parameters;
 
-  output << "GeometryType " << assembly.GeometryType << "\n";
+  output << "GeometryType " << assembly.getGeometryLabel() << "\n";
   WRITE_PARAM_VALUE(Geometry, Geometry);
   helper.writeMaterials( output, assembly );
   helper.writeDuct( output, assembly );
@@ -559,7 +553,7 @@ bool inpFileWriter::write(std::string fname,
   core.computePitch();
   helper.writeHeader(output,"Assembly");
   output << "Symmetry "  << core.HexSymmetry << "\n";
-  output << "GeometryType " << core.GeometryType << "\n";
+  output << "GeometryType " << core.getGeometryLabel() << "\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", core.IsHexType(),
                        core.HexSymmetry, true, core.CoreLattice );
@@ -665,7 +659,9 @@ void inpFileHelper::readMaterials( std::stringstream & input,
         }
       }
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+    std::transform(mname.begin(), mname.end(), mname.begin(), ::tolower);
     materialLabelMap[mlabel] = mat;
+    materialLabelMap[mname] = mat;
     }
 }
 
@@ -738,7 +734,9 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
     if(it != materialLabelMap.end())
       mat = it->second;
     else
+      {
       labelIsDifferent = true;
+      }
     duct->setMaterial(i, mat);
     duct->getNormThick(i)[0] /= maxV[0];
     duct->getNormThick(i)[1] /= maxV[1];

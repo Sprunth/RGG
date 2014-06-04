@@ -18,6 +18,7 @@
 #include <QHeaderView>
 #include <QItemDelegate>
 #include <QMenu>
+#include <QHeaderView>
 
 class MyItemDelegate: public QItemDelegate
 {
@@ -53,6 +54,7 @@ public:
   cmbNucInputListWidgetInternal()
   {
     this->RootCoreNode = NULL;
+    TreeItemDelegate = new MyItemDelegate();
   }
   virtual ~cmbNucInputListWidgetInternal()
   {
@@ -60,6 +62,7 @@ public:
     delete Action_NewPin;
     delete Action_NewDuct;
     delete Action_DeletePart;
+    delete TreeItemDelegate;
   }
   void initActions()
     {
@@ -79,6 +82,8 @@ public:
   QPointer<QAction> Action_DeletePart;
 
   cmbNucPartsTreeItem* RootCoreNode;
+
+  MyItemDelegate * TreeItemDelegate;
 };
 
 //-----------------------------------------------------------------------------
@@ -91,10 +96,11 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   this->Internal->initActions();
 
   this->Internal->PartsList->setAlternatingRowColors(true);
+  this->Internal->PartsList->header()->setResizeMode(QHeaderView::ResizeToContents);
 
   // set up the UI trees
   QTreeWidget* treeWidget = this->Internal->PartsList;
-  treeWidget->setItemDelegate(new MyItemDelegate());
+  treeWidget->setItemDelegate(this->Internal->TreeItemDelegate);
 
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
@@ -334,23 +340,21 @@ void cmbNucInputListWidget::onNewAssembly()
 
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->AssyLattice.SetGeometryType(
-    this->NuclearCore->CoreLattice.GetGeometryType());
-  if(this->NuclearCore->CoreLattice.GetGeometryType() == HEXAGONAL)
+  if(this->NuclearCore->IsHexType())
     {
+    assembly->setGeometryLabel("Hexagonal");
     assembly->AssyLattice.SetDimensions(1, 0, true);
-    assembly->GeometryType = "Hexagonal";
     }
   else
     {
-    assembly->GeometryType = "Rectangular";
+    assembly->setGeometryLabel("Rectangular");
     }
   assembly->label = QString("Assy").append(
     QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
 
   this->NuclearCore->AddAssembly(assembly);
-  assembly->setFromDefaults(this->NuclearCore->GetDefaults());
   assembly->computeDefaults();
+  assembly->setFromDefaults(this->NuclearCore->GetDefaults());
 
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
@@ -380,7 +384,8 @@ void cmbNucInputListWidget::onNewDuct()
   assy->AssyDuct.AddDuct(newduct);
   cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, newduct);
   QString number = QString::number(assy->AssyDuct.numberOfDucts());
-  dNode->setText(0, QString("duct").append(number));;
+  dNode->setText(0, QString("duct").append(number));
+  newduct->label = QString("duct").append(number).toStdString();
   Qt::ItemFlags itemFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   dNode->setFlags(itemFlags); // not editable
@@ -695,6 +700,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     Duct *duct = assy->AssyDuct.getDuct(i);
     cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, duct);
     dNode->setText(0, QString("duct").append(QString::number(i+1)));
+    duct->label = QString("duct").append(QString::number(i+1)).toStdString();
     dNode->setFlags(itemFlags); // not editable
     }
 
@@ -703,32 +709,10 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     {
     PinCell *pincell = assy->GetPinCell(i);
     cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, pincell);
-    //pinNode->setText(0, QString("PinCell").append(QString::number(i+1)));
     pinNode->setText(0, QString::fromStdString(pincell->label));
     pinNode->setFlags(itemFlags); // not editable
     pinNode->setChildIndicatorPolicy(
       QTreeWidgetItem::DontShowIndicatorWhenChildless);
-
-    /// don't need this anymore, since the PinCellEditor is integrated into
-    /// Main UI panels
-
-/*
-    for(size_t j = 0; j < pincell->cylinders.size(); j++)
-      {
-      Cylinder *cylin = pincell->cylinders[j];
-      cmbNucPartsTreeItem* cNode = new cmbNucPartsTreeItem(pinNode, cylin);
-      cNode->setText(0, QString("cylinder").append(QString::number(j+1)));
-      cNode->setFlags(itemFlags);
-      }
-
-    for(size_t j = 0; j < pincell->frustums.size(); j++)
-      {
-      Frustum *frust = pincell->frustums[j];
-      cmbNucPartsTreeItem* fNode = new cmbNucPartsTreeItem(pinNode, frust);
-      fNode->setText(0, QString("frustum").append(QString::number(j+1)));
-      fNode->setFlags(itemFlags);
-      }
-*/
     }
 
   this->Internal->PartsList->blockSignals(false);
@@ -736,7 +720,6 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   if(select)
     {
     this->Internal->PartsList->setCurrentItem(partsRoot);
-    //partsRoot->setSelected(true); // select the assembly
     this->onPartsSelectionChanged();
     }
 }
