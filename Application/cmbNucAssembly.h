@@ -125,7 +125,9 @@ public:
   class Transform
   {
   public:
-    Transform():Valid(false){}
+    enum CONTROLS{HAS_REVERSE = 0x00001, HAS_VALUE = 0x00002, HAS_AXIS = 0x00004};
+    enum AXIS{ X = 0, Y = 1, Z = 2 };
+    Transform():Valid(false), axis(Z){}
     virtual ~Transform(){}
     bool isValid() const { return Valid; }
     //returns true if changed
@@ -135,35 +137,44 @@ public:
       Valid = valid;
       return r;
     }
+    virtual double getValue() const = 0;
+    virtual AXIS getAxis() const {return axis;}
+    virtual std::string getLabel() const = 0;
+    virtual bool reverse() const = 0;
     virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const = 0;
     virtual std::ostream& write(std::ostream& os) const = 0;
+    virtual int getControls() const = 0;
+    void setAxis(std::string a);
   protected:
     bool Valid;
+    AXIS axis;
   };
   class Rotate: public Transform
   {
   public:
-    enum AXIS{ X = 0, Y = 1, Z = 2 };
-    Rotate(): axis(Z), angle(0) {}
+    Rotate(): angle(0) {}
     Rotate(std::string a, double delta);
     virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
     std::ostream& write(std::ostream& os) const;
+    virtual double getValue() const {return angle;}
+    virtual bool reverse() const {return false;}
+    virtual std::string getLabel() const {return "Rotate";}
+    virtual int getControls() const {return 6;}
   private:
-    void setAxis(std::string a);
-    AXIS axis;
     double angle;
   };
   class Section: public Transform
   {
   public:
-    enum AXIS{ X = 0, Y = 1, Z = 2 };
-    Section(): axis(X),value(0){}
+    Section(): value(0), dir(1){}
     Section(std::string a, double v, std::string dir);
     virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
     std::ostream& write(std::ostream& os) const;
+    virtual double getValue() const { return value; }
+    virtual bool reverse() const {return dir == -1;}
+    virtual std::string getLabel() const {return "Section";}
+    virtual int getControls() const {return 7;}
   private:
-    void setAxis(std::string a);
-    AXIS axis;
     int dir;
     double value;
   };
@@ -278,6 +289,7 @@ public:
   bool IsHexType();
 
   bool addTransform(Transform * in); //Will not add invalid xfroms, takes ownership
+  bool updateTransform(int at, Transform * in); //Take ownership of in
   Transform* getTransform(int i) const; //NULL if not found
   size_t getNumberOfTransforms() const;
 

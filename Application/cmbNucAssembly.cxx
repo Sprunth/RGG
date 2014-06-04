@@ -36,6 +36,16 @@
 std::string TO_AXIS_STRING[] = {"X", "Y", "Z"};
 
 //transformation helper classes
+
+void cmbNucAssembly::Transform::setAxis(std::string a)
+{
+  Valid = true;
+  if(a == "X" || a == "x") axis = X;
+  else if(a == "Y" || a == "y") axis = Y;
+  else if(a == "Z" || a == "z") axis = Z;
+  else Valid = false;
+}
+
 cmbNucAssembly::Rotate::Rotate( std::string a, double delta )
 {
   this->setAxis(a);
@@ -67,15 +77,6 @@ cmbNucAssembly::Rotate::write(std::ostream& os) const
 {
   os << "Rotate " << TO_AXIS_STRING[this->axis] << " " << this->angle;
   return os;
-}
-
-void cmbNucAssembly::Rotate::setAxis(std::string a)
-{
-  Valid = true;
-  if(a == "X" || a == "x") axis = X;
-  else if(a == "Y" || a == "y") axis = Y;
-  else if(a == "Z" || a == "z") axis = Z;
-  else Valid = false;
 }
 
 cmbNucAssembly::Section::Section( std::string a, double v, std::string d )
@@ -111,15 +112,6 @@ cmbNucAssembly::Section::write(std::ostream& os) const
   os << "Section " << TO_AXIS_STRING[this->axis] << " " << this->value;
   if(dir == -1) os << " reverse";
   return os;
-}
-
-void cmbNucAssembly::Section::setAxis(std::string a)
-{
-  Valid = true;
-  if(a == "X" || a == "x") axis = X;
-  else if(a == "Y" || a == "y") axis = Y;
-  else if(a == "Z" || a == "z") axis = Z;
-  else Valid = false;
 }
 
 /*************************************************************************/
@@ -981,6 +973,29 @@ bool cmbNucAssembly::addTransform(cmbNucAssembly::Transform * in)
     this->Transforms.push_back(in);
     return true;
   }
+  return false;
+}
+
+bool cmbNucAssembly::updateTransform(int at, Transform * in)
+{
+  if(in != NULL && in->isValid() && at <= this->Transforms.size())
+  {
+    Transform * tat = NULL;
+    if(at == this->Transforms.size() && addTransform(in))
+    {
+      return true;
+    }
+    else if( ( tat = getTransform(at) ) != NULL &&
+             ( tat->getValue() != in->getValue() ||
+               tat->reverse() != in->reverse() ||
+               tat->getLabel() != in->getLabel() ) )
+    {
+      this->Transforms[at] =in;
+      delete tat;
+      return true;
+    }
+  }
+  delete in;
   return false;
 }
 
