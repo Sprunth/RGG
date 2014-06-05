@@ -239,5 +239,5 @@ add_revision(cgm
   )
 
 add_revision(moab
-  GIT_REPOSITORY https://github.com/judajake/moab.git
-  GIT_TAG cmakify_build_on_windows)
+  GIT_REPOSITORY https://judajake@bitbucket.org/judajake/moab.git
+  GIT_TAG 4.6.3_cmake)
