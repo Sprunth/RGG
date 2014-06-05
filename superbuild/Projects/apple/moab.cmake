@@ -14,6 +14,7 @@ add_external_project(moab
     -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>
     -DHDF5_DIR:path=<INSTALL_DIR>
     -DCGM_CFG:path=<INSTALL_DIR>/lib/cgm.make
+    -DENABLE_IMESH:BOOL=ON
     -DNetCDF_CXX_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.dylib
     -DNetCDF_C_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.dylib
     -DNetCDF_FORTRAN_LIBRARY:path=<INSTALL_DIR>/lib/libnetcdf.dylib
