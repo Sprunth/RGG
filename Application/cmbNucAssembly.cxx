@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <cctype>
 
 #include "vtkCmbDuctSource.h"
 #include "cmbNucMaterialColors.h"
