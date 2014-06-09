@@ -22,3 +22,4 @@ OBJECTIVE_SOURCES += qcorewlanengine.mm
 QTDIR_build:DESTDIR = $$QT_BUILD_TREE/plugins/bearer
 target.path += $$[QT_INSTALL_PLUGINS]/bearer
 INSTALLS += target
+
