@@ -82,9 +82,12 @@ if (APPLE)
   add_external_project_step(qt-patch-corewlan
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
                               ${SuperBuild_PROJECTS_DIR}/patches/qt.src.plugins.berarer.corewlan.corewlan.pro
-            <SOURCE_DIR>/src/plugins/berarer/corewlan/corewlan.pro
+            <SOURCE_DIR>/src/plugins/bearer/corewlan/corewlan.pro
     DEPENDEES patch
     DEPENDERS configure)
+  add_external_project_step( qt-patch-base COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SuperBuild_PROJECTS_DIR}/patches/qt.g++-base.conf <SOURCE_DIR>/mkspecs/common/g++-base.conf
+      DEPENDEES patch
+      DEPENDERS configure )
 endif()
 
 # Tell ParaView to disable WebKit, if disabled.
