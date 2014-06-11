@@ -44,6 +44,13 @@ public:
     }
     QItemDelegate::paint(pPainter, ViewOption, rIndex);
   }
+
+  QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const
+  {
+    QSize tmp = QItemDelegate::sizeHint(option, index);
+    tmp.setHeight(15);
+    return tmp;
+  }
 };
 
 
