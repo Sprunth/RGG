@@ -38,7 +38,7 @@ void cmbAssyParametersWidget::cmbAssyParametersWidgetInternal
   }
   //AXIS
   {
-    QComboBox* comboBox = new QComboBox;
+    QComboBox* comboBox = new QComboBox(table);
     comboBox->addItem("");
     comboBox->addItem("X");
     comboBox->addItem("Y");
@@ -50,7 +50,7 @@ void cmbAssyParametersWidget::cmbAssyParametersWidgetInternal
   }
   //Value
   {
-    QDoubleSpinBox* value = new QDoubleSpinBox;
+    QDoubleSpinBox* value = new QDoubleSpinBox(table);
     value->setDecimals(2);
     value->setFrame(false);
     value->setMaximum(10000.0);
