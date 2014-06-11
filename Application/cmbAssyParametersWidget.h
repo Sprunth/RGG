@@ -35,6 +35,10 @@ public slots:  // reset property panel with given object
   // apply property panel to given object
   void applyToAssembly(cmbNucAssembly* assy);
 
+  void addRotation();
+  void addSection();
+  void deleteSelected();
+
 private:
   class cmbAssyParametersWidgetInternal;
   cmbAssyParametersWidgetInternal* Internal;

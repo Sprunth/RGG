@@ -5,6 +5,8 @@
 #include <QFileInfo>
 #include <QFont>
 #include <QBrush>
+#include <QStyle>
+#include <QIcon>
 
 //-----------------------------------------------------------------------------
 cmbNucPartsTreeItem::cmbNucPartsTreeItem(
@@ -17,12 +19,12 @@ cmbNucPartsTreeItem::cmbNucPartsTreeItem(
   std::string fname = this->PartObject->getFileName();
   if(fname.empty())
   {
-    this->setText(1, "");
+    this->setText(3, "");
   }
   else
   {
     QFileInfo fi(fname.c_str());
-    this->setText(1, fi.fileName());
+    this->setText(3, fi.fileName());
   }
 }
 
@@ -97,50 +99,78 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
 {
   FileChanged = fc;
   NeedGeneration = ng;
-  QFont tmp_font = this->font(0);
-  tmp_font.setBold(FileChanged||NeedGeneration);
-  this->setFont(0, tmp_font);
-
   if( FileChanged )
   {
-    this->setText( 0, ("!* " + PartObject->getLabel() + " *!").c_str() );
+    this->setText( 1, QChar(9999) );
+    QBrush b;
+    setBackground( 1 , b );
+    setForeground( 1 , b );
   }
   else
   {
-    this->setText( 0, (PartObject->getLabel()).c_str() );
+    QBrush b (Qt::green);
+    setBackground( 1 , b );
+    setForeground( 1 , b );
+    this->setText( 1, " " );
   }
 
   std::string fname = this->PartObject->getFileName();
   if(fname.empty())
   {
-    this->setText(1, "");
+    this->setText(3, "");
   }
   else
   {
     QFileInfo fi(fname.c_str());
-    this->setText(1, fi.fileName());
+    this->setText(3, fi.fileName());
   }
 
   if(NeedGeneration)
   {
-    QBrush b (Qt::red);
-    setForeground( 0 , b );
+    QBrush b;
+    setBackground( 2 , b );
+    setForeground( 2 , b );
+    this->setText( 2, QChar(9746) );
   }
   else
   {
-    QBrush b;
-    setForeground( 0 , b );
+    QBrush b (Qt::green);
+    setBackground( 2 , b );
+    setForeground( 2 , b );
+    this->setText( 2, " " );
   }
 }
 
 QVariant cmbNucPartsTreeItem::data( int index, int role ) const
 {
-  if(role == Qt::ToolTipRole && index == 1)
+  if(role == Qt::ToolTipRole && index == 3)
   {
     std::string fname = this->PartObject->getFileName();
     if(!fname.empty())
     {
       return QVariant(fname.c_str());
+    }
+  }
+  if(role == Qt::ToolTipRole && index == 1)
+  {
+    if(FileChanged)
+    {
+      return QVariant("Needs to be saved");
+    }
+    else
+    {
+      return QVariant("Saved");
+    }
+  }
+  if(role == Qt::ToolTipRole && index == 2)
+  {
+    if(NeedGeneration)
+    {
+      return QVariant("MeshKit needs to be run");
+    }
+    else
+    {
+      return QVariant("MeshKit files up to date");
     }
   }
   return this->QTreeWidgetItem::data(index, role);

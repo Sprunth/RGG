@@ -1,5 +1,6 @@
 
 #include "cmbNucAssembly.h"
+#include "cmbNucCore.h"
 #include "inpFileIO.h"
 
 #include <iostream>
@@ -7,6 +8,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <cctype>
 
 #include "vtkCmbDuctSource.h"
 #include "cmbNucMaterialColors.h"
@@ -31,6 +33,89 @@
 #include <QFileInfo>
 #include <QDateTime>
 #include <QDir>
+
+std::string TO_AXIS_STRING[] = {"X", "Y", "Z"};
+
+//transformation helper classes
+
+void cmbNucAssembly::Transform::setAxis(std::string a)
+{
+  Valid = true;
+  if(a == "X" || a == "x") axis = X;
+  else if(a == "Y" || a == "y") axis = Y;
+  else if(a == "Z" || a == "z") axis = Z;
+  else Valid = false;
+}
+
+cmbNucAssembly::Rotate::Rotate( std::string a, double delta )
+{
+  this->setAxis(a);
+  this->angle = delta;
+}
+
+void
+cmbNucAssembly::Rotate::apply( vtkMultiBlockDataSet * input,
+                               vtkMultiBlockDataSet * output ) const
+{
+  vtkSmartPointer<vtkTransform> xform = vtkSmartPointer<vtkTransform>::New();
+  switch(this->axis)
+  {
+    case X:
+      xform->RotateX(this->angle);
+      break;
+    case Y:
+      xform->RotateY(this->angle);
+      break;
+    case Z:
+      xform->RotateZ(this->angle);
+      break;
+  }
+  cmbNucCore::transformData(input, output, xform);
+}
+
+std::ostream&
+cmbNucAssembly::Rotate::write(std::ostream& os) const
+{
+  os << "Rotate " << TO_AXIS_STRING[this->axis] << " " << this->angle;
+  return os;
+}
+
+cmbNucAssembly::Section::Section( std::string a, double v, std::string d )
+:value(v), dir(1)
+{
+  setAxis(a);
+  std::transform(d.begin(), d.end(), d.begin(), ::tolower);
+  d.erase(d.begin(), std::find_if(d.begin(), d.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+  d.erase(std::find_if(d.rbegin(), d.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), d.end());
+  if(d == "reverse") dir = -1;
+}
+
+void
+cmbNucAssembly::Section::apply( vtkMultiBlockDataSet * input,
+                                vtkMultiBlockDataSet * output ) const
+{
+  double normal[3];
+  double tmp[] ={0,0,0};
+  tmp[this->axis] = dir;
+  vtkSmartPointer<vtkTransform> xform = vtkSmartPointer<vtkTransform>::New();
+  xform->RotateZ(60);
+  xform->TransformPoint(tmp,normal);
+  double sum = std::sqrt(normal[0]*normal[0]+ normal[1]*normal[1] + normal[2]*normal[2]);
+  normal[0] /= sum;
+  normal[1] /= sum;
+  normal[2] /= sum;
+  cmbNucAssembly::clip(input, output, normal);
+}
+
+std::ostream&
+cmbNucAssembly::Section::write(std::ostream& os) const
+{
+  os << "Section " << TO_AXIS_STRING[this->axis] << " " << this->value;
+  if(dir == -1) os << " reverse";
+  return os;
+}
+
+/*************************************************************************/
 
 void cmbNucAssemblyConnection::dataChanged()
 {
@@ -69,6 +154,11 @@ cmbNucAssembly::cmbNucAssembly()
 cmbNucAssembly::~cmbNucAssembly()
 {
   AssyPartObj::deleteObjs(this->PinCells);
+  for(unsigned int i = 0; i < this->Transforms.size(); ++i)
+  {
+    delete this->Transforms[i];
+  }
+  this->Transforms.clear();
   delete this->Parameters;
   delete this->Connection;
   delete this->Defaults;
@@ -520,13 +610,19 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
     for(size_t j = 0; j < duct->NumberOfLayers(); j++)
       {
-      ductSource->AddLayer(duct->GetLayerThick(j,0), duct->GetLayerThick(j,1));
+      ductSource->AddLayer(duct->GetLayerThick(j,0) - duct->GetLayerThick(j,0)*0.0005,
+                           duct->GetLayerThick(j,1) - duct->GetLayerThick(j,0)*0.0005);
       }
 
     ductSource->Update();
 
     this->Data->SetBlock(this->Data->GetNumberOfBlocks() - i - 1, ductSource->GetOutput());
     ductSource->Delete();
+    }
+
+  for(unsigned int i = 0; i < this->Transforms.size(); ++i)
+    {
+    this->Transforms[i]->apply(this->Data, this->Data);
     }
 
   return this->Data;
@@ -659,34 +755,9 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
 
     if(cutaway)
       {
-        //vtkSmartPointer<vtkXMLMultiBlockDataWriter> writer = vtkSmartPointer<vtkXMLMultiBlockDataWriter>::New();
-        //writer->SetFileName("/Users/jacobbecker/test_build_script/cmbnuclear/build/cone.vtm");
-        //writer->SetInputData(coneSource->GetOutput());
-        //writer->Update();
-        //writer->Write();
       vtkMultiBlockDataSet *coneData = coneSource->GetOutput();
-      for(int block = 0; block < coneData->GetNumberOfBlocks(); block++)
-        {
-        vtkPolyData *coneLayerData =
-          vtkPolyData::SafeDownCast(coneData->GetBlock(block));
-        vtkNew<vtkClipClosedSurface> clipper;
-        vtkNew<vtkPlaneCollection> clipPlanes;
-        vtkNew<vtkPlane> plane;
-        vtkNew<vtkPolyDataNormals> normals;
-        plane->SetOrigin(0, 0 + 0.001 * block, 0);
-        plane->SetNormal(0, 1, 0);
-        clipPlanes->AddItem(plane.GetPointer());
-        clipper->SetClippingPlanes(clipPlanes.GetPointer());
-        clipper->SetActivePlaneId(0);
-        clipper->SetClipColor(1.0,1.0,1.0);
-        clipper->SetActivePlaneColor(1.0,1.0,0.8);
-        clipper->GenerateOutlineOff();
-        clipper->SetInputData(coneLayerData);
-        clipper->GenerateFacesOn();
-        normals->SetInputConnection(clipper->GetOutputPort());
-        normals->Update();
-        coneData->SetBlock(block, normals->GetOutput());
-        }
+      double normal[] = {0, 1, 0};
+      clip(coneData,coneData,normal);
       dataSet->SetBlock(j, coneData);
       }
     else
@@ -696,6 +767,58 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
     }
 
   return dataSet;
+}
+
+void cmbNucAssembly::clip(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output,
+                          double * normal, int offset)
+{
+  vtkNew<vtkPlane> plane;
+  plane->SetOrigin(-normal[0]*0.005*offset, -normal[1]*0.005*offset, -normal[2]*0.005*offset);
+  plane->SetNormal(normal[0], normal[1], normal[2]);
+  for(int block = 0; block < input->GetNumberOfBlocks(); block++)
+  {
+    if(vtkDataObject* objBlock = input->GetBlock(block))
+    {
+      if(vtkMultiBlockDataSet* part =
+         vtkMultiBlockDataSet::SafeDownCast(objBlock))
+      {
+        vtkSmartPointer<vtkMultiBlockDataSet> clipPart = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+        clipPart->SetNumberOfBlocks(part->GetNumberOfBlocks());
+        clip(part, clipPart, normal, offset+1);
+        output->SetBlock(block, clipPart);
+      }
+      else if(vtkPolyData *pd =
+              vtkPolyData::SafeDownCast(objBlock))
+      {
+        vtkNew<vtkClipClosedSurface> clipper;
+        vtkNew<vtkPlaneCollection> clipPlanes;
+        vtkNew<vtkPolyDataNormals> normals;
+        clipPlanes->AddItem(plane.GetPointer());
+        clipper->SetClippingPlanes(clipPlanes.GetPointer());
+        clipper->SetActivePlaneId(0);
+        clipper->SetClipColor(1.0,1.0,1.0);
+        clipper->SetActivePlaneColor(1.0,1.0,0.8);
+        clipper->GenerateOutlineOff();
+        clipper->SetInputData(pd);
+        clipper->GenerateFacesOn();
+        normals->SetInputConnection(clipper->GetOutputPort());
+        normals->Update();
+        vtkPolyData * result = normals->GetOutput();
+        if(result->GetNumberOfPolys()!=0)
+          output->SetBlock(block, result);
+        else
+          output->SetBlock(block, NULL);
+      }
+      else
+      {
+        output->SetBlock(block, NULL);
+      }
+    }
+    else
+    {
+      output->SetBlock(block, NULL);
+    }
+  }
 }
 
 void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
@@ -842,4 +965,48 @@ void cmbNucAssembly::centerPins()
     this->CreateData();
     this->Connection->dataChanged();
   }
+}
+
+bool cmbNucAssembly::addTransform(cmbNucAssembly::Transform * in)
+{
+  if(in != NULL && in->isValid())
+  {
+    this->Transforms.push_back(in);
+    return true;
+  }
+  return false;
+}
+
+bool cmbNucAssembly::updateTransform(int at, Transform * in)
+{
+  if(in != NULL && in->isValid() && at <= this->Transforms.size())
+  {
+    Transform * tat = NULL;
+    if(at == this->Transforms.size() && addTransform(in))
+    {
+      return true;
+    }
+    else if( ( tat = getTransform(at) ) != NULL &&
+             ( tat->getValue() != in->getValue() ||
+               tat->reverse() != in->reverse() ||
+               tat->getLabel() != in->getLabel() ) )
+    {
+      this->Transforms[at] =in;
+      delete tat;
+      return true;
+    }
+  }
+  delete in;
+  return false;
+}
+
+cmbNucAssembly::Transform* cmbNucAssembly::getTransform(int i) const
+{
+  if(i < this->Transforms.size()) return this->Transforms[i];
+  return NULL;
+}
+
+size_t cmbNucAssembly::getNumberOfTransforms() const
+{
+  return this->Transforms.size();
 }

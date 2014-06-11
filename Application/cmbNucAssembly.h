@@ -46,9 +46,9 @@ public:
   cmbAssyParameters()
   {
   this->Geometry = this->GeometryType = this->MeshType
-    = this->RotateXYZ = this->CenterXYZ = this->HBlock
+    = this->CenterXYZ = this->HBlock
     = this->Info = this->SectionXYZ = ASSY_NOT_SET_KEY;
-  this->RotateAngle = this->RadialMeshSize = this->AxialMeshSize
+  this->RadialMeshSize = this->AxialMeshSize
     = this->TetMeshSize = this->CreateFiles
     = this->SectionOffset = ASSY_NOT_SET_VALUE;
   MoveXYZ[0] = MoveXYZ[1] = MoveXYZ[2] = 0.0;
@@ -76,9 +76,6 @@ public:
   double RadialMeshSize;
   // [AxialMeshSize <size>]
   double AxialMeshSize;
-  // [Rotate {x | y | z} <angle>]
-  std::string RotateXYZ;
-  double RotateAngle;
   // [Center] {x | y | z}
   std::string CenterXYZ;
   // [Info {On | off}]
@@ -124,6 +121,63 @@ signals:
 // into cores (cmbNucCore).
 class cmbNucAssembly : public AssyPartObj
 {
+public:
+  class Transform
+  {
+  public:
+    enum CONTROLS{HAS_REVERSE = 0x00001, HAS_VALUE = 0x00002, HAS_AXIS = 0x00004};
+    enum AXIS{ X = 0, Y = 1, Z = 2 };
+    Transform():Valid(false), axis(Z){}
+    virtual ~Transform(){}
+    bool isValid() const { return Valid; }
+    //returns true if changed
+    bool setValid( bool valid)
+    {
+      bool r = Valid != valid;
+      Valid = valid;
+      return r;
+    }
+    virtual double getValue() const = 0;
+    virtual AXIS getAxis() const {return axis;}
+    virtual std::string getLabel() const = 0;
+    virtual bool reverse() const = 0;
+    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const = 0;
+    virtual std::ostream& write(std::ostream& os) const = 0;
+    virtual int getControls() const = 0;
+    void setAxis(std::string a);
+  protected:
+    bool Valid;
+    AXIS axis;
+  };
+  class Rotate: public Transform
+  {
+  public:
+    Rotate(): angle(0) {}
+    Rotate(std::string a, double delta);
+    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
+    std::ostream& write(std::ostream& os) const;
+    virtual double getValue() const {return angle;}
+    virtual bool reverse() const {return false;}
+    virtual std::string getLabel() const {return "Rotate";}
+    virtual int getControls() const {return 6;}
+  private:
+    double angle;
+  };
+  class Section: public Transform
+  {
+  public:
+    Section(): value(0), dir(1){}
+    Section(std::string a, double v, std::string dir);
+    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
+    std::ostream& write(std::ostream& os) const;
+    virtual double getValue() const { return value; }
+    virtual bool reverse() const {return dir == -1;}
+    virtual std::string getLabel() const {return "Section";}
+    virtual int getControls() const {return 7;}
+  private:
+    int dir;
+    double value;
+  };
 public:
 
   friend class inpFileReader;
@@ -174,6 +228,9 @@ public:
   // Returns a multi-block data set containing the geometry for
   // the assembly. This is used to render the assembly in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
+
+  static void clip(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output,
+                   double * normal, int offset = 0);
 
   // creates the multiblock used to render the pincell. if cutaway is true the
   // pincell will be cut in half length-wise to show the interior layers.
@@ -231,8 +288,15 @@ public:
   // Check if GeometryType is Hexagonal
   bool IsHexType();
 
+  bool addTransform(Transform * in); //Will not add invalid xfroms, takes ownership
+  bool updateTransform(int at, Transform * in); //Take ownership of in
+  Transform* getTransform(int i) const; //NULL if not found
+  size_t getNumberOfTransforms() const;
+
 protected:
   std::vector<PinCell*> PinCells;
+
+  std::vector<Transform*> Transforms;
 
   bool KeepPinsCentered;
 
