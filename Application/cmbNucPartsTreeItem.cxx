@@ -99,19 +99,25 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
 {
   FileChanged = fc;
   NeedGeneration = ng;
+  QFont f = font(1);
+  f.setPixelSize(20);
+  this->setFont(1, f);
+  f = font(2);
+  f.setPixelSize(20);
+  this->setFont(2, f);
+  this->setTextAlignment(1,Qt::AlignHCenter|Qt::AlignVCenter);
+  this->setTextAlignment(2,Qt::AlignHCenter|Qt::AlignVCenter);
   if( FileChanged )
   {
     this->setText( 1, QChar(9999) );
     QBrush b;
-    setBackground( 1 , b );
     setForeground( 1 , b );
   }
   else
   {
     QBrush b (Qt::green);
-    setBackground( 1 , b );
     setForeground( 1 , b );
-    this->setText( 1, " " );
+    this->setText( 1, QChar(0x25FC) );
   }
 
   std::string fname = this->PartObject->getFileName();
@@ -128,16 +134,14 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
   if(NeedGeneration)
   {
     QBrush b;
-    setBackground( 2 , b );
     setForeground( 2 , b );
-    this->setText( 2, QChar(9746) );
+    this->setText( 2, QChar(10007) );
   }
   else
   {
     QBrush b (Qt::green);
-    setBackground( 2 , b );
     setForeground( 2 , b );
-    this->setText( 2, " " );
+    this->setText( 2, QChar(0x25FC) );
   }
 }
 

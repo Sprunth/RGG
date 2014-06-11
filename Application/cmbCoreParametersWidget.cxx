@@ -20,7 +20,7 @@ class cmbCoreParametersWidget::cmbCoreParametersWidgetInternal :
   public Ui::qCoreParametersWidget
 {
 public:
-
+  std::string background_full_path;
 };
 
 //-----------------------------------------------------------------------------
@@ -105,8 +105,7 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
   }
   // Cache the directory for the next time the dialog is opened
   QFileInfo info(fileNames[0]);
-  this->Core->Params.Background = info.fileName().toStdString();
-  this->Core->Params.BackgroundFullPath = info.absoluteFilePath().toStdString();
+  this->Internal->background_full_path = info.absoluteFilePath().toStdString();
   Internal->Background->setText(info.fileName());
 }
 
@@ -253,6 +252,11 @@ changed |= setValue(Core->Params.Var, Internal->Var);
   USED_SIMPLE_VARABLE_MACRO()
 
 #undef FUN_SIMPLE
+  if(Core->Params.BackgroundFullPath != Internal->background_full_path)
+  {
+    Core->Params.BackgroundFullPath = Internal->background_full_path;
+    changed = true;
+  }
 
   cmbNucCoreParams::NeumannSetStruct tmp;
   changed |= Core->Params.NeumannSet != Internal->NeumannSetTable->rowCount();
