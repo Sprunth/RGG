@@ -817,7 +817,7 @@ void cmbNucInputListWidget::initPartsTree()
 
   treeWidget->blockSignals(true);
   treeWidget->clear();
-  treeWidget->setHeaderLabels(QStringList() << tr("Name") << tr("FileName"));
+  treeWidget->setHeaderLabels(QStringList() << tr("Name") << tr("") << tr("") << tr("FileName"));
   treeWidget->setSelectionMode(QAbstractItemView::SingleSelection);
   treeWidget->setAcceptDrops(false);
   treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
