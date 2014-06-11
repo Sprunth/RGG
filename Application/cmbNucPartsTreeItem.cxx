@@ -102,6 +102,9 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
   if( FileChanged )
   {
     this->setText( 1, QChar(9999) );
+    QBrush b;
+    setBackground( 1 , b );
+    setForeground( 1 , b );
   }
   else
   {
@@ -125,6 +128,7 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
   if(NeedGeneration)
   {
     QBrush b;
+    setBackground( 2 , b );
     setForeground( 2 , b );
     this->setText( 2, QChar(9746) );
   }
