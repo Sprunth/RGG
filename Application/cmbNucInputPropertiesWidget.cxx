@@ -344,6 +344,34 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
   emit sendLabelChange(current);
 }
 
+void cmbNucInputPropertiesWidget::colorChanged()
+{
+  if(this->CurrentObject == NULL)
+  {
+    return;
+  }
+  AssyPartObj* selObj = this->CurrentObject;
+  PinCell* pincell = NULL;
+  switch(selObj->GetType())
+  {
+    case CMBNUC_CORE:
+    case CMBNUC_ASSEMBLY:
+    case CMBNUC_ASSY_DUCT:
+      emit objGeometryChanged(selObj);
+      break;
+    case CMBNUC_ASSY_PINCELL:
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+      this->Internal->PinCellEditor->UpdateData();
+      break;
+    case CMBNUC_ASSY_DUCTCELL:
+    case CMBNUC_ASSY_LATTICE
+    case CMBNUC_ASSY_BASEOBJ:
+      this->setEnabled(0);
+      break;
+  }
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::pinNameChanged(PinCell* pincell,
                                                  QString previous,

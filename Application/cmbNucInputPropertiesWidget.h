@@ -53,6 +53,7 @@ signals:
   void resetView();
 
 public slots:
+  void colorChanged();
   void resetCore(cmbNucCore* nucCore);
   void resetAssemblyEditor(cmbNucAssembly* assembly);
   void pinLabelChanged(PinCell*, QString previous, QString current);
