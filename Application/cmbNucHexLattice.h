@@ -34,12 +34,14 @@ public:
   void setAssembly(cmbNucAssembly* assy);
   void setCore(cmbNucCore* core);
 
+public slots:
+  void clear();
+
 protected:
   virtual void mousePressEvent(QMouseEvent* event);
   virtual void dropEvent(QDropEvent* event);
 
 private slots:
-  void clear();
   void init();
   bool copyGrid(std::vector<std::vector<LatticeCell> >& inGrid,
     std::vector<std::vector<LatticeCell> >& outGrid);
