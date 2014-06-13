@@ -236,8 +236,8 @@ cmbNucMainWindow::~cmbNucMainWindow()
   delete this->MaterialColors;
 #ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
-  delete this->Internal;
 #endif
+  delete this->Internal;
   delete this->ui;
 }
 
