@@ -365,7 +365,7 @@ void cmbNucInputPropertiesWidget::colorChanged()
       this->Internal->PinCellEditor->UpdateData();
       break;
     case CMBNUC_ASSY_DUCTCELL:
-    case CMBNUC_ASSY_LATTICE
+    case CMBNUC_ASSY_LATTICE:
     case CMBNUC_ASSY_BASEOBJ:
       this->setEnabled(0);
       break;
