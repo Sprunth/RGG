@@ -350,7 +350,6 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
       }
     if(selPin)
       {
-      //this->updatePinCellMaterialColors(selPin);
       this->ResetView();
       }
     }
@@ -1057,7 +1056,8 @@ void cmbNucMainWindow::Render()
     this->onChangeMeshColorMode(this->InputsWidget->getMeshColorState());
     return;
   }
-  this->updateCoreMaterialColors();
+  //this->updateCoreMaterialColors();
+  this->PropertyWidget->colorChanged();
   this->Mapper->Modified();
   this->Renderer->Render();
   this->ui->qvtkWidget->update();
