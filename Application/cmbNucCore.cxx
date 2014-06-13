@@ -175,7 +175,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
   double outerDuctHeight = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[0];
 
   // Is this Hex type?
-  bool isHex = Assemblies[0]->AssyLattice.GetGeometryType() & HEXAGONAL;
+  bool isHex = Assemblies[0]->AssyLattice.GetGeometryType() == HEXAGONAL;
 
 
   // setup data
