@@ -164,6 +164,18 @@ void cmbNucInputListWidget::setCreateOptions(QMenu * qm) const
   qm->addAction(this->Internal->Action_NewDuct);
 }
 
+void cmbNucInputListWidget::clear()
+{
+  this->clearTable();
+  this->setCore(NULL);
+  this->setEnabled(0);
+  this->initPartsTree();
+  if(this->Internal->RootCoreNode)
+  {
+    this->Internal->RootCoreNode = NULL;
+  }
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputListWidget::setCore(cmbNucCore* core)
 {

@@ -41,6 +41,8 @@ public:
   bool getMeshColorState();
   bool getMeshEdgeState();
 
+  void clear();
+
   void clearTable();
 
   void setCreateOptions(QMenu * qm) const;

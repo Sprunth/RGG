@@ -150,7 +150,14 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
     return;
     }
   this->setEnabled(true);
-  emit currentObjectNameChanged(selObj->getTitle().c_str());
+  if(name != NULL)
+    {
+    emit currentObjectNameChanged(selObj->getTitle().c_str());
+    }
+  else
+    {
+    emit currentObjectNameChanged("");
+    }
 
   this->onReset();
 }
@@ -286,6 +293,13 @@ void cmbNucInputPropertiesWidget::onReset()
       this->setEnabled(0);
       break;
     }
+}
+
+void cmbNucInputPropertiesWidget::clear()
+{
+  this->setObject(NULL,NULL);
+  this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
+  this->setAssembly(NULL);
 }
 
 //-----------------------------------------------------------------------------
