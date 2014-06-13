@@ -300,6 +300,10 @@ void cmbNucInputPropertiesWidget::clear()
   this->setObject(NULL,NULL);
   this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
   this->setAssembly(NULL);
+  this->HexCore->clear();
+  this->HexAssy->clear();
+  this->AssemblyEditor->clearUI(true);
+  this->CoreEditor->clearUI(true);
 }
 
 //-----------------------------------------------------------------------------
