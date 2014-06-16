@@ -44,6 +44,13 @@ public:
     }
     QItemDelegate::paint(pPainter, ViewOption, rIndex);
   }
+
+  QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const
+  {
+    QSize tmp = QItemDelegate::sizeHint(option, index);
+    tmp.setHeight(15);
+    return tmp;
+  }
 };
 
 
@@ -155,6 +162,18 @@ void cmbNucInputListWidget::setCreateOptions(QMenu * qm) const
   qm->clear();
   qm->addAction(this->Internal->Action_NewPin);
   qm->addAction(this->Internal->Action_NewDuct);
+}
+
+void cmbNucInputListWidget::clear()
+{
+  this->clearTable();
+  this->setCore(NULL);
+  this->setEnabled(0);
+  this->initPartsTree();
+  if(this->Internal->RootCoreNode)
+  {
+    this->Internal->RootCoreNode = NULL;
+  }
 }
 
 //-----------------------------------------------------------------------------

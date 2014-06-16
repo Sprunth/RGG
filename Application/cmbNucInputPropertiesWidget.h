@@ -39,6 +39,8 @@ public:
   void setAssembly(cmbNucAssembly*);
   cmbNucAssembly* getAssembly(){return this->Assembly;}
 
+  void clear();
+
 signals:
   // Description:
   // Fired when the current object is modified
@@ -51,6 +53,7 @@ signals:
   void resetView();
 
 public slots:
+  void colorChanged();
   void resetCore(cmbNucCore* nucCore);
   void resetAssemblyEditor(cmbNucAssembly* assembly);
   void pinLabelChanged(PinCell*, QString previous, QString current);

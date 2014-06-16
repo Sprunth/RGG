@@ -37,7 +37,9 @@ cmbNucHexLattice::~cmbNucHexLattice()
 
 void cmbNucHexLattice::clear()
 {
-  scene()->clear();
+  this->CurrentAssembly = NULL;
+  this->CurrentCore = NULL;
+  this->init();
 }
 
 void cmbNucHexLattice::init()
@@ -158,7 +160,7 @@ void cmbNucHexLattice::addCell(
 
 void cmbNucHexLattice::rebuild()
 {
-  clear();
+  scene()->clear();
   int numLayers = HexGrid.numberOfLayers();
   if(numLayers <= 0)
     {

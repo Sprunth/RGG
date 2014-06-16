@@ -236,80 +236,78 @@ cmbNucMainWindow::~cmbNucMainWindow()
   delete this->MaterialColors;
 #ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
-  delete this->Internal;
 #endif
+  delete this->Internal;
   delete this->ui;
 }
 
 void cmbNucMainWindow::initPanels()
 {
-  delete this->InputsWidget;
-  this->InputsWidget = new cmbNucInputListWidget(this);
-  this->InputsWidget->setCreateOptions(this->ui->menuCreate);
+  if(this->InputsWidget == NULL)
+  {
+    this->InputsWidget = new cmbNucInputListWidget(this);
+    this->InputsWidget->setCreateOptions(this->ui->menuCreate);
 
-  connect(this, SIGNAL(checkSave()), this->InputsWidget, SIGNAL(checkSavedAndGenerate()));
-  connect( this->ui->actionNew_Assembly, SIGNAL(triggered()),
-           this->InputsWidget,           SLOT(onNewAssembly()));
+    this->ui->InputsDock->setWidget(this->InputsWidget);
+    this->ui->InputsDock->setFeatures(QDockWidget::DockWidgetMovable |
+                                      QDockWidget::DockWidgetFloatable);
 
-#ifdef BUILD_WITH_MOAB
-  delete this->Internal->MoabSource;
-  this->Internal->MoabSource = new cmbNucCoregen(this->InputsWidget->getModelTree());
-  connect(this->ExportDialog, SIGNAL(finished(QString)),
-          this->Internal->MoabSource, SLOT(openFile(QString)));
-  connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
-  QObject::connect(this->InputsWidget, SIGNAL(switchToModelTab()),
-                   this, SLOT(onChangeToModelTab()));
-  QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab(int)),
-                   this, SLOT(onChangeFromModelTab(int)));
-  QObject::connect(this->InputsWidget, SIGNAL(meshEdgeChange(bool)),
-                   this, SLOT(onChangeMeshEdgeMode(bool)));
-  QObject::connect(this->InputsWidget, SIGNAL(meshColorChange(bool)),
-                   this, SLOT(onChangeMeshColorMode(bool)));
-
-#endif
-
-  delete this->PropertyWidget;
-  this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
-  this->ui->InputsDock->setWidget(this->InputsWidget);
-  this->ui->InputsDock->setFeatures(
-    QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-
-  this->ui->PropertyDock->setWidget(this->PropertyWidget);
-  this->ui->PropertyDock->setFeatures(
-    QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
-
-  this->PropertyWidget->setEnabled(0);
+    QObject::connect( this, SIGNAL(checkSave()),
+                      this->InputsWidget, SIGNAL(checkSavedAndGenerate()) );
+    QObject::connect( this->ui->actionNew_Assembly, SIGNAL(triggered()),
+                      this->InputsWidget,           SLOT(onNewAssembly()));
+    QObject::connect( this->InputsWidget, SIGNAL(objectSelected(AssyPartObj*, const char*)),
+                      this, SLOT(onObjectSelected(AssyPartObj*, const char*)));
+    QObject::connect( this->InputsWidget, SIGNAL(objectRemoved()),
+                      this, SLOT(onObjectModified()));
+    QObject::connect( this->InputsWidget, SIGNAL(deleteCore()),
+                      this, SLOT(clearCore()));
+  }
   this->InputsWidget->setEnabled(0);
   this->InputsWidget->setCore(this->NuclearCore);
 
-  QObject::connect(this->InputsWidget,
-    SIGNAL(objectSelected(AssyPartObj*, const char*)), this,
-    SLOT(onObjectSelected(AssyPartObj*, const char*)));
-  QObject::connect(this->InputsWidget,
-    SIGNAL(objectRemoved()), this,
-    SLOT(onObjectModified()));
-  QObject::connect(this->InputsWidget, SIGNAL(pinsModified(cmbNucAssembly*)),
-    this->PropertyWidget, SLOT(resetAssemblyEditor(cmbNucAssembly*)));
-  QObject::connect(this->InputsWidget, SIGNAL(assembliesModified(cmbNucCore*)),
-    this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
-  QObject::connect(this->PropertyWidget, SIGNAL(valuesChanged()),
-                   this->InputsWidget, SLOT(valueChanged()));
+#ifdef BUILD_WITH_MOAB
+  //if(this->Internal->MoabSource == NULL)
+  {
+    delete(this->Internal->MoabSource);
+    this->Internal->MoabSource = new cmbNucCoregen(this->InputsWidget->getModelTree());
+    QObject::connect(this->ExportDialog, SIGNAL(finished(QString)),
+            this->Internal->MoabSource, SLOT(openFile(QString)));
+    QObject::connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
+    QObject::connect(this->InputsWidget, SIGNAL(switchToModelTab()),
+                     this, SLOT(onChangeToModelTab()));
+    QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab(int)),
+                     this, SLOT(onChangeFromModelTab(int)));
+    QObject::connect(this->InputsWidget, SIGNAL(meshEdgeChange(bool)),
+                     this, SLOT(onChangeMeshEdgeMode(bool)));
+    QObject::connect(this->InputsWidget, SIGNAL(meshColorChange(bool)),
+                     this, SLOT(onChangeMeshColorMode(bool)));
+  }
+#endif
 
-  QObject::connect(this->PropertyWidget, SIGNAL(resetView()),
-                   this, SLOT(ResetView()));
+  if(this->PropertyWidget == NULL)
+  {
+    this->PropertyWidget = new cmbNucInputPropertiesWidget(this);
 
-  QObject::connect(this->PropertyWidget,
-                   SIGNAL(sendLabelChange(const QString)),
-                   this->InputsWidget,
-                   SLOT(labelChanged(QString)));
-  QObject::connect(this->PropertyWidget,
-    SIGNAL(objGeometryChanged(AssyPartObj*)), this,
-    SLOT(onObjectGeometryChanged(AssyPartObj*)));
-  QObject::connect(this->PropertyWidget,
-    SIGNAL(currentObjectNameChanged(const QString&)), this,
-    SLOT(updatePropertyDockTitle(const QString&)));
-  QObject::connect(this->InputsWidget, SIGNAL(deleteCore()),
-                   this, SLOT(clearCore()));
+    this->ui->PropertyDock->setWidget(this->PropertyWidget);
+    this->ui->PropertyDock->setFeatures(QDockWidget::DockWidgetMovable |
+                                        QDockWidget::DockWidgetFloatable);
+    QObject::connect(this->InputsWidget, SIGNAL(pinsModified(cmbNucAssembly*)),
+                     this->PropertyWidget, SLOT(resetAssemblyEditor(cmbNucAssembly*)));
+    QObject::connect(this->InputsWidget, SIGNAL(assembliesModified(cmbNucCore*)),
+                     this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
+    QObject::connect(this->PropertyWidget, SIGNAL(valuesChanged()),
+                     this->InputsWidget, SLOT(valueChanged()));
+    QObject::connect(this->PropertyWidget, SIGNAL(resetView()),
+                     this, SLOT(ResetView()));
+    QObject::connect(this->PropertyWidget, SIGNAL(sendLabelChange(const QString)),
+                     this->InputsWidget, SLOT(labelChanged(QString)));
+    QObject::connect(this->PropertyWidget, SIGNAL(objGeometryChanged(AssyPartObj*)),
+                     this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
+    QObject::connect(this->PropertyWidget, SIGNAL(currentObjectNameChanged(const QString&)),
+                     this, SLOT(updatePropertyDockTitle(const QString&)));
+  }
+  this->PropertyWidget->setEnabled(0);
 }
 
 void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
@@ -352,7 +350,6 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
       }
     if(selPin)
       {
-      //this->updatePinCellMaterialColors(selPin);
       this->ResetView();
       }
     }
@@ -873,9 +870,15 @@ void cmbNucMainWindow::clearAll()
 
 void cmbNucMainWindow::doClearAll()
 {
-  this->InputsWidget->clearTable();
+  this->Internal->CurrentDataset = NULL;
+  this->Mapper->SetInputDataObject(NULL);
+
+  this->PropertyWidget->clear();
+  this->InputsWidget->clear();
+
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore();
+  this->InputsWidget->setCore(this->NuclearCore);
   this->ui->actionNew_Assembly->setEnabled(false);
 
   this->MaterialColors->clear();
@@ -883,11 +886,9 @@ void cmbNucMainWindow::doClearAll()
      QCoreApplication::applicationDirPath() + "/materialcolors.ini";
   this->MaterialColors->OpenFile(materialfile);
 
-  this->initPanels();
   emit checkSave();
   onChangeMeshEdgeMode(false);
-  this->Internal->CurrentDataset = NULL;
-  this->Mapper->SetInputDataObject(NULL);
+
   this->ui->qvtkWidget->update();
   this->Renderer->ResetCamera();
   this->Renderer->Render();
@@ -1055,7 +1056,8 @@ void cmbNucMainWindow::Render()
     this->onChangeMeshColorMode(this->InputsWidget->getMeshColorState());
     return;
   }
-  this->updateCoreMaterialColors();
+  //this->updateCoreMaterialColors();
+  this->PropertyWidget->colorChanged();
   this->Mapper->Modified();
   this->Renderer->Render();
   this->ui->qvtkWidget->update();

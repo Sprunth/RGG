@@ -150,7 +150,14 @@ void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* nam
     return;
     }
   this->setEnabled(true);
-  emit currentObjectNameChanged(selObj->getTitle().c_str());
+  if(name != NULL)
+    {
+    emit currentObjectNameChanged(selObj->getTitle().c_str());
+    }
+  else
+    {
+    emit currentObjectNameChanged("");
+    }
 
   this->onReset();
 }
@@ -288,6 +295,17 @@ void cmbNucInputPropertiesWidget::onReset()
     }
 }
 
+void cmbNucInputPropertiesWidget::clear()
+{
+  this->setObject(NULL,NULL);
+  this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
+  this->setAssembly(NULL);
+  this->HexCore->clear();
+  this->HexAssy->clear();
+  this->AssemblyEditor->clearUI(true);
+  this->CoreEditor->clearUI(true);
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
                                                   QString previous,
@@ -324,6 +342,34 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
   }
   emit currentObjectNameChanged( selObj->getTitle().c_str() );
   emit sendLabelChange(current);
+}
+
+void cmbNucInputPropertiesWidget::colorChanged()
+{
+  if(this->CurrentObject == NULL)
+  {
+    return;
+  }
+  AssyPartObj* selObj = this->CurrentObject;
+  PinCell* pincell = NULL;
+  switch(selObj->GetType())
+  {
+    case CMBNUC_CORE:
+    case CMBNUC_ASSEMBLY:
+    case CMBNUC_ASSY_DUCT:
+      emit objGeometryChanged(selObj);
+      break;
+    case CMBNUC_ASSY_PINCELL:
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+      this->Internal->PinCellEditor->UpdateData();
+      break;
+    case CMBNUC_ASSY_DUCTCELL:
+    case CMBNUC_ASSY_LATTICE:
+    case CMBNUC_ASSY_BASEOBJ:
+      this->setEnabled(0);
+      break;
+  }
 }
 
 //-----------------------------------------------------------------------------
