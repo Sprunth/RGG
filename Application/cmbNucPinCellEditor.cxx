@@ -813,7 +813,7 @@ void cmbNucPinCellEditor::calculatePitch()
     double x, y;
     this->AssemblyObject->calculatePitch(x,y);
     this->Ui->pitchX->setText(QString::number(x));
-    this->Ui->pitchY->setText(QString::number(x));
+    this->Ui->pitchY->setText(QString::number(y));
   }
 }
 
