@@ -49,6 +49,8 @@ public:
 
   void SetAssembly(cmbNucAssembly *assembly);
 
+  void clear();
+
 signals:
   void pincellModified(AssyPartObj*);
   void labelChanged(PinCell*, QString prev, QString current);
