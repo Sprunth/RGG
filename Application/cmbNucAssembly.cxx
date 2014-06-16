@@ -987,7 +987,8 @@ bool cmbNucAssembly::updateTransform(int at, Transform * in)
       return true;
     }
     else if( ( tat = getTransform(at) ) != NULL &&
-             ( tat->getValue() != in->getValue() ||
+             ( tat->getAxis() != in->getAxis() ||
+               tat->getValue() != in->getValue() ||
                tat->reverse() != in->reverse() ||
                tat->getLabel() != in->getLabel() ) )
     {
@@ -997,6 +998,16 @@ bool cmbNucAssembly::updateTransform(int at, Transform * in)
     }
   }
   delete in;
+  return false;
+}
+
+bool cmbNucAssembly::removeOldTransforms(int i)
+{
+  if(i < this->Transforms.size())
+  {
+    this->Transforms.resize(i);
+    return true;
+  }
   return false;
 }
 

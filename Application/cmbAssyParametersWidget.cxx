@@ -317,6 +317,7 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 
   //update transforms
   QTableWidget * table = this->Internal->TransformTable;
+  changed |= assy->removeOldTransforms(table->rowCount());
   for(int i = 0; i < table->rowCount(); ++i)
   {
     std::string xform = table->item( i, 0 )->text().toStdString();
