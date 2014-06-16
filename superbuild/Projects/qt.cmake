@@ -16,12 +16,8 @@ elseif (APPLE)
   list (APPEND qt_options
               -sdk ${CMAKE_OSX_SYSROOT}
               -arch ${CMAKE_OSX_ARCHITECTURES}
-              -qt-libpng)
-  # Need to patch Qt code to build with Xcode 4.3 or newer (where SDK
-  # location changes using the following command:
-  #find . -name "*.pro" -exec sed -i -e "s:/Developer/SDKs/:.*:g" {} \;
-  set (patch_command
-       PATCH_COMMAND /usr/bin/find . -name "*.pro" -exec sed -i -e "s:/Developer/SDKs/:.*:g" {} +)
+              -qt-libpng
+              -platform unsupported/macx-clang )
 endif()
 set(qt_EXTRA_CONFIGURATION_OPTIONS ""
     CACHE STRING "Extra arguments to be passed to Qt when configuring.")
@@ -82,12 +78,9 @@ if (APPLE)
   add_external_project_step(qt-patch-corewlan
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
                               ${SuperBuild_PROJECTS_DIR}/patches/qt.src.plugins.berarer.corewlan.corewlan.pro
-            <SOURCE_DIR>/src/plugins/bearer/corewlan/corewlan.pro
+           <SOURCE_DIR>/src/plugins/bearer/corewlan/corewlan.pro
     DEPENDEES patch
     DEPENDERS configure)
-  add_external_project_step( qt-patch-base COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SuperBuild_PROJECTS_DIR}/patches/qt.g++-base.conf <SOURCE_DIR>/mkspecs/common/g++-base.conf
-      DEPENDEES patch
-      DEPENDERS configure )
 endif()
 
 # Tell ParaView to disable WebKit, if disabled.
