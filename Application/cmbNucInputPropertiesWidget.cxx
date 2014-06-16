@@ -297,6 +297,10 @@ void cmbNucInputPropertiesWidget::onReset()
 
 void cmbNucInputPropertiesWidget::clear()
 {
+  if(this->Internal->PinCellEditor)
+  {
+    this->Internal->PinCellEditor->clear();
+  }
   this->setObject(NULL,NULL);
   this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
   this->setAssembly(NULL);

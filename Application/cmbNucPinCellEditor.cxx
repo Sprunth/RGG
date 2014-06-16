@@ -257,6 +257,7 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pc, bool h)
 
 void cmbNucPinCellEditor::Reset()
 {
+  if(this->ExternalPinCell == NULL) return;
   this->InternalPinCell->fill(this->ExternalPinCell);
 
 
@@ -319,6 +320,13 @@ void cmbNucPinCellEditor::Reset()
 PinCell* cmbNucPinCellEditor::GetPinCell()
 {
   return this->ExternalPinCell;
+}
+
+void cmbNucPinCellEditor::clear()
+{
+  delete(InternalPinCell);
+  InternalPinCell = new PinCell(0,0);
+  ExternalPinCell = NULL;
 }
 
 void cmbNucPinCellEditor::Apply()
