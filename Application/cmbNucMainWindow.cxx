@@ -1100,6 +1100,10 @@ QString createMaterialLabel(const char * name)
   {
     return result.remove("_side_ss");
   }
+  if(result.endsWith("_side1_ss"))
+  {
+    return result.remove("_side1_ss");
+  }
   return QString(&(name[2]));
 
 }
@@ -1137,6 +1141,7 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
         for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
         {
           const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
+          qDebug() << name << createMaterialLabel(name);
           QPointer<cmbNucMaterial> m =
               this->MaterialColors->getMaterialByName(createMaterialLabel(name));
           add_color(att, idx, m->getColor(), m->isVisible());

@@ -45,7 +45,7 @@ add_revision(hdf5
 
 add_revision(moab
   GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-  GIT_TAG "bd52ba12517416f4b6d2162696a41583b73d52ed"
+  GIT_TAG 4.6.3
   )
 
 add_revision(cgm
@@ -58,6 +58,6 @@ add_revision(lasso
   )
 
 add_revision(meshkit
-  SVN_REPOSITORY https://svn.mcs.anl.gov/repos/fathom/MeshKit/tags/MeshKitv1.1
-  SVN_TRUST_CERT 1
+  GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
+  GIT_TAG master
   )
