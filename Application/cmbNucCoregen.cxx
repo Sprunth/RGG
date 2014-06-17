@@ -75,7 +75,6 @@ void cmbNucCoregen::openFile(QString file)
 
 void cmbNucCoregen::onSelectionChanged()
 {
-  qDebug() << "Selection change";
   List->blockSignals(true);
   QList<QTreeWidgetItem*> selItems = List->selectedItems();
   meshOptionItem* selItem =
