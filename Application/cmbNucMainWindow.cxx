@@ -294,6 +294,8 @@ void cmbNucMainWindow::initPanels()
                                         QDockWidget::DockWidgetFloatable);
     QObject::connect(this->InputsWidget, SIGNAL(pinsModified(cmbNucAssembly*)),
                      this->PropertyWidget, SLOT(resetAssemblyEditor(cmbNucAssembly*)));
+    QObject::connect(this->InputsWidget, SIGNAL(pincellDeleted()),
+                     this->PropertyWidget, SLOT(clearPincellEditor()));
     QObject::connect(this->InputsWidget, SIGNAL(assembliesModified(cmbNucCore*)),
                      this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
     QObject::connect(this->PropertyWidget, SIGNAL(valuesChanged()),

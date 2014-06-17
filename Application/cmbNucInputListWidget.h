@@ -65,6 +65,8 @@ signals:
 
   void checkSavedAndGenerate();
 
+  void pincellDeleted();
+
 public slots:
   void onNewAssembly();
   void valueChanged();
