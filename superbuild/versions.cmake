@@ -188,8 +188,8 @@ else()
 endif()
 
 add_revision(remus
-  GIT_REPOSITORY https://github.com/judajake/Remus.git
-  GIT_TAG 70a5f51f82cddb27c56213edf31f3999ca83a885
+  GIT_REPOSITORY http://public.kitware.com/Remus.git
+  GIT_TAG master
   )
 
 add_revision(kml
