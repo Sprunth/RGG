@@ -703,6 +703,12 @@ void cmbNucAssembly::calculateRadius(double & r)
   if(r<0) r = -1;
 }
 
+void cmbNucAssembly::removeDuct(Duct* d)
+{
+  AssyDuct.RemoveDuct(d);
+  this->CreateData();
+}
+
 vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, bool isHex, bool cutaway)
 {
   if(pincell->GetNumberOfParts() == 0)

@@ -236,11 +236,21 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
 
   connect(this->Ui->CellMaterial, SIGNAL(currentIndexChanged(const QString &)),
           this,                   SLOT(onUpdateCellMaterial(const QString &)));
+
+  this->setButtons();
 }
 
 cmbNucPinCellEditor::~cmbNucPinCellEditor()
 {
   delete this->Ui;
+}
+
+void cmbNucPinCellEditor::setButtons()
+{
+  int rc = this->Ui->piecesTable->rowCount();
+  this->Ui->deleteButton->setEnabled(rc > 1);
+  rc = this->Ui->layersTable->rowCount();
+  this->Ui->deleteLayerButton->setEnabled(rc > 1);
 }
 
 void cmbNucPinCellEditor::SetPinCell(PinCell *pc, bool h)
@@ -252,7 +262,6 @@ void cmbNucPinCellEditor::SetPinCell(PinCell *pc, bool h)
   this->ExternalPinCell = pc;
   this->isHex = h;
   this->Reset();
-
 }
 
 void cmbNucPinCellEditor::Reset()
@@ -306,15 +315,13 @@ void cmbNucPinCellEditor::Reset()
   this->Ui->piecesTable->blockSignals(false);
 
   // Select the first row
-  if(this->Ui->piecesTable->rowCount()>0)
-    {
-    QTableWidgetItem* selItem = this->Ui->piecesTable->item(0, 0);
-    this->Ui->piecesTable->setCurrentItem(selItem);
-    selItem->setSelected(true);
-    }
+  QTableWidgetItem* selItem = this->Ui->piecesTable->item(0, 0);
+  this->Ui->piecesTable->setCurrentItem(selItem);
+  selItem->setSelected(true);
 
   this->onPieceSelected();
   this->UpdateData();
+  this->setButtons();
 }
 
 PinCell* cmbNucPinCellEditor::GetPinCell()
@@ -477,26 +484,12 @@ void cmbNucPinCellEditor::addComponent()
 
   PinSubPart * newObj = NULL;
 
-  if(row >= 1)
-  {
-    PinSubPart * previous =
+  PinSubPart * previous =
          (dynamic_cast<SegmentRadiusItem*>(this->Ui->piecesTable->item(row - 1, 3)))->SubPart;
-    newObj = previous->clone();
-    newObj->z1 = previous->z2;
-    newObj->z2 = newObj->z1 + previous->length();
-    newObj->reverseRadii();
-  }
-  else
-  {
-    double r; double h;
-    this->AssemblyObject->calculateRadius(r);
-    if(!this->AssemblyObject->getDefaults()->getHeight(h))
-    {
-      h = this->AssemblyObject->AssyDuct.getLength();
-      if(h < 0) h = 10;
-    }
-    newObj = new Cylinder(r, 0, h);
-  }
+  newObj = previous->clone();
+  newObj->z1 = previous->z2;
+  newObj->z2 = newObj->z1 + previous->length();
+  newObj->reverseRadii();
 
   this->createComponentItem(row, newObj);
   this->InternalPinCell->AddPart(newObj);
@@ -508,6 +501,7 @@ void cmbNucPinCellEditor::addComponent()
 
   // update view
   this->UpdateData();
+  this->setButtons();
 }
 
 void cmbNucPinCellEditor::createComponentItem( int row, PinSubPart* obj)
@@ -572,15 +566,13 @@ void cmbNucPinCellEditor::deleteComponent()
 
   int start = (row>0)?row - 1:0;
 
-  if(this->Ui->layersTable->rowCount()!=0)
-  {
-    (dynamic_cast< SegmentRadiusItem * >(this->Ui->piecesTable->item(start,3)))->checkAndSetNeighbors();
-  }
+  (dynamic_cast< SegmentRadiusItem * >(this->Ui->piecesTable->item(start,3)))->checkAndSetNeighbors();
 
   this->Ui->piecesTable->blockSignals(false);
 
   // update view
   this->tableCellChanged();
+  this->setButtons();
 }
 
 void cmbNucPinCellEditor::tableCellChanged()
@@ -720,6 +712,7 @@ void cmbNucPinCellEditor::addLayerBefore()
 
   this->Ui->layersTable->blockSignals(false);
   this->UpdateData();
+  this->setButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -771,17 +764,12 @@ void cmbNucPinCellEditor::addLayerAfter()
 
   this->Ui->layersTable->blockSignals(false);
   this->UpdateData();
+  this->setButtons();
 }
 
 //-----------------------------------------------------------------------------
 void cmbNucPinCellEditor::deleteLayer()
 {
-  // If no layer is selected or if there is only 1 layer do nothing
-  if((this->Ui->layersTable->selectedItems().count() == 0) ||
-     (this->Ui->layersTable->rowCount() == 1))
-    {
-    return; // if no layer is selected, don't delete any
-    }
   QTableWidgetItem* selItem = this->Ui->layersTable->selectedItems().value(0);
   int row = selItem->row();
   this->Ui->layersTable->blockSignals(true);
@@ -793,6 +781,7 @@ void cmbNucPinCellEditor::deleteLayer()
   }
   this->Ui->layersTable->blockSignals(false);
   this->UpdateData();
+  this->setButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -811,6 +800,7 @@ void cmbNucPinCellEditor::rebuildLayersFromTable()
     this->InternalPinCell->SetMaterial(layer, matPtr);
     this->InternalPinCell->SetRadius(layer, item->text().toDouble());
     }
+  this->setButtons();
 }
 
 //-----------------------------------------------------------------------------

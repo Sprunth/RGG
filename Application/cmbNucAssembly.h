@@ -228,6 +228,7 @@ public:
   // Returns a multi-block data set containing the geometry for
   // the assembly. This is used to render the assembly in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
+  void removeDuct(Duct* d);
 
   static void clip(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output,
                    double * normal, int offset = 0);
