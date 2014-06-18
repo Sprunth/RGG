@@ -139,6 +139,22 @@ enumNucPartsType DuctCell::GetType() const
 
 void DuctCell::RemoveDuct(Duct* duct)
 {
+  if(duct != NULL && this->Ducts.size() > 1)
+  {
+    unsigned int at = this->Ducts.size();
+    for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+    {
+      if(this->Ducts[i] == duct) at = i;
+    }
+    if( at == 0 )
+    {
+      this->Ducts[at+1]->z1 = duct->z1;
+    }
+    else if(at < this->Ducts.size())
+    {
+      this->Ducts[at-1]->z2 = duct->z2;
+    }
+  }
   this->removeObj(duct, this->Ducts);
 }
 
