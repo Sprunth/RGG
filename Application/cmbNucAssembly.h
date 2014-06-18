@@ -200,7 +200,7 @@ public:
   void AddPinCell(PinCell *pincell);
 
   // Remove the pincell with label from the assembly.
-  void RemovePinCell(const std::string &label);
+  void RemovePinCell(const std::string label);
 
   // Call this when a pin cell property changes, it will rebuild the lattice
   void UpdateGrid();

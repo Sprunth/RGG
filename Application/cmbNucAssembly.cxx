@@ -204,7 +204,7 @@ void cmbNucAssembly::AddPinCell(PinCell *pincell)
   this->PinCells.push_back(pincell);
 }
 
-void cmbNucAssembly::RemovePinCell(const std::string &label)
+void cmbNucAssembly::RemovePinCell(const std::string label)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
