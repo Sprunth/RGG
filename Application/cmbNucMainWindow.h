@@ -13,6 +13,7 @@
 class Ui_qNucMainWindow;
 class vtkActor;
 class vtkAxesActor;
+class vtkCubeAxesActor;
 class vtkCompositePolyDataMapper2;
 class vtkEventQtSlotConnect;
 class vtkObject;
@@ -44,6 +45,8 @@ public:
   //Returns true if it is ok to proceed
   bool checkFilesBeforePreceeding();
 
+  void setScaledBounds();
+
 public slots:
   void onExit();
   void onNewCore();
@@ -67,6 +70,7 @@ public slots:
   void onInteractionTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);
   void checkForNewCUBH5MFiles();
+  void setAxis(bool ison);
 
 signals:
   void updateGlobalZScale(double scale);
@@ -118,6 +122,7 @@ private:
 
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
+  vtkSmartPointer<vtkCubeAxesActor> CubeAxesActor;
   vtkSmartPointer<vtkActor> Actor;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
 
