@@ -179,4 +179,9 @@ endif()
 #-----------------------------------------------------------------------------
 # LaTeX User's Guide
 #
-add_subdirectory(Documentation)
+
+option(BUILD_DOCUMENTATION ON)
+
+if(BUILD_DOCUMENTATION)
+  add_subdirectory(Documentation)
+endif()
