@@ -294,6 +294,8 @@ void cmbNucMainWindow::initPanels()
                                         QDockWidget::DockWidgetFloatable);
     QObject::connect(this->InputsWidget, SIGNAL(pinsModified(cmbNucAssembly*)),
                      this->PropertyWidget, SLOT(resetAssemblyEditor(cmbNucAssembly*)));
+    QObject::connect(this->InputsWidget, SIGNAL(pincellDeleted()),
+                     this->PropertyWidget, SLOT(clearPincellEditor()));
     QObject::connect(this->InputsWidget, SIGNAL(assembliesModified(cmbNucCore*)),
                      this->PropertyWidget, SLOT(resetCore(cmbNucCore*)));
     QObject::connect(this->PropertyWidget, SIGNAL(valuesChanged()),
@@ -1100,6 +1102,30 @@ QString createMaterialLabel(const char * name)
   {
     return result.remove("_side_ss");
   }
+  if(result.endsWith("_side1_ss"))
+  {
+    return result.remove("_side1_ss");
+  }
+  if(result.endsWith("_side2_ss"))
+  {
+    return result.remove("_side2_ss");
+  }
+  if(result.endsWith("_side3_ss"))
+  {
+    return result.remove("_side3_ss");
+  }
+  if(result.endsWith("_side4_ss"))
+  {
+    return result.remove("_side4_ss");
+  }
+  if(result.endsWith("_side5_ss"))
+  {
+    return result.remove("_side5_ss");
+  }
+  if(result.endsWith("_side6_ss"))
+  {
+    return result.remove("_side6_ss");
+  }
   return QString(&(name[2]));
 
 }
@@ -1137,6 +1163,7 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
         for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
         {
           const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
+          //qDebug() << name << createMaterialLabel(name);
           QPointer<cmbNucMaterial> m =
               this->MaterialColors->getMaterialByName(createMaterialLabel(name));
           add_color(att, idx, m->getColor(), m->isVisible());

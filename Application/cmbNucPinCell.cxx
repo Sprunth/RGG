@@ -480,7 +480,7 @@ bool PinCell::fill(PinCell const* other)
     }
     this->Cylinders.resize(other->Cylinders.size());
   }
-  while (other->Cylinders.size() != this->Cylinders.size())
+  while (other->Cylinders.size() > this->Cylinders.size())
   {
     changed = true;
     Cylinder * c = new Cylinder(0,0,0);
@@ -501,7 +501,7 @@ bool PinCell::fill(PinCell const* other)
     }
     this->Frustums.resize(other->Frustums.size());
   }
-  while (other->Frustums.size() != this->Frustums.size())
+  while (other->Frustums.size() > this->Frustums.size())
   {
     changed = true;
     double r[2];

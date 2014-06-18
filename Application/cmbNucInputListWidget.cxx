@@ -466,7 +466,6 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     {
     return;
     }
-  bool objRemoved = true;
   AssyPartObj* selObj = selItem->getPartObject();
   cmbNucPartsTreeItem* pItem = NULL;
   PinCell* pincell = NULL;
@@ -477,7 +476,6 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
   {
   case CMBNUC_CORE:
     emit deleteCore();
-    objRemoved = false;
     break;
   case CMBNUC_ASSEMBLY:
     selItem->setSelected(false);
@@ -487,52 +485,28 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     pincell = dynamic_cast<PinCell*>(selObj);
     if(pincell)
       {
+      this->Internal->PartsList->blockSignals(true);
       cmbNucAssembly* assem = this->getCurrentAssembly();
-      selItem->setSelected(false);
+      QTreeWidgetItem * parent = selItem->parent();
+      delete selItem;
+      this->Internal->PartsList->setCurrentItem(parent);
       assem->RemovePinCell(pincell->label);
+      emit pincellDeleted();
       emit pinsModified(assem);
-      }
-    delete selItem;
-    break;
-  case CMBNUC_ASSY_FRUSTUM_PIN:
-  // find pinCell first
-    pItem = dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent());
-    if(pItem)
-      {
-      pincell = dynamic_cast<PinCell*>(pItem->getPartObject());
-      if(pincell)
-        {
-        pincell->RemoveFrustum(dynamic_cast<Frustum*>(selObj));
-        delete selItem;
-        }
-      }
-    break;
-  case CMBNUC_ASSY_CYLINDER_PIN:
-    // find pinCell first
-    pItem = dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent());
-    if(pItem)
-      {
-      pincell = dynamic_cast<PinCell*>(pItem->getPartObject());
-      if(pincell)
-        {
-        pincell->RemoveCylinder(dynamic_cast<Cylinder*>(selObj));
-        delete selItem;
-        }
+      this->Internal->PartsList->blockSignals(false);
+      this->onPartsSelectionChanged();
       }
     break;
   case CMBNUC_ASSY_DUCT:
     this->getCurrentAssembly()->AssyDuct.RemoveDuct(dynamic_cast<Duct*>(selObj));
     delete selItem;
     break;
+  case CMBNUC_ASSY_CYLINDER_PIN:
+  case CMBNUC_ASSY_FRUSTUM_PIN:
   default:
-    objRemoved = false;
     break;
   }
   emit checkSavedAndGenerate();
-  if(objRemoved)
-    {
-    emit this->objectRemoved();
-    }
 }
 
 void cmbNucInputListWidget::onDeleteAssembly(QTreeWidgetItem* item)

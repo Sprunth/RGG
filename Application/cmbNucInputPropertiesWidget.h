@@ -56,6 +56,7 @@ public slots:
   void colorChanged();
   void resetCore(cmbNucCore* nucCore);
   void resetAssemblyEditor(cmbNucAssembly* assembly);
+  void clearPincellEditor();
   void pinLabelChanged(PinCell*, QString previous, QString current);
   void pinNameChanged(PinCell*, QString previous, QString current);
 
