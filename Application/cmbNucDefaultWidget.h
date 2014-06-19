@@ -20,6 +20,7 @@ public slots:
   void apply();
   void reset();
   void recievePitch(double, double);
+  void setPitchAvail(bool);
 protected:
   void setConnections();
   void disConnect();

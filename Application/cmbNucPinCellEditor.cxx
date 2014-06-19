@@ -206,6 +206,10 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *parent)
   ExternalPinCell = NULL;
   this->Ui->setupUi(this);
 
+  //Hide pitch calculation for pitch
+  this->Ui->label_3->setVisible(false);
+  this->Ui->pitchInputBox->setVisible(false);
+
   this->Ui->layersTable->setRowCount(0);
   this->Ui->layersTable->setColumnCount(2);
   this->Ui->layersTable->setHorizontalHeaderLabels( QStringList() << "Material"

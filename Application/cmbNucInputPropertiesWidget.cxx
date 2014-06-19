@@ -578,7 +578,15 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
   this->assyConf->applyToAssembly(assy);
   this->assyDefaults->apply();
-  assy->setCenterPins(this->Internal->CenterPins->isChecked());
+  double px, py;
+  assy->Defaults->getPitch(px,py);
+  bool checked = this->Internal->CenterPins->isChecked();
+  this->assyDefaults->setPitchAvail(!checked);
+  if(!checked)
+  {
+    assy->setPitch(px,py);
+  }
+  assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
 }
 //-----------------------------------------------------------------------------
