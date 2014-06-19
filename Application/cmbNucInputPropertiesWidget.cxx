@@ -481,7 +481,8 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     if(this->Assembly->IsHexType())
       {
       this->HexAssy->setActions(actionList);
-      this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid);
+      this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid,
+                                   0);
 
       }
     else
@@ -652,7 +653,8 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
       this->Internal->hexLattice->blockSignals(false);
       this->HexCore->setActions(actionList);
-      this->HexCore->resetWithGrid(nucCore->CoreLattice.Grid);
+      this->HexCore->resetWithGrid(nucCore->CoreLattice.Grid,
+                                   nucCore->CoreLattice.subType);
       }
     else
       {

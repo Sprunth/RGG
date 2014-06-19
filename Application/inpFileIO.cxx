@@ -1099,10 +1099,10 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
         {
         size_t start = (subType & FLAT)?(i):(i-(i)/2);
         size_t cols = ((subType & FLAT)?(i+1):(((i+1)-(i+2)%2)))+start;
-          if(subType & ANGLE_30)
+        if(subType & ANGLE_30)
           {
-            start = 2*i - i/2;
-            cols = (i%2 ? (i+1)/2 :(i+2)/2) + start;
+          start = 2*i - i/2;
+          cols = (i%2 ? (i+1)/2 :(i+2)/2) + start;
           }
         for( size_t j = start; j < cols; j++)
           {
@@ -1208,7 +1208,7 @@ void inpFileHelper::readLattice( std::stringstream & input,
             for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
               {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
-              lattice.Grid[k][layerIdx].label = hexArray[i][j];
+              lattice.SetCell(k,layerIdx, hexArray[i][j]);
               }
             }
           else // rows between first and last
@@ -1218,7 +1218,7 @@ void inpFileHelper::readLattice( std::stringstream & input,
             lattice.Grid[k][layerIdx].label = hexArray[i][startCol];
             layerIdx = k+(i-startRow);
             size_t colIdx = hexArray[i].size() -1 - startCol;
-            lattice.Grid[k][layerIdx].label = hexArray[i][colIdx];
+            lattice.SetCell(k, layerIdx, hexArray[i][colIdx]);
             }
           }
         }
@@ -1226,6 +1226,7 @@ void inpFileHelper::readLattice( std::stringstream & input,
     else if(subType & (ANGLE_60|ANGLE_30))
       {
       std::string tmpVal;
+      lattice.setInvalidCells();
       for(size_t i = 0; i < x; i++)
         {
         size_t start = (subType & FLAT)?(i):(i-(i)/2);
@@ -1238,7 +1239,7 @@ void inpFileHelper::readLattice( std::stringstream & input,
         for( size_t j = start; j < cols; j++)
           {
           input >> tmpVal;
-          lattice.Grid[i][j].label = tmpVal;
+          lattice.SetCell(i,j, tmpVal);
           }
         }
       }

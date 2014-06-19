@@ -267,13 +267,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
               tY += centerPos[1];
               }
             }
-          if(subType & ANGLE_60)
+          if((subType & ANGLE_60) && (subType & VERTEX))
             {
             transform->RotateZ(-90);
-            }
-          else if(subType & ANGLE_30)
-            {
-            transform->RotateZ(-60);
             }
           else
             {
