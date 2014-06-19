@@ -258,6 +258,12 @@ changed |= setValue(Core->Params.Var, Internal->Var);
     changed = true;
   }
 
+  std::string meshFile = Internal->OutputFile->text().toStdString();
+  if(meshFile != Core->h5mFile)
+  {
+    Core->h5mFile = meshFile;
+  }
+
   cmbNucCoreParams::NeumannSetStruct tmp;
   changed |= Core->Params.NeumannSet != Internal->NeumannSetTable->rowCount();
   Core->Params.NeumannSet.resize(Internal->NeumannSetTable->rowCount());
@@ -303,6 +309,8 @@ if(Core->Params.Var##IsSet()){ setValue(Internal->Var, Core->Params.Var); }
   USED_SIMPLE_VARABLE_MACRO()
 
 #undef FUN_SIMPLE
+
+  Internal->OutputFile->setText(Core->h5mFile.c_str());
 
   std::vector<cmbNucCoreParams::NeumannSetStruct> & ns = Core->Params.NeumannSet;
   while ( Internal->NeumannSetTable->rowCount() > 0)

@@ -28,6 +28,9 @@ public:
     int layer();
     int cellIndex();
 
+    bool is_available();
+    void set_available(bool b);
+
 protected:
     void drawCircle(QPainter* painter);
     void drawText(QPainter* painter);
@@ -38,6 +41,7 @@ private:
     ShapeStyle m_shape;
     int m_layer;
     int m_cellIndex;
+    bool m_available;
 };
 
 #endif

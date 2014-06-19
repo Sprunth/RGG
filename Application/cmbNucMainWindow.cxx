@@ -251,8 +251,14 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionReloadAll,      SIGNAL(triggered()), this, SLOT(onReloadAll()));
   connect(this->ui->actionReloadSelected, SIGNAL(triggered()), this, SLOT(onReloadSelected()));
 
-  connect( this->ui->actionNew_Hexagonal_Core, SIGNAL(triggered()),
-           this,                               SLOT(onNewCore()) );
+  connect( this->ui->action1_6_Symetric_Flat,    SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
+  connect( this->ui->action1_6_Symetric_Vertex,  SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
+  connect( this->ui->action1_12_Symetric,        SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
+  connect( this->ui->actionFullHexagonal,        SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
   connect( this->ui->actionNew_Rectilinear_Core, SIGNAL(triggered()),
            this,                                 SLOT(onNewCore()) );
   this->ui->actionNew_Assembly->setEnabled(false);
@@ -516,12 +522,25 @@ void cmbNucMainWindow::onNewCore()
   if(act != NULL)
   {
     QString type = act->text();
-    std::string geoType;
-    enumGeometryType geoTypeEnum;
-    if(type.contains("Hexagonal"))
+    std::string geoType = "HexFlat";;
+    enumGeometryType geoTypeEnum = HEXAGONAL;
+    int subtype = 1;
+    if(type.contains("1/6 Symetric Flat"))
     {
-      geoTypeEnum = HEXAGONAL;
-      geoType = "HexFlat";
+      subtype = 6;
+    }
+    else if(type.contains("1/6 Symetric Vertex"))
+    {
+      subtype = 6;
+      geoType = "HexVertex";
+    }
+    else if(type.contains("1/12 Symetric"))
+    {
+      subtype = 12;
+    }
+    else if(type.contains("Full"))
+    {
+      subtype = 1;
     }
     else if(type.contains("Rectilinear"))
     {
@@ -536,6 +555,7 @@ void cmbNucMainWindow::onNewCore()
     this->doClearAll();
     this->NuclearCore->initDefaults();
     this->NuclearCore->setGeometryLabel(geoType);
+    this->NuclearCore->setHexSymmetry(subtype);
     this->PropertyWidget->resetCore(this->NuclearCore);
     this->PropertyWidget->setObject(NULL, NULL);
     this->PropertyWidget->setAssembly(NULL);

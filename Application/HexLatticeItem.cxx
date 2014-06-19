@@ -5,14 +5,26 @@ HexLatticeItem::HexLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
   HexLatticeItem::ShapeStyle shape, QGraphicsItem* parent)
     : QGraphicsPolygonItem(polygon, parent), m_color(Qt::gray),
       m_text("xx"), m_shape(shape),
-      m_layer(layer), m_cellIndex(cellIdx)
+      m_layer(layer), m_cellIndex(cellIdx), m_available(true)
 {
   this->setAcceptDrops(true);
 }
 
+bool HexLatticeItem::is_available()
+{
+  return m_available;
+}
+
+void HexLatticeItem::set_available(bool b)
+{
+  m_available = b;
+}
+
 const QString& HexLatticeItem::text() const
 {
+  //if(m_available)
   return this->m_text;
+  //return QString("");
 }
 
 void HexLatticeItem::setColor(const QColor& color)
@@ -50,7 +62,7 @@ void HexLatticeItem::drawText(QPainter *painter)
   QRectF textRect = boundingRect();
   int flags = Qt::AlignCenter | Qt::AlignCenter | Qt::TextWordWrap;
 
-  QColor textColor = this->m_color.lightnessF() < 0.5 ? Qt::white : Qt::black;
+  QColor textColor = (this->m_color.lightnessF() < 0.5) ? Qt::white : Qt::black;
 
   QFont font;
   font.setPixelSize(12);
@@ -72,7 +84,7 @@ void HexLatticeItem::drawCircle(QPainter *painter)
 void HexLatticeItem::paint(QPainter* painter,
   const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  this->setBrush(QBrush(m_color));
+  this->setBrush(QBrush((m_available)?m_color:Qt::black));
   painter->setPen(Qt::gray);
 
   if(this->m_shape == HexLatticeItem::Circle)

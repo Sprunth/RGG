@@ -78,7 +78,16 @@
      <property name="title">
       <string>New</string>
      </property>
-     <addaction name="actionNew_Hexagonal_Core"/>
+     <widget class="QMenu" name="menuNew_Hexagonal_Core">
+      <property name="title">
+       <string>New Hexagonal Core</string>
+      </property>
+      <addaction name="action1_6_Symetric_Flat"/>
+      <addaction name="action1_6_Symetric_Vertex"/>
+      <addaction name="action1_12_Symetric"/>
+      <addaction name="actionFullHexagonal"/>
+     </widget>
+     <addaction name="menuNew_Hexagonal_Core"/>
      <addaction name="actionNew_Rectilinear_Core"/>
      <addaction name="actionNew_Assembly"/>
     </widget>
@@ -293,11 +302,6 @@
     <string>Save Project As</string>
    </property>
   </action>
-  <action name="actionNew_Hexagonal_Core">
-   <property name="text">
-    <string>New Hexagonal Core</string>
-   </property>
-  </action>
   <action name="actionNew_Rectilinear_Core">
    <property name="text">
     <string>New Rectilinear Core</string>
@@ -317,6 +321,36 @@
    </property>
    <property name="text">
     <string>View Axis</string>
+   </property>
+  </action>
+  <action name="actionNew_Vertex_Hexangonal_1_6_Symetric_Core">
+   <property name="text">
+    <string>New Vertex Hexangonal 1/6 Symetric Core</string>
+   </property>
+  </action>
+  <action name="actionNew_Flat_Hexagonal_1_6_Symetric_Core">
+   <property name="text">
+    <string>New Flat Hexagonal 1/6 Symetric Core</string>
+   </property>
+  </action>
+  <action name="action1_6_Symetric_Flat">
+   <property name="text">
+    <string>1/6 Symetric Flat</string>
+   </property>
+  </action>
+  <action name="action1_6_Symetric_Vertex">
+   <property name="text">
+    <string>1/6 Symetric Vertex</string>
+   </property>
+  </action>
+  <action name="action1_12_Symetric">
+   <property name="text">
+    <string>1/12 Symetric</string>
+   </property>
+  </action>
+  <action name="actionFullHexagonal">
+   <property name="text">
+    <string>Full</string>
    </property>
   </action>
  </widget>

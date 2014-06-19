@@ -48,8 +48,9 @@ void cmbNucHexLattice::init()
   this->rebuild();
 }
 
-void cmbNucHexLattice::resetWithGrid(std::vector<std::vector<LatticeCell> >& inGrid)
+void cmbNucHexLattice::resetWithGrid(std::vector<std::vector<LatticeCell> >& inGrid, int type)
 {
+  this->HexGrid.subType = type;
   this->copyGrid(inGrid, this->HexGrid.Grid);
   this->rebuild();
 }
@@ -119,13 +120,6 @@ void cmbNucHexLattice::addCell(
 {
   QPolygon polygon;
 
-  /*polygon << QPoint( 2 * radius, 0)
-          << QPoint(radius, -radius * 1.73 )
-          << QPoint(-radius, -radius * 1.73)
-          << QPoint( -2 * radius, 0 )
-          << QPoint( -radius, radius * 1.73)
-          << QPoint( radius, radius * 1.73 );*/
-
   polygon << QPoint(0, 2 * radius)
             << QPoint(-radius * 1.73, radius )
             << QPoint(-radius * 1.73, -radius)
@@ -151,9 +145,10 @@ void cmbNucHexLattice::addCell(
     color = assy ? assy->GetLegendColor() : Qt::white;
     }
   // update color in hex map
-  this->HexGrid.SetCell(layer, cellIdx, lc.label, lc.color);
+  this->HexGrid.SetCell(layer, cellIdx, lc.label, lc.color, lc.valid);
   cell->setText(lc.label.c_str());
   cell->setColor(color);
+  cell->set_available(lc.valid);
 
   scene()->addItem(cell);
 }
@@ -229,7 +224,7 @@ void cmbNucHexLattice::rebuild()
 void cmbNucHexLattice::showContextMenu(
   HexLatticeItem *hexitem, QMouseEvent* event)
 {
-  if(!hexitem)
+  if(!hexitem || !hexitem->is_available())
     {
     return;
     }
@@ -263,14 +258,14 @@ void cmbNucHexLattice::showContextMenu(
       hexitem->setColor(color);
       }
     this->HexGrid.SetCell(hexitem->layer(), hexitem->cellIndex(),
-      assignAct->text().toStdString(), color);
+      assignAct->text().toStdString(), color, true);
     }
 }
 
 void cmbNucHexLattice::dropEvent(QDropEvent* event)
 {
   HexLatticeItem* dest = dynamic_cast<HexLatticeItem*>(this->itemAt(event->pos()));
-  if(!dest)
+  if(!dest || !dest->is_available())
     {
     return;
     }
@@ -292,7 +287,7 @@ void cmbNucHexLattice::dropEvent(QDropEvent* event)
     dest->setColor(color);
     }
   this->HexGrid.SetCell(dest->layer(), dest->cellIndex(),
-    dest->text().toStdString(), color);
+    dest->text().toStdString(), color, true);
   event->acceptProposedAction();
  }
 
@@ -300,7 +295,7 @@ void cmbNucHexLattice::mousePressEvent(QMouseEvent* event)
 {
   HexLatticeItem* hitem = dynamic_cast<HexLatticeItem*>(this->itemAt(
     this->mapFromGlobal(event->globalPos())));
-  if(!hitem)
+  if(!hitem || !hitem->is_available())
     {
     return;
     }
