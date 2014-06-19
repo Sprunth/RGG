@@ -302,6 +302,8 @@ bool inpFileReader
     else if(value == "axialmeshsize")
       {
       input >> assembly.Parameters->AxialMeshSize;
+      std::string tmp;
+      std::getline(input, tmp); //some version add extra for each duct.  for now we just ignore them.
       }
     else if(value == "rotate")
       {

@@ -212,3 +212,10 @@ void cmbNucDefaultWidget::recievePitch(double x, double y)
     this->Internal->ui->PitchY->setText(QString::number(y));
   }
 }
+
+void cmbNucDefaultWidget::setPitchAvail(bool v)
+{
+  this->Internal->ui->computePitch->setEnabled(v);
+  this->Internal->ui->PitchX->setEnabled(v);
+  this->Internal->ui->PitchY->setEnabled(v);
+}

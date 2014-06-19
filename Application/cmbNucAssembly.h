@@ -257,6 +257,7 @@ public:
 
   void calculatePitch(double & x, double & y);
   void calculateRadius(double & r);
+  void setPitch(double x, double y);
 
   void centerPins();
 

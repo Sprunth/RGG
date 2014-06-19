@@ -512,7 +512,7 @@
             <item>
              <widget class="QLabel" name="label_10">
               <property name="text">
-               <string>    Thickness</string>
+               <string>Duct Pitch</string>
               </property>
              </widget>
             </item>
