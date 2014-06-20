@@ -366,7 +366,7 @@ enum enumGeometryControls
               {
               int start  = 0;
               int cols = 6*k;
-              if(subType != 0 && !subType & ANGLE_360)
+              if(subType != 0 && !(subType & ANGLE_360))
                 {
                 start = (subType & FLAT)?(k):(k-(k)/2);
                 cols = ((subType & FLAT)?(k+1):(((k+1)-(k+2)%2)))+start;
