@@ -2,6 +2,7 @@
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucDefaults.h"
 
 #include <iostream>
 #include <sstream>
@@ -251,6 +252,16 @@ bool inpFileReader
   assembly.FileName = FileName;
   assembly.clear();
   std::stringstream input(CleanFile);
+  QFileInfo info(FileName.c_str());
+  QDir at = info.absoluteDir();
+  info = QFileInfo(at, "common.inp");
+  if(info.exists())
+  {
+    inpFileReader defaults;
+    defaults.open(info.absoluteFilePath().toStdString());
+    defaults.read_defaults(assembly);
+  }
+
   while(!input.eof())
   {
     std::string value;
@@ -446,7 +457,122 @@ bool inpFileReader
       }
     }
   core.calculateDefaults();
+  QDir at = info.absoluteDir();
+  info = QFileInfo(at, "common.inp");
+  if(info.exists())
+  {
+    inpFileReader defaults;
+    defaults.open(info.absoluteFilePath().toStdString());
+    defaults.read_defaults(*core.GetDefaults());
+    core.sendDefaults();
+  }
   core.setAndTestDiffFromFiles(false);
+  return true;
+}
+
+bool inpFileReader::read_defaults(cmbNucAssembly & assembly)
+{
+  inpFileHelper helper;
+  std::stringstream input(CleanFile);
+  while(!input.eof())
+  {
+    std::string value;
+    input >> value;
+
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+    if(input.eof())
+    {
+      break;
+    }
+    else if(value == "end")
+    {
+      break;
+    }
+    else if(value == "axialmeshsize")
+    {
+      input >> assembly.Parameters->AxialMeshSize;
+      std::string tmp;
+      std::getline(input, tmp); //some version add extra for each duct.  for now we just ignore them.
+    }
+    #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)\
+    else if(value == #Key)\
+    { \
+      helper.read(input, assembly.IsHexType(), MSG, assembly.Parameters->Var);\
+    }
+    ASSYGEN_EXTRA_VARABLE_MACRO()
+    #undef FUN_SIMPLE
+
+  }
+  return true;
+}
+
+bool inpFileReader::read_defaults(cmbNucDefaults & defaults)
+{
+  inpFileHelper helper;
+  std::stringstream input(CleanFile);
+  std::string others;
+  while(!input.eof())
+  {
+    std::string value;
+    input >> value;
+
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+    if(input.eof())
+    {
+      break;
+    }
+    else if(value == "end")
+    {
+      break;
+    }
+    else if(value.empty())
+    {
+      input.clear();
+      continue;
+    }
+    else if(value == "axialmeshsize")
+    {
+      double ams;
+      input >> ams;
+      std::string tmp;
+      std::getline(input, tmp); //some version add extra for each duct.  for now we just ignore them.
+      defaults.setAxialMeshSize(ams);
+    }
+    else if(value == "edgeinterval")
+    {
+      double ei;
+      input >> ei;
+      defaults.setEdgeInterval(ei);
+    }
+    else if(value == "meshtype")
+    {
+      std::string tmp;
+      input >> tmp;
+      defaults.setMeshType(tmp.c_str());
+    }
+    else
+    {
+      /*
+       geomengine
+       startpinid
+       meshscheme
+       info
+       hblock
+       geometrytype
+       geometry
+       createsideset
+       createfiles
+       save_exodus
+       mergetolerance
+       radialmeshsize
+       tetmeshsize  */
+      //For now we just ignore the rest.
+      std::string tmp;
+      std::getline(input, tmp); //some version add extra for each duct.  for now we just ignore them.
+      others += value + tmp;
+    }
+  }
+  defaults.setUserDefined(QString(others.c_str()));
   return true;
 }
 
@@ -608,6 +734,38 @@ bool inpFileWriter::write(std::string fname,
   output.close();
 
   core.setAndTestDiffFromFiles(false);
+
+  //Write Defaults
+  QPointer<cmbNucDefaults> defaults = core.GetDefaults();
+  if(defaults!=NULL)
+  {
+    QDir at = info.absoluteDir();
+    info = QFileInfo(at, "common.inp");
+    std::ofstream outDef(info.absoluteFilePath().toStdString().c_str());
+    if(!outDef.is_open())
+    {
+      return false;
+    }
+    double vd;
+    int vi;
+    QString vs;
+    if(defaults->getAxialMeshSize(vd))
+    {
+      outDef << "axialmeshsize " << vd << std::endl;
+    }
+    else if(defaults->getEdgeInterval(vi))
+    {
+      outDef << "edgeinterval " << vi << std::endl;
+    }
+    else if(defaults->getMeshType(vs))
+    {
+      outDef << "meshtype " << vs.toStdString() << std::endl;
+    }
+    QString temp;
+    defaults->getUserDefined(temp);
+    outDef << temp.toStdString() << "\n";
+    outDef << "end\n";
+  }
 
   return true;
 }

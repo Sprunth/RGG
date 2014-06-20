@@ -3,13 +3,16 @@
 
 #include <QObject>
 #include <QPointer>
+#include <QString>
 
+#include <vector>
 
 #define EASY_DEFAULT_PARAMS_MACRO()\
   FUN1(double, AxialMeshSize) \
   FUN1(int, EdgeInterval)\
   FUN1(QString, MeshType) \
   FUN1(double, Height) \
+  FUN1(QString, UserDefined) \
   FUN2(double, DuctThickX, double, DuctThickY, DuctThickness) \
   FUN2(double, PitchX, double, PitchY, Pitch) \
 

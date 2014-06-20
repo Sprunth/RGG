@@ -131,6 +131,10 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->hexCoreDefaults->addWidget(hexCoreDefaults);
   rectCoreDefaults = new cmbNucDefaultWidget();
   this->Internal->rectCoreDefaults->addWidget(rectCoreDefaults);
+
+  connect( hexCoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
+  connect( rectCoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
+
   assyDefaults = new cmbNucDefaultWidget();
   this->Internal->AssyDefaults->addWidget(assyDefaults);
 }
