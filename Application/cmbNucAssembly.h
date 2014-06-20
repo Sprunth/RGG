@@ -38,7 +38,8 @@ FUN_SIMPLE(std::string, QString, NumSuperBlocks,           numsuperblocks,      
 FUN_SIMPLE(std::string, QString, SuperBlocks,              superblocks,              ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, CreateSideset,            createsideset,            ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(int,         QString, EdgeInterval,             edgeinterval,             ASSY_NOT_SET_VALUE, "") \
-FUN_SIMPLE(double,      QString, MergeTolerance,           mergetolerance,           ASSY_NOT_SET_VALUE, "")
+FUN_SIMPLE(double,      QString, MergeTolerance,           mergetolerance,           ASSY_NOT_SET_VALUE, "") \
+FUN_SIMPLE(std::string, QString, MeshScheme,               meshscheme,               ASSY_NOT_SET_KEY, "")
 
 class cmbAssyParameters
 {

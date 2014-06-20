@@ -44,6 +44,7 @@ void cmbNucDefaultWidget::set(QPointer<cmbNucDefaults> c, bool isCore, bool isHe
   this->Internal->ui->pitchXLabel->setVisible(!isHex);
   this->Internal->ui->pitchYLabel->setVisible(!isHex);
   this->Internal->ui->PitchY->setVisible(!isHex);
+  this->Internal->ui->UserDefinedArea->setVisible(isCore);
   this->setConnections();
   this->reset();
 }
@@ -111,11 +112,37 @@ namespace
   {
     to->setCurrentIndex(to->findText(from, Qt::MatchFixedString));
   }
+
+  bool getValue(QString &v, QPlainTextEdit * from)
+  {
+    v = from->toPlainText();
+    return true;
+  }
+
+  void getValue(QPlainTextEdit * to, QString v)
+  {
+    to->setPlainText(v);
+  }
 }
+
+#define COMMONMACRO() \
+COMMON(double, AxialMeshSize) \
+COMMON(int, EdgeInterval)\
+COMMON(QString, MeshType) \
+COMMON(QString, UserDefined) \
 
 void cmbNucDefaultWidget::apply()
 {
   if(Current == NULL) return;
+#define COMMON(T,X) \
+{ \
+  T tmp1, tmp2; \
+  bool v1 = getValue(tmp1, this->Internal->ui->X);   \
+  bool v2 = Current->get##X(tmp2); \
+  if((v1 != v2) || (v1 && tmp1 != tmp2) )\
+  { emit commonChanged(); } \
+}
+  COMMONMACRO()
 #define FUN1(T,X)                                   \
 {                                                   \
   T tmp##X;                                         \
@@ -130,6 +157,7 @@ void cmbNucDefaultWidget::apply()
   if(v){ Current->set##L(tmp##X, tmp##Y); }         \
 }
   EASY_DEFAULT_PARAMS_MACRO()
+#undef COMMON
 #undef FUN1
 #undef FUN2
   this->reset();

@@ -21,6 +21,8 @@ public slots:
   void reset();
   void recievePitch(double, double);
   void setPitchAvail(bool);
+signals:
+  void commonChanged();
 protected:
   void setConnections();
   void disConnect();

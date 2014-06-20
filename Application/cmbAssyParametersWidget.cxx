@@ -289,6 +289,7 @@ void setValue(QCheckBox * to, bool &from)
   FUN(CreateFiles) \
   FUN(CenterXYZ) \
   FUN(Info) \
+  FUN(MeshScheme) \
   FUN(StartPinId) \
   FUN(CreateMatFiles) \
   FUN(Save_Exodus) \
