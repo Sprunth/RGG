@@ -67,9 +67,13 @@ cmbNucExportDialog::~cmbNucExportDialog()
 {
   delete this->ui;
   delete this->Progress;
+  std::cout << "quit dialog thread" << std::endl;
   Thread.quit();
+  std::cout << "wait for dialog thread" << std::endl;
   Thread.wait();
+  std::cout << "Done wait for dialog thread" << std::endl;
   delete Exporter;
+  std::cout << "Done with deleting dialog" << std::endl;
 }
 
 void cmbNucExportDialog::exportFile(cmbNucCore * core)

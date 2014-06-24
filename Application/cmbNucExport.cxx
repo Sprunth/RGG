@@ -446,6 +446,10 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
                                   const QString cubitExe,
                                   double & count, double max_count )
 {
+  assygenWorker->waitForStart();
+  cubitWorker->waitForStart();
+  //THIS IS A HACK, very bad
+  Thread::msleep(30);
   AssygenExporter ae("Assygen");
   CubitExporter ce("Cubit");
   for (QStringList::const_iterator i = assygenFile.constBegin();
@@ -584,6 +588,9 @@ bool cmbNucExport::runCoreHelper( const QString coregenExe,
     cancelHelper();
     return false;
   }
+  coregenWorker->waitForStart();
+  //THIS IS A HACK, very bad
+  Thread::msleep(30);
   QFile::remove(CoreGenOutputFile);
   QFileInfo fi(coregenFile);
   QString path = fi.absolutePath();
@@ -591,13 +598,7 @@ bool cmbNucExport::runCoreHelper( const QString coregenExe,
   QString pass = path + '/' + name;
   emit currentProcess("  coregen " + name + ".inp");
   std::string msg;
-  /*if(!checkCoreFile(coregenFile, msg))
-  {
-    failedHelper("Curegen failed",
-                 "  running coregen " + name +
-                 ".inp returned a failure mode" + msg.c_str());
-    return false;
-  }*/
+
   CoregenExporter coreExport("Coregen");
   ExporterInput in(path, coregenExe, pass);
   {
@@ -654,6 +655,7 @@ void cmbNucExport::cancel()
 void cmbNucExport::finish()
 {
   this->deleteServer();
+  this->deleteWorkers();
   emit progress(100);
   emit currentProcess("Finished");
   emit done();
