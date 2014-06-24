@@ -376,7 +376,6 @@ void cmbNucExport::run( const QString assygenExe,
                         const QString coregenFile,
                         const QString CoreGenOutputFile )
 {
-  ServerConnection = remus::worker::ServerConnection();
   double total_number_of_file = 2.0*assygenFile.count() + 6;
   double current = 0;
 
@@ -676,6 +675,7 @@ void cmbNucExport::setKeepGoing(bool b)
 void cmbNucExport::constructWorkers()
 {
   QMutexLocker locker(&Memory);
+  ServerConnection = remus::worker::ServerConnection();
   assygenWorker = cmbNucExporterWorker::AssygenWorker(ServerConnection);
   assygenWorker->moveToThread(&(this->WorkerThreads[0]));
   connect( this, SIGNAL(startWorkers()),
