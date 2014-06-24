@@ -86,6 +86,8 @@ private:
   PinSubPart* getSelectedPiece();
   void rebuildLayersFromTable();
 
+  void setButtons();
+
   void createMaterialRow(int row, PinSubPart *);
 
   Ui::cmbNucPinCellEditor *Ui;

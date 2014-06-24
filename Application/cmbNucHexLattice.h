@@ -25,9 +25,8 @@ public:
   // build lattice with HexGrid
   void rebuild();
   // build lattice with given Grid[layer][idx]
-  void resetWithGrid(std::vector<std::vector<LatticeCell> >& inGrid);
-  bool applyToGrid(
-    std::vector<std::vector<LatticeCell> >& outGrid);
+  void resetWithGrid(std::vector<std::vector<LatticeCell> >& inGrid, int subType);
+  bool applyToGrid(std::vector<std::vector<LatticeCell> >& outGrid);
   void showContextMenu(HexLatticeItem* hexitem, QMouseEvent* event);
   void setActions(const QStringList& actions);
   void setItemShape(HexLatticeItem::ShapeStyle shapetype);

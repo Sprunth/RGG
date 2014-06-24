@@ -131,6 +131,10 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->hexCoreDefaults->addWidget(hexCoreDefaults);
   rectCoreDefaults = new cmbNucDefaultWidget();
   this->Internal->rectCoreDefaults->addWidget(rectCoreDefaults);
+
+  connect( hexCoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
+  connect( rectCoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
+
   assyDefaults = new cmbNucDefaultWidget();
   this->Internal->AssyDefaults->addWidget(assyDefaults);
 }
@@ -481,7 +485,8 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     if(this->Assembly->IsHexType())
       {
       this->HexAssy->setActions(actionList);
-      this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid);
+      this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid,
+                                   0);
 
       }
     else
@@ -577,7 +582,15 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
   this->assyConf->applyToAssembly(assy);
   this->assyDefaults->apply();
-  assy->setCenterPins(this->Internal->CenterPins->isChecked());
+  double px, py;
+  assy->Defaults->getPitch(px,py);
+  bool checked = this->Internal->CenterPins->isChecked();
+  this->assyDefaults->setPitchAvail(!checked);
+  if(!checked)
+  {
+    assy->setPitch(px,py);
+  }
+  assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
 }
 //-----------------------------------------------------------------------------
@@ -652,7 +665,8 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
       this->Internal->hexLattice->blockSignals(false);
       this->HexCore->setActions(actionList);
-      this->HexCore->resetWithGrid(nucCore->CoreLattice.Grid);
+      this->HexCore->resetWithGrid(nucCore->CoreLattice.Grid,
+                                   nucCore->CoreLattice.subType);
       }
     else
       {

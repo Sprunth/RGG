@@ -38,7 +38,8 @@ FUN_SIMPLE(std::string, QString, NumSuperBlocks,           numsuperblocks,      
 FUN_SIMPLE(std::string, QString, SuperBlocks,              superblocks,              ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, CreateSideset,            createsideset,            ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(int,         QString, EdgeInterval,             edgeinterval,             ASSY_NOT_SET_VALUE, "") \
-FUN_SIMPLE(double,      QString, MergeTolerance,           mergetolerance,           ASSY_NOT_SET_VALUE, "")
+FUN_SIMPLE(double,      QString, MergeTolerance,           mergetolerance,           ASSY_NOT_SET_VALUE, "") \
+FUN_SIMPLE(std::string, QString, MeshScheme,               meshscheme,               ASSY_NOT_SET_KEY, "")
 
 class cmbAssyParameters
 {
@@ -228,6 +229,7 @@ public:
   // Returns a multi-block data set containing the geometry for
   // the assembly. This is used to render the assembly in 3D.
   vtkSmartPointer<vtkMultiBlockDataSet> GetData();
+  void removeDuct(Duct* d);
 
   static void clip(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output,
                    double * normal, int offset = 0);
@@ -256,6 +258,7 @@ public:
 
   void calculatePitch(double & x, double & y);
   void calculateRadius(double & r);
+  void setPitch(double x, double y);
 
   void centerPins();
 

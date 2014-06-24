@@ -412,6 +412,18 @@ void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
   }
 }
 
+void cmbNucAssembly::setPitch(double x, double y)
+{
+  bool changed = false;
+  for(unsigned int i = 0; i < PinCells.size(); ++i)
+  {
+    changed |= PinCells[i]->pitchX != x || PinCells[i]->pitchY != y;
+    PinCells[i]->pitchX = x;
+    PinCells[i]->pitchY = y;
+  }
+  if(changed) this->Connection->dataChanged();
+}
+
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 {
   if(this->AssyDuct.numberOfDucts()==0 || this->AssyLattice.Grid.size() == 0)
@@ -701,6 +713,12 @@ void cmbNucAssembly::calculateRadius(double & r)
   r = (minWidth/maxNumber)*0.5;
   r = r - r*0.25;
   if(r<0) r = -1;
+}
+
+void cmbNucAssembly::removeDuct(Duct* d)
+{
+  AssyDuct.RemoveDuct(d);
+  this->CreateData();
 }
 
 vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, bool isHex, bool cutaway)

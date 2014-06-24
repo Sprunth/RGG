@@ -78,7 +78,16 @@
      <property name="title">
       <string>New</string>
      </property>
-     <addaction name="actionNew_Hexagonal_Core"/>
+     <widget class="QMenu" name="menuNew_Hexagonal_Core">
+      <property name="title">
+       <string>New Hexagonal Core</string>
+      </property>
+      <addaction name="action1_6_Symetric_Flat"/>
+      <addaction name="action1_6_Symetric_Vertex"/>
+      <addaction name="action1_12_Symetric"/>
+      <addaction name="actionFullHexagonal"/>
+     </widget>
+     <addaction name="menuNew_Hexagonal_Core"/>
      <addaction name="actionNew_Rectilinear_Core"/>
      <addaction name="actionNew_Assembly"/>
     </widget>
@@ -113,8 +122,15 @@
      <string>Create</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionView_Axis"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuView"/>
    <addaction name="menuTools"/>
    <addaction name="menuCreate"/>
   </widget>
@@ -286,11 +302,6 @@
     <string>Save Project As</string>
    </property>
   </action>
-  <action name="actionNew_Hexagonal_Core">
-   <property name="text">
-    <string>New Hexagonal Core</string>
-   </property>
-  </action>
   <action name="actionNew_Rectilinear_Core">
    <property name="text">
     <string>New Rectilinear Core</string>
@@ -299,6 +310,47 @@
   <action name="actionNew_Assembly">
    <property name="text">
     <string>New Assembly</string>
+   </property>
+  </action>
+  <action name="actionView_Axis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>View Axis</string>
+   </property>
+  </action>
+  <action name="actionNew_Vertex_Hexangonal_1_6_Symetric_Core">
+   <property name="text">
+    <string>New Vertex Hexangonal 1/6 Symetric Core</string>
+   </property>
+  </action>
+  <action name="actionNew_Flat_Hexagonal_1_6_Symetric_Core">
+   <property name="text">
+    <string>New Flat Hexagonal 1/6 Symetric Core</string>
+   </property>
+  </action>
+  <action name="action1_6_Symetric_Flat">
+   <property name="text">
+    <string>1/6 Symetric Flat</string>
+   </property>
+  </action>
+  <action name="action1_6_Symetric_Vertex">
+   <property name="text">
+    <string>1/6 Symetric Vertex</string>
+   </property>
+  </action>
+  <action name="action1_12_Symetric">
+   <property name="text">
+    <string>1/12 Symetric</string>
+   </property>
+  </action>
+  <action name="actionFullHexagonal">
+   <property name="text">
+    <string>Full</string>
    </property>
   </action>
  </widget>

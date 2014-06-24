@@ -82,10 +82,17 @@ enum enumGeometryControls
   // a label and a color.
   struct LatticeCell
     {
-    LatticeCell() : label("xx"), color(Qt::white) {}
+    LatticeCell() : label("xx"), color(Qt::white), valid(true) {}
+    void setInvalid()
+      {
+      label = "";
+      color = Qt::black;
+      valid = false;
+      }
 
     std::string label;
     QColor color;
+    bool valid;
     };
 
   class Lattice : public AssyPartObj
@@ -102,6 +109,28 @@ enum enumGeometryControls
       { return "Lattice"; }
 
     virtual std::string getTitle(){ return "Lattice"; }
+
+    void setInvalidCells()
+      {
+      for(size_t i = 0; i < this->Grid.size(); i++)
+        {
+          size_t start = (subType & FLAT)?(i):(i-(i)/2);
+          size_t cols = ((subType & FLAT)?(i+1):(((i+1)-(i+2)%2)))+start;
+          if(subType & ANGLE_30)
+          {
+            start = 2*i - i/2;
+            cols = (i%2 ? (i+1)/2 :(i+2)/2) + start;
+          }
+          for(unsigned int j = 0; j < start; ++j)
+          {
+            this->Grid[i][j].setInvalid();
+          }
+          for( size_t j = cols; j < this->Grid[i].size(); j++)
+          {
+            this->Grid[i][j].setInvalid();
+          }
+        }
+      }
 
     // Sets the dimensions of the cell assembly.
     // For Hex type, i is number of layers, j will be ignored.
@@ -135,6 +164,7 @@ enum enumGeometryControls
               this->Grid[k].resize(1);
               this->Grid[k][0].label = "xx";
               this->Grid[k][0].color = Qt::white;
+              this->Grid[k][0].valid = true;
               }
             else
               {
@@ -144,6 +174,7 @@ enum enumGeometryControls
                 {
                 this->Grid[k][j].label = "xx";
                 this->Grid[k][j].color = Qt::white;
+                this->Grid[k][j].valid = true;
                 }
               }
             }
@@ -170,6 +201,16 @@ enum enumGeometryControls
       {
       this->Grid[i][j].label = name;
       this->Grid[i][j].color = color;
+      }
+    void SetCell(int i, int j, const std::string &name)
+      {
+      this->Grid[i][j].label = name;
+      this->Grid[i][j].color = Qt::white;
+      this->Grid[i][j].valid = true;
+      }
+    void setAsInvalid(int i, int j)
+      {
+      this->Grid[i][j].setInvalid();
       }
 
     // Returns the contents of the cell (i, j).
@@ -297,6 +338,7 @@ enum enumGeometryControls
       HexMap()
         {
         this->SetNumberOfLayers(0);
+        this->subType = 0;
         }
 
       // Sets the dimensions of the cell assembly.
@@ -322,12 +364,34 @@ enum enumGeometryControls
               }
             else
               {
+              int start  = 0;
+              int cols = 6*k;
+              if(subType != 0 && !(subType & ANGLE_360))
+                {
+                start = (subType & FLAT)?(k):(k-(k)/2);
+                cols = ((subType & FLAT)?(k+1):(((k+1)-(k+2)%2)))+start;
+                if(subType & ANGLE_30)
+                  {
+                  start = 2*k - k/2;
+                  cols = (k%2 ? (k+1)/2 :(k+2)/2) + start;
+                  }
+                }
               // for each layer, we need 6*Layer cells
               this->Grid[k].resize(6 * k);
               for(int j = 0; j < 6 * k; j++)
                 {
-                this->Grid[k][j].label = "xx";
-                this->Grid[k][j].color = Qt::white;
+                if(start <= j && j < cols)
+                  {
+                  this->Grid[k][j].label = "xx";
+                  this->Grid[k][j].color = Qt::white;
+                  this->Grid[k][j].valid = true;
+                  }
+                else
+                  {
+                  this->Grid[k][j].label = "";
+                  this->Grid[k][j].color = Qt::black;
+                  this->Grid[k][j].valid = false;
+                  }
                 }
               }
             }
@@ -341,10 +405,11 @@ enum enumGeometryControls
         }
 
       // Sets the contents of the cell (i, j) to name.
-      void SetCell(int layer, int idx, const std::string &name, const QColor& color)
+      void SetCell(int layer, int idx, const std::string &name, const QColor& color, bool valid)
         {
         this->Grid[layer][idx].label = name;
         this->Grid[layer][idx].color = color;
+        this->Grid[layer][idx].valid = valid;
         }
 
       // Returns the contents of the cell (i, j).
@@ -357,7 +422,7 @@ enum enumGeometryControls
       // to calling SetCell(i, j, "xx").
       void ClearCell(int layer, int idx)
         {
-        this->SetCell(layer, idx, "xx", Qt::white);
+        this->SetCell(layer, idx, "xx", Qt::white, true);
         }
 
       // Stored as layered vectors. For each layer of hex cells
@@ -365,6 +430,7 @@ enum enumGeometryControls
       // index into hex layers (starting 0), and Layer > 0.
       // For Layer==0, just one cell.
       std::vector<std::vector<LatticeCell> > Grid;
+      int subType;
     };
 
 #endif

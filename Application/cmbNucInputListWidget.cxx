@@ -375,6 +375,13 @@ void cmbNucInputListWidget::onNewAssembly()
   assembly->computeDefaults();
   assembly->setFromDefaults(this->NuclearCore->GetDefaults());
 
+  double thickX, thickY, height;
+  assembly->getDefaults()->getDuctThickness(thickX,thickY);
+  assembly->getDefaults()->getHeight(height);
+  Duct * newduct = new Duct(height, thickX, thickY);
+
+  assembly->AssyDuct.AddDuct(newduct);
+
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
   emit assembliesModified(this->NuclearCore);
@@ -390,15 +397,8 @@ void cmbNucInputListWidget::onNewDuct()
     return;
     }
   cmbNucAssembly * assy = this->getCurrentAssembly();
-  double thickX, thickY, height;
-  assy->getDefaults()->getDuctThickness(thickX,thickY);
-  assy->getDefaults()->getHeight(height);
   Duct * previous = assy->AssyDuct.getPrevious();
-  Duct* newduct;
-  if(previous == NULL)
-    newduct = new Duct(height, thickX, thickY);
-  else
-    newduct = new Duct(previous);
+  Duct * newduct = new Duct(previous);
 
   assy->AssyDuct.AddDuct(newduct);
   cmbNucPartsTreeItem* dNode = new cmbNucPartsTreeItem(ductsNode, newduct);
@@ -423,13 +423,16 @@ void cmbNucInputListWidget::onNewDuct()
 void cmbNucInputListWidget::onNewPin()
 {
   cmbNucAssembly * assy = this->getCurrentAssembly();
-  double px, py;
+  double px, py, height, r;
   if(!assy->getDefaults()->getPitch(px,py))
   {
     assy->calculatePitch(px,py);
   }
   assy->calculatePitch(px, py);
+  assy->getDefaults()->getHeight(height);
+  assy->calculateRadius(r);
   PinCell* newpin = new PinCell(px,py);
+  newpin->AddCylinder(new Cylinder(r, 0, height));
   QString pinname = QString("PinCell").append(
     QString::number(this->getCurrentAssembly()->GetNumberOfPinCells()+1));
   newpin->name = newpin->label = pinname.toStdString();
@@ -498,8 +501,15 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
       }
     break;
   case CMBNUC_ASSY_DUCT:
-    this->getCurrentAssembly()->AssyDuct.RemoveDuct(dynamic_cast<Duct*>(selObj));
-    delete selItem;
+      {
+      this->Internal->PartsList->blockSignals(true);
+      QTreeWidgetItem * parent = selItem->parent();
+      this->getCurrentAssembly()->removeDuct(dynamic_cast<Duct*>(selObj));
+      this->Internal->PartsList->setCurrentItem(parent);
+      delete selItem;
+      this->Internal->PartsList->blockSignals(false);
+      this->onPartsSelectionChanged();
+      }
     break;
   case CMBNUC_ASSY_CYLINDER_PIN:
   case CMBNUC_ASSY_FRUSTUM_PIN:

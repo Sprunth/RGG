@@ -528,7 +528,7 @@ void PinCell::InsertLayer(int layer)
   SetMaterial(layer, cmbNucMaterialColors::instance()->getUnknownMaterial());
   if(layer == GetNumberOfLayers()-1)
   {
-    if(GetNumberOfLayers() > 3)
+    if(GetNumberOfLayers() >= 3)
     {
       SetRadius(layer-1, (Radius(layer-2)+1.0)*0.5);
     }

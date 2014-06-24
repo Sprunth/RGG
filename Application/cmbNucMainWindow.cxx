@@ -5,6 +5,7 @@
 #include <vtkActor.h>
 #include <vtkAlgorithm.h>
 #include <vtkAxesActor.h>
+#include <vtkCubeAxesActor.h>
 #include <vtkCamera.h>
 #include <vtkCompositeDataDisplayAttributes.h>
 #include <vtkCompositePolyDataMapper2.h>
@@ -20,6 +21,8 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkXMLMultiBlockDataWriter.h>
 #include "vtkTransformFilter.h"
+#include <vtkTextProperty.h>
+#include <vtkBoundingBox.h>
 #include "vtkMath.h"
 
 #include <QFileDialog>
@@ -52,6 +55,40 @@
 #include "cmbNucCoregen.h"
 #endif
 
+namespace
+{
+  void computeBounds(vtkMultiBlockDataSet * dataset, vtkBoundingBox * box)
+  {
+    if(dataset == NULL) return;
+    // move the assembly to the correct position
+    for(int idx=0; idx<dataset->GetNumberOfBlocks(); idx++)
+    {
+      // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
+      if(vtkDataObject* objBlock = dataset->GetBlock(idx))
+      {
+        if(vtkMultiBlockDataSet* assyPartBlock =
+           vtkMultiBlockDataSet::SafeDownCast(objBlock))
+        {
+          computeBounds(assyPartBlock, box);
+        }
+        else
+        {
+          vtkDataSet* part = vtkDataSet::SafeDownCast(objBlock);
+          double tmpb[6];
+          part->GetBounds(tmpb);
+          /*for(unsigned i = 0; i < 6; i += 2)
+          {
+            double d = (tmpb[i+1] - tmpb[i])*0.05;
+            tmpb[i+1] += d;
+            tmpb[i]   -= d;
+          }*/
+          box->AddBounds(tmpb);
+        }
+      }
+    }
+  }
+}
+
 class NucMainInternal
 {
 public:
@@ -60,6 +97,7 @@ public:
 #endif
   vtkSmartPointer<vtkMultiBlockDataSet> PreviousDataset;
   vtkSmartPointer<vtkMultiBlockDataSet> CurrentDataset;
+  double Bounds[6];
   bool WasMeshTab;
 };
 
@@ -150,11 +188,39 @@ cmbNucMainWindow::cmbNucMainWindow()
 // this->Actor->GetProperty()->EdgeVisibilityOn();
   this->Renderer->AddActor(this->Actor);
 
+  CubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
+  CubeAxesActor->SetCamera(this->Renderer->GetActiveCamera());
+  CubeAxesActor->GetTitleTextProperty(0)->SetColor(1.0, 0.0, 0.0);
+  CubeAxesActor->GetLabelTextProperty(0)->SetColor(1.0, 0.0, 0.0);
+
+  CubeAxesActor->GetTitleTextProperty(1)->SetColor(0.0, 1.0, 0.0);
+  CubeAxesActor->GetLabelTextProperty(1)->SetColor(0.0, 1.0, 0.0);
+
+  CubeAxesActor->GetTitleTextProperty(2)->SetColor(0.0, 0.5, 1.0);
+  CubeAxesActor->GetLabelTextProperty(2)->SetColor(0.0, 0.5, 1.0);
+
+  CubeAxesActor->DrawXGridlinesOn();
+  CubeAxesActor->DrawYGridlinesOn();
+  CubeAxesActor->DrawZGridlinesOn();
+
+  CubeAxesActor->XAxisMinorTickVisibilityOn();
+  CubeAxesActor->YAxisMinorTickVisibilityOn();
+  CubeAxesActor->ZAxisMinorTickVisibilityOn();
+  CubeAxesActor->SetRebuildAxes(true);
+
+  CubeAxesActor->SetGridLineLocation(VTK_GRID_LINES_FURTHEST);
+
+  this->Renderer->AddActor(CubeAxesActor);
+
   vtkCmbLayeredConeSource *cone = vtkCmbLayeredConeSource::New();
   cone->SetNumberOfLayers(3);
   cone->SetHeight(20.0);
   cone->Update();
   this->Internal->CurrentDataset = cone->GetOutput();
+  vtkBoundingBox box;
+  computeBounds(this->Internal->CurrentDataset, &box);
+  box.GetBounds(this->Internal->Bounds);
+  setScaledBounds();
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
   cone->Delete();
 
@@ -180,11 +246,19 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionSaveProjectAs,  SIGNAL(triggered()), this, SLOT(onSaveProjectAs()));
   connect(this->ui->actionSaveAll,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
 
+  connect(this->ui->actionView_Axis,      SIGNAL(triggered(bool)), this, SLOT(setAxis(bool)));
+
   connect(this->ui->actionReloadAll,      SIGNAL(triggered()), this, SLOT(onReloadAll()));
   connect(this->ui->actionReloadSelected, SIGNAL(triggered()), this, SLOT(onReloadSelected()));
 
-  connect( this->ui->actionNew_Hexagonal_Core, SIGNAL(triggered()),
-           this,                               SLOT(onNewCore()) );
+  connect( this->ui->action1_6_Symetric_Flat,    SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
+  connect( this->ui->action1_6_Symetric_Vertex,  SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
+  connect( this->ui->action1_12_Symetric,        SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
+  connect( this->ui->actionFullHexagonal,        SIGNAL(triggered()),
+           this,                                 SLOT(onNewCore()) );
   connect( this->ui->actionNew_Rectilinear_Core, SIGNAL(triggered()),
            this,                                 SLOT(onNewCore()) );
   this->ui->actionNew_Assembly->setEnabled(false);
@@ -448,12 +522,25 @@ void cmbNucMainWindow::onNewCore()
   if(act != NULL)
   {
     QString type = act->text();
-    std::string geoType;
-    enumGeometryType geoTypeEnum;
-    if(type.contains("Hexagonal"))
+    std::string geoType = "HexFlat";;
+    enumGeometryType geoTypeEnum = HEXAGONAL;
+    int subtype = 1;
+    if(type.contains("1/6 Symetric Flat"))
     {
-      geoTypeEnum = HEXAGONAL;
-      geoType = "HexFlat";
+      subtype = 6;
+    }
+    else if(type.contains("1/6 Symetric Vertex"))
+    {
+      subtype = 6;
+      geoType = "HexVertex";
+    }
+    else if(type.contains("1/12 Symetric"))
+    {
+      subtype = 12;
+    }
+    else if(type.contains("Full"))
+    {
+      subtype = 1;
     }
     else if(type.contains("Rectilinear"))
     {
@@ -468,6 +555,7 @@ void cmbNucMainWindow::onNewCore()
     this->doClearAll();
     this->NuclearCore->initDefaults();
     this->NuclearCore->setGeometryLabel(geoType);
+    this->NuclearCore->setHexSymmetry(subtype);
     this->PropertyWidget->resetCore(this->NuclearCore);
     this->PropertyWidget->setObject(NULL, NULL);
     this->PropertyWidget->setAssembly(NULL);
@@ -873,6 +961,11 @@ void cmbNucMainWindow::clearAll()
 void cmbNucMainWindow::doClearAll()
 {
   this->Internal->CurrentDataset = NULL;
+  vtkBoundingBox box;
+  computeBounds(this->Internal->CurrentDataset, &box);
+  box.GetBounds(this->Internal->Bounds);
+  setScaledBounds();
+
   this->Mapper->SetInputDataObject(NULL);
 
   this->PropertyWidget->clear();
@@ -912,6 +1005,21 @@ void cmbNucMainWindow::clearCore()
   }
 }
 
+void cmbNucMainWindow::setScaledBounds()
+{
+  if(this->Internal->Bounds != NULL)
+  {
+    this->CubeAxesActor->SetBounds(this->Internal->Bounds[0],
+                                   this->Internal->Bounds[1],
+                                   this->Internal->Bounds[2],
+                                   this->Internal->Bounds[3],
+                                   this->Internal->Bounds[4]*this->ZScale,
+                                   this->Internal->Bounds[5]*this->ZScale);
+    this->CubeAxesActor->SetZAxisRange(this->Internal->Bounds[4],
+                                       this->Internal->Bounds[5]);
+  }
+}
+
 void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
 {
   if(!pin)
@@ -919,6 +1027,10 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
     return;
     }
   this->Internal->CurrentDataset = pin->CachedData;
+  vtkBoundingBox box;
+  computeBounds(this->Internal->CurrentDataset, &box);
+  box.GetBounds(this->Internal->Bounds);
+  setScaledBounds();
 
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
   vtkCompositeDataDisplayAttributes *attributes =
@@ -959,12 +1071,17 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
   if(assy->IsHexType()) transform->RotateZ(-60);
   this->Internal->CurrentDataset = assy->GetData()->New();
   cmbNucCore::transformData(assy->GetData(),this->Internal->CurrentDataset, transform.GetPointer());
+  vtkBoundingBox box;
+  computeBounds(this->Internal->CurrentDataset, &box);
+  box.GetBounds(this->Internal->Bounds);
+  setScaledBounds();
 
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
   if(!this->Internal->CurrentDataset)
     {
     return;
     }
+  setScaledBounds();
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
 
@@ -993,6 +1110,10 @@ void cmbNucMainWindow::updateCoreMaterialColors()
   // regenerate core and assembly view
   this->Internal->CurrentDataset = this->NuclearCore->GetData();
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
+  vtkBoundingBox box;
+  computeBounds(this->Internal->CurrentDataset, &box);
+  box.GetBounds(this->Internal->Bounds);
+  setScaledBounds();
   if(!this->Internal->CurrentDataset)
     {
     return;
@@ -1040,6 +1161,7 @@ void cmbNucMainWindow::zScaleChanged(int value)
 {
   this->ZScale = 1.0 / value;
   this->Actor->SetScale(1, 1, this->ZScale);
+  this->setScaledBounds();
   this->ResetView();
 
   emit updateGlobalZScale(this->ZScale);
@@ -1081,6 +1203,10 @@ void cmbNucMainWindow::onSelectionChange()
   this->onChangeMeshEdgeMode(this->InputsWidget->getMeshEdgeState());
 #ifdef BUILD_WITH_MOAB
   this->Mapper->SetInputDataObject(this->Internal->MoabSource->getData());
+  vtkBoundingBox box;
+  computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
+  box.GetBounds(this->Internal->Bounds);
+  setScaledBounds();
 #endif
   this->Renderer->ResetCamera();
   this->ui->qvtkWidget->update();
@@ -1316,4 +1442,17 @@ void cmbNucMainWindow::setTitle()
 {
   std::string fname = NuclearCore->getFileName();
   setWindowTitle(("RGG Nuclear Energy Reactor Geometry Generator (" + fname +")").c_str());
+}
+
+void cmbNucMainWindow::setAxis(bool ison)
+{
+  if(ison)
+  {
+    this->CubeAxesActor->VisibilityOn();
+  }
+  else
+  {
+    this->CubeAxesActor->VisibilityOff();
+  }
+  this->Render();
 }

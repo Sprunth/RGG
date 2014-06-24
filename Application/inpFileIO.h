@@ -13,6 +13,7 @@
 
 class cmbNucAssembly;
 class cmbNucCore;
+class cmbNucDefaults;
 
 class inpFileReader
 {
@@ -23,6 +24,8 @@ public:
   void close();
   bool read(cmbNucAssembly & assembly);
   bool read(cmbNucCore & core, bool read_assemblies = true);
+  bool read_defaults(cmbNucDefaults & defaults);
+  bool read_defaults(cmbNucAssembly & assembly);
 protected:
   std::string FileName;
   FileType Type;
