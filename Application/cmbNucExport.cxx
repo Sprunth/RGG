@@ -142,6 +142,7 @@ cmbNucExporterWorker
 :remus::worker::Worker( remus::proto::make_JobRequirements(miot, label, ""), connection),
  ExtraArgs(extra_args)
 {
+  WaitLock.lock();
   Name = label;
 }
 
@@ -153,6 +154,7 @@ void cmbNucExporterWorker::run()
   }
   while(stillRunning())
   {
+    WaitLock.unlock();
     remus::worker::Job job = this->getJob();
 
     if(!job.valid())
@@ -235,7 +237,14 @@ void cmbNucExporterWorker::run()
 void cmbNucExporterWorker::stop()
 {
   QMutexLocker locker(&Mutex);
+  WaitLock.unlock();
   StillRunning = false;
+}
+
+void cmbNucExporterWorker::waitForStart()
+{
+  WaitLock.lock();
+  WaitLock.unlock();
 }
 
 bool cmbNucExporterWorker::stillRunning()
@@ -350,6 +359,14 @@ cmbNucExporterClient<JOB_REQUEST_IN, JOB_REQUEST_OUT>::getOutput(ExporterInput c
   return eo;
 }
 
+cmbNucExport::cmbNucExport()
+: assygenWorker(NULL),
+  coregenWorker(NULL),
+  cubitWorker(NULL),
+  Server(NULL)
+{
+}
+
 void cmbNucExport::run( const QString assygenExe,
                         const QString assygenLib,
                         const QStringList &assygenFile,
@@ -411,10 +428,8 @@ void cmbNucExport::cancelHelper()
 {
   emit currentProcess("  CANCELED");
   emit done();
-  Server->stopBrokering();
+  this->deleteServer();
   this->deleteWorkers();
-  delete Server;
-  Server = NULL;
 }
 
 void cmbNucExport::failedHelper(QString msg, QString pmsg)
@@ -422,10 +437,8 @@ void cmbNucExport::failedHelper(QString msg, QString pmsg)
   emit errorMessage("ERROR: " + msg );
   emit currentProcess(pmsg + " FAILED");
   emit done();
-  Server->stopBrokering();
+  this->deleteServer();
   this->deleteWorkers();
-  delete Server;
-  Server = NULL;
 }
 
 bool cmbNucExport::runAssyHelper( const QString assygenExe,
@@ -579,13 +592,13 @@ bool cmbNucExport::runCoreHelper( const QString coregenExe,
   QString pass = path + '/' + name;
   emit currentProcess("  coregen " + name + ".inp");
   std::string msg;
-  if(!checkCoreFile(coregenFile, msg))
+  /*if(!checkCoreFile(coregenFile, msg))
   {
     failedHelper("Curegen failed",
                  "  running coregen " + name +
                  ".inp returned a failure mode" + msg.c_str());
     return false;
-  }
+  }*/
   CoregenExporter coreExport("Coregen");
   ExporterInput in(path, coregenExe, pass);
   {
@@ -641,10 +654,7 @@ void cmbNucExport::cancel()
 
 void cmbNucExport::finish()
 {
-  Server->stopBrokering();
-  this->deleteWorkers();
-  delete Server;
-  Server = NULL;
+  this->deleteServer();
   emit progress(100);
   emit currentProcess("Finished");
   emit done();
@@ -697,6 +707,17 @@ void cmbNucExport::constructWorkers()
   WorkerThreads[1].start();
   WorkerThreads[2].start();
   emit startWorkers();
+  coregenWorker->waitForStart();
+  assygenWorker->waitForStart();
+  cubitWorker->waitForStart();
+}
+
+void cmbNucExport::deleteServer()
+{
+  QMutexLocker locker(&ServerProtect);
+  if(this->Server != NULL) this->Server->stopBrokering();
+  delete this->Server;
+  this->Server = NULL;
 }
 
 void cmbNucExport::deleteWorkers()
@@ -718,6 +739,15 @@ void cmbNucExport::deleteWorkers()
 
 bool cmbNucExport::startUpHelper(double & count, double max_count)
 {
+  {
+    QMutexLocker locker(&ServerProtect);
+    if(Server != NULL)
+    {
+      emit errorMessage("Currently running a process");
+      emit currentProcess("  Please wait until previous process completes");
+      return false;
+    }
+  }
   this->setKeepGoing(true);
   emit currentProcess("  Started setting up");
   //pop up progress bar
@@ -727,13 +757,21 @@ bool cmbNucExport::startUpHelper(double & count, double max_count)
   factory.setMaxWorkerCount(0);
 
   //create a default server with the factory
-  Server = new remus::server::Server(factory);
+  {
+    QMutexLocker locker(&ServerProtect);
+    Server = new remus::server::Server(factory);
+  }
 
   //start accepting connections for clients and workers
   emit currentProcess("  Starting server");
-  bool valid = Server->startBrokering(remus::Server::NONE);
+  bool valid;
+  {
+    QMutexLocker locker(&ServerProtect);
+    valid = Server->startBrokering(remus::Server::NONE);
+  }
   if( !valid )
   {
+    QMutexLocker locker(&ServerProtect);
     emit errorMessage("failed to start server");
     emit currentProcess("  failed to start server");
     emit done();
@@ -742,7 +780,10 @@ bool cmbNucExport::startUpHelper(double & count, double max_count)
     return false;
   }
 
-  Server->waitForBrokeringToStart();
+  {
+    QMutexLocker locker(&ServerProtect);
+    Server->waitForBrokeringToStart();
+  }
   count++;
   emit progress(static_cast<int>(count/max_count*100));
 
