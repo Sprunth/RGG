@@ -27,14 +27,14 @@ The workflow of core generation can also be monitored through the Material/Model
 Column 1 indicates the state of the loaded assembly.  If the assembly has been saved, the indicator will be green.  If not, it will be marked with a pencil to indicate that it has been edited since the last save.
 
 \subsubsection{Column 2 Indicators}
-Column 2 indicates whether the current view of the assembly has been processed into a cubit (.cub) file.  If the .cub is newer than the .inp you loaded, this column will be green.  If not, there will be an ``x'' symbol there, indicating that a sendgen must be run on this component.
+Column 2 indicates whether the current view of the assembly has been processed into a cubit (.cub) file.  If the .cub is newer than the .inp you loaded, this column will be green.  If not, there will be an ``x'' symbol there, indicating that this component has not yet been meshed.
 
 \subsection{Task Panel}
 \subsubsection{The Lattice Tab}
 The Task Panel allows you to create a core out of the assemblies you have loaded or constructed.  Specify the number of layers (in a hexagonal core) or the dimensions (in a rectilinear core), and then right-click on each component to select an assembly.
 
 \subsubsection{The Configure Tab}
-I don't know what this does.
+This tab allows you to customize other parameters from the meshkit files which are not currently provided an interface in the GUI.  When building a hexagonal core, you should include a rotation of $$30^o$$ in each assembly, to prevent them from overlapping eachother.
 
 \subsubsection{The Assembly Defaults Tab}
 Here you can set whether the mesh you want to generate will be tetrahedral or hexagonal, and also change the default dimensions of the ducts comprising your core.  Changing these values will propagate all the way down to every component, so you can change it all in one place instead of adjusting the height of every duct in every assembly.
@@ -63,7 +63,7 @@ Edit a pin by selecting it in the Material/Model View.  It is useful to first ch
 \begin{center}
 \includegraphics[width=0.6\linewidth]{Images/pin-editing.png}
 \caption{A pin can be edited by selecting it in the Material/Model View.}
-\label{fig:ductedit1}
+\label{fig:pinedit1}
 \end{center}
 \end{figure}
 
