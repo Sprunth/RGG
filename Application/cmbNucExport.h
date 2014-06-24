@@ -37,6 +37,7 @@ public:
   static cmbNucExporterWorker *
     CubitWorker(remus::worker::ServerConnection const& connection,
                 std::vector<std::string> extra_args = std::vector<std::string>());
+  void waitForStart();
 
 public slots:
   void start()
@@ -50,6 +51,7 @@ private:
   void run();
   bool StillRunning;
   mutable QMutex Mutex;
+  mutable QMutex WaitLock;
   std::string Name;
 
   bool pollStatus( remus::common::ExecuteProcess* process,
@@ -69,6 +71,7 @@ class cmbNucExport : public QObject
   Q_OBJECT
   QThread workerThread;
 public:
+  cmbNucExport();
   void setKeepGoing(bool);
 public slots:
   void run( const QString assygenExe,
@@ -119,7 +122,8 @@ private:
   bool startUpHelper(double & count, double max_count);
   bool keepGoing() const;
   bool KeepGoing;
-  mutable QMutex Mutex, Memory;
+  void deleteServer();
+  mutable QMutex Mutex, Memory, ServerProtect;
   void constructWorkers();
   void deleteWorkers();
   bool checkCoreFile(const QString coregenFile, std::string & msg);
