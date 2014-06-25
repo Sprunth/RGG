@@ -181,7 +181,7 @@ public:
   friend class cmbNucCoreConnection;
 
   // Creates an empty Core.
-  cmbNucCore();
+  cmbNucCore(bool needSaved = true);
 
   // Destroys the Core.
   ~cmbNucCore();

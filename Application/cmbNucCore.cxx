@@ -34,12 +34,12 @@ void cmbNucCoreConnection::assemblyChanged()
   emit dataChangedSig();
 }
 
-cmbNucCore::cmbNucCore()
+cmbNucCore::cmbNucCore(bool needSaved)
 {
   this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
   this->HexSymmetry = 1;
-  DifferentFromFile = true;
+  DifferentFromFile = needSaved;
   DifferentFromH5M = true;
   this->Connection = new cmbNucCoreConnection();
   this->Connection->v = this;

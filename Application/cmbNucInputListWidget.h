@@ -43,6 +43,10 @@ public:
 
   void clear();
 
+  void setToModel();
+
+  void switchToMesh();
+
   void clearTable();
 
   void setCreateOptions(QMenu * qm) const;

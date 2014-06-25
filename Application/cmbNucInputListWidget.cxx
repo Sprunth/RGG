@@ -168,12 +168,27 @@ void cmbNucInputListWidget::clear()
 {
   this->clearTable();
   this->setCore(NULL);
-  this->setEnabled(0);
+  this->setEnabled(true);
   this->initPartsTree();
   if(this->Internal->RootCoreNode)
   {
     this->Internal->RootCoreNode = NULL;
   }
+}
+
+void cmbNucInputListWidget::setToModel()
+{
+  this->Internal->tabInputs->setCurrentIndex(0);
+  this->Internal->tabInputs->setTabEnabled(0, true);
+}
+
+void cmbNucInputListWidget::switchToMesh()
+{
+  this->Internal->tabInputs->setCurrentIndex(2);
+  this->setEnabled(true);
+  this->Internal->tabInputs->setTabEnabled(0, false);
+  this->Internal->tabInputs->setTabEnabled(1, true);
+  this->Internal->tabInputs->setTabEnabled(2, true);
 }
 
 //-----------------------------------------------------------------------------

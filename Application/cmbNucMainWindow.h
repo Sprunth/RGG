@@ -118,7 +118,7 @@ private:
   // Designer form
   Ui_qNucMainWindow *ui;
 
-  void doClearAll();
+  void doClearAll(bool needSave = false);
 
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;

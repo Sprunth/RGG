@@ -156,7 +156,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->ui = new Ui_qNucMainWindow;
   this->ui->setupUi(this);
-  this->NuclearCore = new cmbNucCore();
+  this->NuclearCore = new cmbNucCore(false);
   setTitle();
 
   this->ExportDialog = new cmbNucExportDialog(this);
@@ -552,7 +552,7 @@ void cmbNucMainWindow::onNewCore()
       qDebug() << "New action is connected to: " << type << " and that action is not supported.";
       return;
     }
-    this->doClearAll();
+    this->doClearAll(true);
     this->NuclearCore->initDefaults();
     this->NuclearCore->setGeometryLabel(geoType);
     this->NuclearCore->setHexSymmetry(subtype);
@@ -650,6 +650,7 @@ void cmbNucMainWindow::onFileOpen()
         qDebug() << "could not open" << fileNames[i];
     }
   }
+  this->InputsWidget->setToModel();
 
   int numNewAssy = this->NuclearCore->GetNumberOfAssemblies() - numExistingAssy;
   if(numNewAssy && !need_to_use_assem)
@@ -754,6 +755,10 @@ void cmbNucMainWindow::onFileOpenMoab()
     return;
   }
   Internal->MoabSource->openFile(fileNames.first());
+  if(!this->InputsWidget->isEnabled())
+  {
+    this->InputsWidget->switchToMesh();
+  }
 #endif
 }
 
@@ -958,7 +963,7 @@ void cmbNucMainWindow::clearAll()
   }
 }
 
-void cmbNucMainWindow::doClearAll()
+void cmbNucMainWindow::doClearAll(bool needSave)
 {
   this->Internal->CurrentDataset = NULL;
   vtkBoundingBox box;
@@ -972,9 +977,13 @@ void cmbNucMainWindow::doClearAll()
   this->InputsWidget->clear();
 
   delete this->NuclearCore;
-  this->NuclearCore = new cmbNucCore();
+  this->NuclearCore = new cmbNucCore(needSave);
   this->InputsWidget->setCore(this->NuclearCore);
   this->ui->actionNew_Assembly->setEnabled(false);
+
+#ifdef BUILD_WITH_MOAB
+  if(this->Internal->MoabSource != NULL) this->Internal->MoabSource->clear();
+#endif
 
   this->MaterialColors->clear();
   QString materialfile =

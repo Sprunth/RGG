@@ -38,6 +38,14 @@ cmbNucCoregen::~cmbNucCoregen()
   this->MoabReader->Delete();
 }
 
+void cmbNucCoregen::clear()
+{
+  this->List->clear();
+  this->MoabReader = vtkMoabReader::New();
+  this->Data = NULL;
+  this->DataSets.clear();
+}
+
 vtkSmartPointer<vtkDataObject>
 cmbNucCoregen::getData()
 {
