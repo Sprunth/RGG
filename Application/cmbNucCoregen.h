@@ -31,6 +31,8 @@ public:
   unsigned int getSelectedType() const
   { return selectedType; }
 
+  void clear();
+
 public slots:
   void openFile(QString file);
 
