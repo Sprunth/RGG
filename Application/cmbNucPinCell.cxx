@@ -342,6 +342,7 @@ QColor PinCell::GetLegendColor() const
 void PinCell::SetLegendColor(const QColor& color)
 {
   this->legendColor = color;
+  this->legendColor.setAlpha(255);
 }
 
 int PinCell::GetNumberOfLayers()
