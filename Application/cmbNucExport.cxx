@@ -57,8 +57,6 @@ public:
   virtual bool createWorker(const remus::proto::JobRequirements& type,
                             WorkerFactory::FactoryDeletionBehavior lifespan)
   { return false; }
-
-
 };
 
 struct ExporterInput
@@ -375,14 +373,13 @@ cmbNucExport::cmbNucExport()
 : assygenWorker(NULL),
   coregenWorker(NULL),
   cubitWorker(NULL),
-  Server(NULL)
+  Server(NULL),
+  factory(new DoNothingFactory())
 {
-  factory = new DoNothingFactory();
 }
 
 cmbNucExport::~cmbNucExport()
 {
-  delete factory;
 }
 
 void cmbNucExport::run( const QString assygenExe,
@@ -768,7 +765,7 @@ bool cmbNucExport::startUpHelper(double & count, double max_count)
   //create a default server with the factory
   {
     QMutexLocker locker(&ServerProtect);
-    Server = new remus::server::Server(*factory);
+    Server = new remus::server::Server(factory);
   }
 
   //start accepting connections for clients and workers

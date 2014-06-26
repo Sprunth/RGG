@@ -10,6 +10,7 @@
 
 #include <remus/client/ServerConnection.h>
 #include <remus/worker/Worker.h>
+#include <remus/server/Server.h>
 
 namespace remus
 {
@@ -22,8 +23,6 @@ namespace server
 class Server;
 }
 }
-
-class DoNothingFactory;
 
 class cmbNucExporterWorker: public QObject, public remus::worker::Worker
 {
@@ -134,7 +133,7 @@ private:
   cmbNucExporterWorker * cubitWorker;
   remus::server::Server * Server;
   remus::worker::ServerConnection ServerConnection;
-  DoNothingFactory * factory;
+  boost::shared_ptr<remus::server::WorkerFactory> factory;
 };
 
 #endif //cmbNucExport_H
