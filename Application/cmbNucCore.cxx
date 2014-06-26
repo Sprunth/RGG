@@ -173,6 +173,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
   double startY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
   double outerDuctWidth = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[1];
   double outerDuctHeight = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[0];
+  double extraXTrans = 0, extraYTrans = 0;
 
   // Is this Hex type?
   bool isHex = Assemblies[0]->AssyLattice.GetGeometryType() == HEXAGONAL;
@@ -184,6 +185,16 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
     this->CoreLattice.Grid.size()*this->CoreLattice.Grid[0].size();
 
   this->Data->SetNumberOfBlocks(numBlocks);
+
+  if( subType & ANGLE_360 && this->CoreLattice.Grid.size()>1 )
+  {
+    double odc = outerDuctWidth*this->CoreLattice.Grid.size();
+    double tmp = odc - outerDuctWidth;
+    double t2 = tmp*0.5;
+    double ty = std::sqrt(tmp*tmp-t2*t2);
+    extraYTrans = -ty;
+    extraXTrans = odc;
+  }
 
   for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
     {
@@ -281,14 +292,27 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           {
           double tX = startX + i * (outerDuctWidth);
           double tY = startY + j * (outerDuctHeight);
-          transform->Translate(tY, tX, 0);
+          transform->Translate(tY, tX-outerDuctWidth*(row.size()-1), 0);
           }
         // transform block by block --- got to have better ways
         vtkSmartPointer<vtkMultiBlockDataSet> blockData = vtkSmartPointer<vtkMultiBlockDataSet>::New();
         blockData->SetNumberOfBlocks(assemblyData->GetNumberOfBlocks());
         // move the assembly to the correct position
         transformData(assemblyData, blockData, transform);
-        this->Data->SetBlock(startBlock+j, blockData.GetPointer());
+        if(extraXTrans != 0 || extraYTrans != 0)
+          {
+          vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
+          vtkSmartPointer<vtkMultiBlockDataSet> blockData2 = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+          blockData2->SetNumberOfBlocks(blockData->GetNumberOfBlocks());
+          transform2->Translate(extraXTrans, extraYTrans, 0.0);
+          transformData(blockData, blockData2, transform2);
+          this->Data->SetBlock(startBlock+j, blockData2.GetPointer());
+          }
+        else
+          {
+          this->Data->SetBlock(startBlock+j, blockData.GetPointer());
+          }
+
 
         vtkInformation* info = this->Data->GetMetaData(startBlock+j);
         info->Set(vtkCompositeDataSet::NAME(), assembly->label.c_str());
@@ -319,10 +343,11 @@ void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
          vtkMultiBlockDataSet::SafeDownCast(objBlock))
       {
         vtkSmartPointer<vtkMultiBlockDataSet> assyPartObjs = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+        assyPartObjs->SetNumberOfBlocks(assyPartBlock->GetNumberOfBlocks());
         transformData(assyPartBlock, assyPartObjs, xmform);
         output->SetBlock(idx, assyPartObjs.GetPointer());
       }
-      else // pins
+      else
       {
         vtkNew<vtkTransformFilter> filter;
         filter->SetTransform(xmform);

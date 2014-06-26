@@ -695,6 +695,7 @@ bool inpFileWriter::write(std::string fname,
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", true, core.CoreLattice );
+  std::cout << "\n\nbackground " << core.Params.BackgroundFullPath << std::endl;
   if( !core.Params.Background.empty() &&
       QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() )
     {

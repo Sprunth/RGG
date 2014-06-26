@@ -599,12 +599,22 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
   bool changed = false;
   if(nucCore->IsHexType())
     {
+    if(this->hexCoreDefaults->assyPitchChanged())
+      {
+      changed = true;
+      nucCore->setAndTestDiffFromFiles(true);
+      }
     this->HexCoreProperties->applyToCore(nucCore);
     this->hexCoreDefaults->apply();
     changed = this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
   else
     {
+    if(this->rectCoreDefaults->assyPitchChanged())
+      {
+      changed = true;
+      nucCore->setAndTestDiffFromFiles(true);
+      }
     this->RectCoreProperties->applyToCore(nucCore);
     this->rectCoreDefaults->apply();
     changed = this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);

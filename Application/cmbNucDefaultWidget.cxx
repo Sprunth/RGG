@@ -125,6 +125,20 @@ namespace
   }
 }
 
+bool cmbNucDefaultWidget::assyPitchChanged()
+{
+  bool r = false;
+  double tmpDuctThickX; double tmpDuctThickY;
+  double cDuctThickX; double cDuctThickY;
+  bool v = getValue(tmpDuctThickX, this->Internal->ui->DuctThickX);
+  v &= getValue(tmpDuctThickY, this->Internal->ui->DuctThickY);
+  if(v && Current->getDuctThickness(cDuctThickX, cDuctThickY))
+  {
+    return cDuctThickX != tmpDuctThickX || cDuctThickY != tmpDuctThickY;
+  }
+  return false;
+}
+
 #define COMMONMACRO() \
 COMMON(double, AxialMeshSize) \
 COMMON(int, EdgeInterval)\

@@ -15,6 +15,7 @@ class cmbNucDefaultWidget : public QWidget
 public:
   cmbNucDefaultWidget(QWidget *parent = 0);
   ~cmbNucDefaultWidget();
+  bool assyPitchChanged();
 public slots:
   void set(QPointer<cmbNucDefaults> c, bool isCore, bool isHex);
   void apply();
