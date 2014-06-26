@@ -601,6 +601,10 @@ void cmbNucMainWindow::onFileOpen()
     {
       case inpFileReader::ASSEMBLY_TYPE:
       {
+        if(!this->InputsWidget->isEnabled() || this->InputsWidget->onlyMeshLoaded())
+        {
+          doClearAll(true);
+        }
         QFileInfo finfo(fileNames[i]);
         std::string label = finfo.completeBaseName().toStdString();
         cmbNucAssembly *assembly = new cmbNucAssembly();

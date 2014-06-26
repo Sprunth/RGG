@@ -170,7 +170,7 @@ bool setValue(std::string &to, QComboBox * from)
   return convert(from->currentText (), to);
 }
 
-void setValue(QComboBox * to, std::string &from)
+void setValue(QComboBox * to, std::string from)
 {
   QString tmp(from.c_str());
   to->setCurrentIndex(to->findText(tmp, Qt::MatchFixedString));
@@ -207,6 +207,11 @@ void setValue(QLineEdit * to, int &from)
   to->setText(tmp);
 }
 
+void setValue(QLineEdit * to, std::string tmp)
+{
+  to->setText(tmp.c_str());
+}
+
 bool setValue(bool &to, QCheckBox * from)
 {
   bool r = to != from->isChecked();
@@ -214,7 +219,7 @@ bool setValue(bool &to, QCheckBox * from)
   return r;
 }
 
-void setValue(QCheckBox * to, bool &from)
+void setValue(QCheckBox * to, bool from)
 {
   to->setChecked(from);
 }
@@ -225,10 +230,9 @@ bool setValue(std::string &to, QLabel * from)
 }
 
 
-void setValue(QLabel * to, std::string &from)
+void setValue(QLabel * to, std::string from)
 {
   QString tmp(from.c_str());
-  if(tmp.isEmpty()) return;
   to->setText(tmp);
 }
 
@@ -236,7 +240,7 @@ void setValue(QLabel * to, std::string &from)
 #define USED_SIMPLE_VARABLE_MACRO() \
 FUN_SIMPLE(std::string, QString, ProblemType, problemtype, "", "") \
 FUN_SIMPLE(std::string, QString, Geometry, geometry, "", "") \
-FUN_SIMPLE(double, QString, MergeTolerance, mergetolerance, -1e23, "") \
+FUN_SIMPLE(double, QString, MergeTolerance, mergetolerance, "", "") \
 FUN_SIMPLE(std::string, QString, SaveParallel, saveparallel, "", "") \
 FUN_SIMPLE(std::string, QString, Background, Background, "", "") \
 FUN_SIMPLE(bool, bool, Info, info, false, "on") \
@@ -304,13 +308,16 @@ changed |= setValue(Core->Params.Var, Internal->Var);
 void cmbCoreParametersWidget::resetCore(cmbNucCore* Core)
 {
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
-if(Core->Params.Var##IsSet()){ setValue(Internal->Var, Core->Params.Var); }
+if(Core->Params.Var##IsSet()){ setValue(Internal->Var, Core->Params.Var); }\
+else{ setValue(Internal->Var, DEFAULT); }
 
   USED_SIMPLE_VARABLE_MACRO()
 
 #undef FUN_SIMPLE
 
   Internal->OutputFile->setText(Core->h5mFile.c_str());
+
+  this->Internal->background_full_path = Core->Params.BackgroundFullPath;
 
   std::vector<cmbNucCoreParams::NeumannSetStruct> & ns = Core->Params.NeumannSet;
   while ( Internal->NeumannSetTable->rowCount() > 0)

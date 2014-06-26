@@ -191,6 +191,11 @@ void cmbNucInputListWidget::switchToMesh()
   this->Internal->tabInputs->setTabEnabled(2, true);
 }
 
+bool cmbNucInputListWidget::onlyMeshLoaded()
+{
+  return this->isEnabled() && !this->Internal->tabInputs->isTabEnabled(0);
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputListWidget::setCore(cmbNucCore* core)
 {

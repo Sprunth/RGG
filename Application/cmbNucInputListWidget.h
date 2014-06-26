@@ -41,6 +41,8 @@ public:
   bool getMeshColorState();
   bool getMeshEdgeState();
 
+  bool onlyMeshLoaded();
+
   void clear();
 
   void setToModel();
