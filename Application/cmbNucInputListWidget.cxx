@@ -168,7 +168,7 @@ void cmbNucInputListWidget::clear()
 {
   this->clearTable();
   this->setCore(NULL);
-  this->setEnabled(true);
+  this->setEnabled(false);
   this->initPartsTree();
   if(this->Internal->RootCoreNode)
   {

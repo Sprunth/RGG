@@ -40,6 +40,27 @@ public:
 };
 }
 
+class DoNothingFactory: public remus::server::WorkerFactory
+{
+public:
+  virtual remus::proto::JobRequirementsSet workerRequirements(remus::common::MeshIOType type) const
+  {
+    remus::proto::JobRequirementsSet result;
+    result.insert(remus::proto::JobRequirements(remus::common::ContentFormat::Type(),
+                                                type, std::string(""), std::string("") ));
+    return result;
+  }
+
+  virtual bool haveSupport(const remus::proto::JobRequirements& reqs) const
+  { return true; }
+
+  virtual bool createWorker(const remus::proto::JobRequirements& type,
+                            WorkerFactory::FactoryDeletionBehavior lifespan)
+  { return false; }
+
+
+};
+
 struct ExporterInput
 {
   std::string ExeDir;
@@ -142,7 +163,6 @@ cmbNucExporterWorker
 :remus::worker::Worker( remus::proto::make_JobRequirements(miot, label, ""), connection),
  ExtraArgs(extra_args)
 {
-  WaitLock.lock();
   Name = label;
 }
 
@@ -154,7 +174,6 @@ void cmbNucExporterWorker::run()
   }
   while(stillRunning())
   {
-    WaitLock.unlock();
     remus::worker::Job job = this->getJob();
 
     if(!job.valid())
@@ -239,12 +258,6 @@ void cmbNucExporterWorker::stop()
   QMutexLocker locker(&Mutex);
   WaitLock.unlock();
   StillRunning = false;
-}
-
-void cmbNucExporterWorker::waitForStart()
-{
-  WaitLock.lock();
-  WaitLock.unlock();
 }
 
 bool cmbNucExporterWorker::stillRunning()
@@ -365,6 +378,12 @@ cmbNucExport::cmbNucExport()
   cubitWorker(NULL),
   Server(NULL)
 {
+  factory = new DoNothingFactory();
+}
+
+cmbNucExport::~cmbNucExport()
+{
+  delete factory;
 }
 
 void cmbNucExport::run( const QString assygenExe,
@@ -446,10 +465,10 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
                                   const QString cubitExe,
                                   double & count, double max_count )
 {
-  assygenWorker->waitForStart();
-  cubitWorker->waitForStart();
+  //assygenWorker->waitForStart();
+  //cubitWorker->waitForStart();
   //THIS IS A HACK, very bad
-  Thread::msleep(30);
+  //Thread::msleep(30);
   AssygenExporter ae("Assygen");
   CubitExporter ce("Cubit");
   for (QStringList::const_iterator i = assygenFile.constBegin();
@@ -588,9 +607,9 @@ bool cmbNucExport::runCoreHelper( const QString coregenExe,
     cancelHelper();
     return false;
   }
-  coregenWorker->waitForStart();
+  //coregenWorker->waitForStart();
   //THIS IS A HACK, very bad
-  Thread::msleep(30);
+  //Thread::msleep(30);
   QFile::remove(CoreGenOutputFile);
   QFileInfo fi(coregenFile);
   QString path = fi.absolutePath();
@@ -755,13 +774,12 @@ bool cmbNucExport::startUpHelper(double & count, double max_count)
   //pop up progress bar
   emit progress(static_cast<int>(count/max_count*100));
   //start server
-  remus::server::WorkerFactory factory("fofofo");
-  factory.setMaxWorkerCount(0);
+  factory->setMaxWorkerCount(3);
 
   //create a default server with the factory
   {
     QMutexLocker locker(&ServerProtect);
-    Server = new remus::server::Server(factory);
+    Server = new remus::server::Server(*factory);
   }
 
   //start accepting connections for clients and workers

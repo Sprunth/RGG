@@ -23,6 +23,8 @@ class Server;
 }
 }
 
+class DoNothingFactory;
+
 class cmbNucExporterWorker: public QObject, public remus::worker::Worker
 {
   Q_OBJECT
@@ -37,7 +39,6 @@ public:
   static cmbNucExporterWorker *
     CubitWorker(remus::worker::ServerConnection const& connection,
                 std::vector<std::string> extra_args = std::vector<std::string>());
-  void waitForStart();
 
 public slots:
   void start()
@@ -51,7 +52,6 @@ private:
   void run();
   bool StillRunning;
   mutable QMutex Mutex;
-  mutable QMutex WaitLock;
   std::string Name;
 
   bool pollStatus( remus::common::ExecuteProcess* process,
@@ -72,6 +72,7 @@ class cmbNucExport : public QObject
   QThread workerThread;
 public:
   cmbNucExport();
+  ~cmbNucExport();
   void setKeepGoing(bool);
 public slots:
   void run( const QString assygenExe,
@@ -133,6 +134,7 @@ private:
   cmbNucExporterWorker * cubitWorker;
   remus::server::Server * Server;
   remus::worker::ServerConnection ServerConnection;
+  DoNothingFactory * factory;
 };
 
 #endif //cmbNucExport_H
