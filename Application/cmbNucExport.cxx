@@ -256,7 +256,6 @@ void cmbNucExporterWorker::run()
 void cmbNucExporterWorker::stop()
 {
   QMutexLocker locker(&Mutex);
-  WaitLock.unlock();
   StillRunning = false;
 }
 
