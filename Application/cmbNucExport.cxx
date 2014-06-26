@@ -465,10 +465,6 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
                                   const QString cubitExe,
                                   double & count, double max_count )
 {
-  //assygenWorker->waitForStart();
-  //cubitWorker->waitForStart();
-  //THIS IS A HACK, very bad
-  //Thread::msleep(30);
   AssygenExporter ae("Assygen");
   CubitExporter ce("Cubit");
   for (QStringList::const_iterator i = assygenFile.constBegin();
@@ -607,9 +603,6 @@ bool cmbNucExport::runCoreHelper( const QString coregenExe,
     cancelHelper();
     return false;
   }
-  //coregenWorker->waitForStart();
-  //THIS IS A HACK, very bad
-  //Thread::msleep(30);
   QFile::remove(CoreGenOutputFile);
   QFileInfo fi(coregenFile);
   QString path = fi.absolutePath();
@@ -728,9 +721,6 @@ void cmbNucExport::constructWorkers()
   WorkerThreads[1].start();
   WorkerThreads[2].start();
   emit startWorkers();
-  coregenWorker->waitForStart();
-  assygenWorker->waitForStart();
-  cubitWorker->waitForStart();
 }
 
 void cmbNucExport::deleteServer()
