@@ -30,7 +30,7 @@ add_external_project_step(patch1
       DEPENDEES update
       DEPENDERS patch)
 
-if( ${CMAKE_OSX_DEPLOYMENT_TARGET} MATCHES "10.6" ) 
+if( ${CMAKE_OSX_DEPLOYMENT_TARGET} MATCHES "10.6" OR ${CMAKE_OSX_DEPLOYMENT_TARGET} MATCHES "10.7" OR ${CMAKE_OSX_DEPLOYMENT_TARGET} MATCHES "10.8") 
 add_external_project_step(patch2
       COMMENT "Fixing missing include files."
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/Projects/patches/netcdf.daputil.c <SOURCE_DIR>/libdap2/daputil.c
