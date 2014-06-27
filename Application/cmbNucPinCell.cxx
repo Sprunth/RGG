@@ -5,6 +5,15 @@
 
 #include <QDebug>
 
+void PinConnection::clearOldData()
+{
+  if(pc)
+  {
+    pc->CachedData = NULL;
+    emit CellMaterialChanged();
+  }
+}
+
 PinSubPart::PinSubPart(double z1in, double z2in) : Materials(1, new cmbNucMaterialLayer())
 {
   x=0.0; y=0.0; z1=z1in; z2=z2in;
@@ -244,6 +253,9 @@ PinCell::PinCell(double px, double py)
   legendColor = Qt::white;
   cutaway = false;
   Connection = new PinConnection();
+  Connection->pc = this;
+  QObject::connect(CellMaterial.GetConnection(), SIGNAL(materialChanged()),
+                   this->Connection, SLOT(clearOldData()));
 }
 
 PinCell::~PinCell()
