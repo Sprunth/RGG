@@ -8,17 +8,25 @@
 #include "cmbNucMaterial.h"
 
 class PinSubPart;
+class PinCell;
 
 class PinConnection: public QObject
 {
   Q_OBJECT
+  friend class PinCell;
 public:
+  PinConnection():pc(NULL){}
   void EmitChangeSignal()
   {
     emit Changed();
   }
+public slots:
+  void clearOldData();
 signals:
   void Changed();
+  void CellMaterialChanged();
+private:
+  PinCell * pc;
 };
 
 class PinSubPart: public AssyPartObj

@@ -130,6 +130,14 @@ void cmbNucAssemblyConnection::calculatePitch()
   emit pitchResult(x, y);
 }
 
+void cmbNucAssemblyConnection::geometryChanged()
+{
+  v->setAndTestDiffFromFiles(true);
+  v->CreateData();
+  emit dataChangedSig();
+  emit colorChanged();
+}
+
 cmbNucAssembly::cmbNucAssembly()
 {
   KeepPinsCentered = false;
@@ -201,6 +209,8 @@ void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
   QObject::connect(pincell->GetConnection(), SIGNAL(Changed()),
                    this->Connection, SLOT(dataChanged()));
+  QObject::connect(pincell->GetConnection(), SIGNAL(CellMaterialChanged()),
+                   this->Connection, SLOT(geometryChanged()));
   this->PinCells.push_back(pincell);
 }
 

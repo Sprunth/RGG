@@ -110,6 +110,7 @@ private:
 public slots:
   void dataChanged();
   void calculatePitch();
+  void geometryChanged();
 signals:
   void dataChangedSig();
   void colorChanged();
