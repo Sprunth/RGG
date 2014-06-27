@@ -53,6 +53,8 @@ public:
 
   void setCreateOptions(QMenu * qm) const;
 
+  void initMaterialsTree();
+
 signals:
   // Description:
   // Fired when a part/material is selected in the tree
@@ -119,7 +121,6 @@ private:
   /// clear UI
   void initUI();
   void initPartsTree();
-  void initMaterialsTree();
 
   cmbNucCore *NuclearCore;
 };
