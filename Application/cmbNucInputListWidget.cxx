@@ -358,6 +358,8 @@ void cmbNucInputListWidget::onTabChanged(int currentTab)
   else if(currentTab == 1) // materials
     {
     emit switchToNonModelTab(1);
+    bool is_checked = this->Internal->showJustUsedMaterial->isChecked();
+    cmbNucMaterialColors::instance()->showJustUsed(is_checked);
     }
   else if(currentTab) //model
     {
