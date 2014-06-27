@@ -553,6 +553,7 @@ void cmbNucMainWindow::onNewCore()
       return;
     }
     this->doClearAll(true);
+    this->InputsWidget->initMaterialsTree();
     this->NuclearCore->initDefaults();
     this->NuclearCore->setGeometryLabel(geoType);
     this->NuclearCore->setHexSymmetry(subtype);
