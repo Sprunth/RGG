@@ -188,8 +188,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 
   if( subType & ANGLE_360 && this->CoreLattice.Grid.size()>1 )
   {
-    double odc = outerDuctWidth*this->CoreLattice.Grid.size();
-    double tmp = odc - outerDuctWidth;
+    double odc = outerDuctHeight*this->CoreLattice.Grid.size();
+    double tmp = odc - outerDuctHeight;
     double t2 = tmp*0.5;
     double ty = std::sqrt(tmp*tmp-t2*t2);
     extraYTrans = -ty;
