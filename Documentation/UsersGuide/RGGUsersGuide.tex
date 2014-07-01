@@ -1,0 +1,101 @@
+\documentclass[letterpaper,10pt,draft]{book}
+\usepackage[
+  paper=letterpaper,
+  lmargin=1in,
+  rmargin=1in,
+  tmargin=1in,
+  bmargin=1in]{geometry}
+
+%Uncomment below in the future to add indecies
+
+% for adding index. Use \index{key} to put index keywords.
+%\usepackage{multind}
+%\makeindex{keyword}
+%\makeindex{python}
+%\makeindex{ui}
+
+\newcommand{\mytitle}{\textbf{RGG User's Guide}}
+
+% Make fancy headers and everything...
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+% Headers - left, center and right.
+\lhead{}
+\chead{\mytitle}
+\rhead{}
+% Footers - as before
+%\lfoot{\scriptsize \emph{\svnInfoFile}}
+\cfoot{\small \thepage}
+%\rfoot{\scriptsize \emph{Rev: \svnInfoRevision , \svnInfoDate}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+%\addtolength{\headheight}{0.5pt} % make space for the rule
+\setlength{\headheight}{14pt}
+\fancypagestyle{plain}{%
+  \fancyhead{} % get rid of headers on plain pages
+  \renewcommand{\headrulewidth}{0pt} % and the line
+}
+
+% Now to define several macros for commonly used abbreviations and such
+\usepackage{xspace}
+\newcommand{\fixme}[1]{\footnote{{\color{red}#1}}}
+\newcommand{\note}[1]{{\small\color{blue}[#1]}}
+\newcommand{\todo}[1]{{\large\color{red}[TODO: #1]}}
+
+\usepackage{url}
+% Use in the form \url{http://mysite.co.uk/~marcus/} or \url!http://mysite.co.uk/~marcus/!
+
+\usepackage[pdftex,final]{graphicx}
+\usepackage[pdftex]{color}
+\usepackage{setspace}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{wrapfig}
+\usepackage{float}
+
+
+\usepackage{colortbl}
+% 21st century - make some real links in the PDF, but keep the colors reasonable...
+\usepackage[colorlinks=true,urlcolor=blue,citecolor=black,linkcolor=black,final=true]{hyperref}
+
+
+\title{RGG User's Guide}
+\author{Kitware, Inc.}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+\label{chapter:Introduction}
+\include{Introduction}
+
+\chapter{Main Application Components}
+\label{chapter:Main Application Components}
+\include{MainApplicationComponents}
+
+\chapter{Example -- Building a Rectangular Core}
+\label{chapter:Example -- Building a Rectangular Core}
+\include{ExampleBuildingARectangularCore}
+
+\chapter{Example -- Building a Hexagonal Core}
+\label{chapter:Example -- Building a Hexagonal Core}
+\include{ExampleBuildingAHexagonalCore}
+
+\chapter{Specifying Meshing Control Information}
+\label{chapter:Specifying Meshing Control Information}
+\include{SpecifyingMeshingControlInformation}
+
+\chapter{Interfacing with MeshKit Tools and Cubit}
+\label{chapter:Interfacing with MeshKit Tools and Cubit}
+\include{InterfacingWithMeshKitToolsAndCubit}
+
+\chapter{Displaying Meshes}
+\label{chapter:Displaying Meshes}
+\include{DisplayingMeshes}
+
+\end{document}

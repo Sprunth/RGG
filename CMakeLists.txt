@@ -141,6 +141,7 @@ include_directories(${Remus_INCLUDE_DIR})
 # Application
 #
 add_subdirectory(Application)
+
 if(APPLE OR UNIX)
   option(CMBNuc_BUILD_MESHKIT "Build Meshkit." OFF)
   if(CMBNuc_BUILD_MESHKIT)
@@ -173,4 +174,14 @@ if(APPLE OR UNIX)
 
 
   endif()
+endif()
+
+#-----------------------------------------------------------------------------
+# LaTeX User's Guide
+#
+
+option(BUILD_DOCUMENTATION ON)
+
+if(BUILD_DOCUMENTATION)
+  add_subdirectory(Documentation)
 endif()
