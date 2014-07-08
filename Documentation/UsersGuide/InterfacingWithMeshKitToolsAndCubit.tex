@@ -1,8 +1,8 @@
-RGG allows you to provide paths to MeshKit\footnote{See \url{http://trac.mcs.anl.gov/projects/fathom/wiki/MeshKit}.} and Cubit\footnote{See \url{https://cubit.sandia.gov/}.} to facillitate the production of meshes for simulation.  Note that as of this writing, MeshKit is not available for Windows.  However, they plan to add Windows support in the future.
+RGG allows you to provide paths to MeshKit\footnote{See \url{http://trac.mcs.anl.gov/projects/fathom/wiki/MeshKit}.} and Cubit\footnote{See \url{https://cubit.sandia.gov/}.} executables to facillitate the production of meshes for simulation.
 
 \section{Add Paths to Preferences}
 
-On Linux, access the preferences window by clicking on the Edit menu in the main toolbar.
+Access the \emph{system preferences window} by clicking on the \emph{edit menu} of the \emph{toolbar}.
 
 \begin{figure}[H]
 	\begin{center}
@@ -12,7 +12,7 @@ On Linux, access the preferences window by clicking on the Edit menu in the main
 	\end{center}
 \end{figure}
 
-This should bring up the System Preferences window.  To add AssyGen, CoreGen, or Cubit, click Browse to locate the executable and press Open to get back to the System Preferences window.
+This brings up the system preferences window.  To add AssyGen, CoreGen, or Cubit, click the \emph{browse button} to locate the executable and click the \emph{open button} to get back to the system preferences window.
 
 \begin{figure}[H]
 	\begin{center}
@@ -24,7 +24,7 @@ This should bring up the System Preferences window.  To add AssyGen, CoreGen, or
 
 \section{Generating a Mesh from an INP file}
 
-After opening an INP file and setting up your preferences to include the paths to AssyGen, CoreGen, and Cubit, you can generate a mesh though a dialog accessed through the Tools menu.  Note the X icon for the assemblies and core in the inputs pane.  This designates that RGG believes that these components need to be meshed.
+After opening an INP file and setting up your preferences to include the paths to AssyGen, CoreGen, and Cubit, you can generate a mesh though a dialog accessed through the \emph{tools menu}.  Note the ``x" icon for the assemblies and core in the inputs pane.  This designates that RGG believes that these components need to be meshed.
 
 \begin{figure}[H]
 	\begin{center}
@@ -46,7 +46,7 @@ The dialog should be populated with the assemblies that need to be re-meshed aut
 	\end{center}
 \end{figure}
 
-Note that you can force the meshing of any assembly, or selectively mesh only certain assemblies with the Force Process Assemblies checkbox and the Process Selected Assemblies button.  The same applies for the core too with the Force Process Core checkbox.  We'll click the Process All button without changing any defaults to process the assemblies that need to be meshed and then process the core.  A window that gives you the status of the processing should come up, similar to the one below:
+Note that you can force the meshing of any assembly, or selectively mesh only certain assemblies with the \emph{force process assemblies checkbox} and the \emph{process selected assemblies button}.  To force the processing of the core, check the \emph{force process core checkbox}.  We'll click the \emph{process all button} without changing any defaults to process only the assemblies that need to be meshed and then process the core.  A window that gives you the status of the processing should come up, similar to the one below:
 
 \begin{figure}[H]
 	\begin{center}
@@ -56,9 +56,9 @@ Note that you can force the meshing of any assembly, or selectively mesh only ce
 	\end{center}
 \end{figure}
 
-You can see the output of MeshKit's AssyGen and CoreGen by clicking on the View Output checkbox.
+You can see the output of MeshKit's AssyGen and CoreGen by clicking on the \emph{view output checkbox}.
 
-To verify that the assemblies and core have been meshed, note that the X icons seen previously should now be green squares, as shown in ~\ref{fig:Mesh6}.
+To verify that the assemblies and core have been meshed, confirm that the ``x" icons seen previously are now be green squares, as shown in ~\ref{fig:Mesh6}.
 
 \begin{figure}[H]
 	\begin{center}
@@ -68,4 +68,4 @@ To verify that the assemblies and core have been meshed, note that the X icons s
 	\end{center}
 \end{figure}
 
-Note that the mesh needs to be loaded in after MeshKit creates it.  During this process, the Tools menu is inaccessible.
+Note that the mesh needs to be loaded in after MeshKit creates it.  During this process, the tools menu is inaccessible.

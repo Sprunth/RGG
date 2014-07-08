@@ -1,0 +1,162 @@
+\section{Basic User Interface Overview}
+\subsection{Main Window Layout}
+All user interaction takes place within the main window.  There are several components to this window -- the most obvious of which is the \emph{3D view}, which allows you to interact with a three-dimensional projection of the core, assembly, pin, or duct you're working with.  To the left of the 3D view are the \emph{input panel} and the \emph{properties panel}.  Above the input panel is the \emph{toolbar}, which has icons for often used actions.  Above the toolbar is the \emph{menu}. Refer to ~\ref{fig:mainwindow1} to see these pictorally.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=\linewidth]{Images/main-window-layout.png}
+		\caption{Layout of the main window.}
+		\label{fig:mainwindow1}
+	\end{center}
+\end{figure}
+
+
+\subsection{Input Panel}
+The input panel has three tabs: the \emph{assemblies tab}, the \emph{materials tab}, and the \emph{mesh tab}.
+
+\subsubsection{Assemblies Tab}
+The assemblies tab shows the hierchal nature of the core, assemblies, pins and ducts.  Recall that a core is composed of assemblies which are placed in the core's lattice, and that these assemblies are in turn composed of pins and ducts that are placed in the assembly lattice.
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width=0.5\linewidth]{Images/assemblies-tab.png}
+		\caption{The assemblies tab shows the core, assembly, pin, and duct hierarchy.}
+		\label{fig:mainwindow2}
+	\end{center}
+\end{figure}
+
+Note you can check to see if the core or an assembly has had changes made to it since the last save.  A pencil icon (as above) indicates that edits have been made since the file was last saved.  A green box indicates that the file is up to date.
+
+You can also see the status of mesh files here.  An ``x" icon (as above, to the right of the pencil icon) indicates that mesh files have not been generated, while green boxes indicate that they are up to date.
+
+\subsubsection{Materials Tab}
+The materials tab details the list of available materials, their associated colors, and whether or not they are viewable.  You can use this tab to create, remove, import, and export materials, as well as edit the labels and colors of materials and toggle whether or not they are shown in the 3D view.
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=0.5\linewidth]{Images/materials-tab.png}
+		\caption{The materials tab shows available materials.}
+		\label{fig:mainwindow3}
+	\end{center}
+\end{figure}
+
+\subsubsection{Mesh Tab}
+The mesh tab allows you to control the viewing of the mesh.  It has the options to control what shows up in the 3D mesh view, including the ability to show volumes, boundaries, surfaces, Neumann sets, Dirichlet sets, Material sets, show mesh edges, and to colorize the different volumes.  More information on this tab is given in \ref{section:DisplayingMeshes}.
+
+\subsection{Properties Panel}
+The properties panel changes depending on the current state of the input panel's assemblies tab.
+
+\begin{itemize}
+	\item{If you're clicking on a core, it will display three tabs: the \emph{lattice tab}, the \emph{configure tab}, and the \emph{assembly defaults tab}.}
+	\item{If you're clicking on an assembly, it will display the lattice tab and configure tab, but will display the \emph{defaults tab}.  Note that the assembly has a different lattice tab and configure tab from the core.}
+	\item{If you're clicking on a duct, it will display the \emph{duct tab}.}
+	\item{If you're clicking on a pin, it will display the \emph{pin tab}.}
+\end{itemize}
+
+\subsubsection{Lattice Tab}
+The lattice tab illustrates the placement of assemblies of the core (if this is the core lattice -- you're clicking on the core in the assemblies tab) or the placement of pins (if this is an assembly lattice -- you're clicking on an assembly in the assemblies tab).  See figure \ref{fig:latticetab}.
+
+Each assembly or pin represented here will be filled with its corresponding key color.
+
+You can edit this information by specifying the number of layers (in a hexagonal core) or the dimensions (in a rectilinear core) to get the desired lattice geometry, and then right-click on each cell to select the desired assembly or pin.  Alternatively, you can drag and drop an existing component onto the cell.
+
+This tab is also where the key color for this component is specifed.
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=0.3\linewidth]{Images/hex-19.png}
+		\caption{The lattice tab for a three-layer full hexagonal core.  The user has right clicked to place an assembly.}
+		\label{fig:latticetab}
+	\end{center}
+\end{figure}
+
+\subsubsection{Configure Tab}
+This tab allows you to customize other meshing parameters from MeshKit files which are not currently provided an interface in the GUI. \todo{Add reference to Meshing chapter.}
+
+When building a full hexagonal core, $\frac{1}{6}$ flat hexagonal core, or a $\frac{1}{12}$ hexagonal core you should include a rotation of $30^\circ$ in each assembly to prevent assemblies from overlapping each other, as shown in \ref{fig:configuretab}.  See more on this in section \ref{section:RotateAssembly30}.
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=0.4\linewidth]{Images/hex-16.png}
+		\caption{Adding a $30^\circ$ rotation in the configure tab of an assembly.}
+		\label{fig:configuretab}
+	\end{center}
+\end{figure}
+
+\subsubsection{Assembly Defaults Tab}
+The assembly defaults tab allows you to specify general meshing information.  You can set whether the mesh you want to generate will be tetrahedral or hexagonal, and also change the default dimensions of the ducts comprising your core.  Changing these values will propagate all the way down to every component, so you can change it all in one place instead of adjusting the height of every duct in every assembly.
+
+% \begin{figure}[H]
+% 	\begin{center}
+% 		\includegraphics[width=0.5\linewidth]{Images/hex-11.png}
+% 		\caption{Adding a $30^\circ$ rotation in the configure tab of an assembly.}
+% 		\label{fig:configuretab}
+% 	\end{center}
+% \end{figure}
+
+\subsubsection{Defaults Tab}
+The defaults tab allows you to configure the pitch of the assembly.  You can either specify it manually or calculate it using the \emph{calculate button}.
+
+\subsubsection{Duct Tab}
+This tab exposes the different configuration options for a duct piece.  You can change the position and dimensional settings towards the top, the duct pitch, and the duct material (with associated normalized thickness, if desired).
+
+\subsubsection{Pin Tab}
+The pin tab allows you to change the key color of the pin, specify the pin material(s), and create, remove, or edit pin pieces.
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[width=0.4\linewidth]{Images/hex-11.png}
+		\caption{The pin tab.}
+		\label{fig:pintab}
+	\end{center}
+\end{figure}
+
+\subsection{3D View}
+The 3D view displays a representation of the current component.  You can use the following controls to interact with it:
+
+\begin{itemize}
+	\item{To rotate, click with the left mouse button.}
+	\item{To pan, either shift-click with the left mouse button or use the middle mouse button.}
+	\item{To zoom, click with the right mouse button.}
+\end{itemize}
+
+Similar to the properties panel, the 3D view changes depending on what is selected in the assemblies tab of the input panel.
+
+\begin{itemize}
+	\item{If you're clicking on a core, it will display the entire core.}
+	\item{If you're clicking on an assembly or a duct, it will display the assembly.}
+	\item{If you're clicking on a pin, it will display the pin.}
+\end{itemize}
+
+% \subsection{Core View}
+% In the core view the entire core is visible.
+
+% \subsection{Assembly View}
+% In the assembly
+
+% \subsection{Duct View}
+% The Duct View is visible when a duct is selected in the Material/Model view.  In this mode, the 3D View shows the entire assembly.  The ``Position'' parameters can be used to edit the position of the duct in the render view, and also the thickness in the z direction.  The ``Thickness'' parameters can be used to edit the thickness in the x and y directions respectively. See Figure ~\ref{fig:ductedit1}.
+
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=0.6\linewidth]{Images/duct-editing-labeled.png}
+% \caption{The thickness and position of a duct can be edited from the Task Panel.}
+% \label{fig:ductedit1}
+% \end{center}
+% \end{figure}
+
+% \subsection{Pin Editing}
+% Edit a pin by selecting it in the Material/Model View.  It is useful to first change the key color and name, so that later it will be easily recognized while constructing your assembly.  See ~\ref{fig:pinedit1} for an example of the Task Panel when a pin is selected.
+
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=0.6\linewidth]{Images/pin-editing.png}
+% \caption{A pin can be edited by selecting it in the Material/Model View.}
+% \label{fig:pinedit1}
+% \end{center}
+% \end{figure}
+
+
+% At this time there is only support for one piece to each pin.  This piece can be either a cylinder, when the top and bottom radii are identical, or a frustum, where they are different.
+
+% Once this is chosen, the material may be set.  A pin can be made out of more than one material, using the Material editor under the Pieces editor.  This enables you to set different layers of material with different radii.  See Figure ~\ref{fig:Rect6} for an example of this within the Rectangular Core tutorial.
