@@ -1,8 +1,10 @@
-RGG allows you to provide paths to MeshKit\footnote{See \url{http://trac.mcs.anl.gov/projects/fathom/wiki/MeshKit}.} and Cubit\footnote{See \url{https://cubit.sandia.gov/}.} executables to facillitate the production of meshes for simulation.
+RGG allows you to provide paths to AssyGen and CoreGen (provided by MeshKit\footnote{See \url{http://trac.mcs.anl.gov/projects/fathom/wiki/MeshKit}.}) and Cubit\footnote{See \url{https://cubit.sandia.gov/}.} executables to facillitate the production of meshes for simulation.
 
 \section{Add Paths to Preferences}
 
-Access the \emph{system preferences window} by clicking on the \emph{edit menu} of the \emph{toolbar}.
+In order for RGG to mesh an INP file, we'll first need to provide it the paths to the AssyGen, CoreGen, adn Cubit executables.
+
+Access the \emph{system preferences window} by clicking on the \emph{edit menu} of the \emph{toolbar} on Linux and Windows.  On Mac, click on the \emph{preferences item} of the \emph{RGG Nuclear menu}.
 
 \begin{figure}[H]
 	\begin{center}
@@ -12,7 +14,7 @@ Access the \emph{system preferences window} by clicking on the \emph{edit menu} 
 	\end{center}
 \end{figure}
 
-This brings up the system preferences window.  To add AssyGen, CoreGen, or Cubit, click the \emph{browse button} to locate the executable and click the \emph{open button} to get back to the system preferences window.
+This brings up the system preferences window.  The system preferences window has a section for each of the three executables.  To add one, click the \emph{browse button} in the section that corresponds to the desired executable.  Locate the executable and click the \emph{open button} to get back to the system preferences window.
 
 \begin{figure}[H]
 	\begin{center}
@@ -21,3 +23,5 @@ This brings up the system preferences window.  To add AssyGen, CoreGen, or Cubit
 		\label{fig:Mesh2}
 	\end{center}
 \end{figure}
+
+Note the \emph{advance checkbox} in the AssyGen and CoreGen sections.  If either of these executables require shared libraries in non-standard locations, you can click this checkbox to activate the \emph{library paths text box}.  You can specify directories where the shared libraries are, with each line being another location.
