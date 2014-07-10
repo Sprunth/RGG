@@ -1,8 +1,36 @@
+\section{Displaying the Mesh}
 \label{section:DisplayingMeshes}
-Vestibulum vel sodales massa. In at rutrum mauris. Aliquam turpis tortor, semper ut dui sed, adipiscing luctus justo. Donec viverra aliquet magna, non ullamcorper est scelerisque sed. Aliquam erat volutpat. Nam facilisis faucibus purus id condimentum. Donec magna nibh, dictum ac mauris pharetra, condimentum iaculis enim. Suspendisse vestibulum metus nec cursus tempus. Ut in feugiat felis, vel pellentesque odio. Curabitur lobortis at mi nec egestas. Aenean vitae vulputate nulla, id ultrices odio. Cras ornare lectus erat, quis lobortis nunc elementum at.
 
-\subsection{Different Views of the Mesh}
-Suspendisse mattis eros sem, in dictum velit viverra at. Etiam pretium et augue et ornare. Donec in pharetra mauris. Pellentesque at lacus mi. Aliquam dapibus metus et dignissim pulvinar. Sed et sem quis tellus interdum adipiscing. Vestibulum ac ligula et urna gravida malesuada. Pellentesque quis nulla ac libero convallis pharetra vitae eget magna. Morbi nunc lorem, pharetra ac ultricies et, iaculis at sem. Vestibulum scelerisque massa in magna porttitor pellentesque. Nulla quis tortor et felis ultrices congue. Fusce aliquet sem sit amet pulvinar sollicitudin. Pellentesque euismod luctus sem at consequat. Donec est dolor, dapibus eu ante et, volutpat iaculis velit.
+Upon successful creation of a mesh, you either need to load it in manually via the \emph{open MOAB file dialog} accessed from the \emph{open MOAB file item} in the \emph{file menu}, or, if you've just meshed an INP file you lodaed in, the mesh will load in automatically.
 
-\subsection{Hiding Materials w/r the Mesh}
-Mauris et eros tellus. Nunc elementum nunc vel tempor luctus. Aliquam a tincidunt velit, vel consequat ipsum. Nunc congue ullamcorper tellus vel mollis. Sed sagittis arcu vel malesuada facilisis. Donec vulputate luctus justo et aliquet. Suspendisse erat sem, interdum a tortor ut, molestie vulputate massa. Proin laoreet neque magna, quis scelerisque mauris fermentum et. Quisque rhoncus lacinia nulla in tincidunt.
+\subsection{Views of the Mesh}
+To control viewing the mesh, be sure to click on the \emph{mesh tab} of the \emph{inputs panel}.  RGG allows you to six different options to control the \emph{3D view} of the mesh, listed below:
+
+\begin{itemize}
+	\item{Volumes}
+	\item{Boundary}
+	\item{Surfaces}
+	\item{Neumann Sets}
+	\item{Dirichlet Sets}
+	\item{Material Sets}
+\end{itemize}
+
+More detail on these views is provided below.  Additionally, you can check the \emph{show edges checkbox} to view the mesh superimposed on the 3D view and check the \emph{color checkbox} to colorize the different pieces of the view based on the option you've selected.
+
+\subsubsection{Volumes}
+Clicking the \emph{volumes option} shows all the volumes of the mesh.  Checking the color checkbox will colorize all of the distinct volumes in different colors.
+
+\subsubsection{Boundary}
+In this mode, RGG displays only the boundary conditions.  Checking the color checkbox will colorize all of the distinct volumes in different colors.
+
+\subsubsection{Surfaces}
+When the \emph{surfaces option} is selected, RGG displays only the surfaces of the mesh.
+
+\subsubsection{Neumann Sets}
+Clicking the \emph{Neumann Sets option} will show the natural boundary conditions on sides of domains.
+
+\subsubsection{Dirichlet Sets}
+Clicking the \emph{Dirichlet Sets option} will show the essential boundary conditions on points of domains.
+
+\subsubsection{Material Sets}
+Material sets displays all the volumes of the mesh, but colorizes them on a per material basis.  Additionally, you can toggle the visability of materials by checking and unchecking them in the \emph{materials tab} of the inputs panel.
