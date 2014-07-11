@@ -48,7 +48,7 @@ The properties panel changes depending on the current state of the input panel's
 
 \begin{itemize}
 	\item{If you're clicking on a core, it will display three tabs: the \emph{lattice tab}, the \emph{configure tab}, and the \emph{assembly defaults tab}.}
-	\item{If you're clicking on an assembly, it will display the lattice tab and configure tab, but will display the \emph{defaults tab}.  Note that the assembly has a different lattice tab and configure tab from the core.}
+	\item{If you're clicking on an assembly, it will display the lattice tab and configure tab, but will display the \emph{defaults tab} (not to be confused with the assembly defaults tab).  Note that the assembly has a different lattice tab and configure tab from the core.}
 	\item{If you're clicking on a duct, it will display the \emph{duct tab}.}
 	\item{If you're clicking on a pin, it will display the \emph{pin tab}.}
 \end{itemize}
@@ -71,7 +71,7 @@ This tab is also where the key color for this component is specifed.
 \end{figure}
 
 \subsubsection{Configure Tab}
-This tab allows you to customize other meshing parameters from MeshKit files which are not currently provided an interface in the GUI. \todo{Add reference to Meshing chapter.}
+This tab allows you to customize other meshing parameters from MeshKit files which are not currently provided an interface in the GUI. See chapter \ref{chapter:Meshing} for information on how to mesh your core.
 
 When building a full hexagonal core, $\frac{1}{6}$ flat hexagonal core, or a $\frac{1}{12}$ hexagonal core you should include a rotation of $30^\circ$ in each assembly to prevent assemblies from overlapping each other, as shown in \ref{fig:configuretab}.  See more on this in section \ref{section:RotateAssembly30}.
 
