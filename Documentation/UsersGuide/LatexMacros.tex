@@ -1,0 +1,69 @@
+% Collection of macros and stuff to use in the user-guide.
+
+%-------------------------------------------------------------------------------
+% stuff for "boxed text" used for didyouknow and common error boxes.
+%-------------------------------------------------------------------------------
+\usepackage[tikz]{bclogo}
+\usepackage[framemethod=tikz]{mdframed}
+
+\definecolor{bgblue}{RGB}{245,243,253}
+\definecolor{ttblue}{RGB}{91,194,224}
+
+
+% change title color.
+\renewcommand\bcStyleTitre[1]{\large\textcolor{ttblue}{#1}}
+%\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\bcbombe, barre=none,noborder=true]{Commom Programming Error}
+%\itshape\lipsum[4]
+%\end{bclogo}
+
+\newenvironment{commonerrors}%
+{\vspace{1em}\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\bcbombe, barre=snake,noborder=true]{Common Errors}\itshape}%
+{\end{bclogo}\vspace{1em}}
+
+\newenvironment{didyouknow}%
+{\vspace{1em}\begin{bclogo}[couleur=bgblue, arrondi =0 , logo=\bcinfo, barre=snake,noborder=true]{Did you know?}\itshape}%
+{\end{bclogo}\vspace{1em}}
+
+
+%-------------------------------------------------------------------------------
+% Use this when referring to a menu e.g. \menu{Sources} or
+% \menu{Sources}[Sphere]
+%-------------------------------------------------------------------------------
+\usepackage{xparse}
+\DeclareDocumentCommand \menu {m o}
+{%
+  \IfNoValueTF{#2}%
+    {\menuii{#1}}%
+    {\menuii{#1}$\rightarrow$\menuii{#2}}%
+}
+%  {>{\SplitList{;}}m}
+%  {\menuii #1 $\rightarrow$}
+\newcommand\menuii[1]{\textbf{#1}}
+
+%-------------------------------------------------------------------------------
+% Use this when referring to a key sequence e.g. \key{Ctrl+F}.
+%-------------------------------------------------------------------------------
+\newcommand\key[1]{\texttt{#1}}
+
+%-------------------------------------------------------------------------------
+% Use this when referring to an entity on the UI. When referring to any text
+% that appears on the ParaView UI, e.g. Pipeline Browser, Solid Color, etc. use
+% this format e.g. \ui{Properties} panel, \ui{Pipeline Browser}.
+%-------------------------------------------------------------------------------
+\newcommand\ui[1]{\texttt{#1}\index{ui}{#1}}
+
+%-------------------------------------------------------------------------------
+% Use this when referring to executables e.g. \executable{paraview}
+%-------------------------------------------------------------------------------
+\newcommand\executable[1]{{\emph{\color{blue}#1}}}
+
+%-------------------------------------------------------------------------------
+% Use for keywords.
+%-------------------------------------------------------------------------------
+\newcommand\keyword[1]{\index{keyword}{#1}}
+
+%-------------------------------------------------------------------------------
+% Use for icons inlined in text e.g. ...click the \ui{Images/FileOpenIcon.png}
+% button.
+%-------------------------------------------------------------------------------
+\newcommand\icon[1]{\includegraphics[height=1.5em]{#1}}
