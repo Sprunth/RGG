@@ -10,7 +10,6 @@ set(Package_Folder "RGG Suite ${rgg_version_major}.${rgg_version_minor}.${rgg_ve
 include(CPack)
 
 foreach(program ${rgg_programs_to_install})
-
   install(CODE
   "
   set(PV_PYTHON_LIB_INSTALL_PREFIX
