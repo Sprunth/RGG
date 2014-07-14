@@ -100,7 +100,8 @@ class Library(object):
         logging.info("Copying %s/%s ==> %s" % (m.group(1), m.group(2), ".../Contents/Frameworks/"))
         dirdest = os.path.join(os.path.join(app, "Contents/Frameworks/"), m.group(2))
         filedest = os.path.join(dirdest, m.group(3))
-        shutil.copytree(os.path.join(m.group(1), m.group(2)), dirdest, symlinks=True)
+        if not os.path.exists(dirdest):
+          shutil.copytree(os.path.join(m.group(1), m.group(2)), dirdest, symlinks=True)
       self.Id = "@executable_path/../Frameworks/%s" % (os.path.join(m.group(2), m.group(3)))
       if not fakeCopy:
         #frameworks can be coming for a system installed place so we need to
