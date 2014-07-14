@@ -48,9 +48,20 @@
 %-------------------------------------------------------------------------------
 % Use this when referring to an entity on the UI. When referring to any text
 % that appears on the ParaView UI, e.g. Pipeline Browser, Solid Color, etc. use
-% this format e.g. \ui{Properties} panel, \ui{Pipeline Browser}.
+% this format e.g. \ui{Properties} panel, \ui{Pipeline Browser}.  If 2nd option
+% is provided, put that in the index instead.
 %-------------------------------------------------------------------------------
-\newcommand\ui[1]{\texttt{#1}\index{ui}{#1}}
+\DeclareDocumentCommand \ui {m o}
+{%
+  \IfNoValueTF{#2}%
+    {\texttt{#1}\index{ui}{#1}}%
+    {\texttt{#1}\index{ui}{#2}}%
+}
+
+%-------------------------------------------------------------------------------
+% Use this when referring to executables e.g. \executable{paraview}
+%-------------------------------------------------------------------------------
+\newcommand{\toIndex}[1]{\index{keyword}{#1}}
 
 %-------------------------------------------------------------------------------
 % Use this when referring to executables e.g. \executable{paraview}
