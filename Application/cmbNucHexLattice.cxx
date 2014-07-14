@@ -323,7 +323,11 @@ void cmbNucHexLattice::mousePressEvent(QMouseEvent* event)
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(mimeData);
+#ifdef _WIN32
+    drag->setPixmap(pixmap.scaledToHeight(20, Qt::SmoothTransformation));
+#else
     drag->setPixmap(pixmap.scaledToHeight(40, Qt::SmoothTransformation));
+#endif
     drag->exec(Qt::CopyAction);
 
     imagePainter.end();
