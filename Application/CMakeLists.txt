@@ -24,6 +24,7 @@ SET(RGGNuclear_Srcs
   cmbNucAssembly.cxx
   cmbNucAssemblyEditor.cxx
   cmbNucCore.cxx
+  cmbNucDuctCellEditor.cxx
   cmbNucDefaults.cxx
   cmbNucDefaultWidget.cxx
   cmbNucInputListWidget.cxx
@@ -54,6 +55,7 @@ SET(RGGNuclear_UI
   qInputListWidget.ui
   qInputPropertiesWidget.ui
   cmbNucPinCellEditor.ui
+  cmbDuctCellEditor.ui
   qExporterDialog.ui
   qProgress.ui
   qCoregenModel.ui
@@ -66,6 +68,7 @@ SET(RGGNuclear_UI
 SET(RGGNuclear_Headers
   cmbNucAssembly.h
   cmbNucCore.h
+  cmbNucDuctCellEditor.h
   cmbNucDefaults.h
   cmbNucDefaultWidget.h
   cmbNucMainWindow.h

@@ -18,7 +18,7 @@ class Duct : public AssyPartObj
 {
 public:
   Duct(double height, double thickX, double thickY);
-  Duct(Duct * previous);
+  Duct(Duct * previous, bool resize = true);
   ~Duct();
   DuctConnection * GetConnection();
   enumNucPartsType GetType() const;
@@ -56,6 +56,7 @@ class DuctCell : public AssyPartObj
 public:
   DuctCell();
   ~DuctCell();
+  void fill(DuctCell* other);
   DuctConnection * GetConnection();
   enumNucPartsType GetType() const;
   void RemoveDuct(Duct* duct);
@@ -70,6 +71,7 @@ public:
   void setLength(double l);
   std::string getLabel(){return "Duct";}
   virtual std::string getTitle(){ return "Duct"; }
+  bool operator==(const DuctCell& obj);
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

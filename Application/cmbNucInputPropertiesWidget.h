@@ -84,6 +84,7 @@ protected slots:
   void onCoreDimensionChanged();
 
   void showPinCellEditor();
+  void showDuctCellEditor();
 
   void onCoreLayersChanged();
   void onAssyLayersChanged();

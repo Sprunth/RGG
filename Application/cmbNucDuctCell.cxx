@@ -16,7 +16,7 @@ Duct::Duct(double height, double thickX, double thickY)
   thickness[1] = thickY;
 }
 
-Duct::Duct(Duct * previous)
+Duct::Duct(Duct * previous, bool resize)
 {
   Connection = new DuctConnection();
   x=previous->x;
@@ -24,19 +24,22 @@ Duct::Duct(Duct * previous)
   double tz1 = previous->z1;
   double tz2 = previous->z2;
   double tl = previous->z2 - previous->z1;
-  previous->z2 = tz1 + tl*0.5;
-  z1=previous->z2;
-  z2=tz2;
-  this->SetNumberOfLayers(previous->NumberOfLayers());
-  thickness[0] = previous->thickness[0];
-  thickness[1] = previous->thickness[1];
-  for(unsigned int i = 0; i < previous->NumberOfLayers(); ++i)
+  if(resize)
   {
-    this->setMaterial(i, previous->getMaterial(i));
-    double * prev =  previous->getNormThick(i);
-    double * me = this->getNormThick(i);
-    me[0] = prev[0];
-    me[1] = prev[1];
+    previous->z2 = tz1 + tl*0.5;
+    z1=previous->z2;
+    z2=tz2;
+    this->SetNumberOfLayers(previous->NumberOfLayers());
+    thickness[0] = previous->thickness[0];
+    thickness[1] = previous->thickness[1];
+    for(unsigned int i = 0; i < previous->NumberOfLayers(); ++i)
+    {
+      this->setMaterial(i, previous->getMaterial(i));
+      double * prev =  previous->getNormThick(i);
+      double * me = this->getNormThick(i);
+      me[0] = prev[0];
+      me[1] = prev[1];
+    }
   }
 }
 
@@ -177,6 +180,20 @@ Duct * DuctCell::getDuct(int i)
   return this->Ducts[i];
 }
 
+void DuctCell::fill(DuctCell* other)
+{
+  for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    delete(this->Ducts[i]);
+  }
+  this->Ducts.resize(0);
+  for(unsigned int i = 0; i < other->Ducts.size(); ++i)
+  {
+    Duct * tmp = new Duct(other->Ducts[i], false);
+    this->AddDuct(tmp);
+  }
+}
+
 QSet< cmbNucMaterial* > DuctCell::getMaterials()
 {
   QSet< cmbNucMaterial* > result;
@@ -240,4 +257,16 @@ void DuctCell::setLength(double l)
     if(duct->z2 == z2) duct->z2 = l;
     else duct->z2 = (duct->z2 - z1) / prevL * l;
   }
+}
+
+bool DuctCell::operator==(const DuctCell& obj)
+{
+  if(this->Ducts.size() != obj.Ducts.size()) return false;
+  for (unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    Duct * d1 = this->Ducts[i];
+    Duct * d2 = obj.Ducts[i];
+    if(! (*d1 == *d2) ) return false;
+  }
+  return true;
 }

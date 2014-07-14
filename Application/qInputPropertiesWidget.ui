@@ -633,6 +633,13 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="pageDuctCell">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QVBoxLayout" name="ductEditorContainer"/>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="pageMaterial">
       <layout class="QGridLayout" name="gridLayout_7">
        <item row="0" column="1">

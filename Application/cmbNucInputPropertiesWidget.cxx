@@ -6,6 +6,7 @@
 #include "cmbNucAssemblyEditor.h"
 #include "cmbNucCore.h"
 #include "cmbNucPinCellEditor.h"
+#include "cmbNucDuctCellEditor.h"
 #include "cmbNucPinCell.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucMainWindow.h"
@@ -32,6 +33,7 @@ class cmbNucInputPropertiesWidgetInternal :
 {
 public:
   QPointer <cmbNucPinCellEditor> PinCellEditor;
+  QPointer <cmbNucDuctCellEditor> DuctCellEditor;
 };
 
 //-----------------------------------------------------------------------------
@@ -292,6 +294,10 @@ void cmbNucInputPropertiesWidget::onReset()
         this->Internal->pageRectDuct);
       duct = dynamic_cast<Duct*>(selObj);
       this->resetDuct(duct);
+      break;
+    case CMBNUC_ASSY_DUCTCELL:
+      this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageDuctCell);
+      this->showDuctCellEditor();
       break;
     default:
       this->setEnabled(0);
@@ -683,6 +689,23 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       this->CoreEditor->resetUI(nucCore->CoreLattice.Grid, actionList);
       }
     }
+}
+
+void cmbNucInputPropertiesWidget::showDuctCellEditor()
+{
+  DuctCell* ductcell = dynamic_cast<DuctCell*>(this->CurrentObject);
+  if(!ductcell)
+  {
+    return;
+  }
+  if(this->Internal->DuctCellEditor == NULL)
+  {
+    this->Internal->DuctCellEditor = new cmbNucDuctCellEditor(this);
+    this->Internal->ductEditorContainer->addWidget(this->Internal->DuctCellEditor);
+    //Setup connections
+  }
+  this->Internal->DuctCellEditor->SetDuctCell(ductcell, this->getAssembly()->IsHexType());
+  this->Internal->DuctCellEditor->SetAssembly(this->getAssembly());
 }
 
 void cmbNucInputPropertiesWidget::showPinCellEditor()
