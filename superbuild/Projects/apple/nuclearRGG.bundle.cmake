@@ -5,7 +5,7 @@ set (CPACK_GENERATOR DragNDrop)
 include(nuclearRGG.bundle.common)
 
 #set a root folder inside the package
-set(Package_Folder "RGG Suite ${rgg_version_major}.${rgg_version_minor}.${rgg_version_patch}")
+set(Package_Folder "RGG_Suite_${rgg_version_major}.${rgg_version_minor}.${rgg_version_patch}")
 
 include(CPack)
 
