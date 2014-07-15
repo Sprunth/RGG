@@ -8,11 +8,12 @@ add_latex_document(
 		Installation.tex
 		ConceptualOverviewAndTerminology.tex
 		BasicUIOverview.tex
+		ExampleBuildingARectangularCore.tex
+		ExampleBuildingAHexagonalCore.tex
 		InterfacingWithMeshKitToolsAndCubit.tex
 		HowToMesh.tex
 		DisplayingMeshes.tex
-		ExampleBuildingAHexagonalCore.tex
-		ExampleBuildingARectangularCore.tex
+		AdvancedTechniques.tex
 	DEFAULT_PDF
 	INDEX_NAMES keyword ui
 	USE_INDEX
