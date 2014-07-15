@@ -14,12 +14,17 @@ if(BUILD_MESHKIT)
                 -DCUBIT_PATH:STRING=${CUBIT_PATH})
 endif()
 
+if(BUILD_DOCUMENTATION)
+  set(DOC_ARGS -DBUILD_DOCUMENTATION:BOOL=${BUILD_DOCUMENTATION})
+endif()
+
 if(BUILD_WITH_MOAB)
 add_external_project_or_just_build_dependencies(nuclearRGG
   DEPENDS remus qt vtk moab
   CMAKE_ARGS
     ${extra_cmake_args}
     ${MESH_ARGS}
+    ${DOC_ARGS}
     
     # specify the apple app install prefix. No harm in specifying it for all
     # platforms.
@@ -36,6 +41,7 @@ add_external_project_or_just_build_dependencies(nuclearRGG
   CMAKE_ARGS
     ${extra_cmake_args}
     ${MESH_ARGS}
+    ${DOC_ARGS}
     
     # specify the apple app install prefix. No harm in specifying it for all
     # platforms.

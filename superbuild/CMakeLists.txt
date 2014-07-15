@@ -198,6 +198,8 @@ option(USE_MESHING_SUPPORT "build rgg programs that require meshing" ON)
 
 option(BUILD_MESHKIT "Build meshkit tools (Assygen and Coregen)" OFF)
 
+option(BUILD_DOCUMENTATION "Build the RGG Documentation" OFF)
+
 #must before any including of projects
 SetupCMBSuperBuild()
 
