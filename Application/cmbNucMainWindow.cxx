@@ -338,6 +338,7 @@ void cmbNucMainWindow::initPanels()
                       this, SLOT(clearCore()));
   }
   this->InputsWidget->setEnabled(0);
+  this->ui->actionExport->setEnabled(false);
   this->InputsWidget->setCore(this->NuclearCore);
 
 #ifdef BUILD_WITH_MOAB
@@ -563,6 +564,7 @@ void cmbNucMainWindow::onNewCore()
     this->InputsWidget->onNewAssembly();
     this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);
+    this->ui->actionExport->setEnabled(true);
     this->Renderer->ResetCamera();
     this->Renderer->Render();
   }
@@ -635,6 +637,7 @@ void cmbNucMainWindow::onFileOpen()
         else assembly->setFromDefaults( this->NuclearCore->GetDefaults() );
         need_to_use_assem = true;
         this->ui->actionNew_Assembly->setEnabled(true);
+        this->ui->actionExport->setEnabled(true);
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -648,6 +651,7 @@ void cmbNucMainWindow::onFileOpen()
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
         this->ui->actionNew_Assembly->setEnabled(true);
+        this->ui->actionExport->setEnabled(true);
         this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
         break;
@@ -985,6 +989,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->NuclearCore = new cmbNucCore(needSave);
   this->InputsWidget->setCore(this->NuclearCore);
   this->ui->actionNew_Assembly->setEnabled(false);
+  this->ui->actionExport->setEnabled(false);
 
 #ifdef BUILD_WITH_MOAB
   if(this->Internal->MoabSource != NULL) this->Internal->MoabSource->clear();
