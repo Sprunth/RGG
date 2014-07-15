@@ -14,7 +14,7 @@ set (CPACK_NSIS_HELP_LINK "http://paraview.org/Wiki/ParaView")
 if(BUILD_DOCUMENTATION)
   set (CPACK_NSIS_MENU_LINKS
     "bin/RGGNuclear.exe" "RGG Nuclear GUI"
-    "Documentation/RGGUsersGuide.pdf "Documentation")
+    "Documentation/RGGUsersGuide.pdf" "Documentation")
 else()
   set (CPACK_NSIS_MENU_LINKS
        "bin/RGGNuclear.exe" "RGG Nuclear GUI")
