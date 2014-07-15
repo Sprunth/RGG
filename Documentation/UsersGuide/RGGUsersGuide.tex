@@ -6,13 +6,11 @@
   tmargin=1in,
   bmargin=1in]{geometry}
 
-%Uncomment below in the future to add indecies
 
-% for adding index. Use \index{key} to put index keywords.
-%\usepackage{multind}
-%\makeindex{keyword}
-%\makeindex{python}
-%\makeindex{ui}
+% Adds indexing capability. Use \index{key} to put index keywords.
+\usepackage{multind}
+\makeindex{keyword}
+\makeindex{ui}
 
 \newcommand{\mytitle}{\textbf{RGG User's Guide}}
 
@@ -65,7 +63,7 @@
 \usepackage[colorlinks=true,urlcolor=blue,citecolor=black,linkcolor=black,final=true]{hyperref}
 
 
-%Inlcuding LatexMacros -- a borrowed subset from the Paraview User's Guide.
+%Inlcuding Latex Macros -- a borrowed subset from the Paraview User's Guide.
 \include{LatexMacros}
 
 \title{RGG User's Guide}
@@ -109,7 +107,7 @@
 \include{ExampleBuildingAHexagonalCore}
 
 \part{Reference}
-\chapter{Interface Reference}
-\chapter{Action Reference}
+\printindex{keyword}{Main Index}
+\printindex{ui}{Interface Index}
 
 \end{document}
