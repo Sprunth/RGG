@@ -3,21 +3,27 @@
 There are several concepts associated with RGG that must be understood before the user interface or workflow will seem sensible.
 
 \subsection{Cores}
+\toIndex{Cores}
 The highest-level unit that RGG constructs is the core itself.  Cores can have either a rectilinear or hexagonal geometry to them.  This helps to define their lattice, or the grid on to which assemblies can be placed.  Cores are made up of assemblies arranged in a particular manner on the core lattice.  These cores can be translated into a mesh by MeshKit.
 
 \subsection{Assemblies}
+\toIndex{Assemblies}
 As stated above, assemblies comprise cores.  Assemblies specify an arrangement of pins and ducts on their own lattice.  Think of assemblies as a configuration or specification of pins and ducts.
 
 \subsection{Pins}
+\toIndex{Pins}
 Pins are cylinders or frustrums that model fuel pins, control rods, and the like.  They have a name, a label, a material or set of materials, and other diverse properties.
 
 \subsection{Ducts}
+\toIndex{Ducts}
 Ducts are what surround the fuel pins -- in combination, they define the material composition of the space between pins in the lattice cells.
 
 \subsection{Materials}
+\toIndex{Materials}
 Materials describe physical properties of a pin or duct.  Materials are assigned to pins and ducts in order to produce a mesh that can be used to accurately perform simulations.
 
 \subsection{Meshes}
-A mesh is a tetrahedral representation of the core at a level of granularity sufficient for accurate simulation.  In RGG, they are produced by MeshKit.  This is the end product of RGG; the mesh is then fed into some other analytical software to perform the requested simulation.
+\toIndex{Meshes}
+A mesh is a tetrahedral (triangular pyramid) or hexahedral (rectangular prism) representation of the core at a level of granularity sufficient for accurate simulation.  In RGG, they are produced by MeshKit.  This is the end product of RGG; the mesh is then fed into some other analytical software to perform the requested simulation.
 
 Now that we've covered some high-level concepts, we're ready to look at an overview of the user interface.

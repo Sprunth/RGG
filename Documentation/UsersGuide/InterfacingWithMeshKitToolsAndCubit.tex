@@ -1,8 +1,10 @@
-RGG allows you to provide paths to MeshKit\footnote{See \url{http://trac.mcs.anl.gov/projects/fathom/wiki/MeshKit}.} and Cubit\footnote{See \url{https://cubit.sandia.gov/}.} executables to facillitate the production of meshes for simulation.
+RGG allows you to provide paths to AssyGen and CoreGen (provided by MeshKit\footnote{See \url{http://trac.mcs.anl.gov/projects/fathom/wiki/MeshKit}.}) and Cubit\footnote{See \url{https://cubit.sandia.gov/}.} executables to facillitate the production of meshes for simulation.
 
 \section{Add Paths to Preferences}
 
-Access the \emph{system preferences window} by clicking on the \emph{edit menu} of the \emph{toolbar}.
+In order for RGG to mesh an INP file, we'll first need to provide it the paths to the AssyGen, CoreGen, and Cubit executables.
+
+Access the \ui{system preferences window} by clicking on the \ui{edit menu} of the \ui{toolbar} on Linux and Windows.  On Mac, click on the \ui{preferences item} of the \ui{RGG Nuclear menu}.
 
 \begin{figure}[H]
 	\begin{center}
@@ -12,7 +14,7 @@ Access the \emph{system preferences window} by clicking on the \emph{edit menu} 
 	\end{center}
 \end{figure}
 
-This brings up the system preferences window.  To add AssyGen, CoreGen, or Cubit, click the \emph{browse button} to locate the executable and click the \emph{open button} to get back to the system preferences window.
+This brings up the \ui{system preferences window}.  The \ui{system preferences window} has a section for each of the three executables.  To add one, click the \ui{browse button} in the section that corresponds to the desired executable.  Locate the executable and click the \ui{open button} to get back to the system preferences window.
 
 \begin{figure}[H]
 	\begin{center}
@@ -22,50 +24,4 @@ This brings up the system preferences window.  To add AssyGen, CoreGen, or Cubit
 	\end{center}
 \end{figure}
 
-\section{Generating a Mesh from an INP file}
-
-After opening an INP file and setting up your preferences to include the paths to AssyGen, CoreGen, and Cubit, you can generate a mesh though a dialog accessed through the \emph{tools menu}.  Note the ``x" icon for the assemblies and core in the inputs pane.  This designates that RGG believes that these components need to be meshed.
-
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[width=0.5\linewidth]{Images/mesh-3.png}
-		\caption{Opening the Run MeshKit RGG dialog.}
-		\label{fig:Mesh3}
-	\end{center}
-\end{figure}
-
-You may be prompted to save changes before proceeding.
-
-The dialog should be populated with the assemblies that need to be re-meshed automatically.  In the example below, two assemblies need to be meshed, which also means that the core must be remeshed.
-
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[width=0.5\linewidth]{Images/mesh-4.png}
-		\caption{The Run MeshKit RGG dialog.}
-		\label{fig:Mesh4}
-	\end{center}
-\end{figure}
-
-Note that you can force the meshing of any assembly, or selectively mesh only certain assemblies with the \emph{force process assemblies checkbox} and the \emph{process selected assemblies button}.  To force the processing of the core, check the \emph{force process core checkbox}.  We'll click the \emph{process all button} without changing any defaults to process only the assemblies that need to be meshed and then process the core.  A window that gives you the status of the processing should come up, similar to the one below:
-
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[width=0.5\linewidth]{Images/mesh-5.png}
-		\caption{Running meshing.}
-		\label{fig:Mesh5}
-	\end{center}
-\end{figure}
-
-You can see the output of MeshKit's AssyGen and CoreGen by clicking on the \emph{view output checkbox}.
-
-To verify that the assemblies and core have been meshed, confirm that the ``x" icons seen previously are now be green squares, as shown in ~\ref{fig:Mesh6}.
-
-\begin{figure}[H]
-	\begin{center}
-		\includegraphics[width=0.5\linewidth]{Images/mesh-6.png}
-		\caption{Verifying successful meshing.}
-		\label{fig:Mesh6}
-	\end{center}
-\end{figure}
-
-Note that the mesh needs to be loaded in after MeshKit creates it.  During this process, the tools menu is inaccessible.
+Note the \ui{advance checkbox} in the AssyGen and CoreGen sections.  If either of these executables require shared libraries in non-standard locations, you can click this checkbox to activate the \ui{library paths text box}.  You can specify directories where the shared libraries are, with each line being another location.

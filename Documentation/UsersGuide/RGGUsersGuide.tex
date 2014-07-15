@@ -6,13 +6,11 @@
   tmargin=1in,
   bmargin=1in]{geometry}
 
-%Uncomment below in the future to add indecies
 
-% for adding index. Use \index{key} to put index keywords.
-%\usepackage{multind}
-%\makeindex{keyword}
-%\makeindex{python}
-%\makeindex{ui}
+% Adds indexing capability. Use \index{key} to put index keywords.
+\usepackage{multind}
+\makeindex{keyword}
+\makeindex{ui}
 
 \newcommand{\mytitle}{\textbf{RGG User's Guide}}
 
@@ -36,6 +34,9 @@
   \fancyhead{} % get rid of headers on plain pages
   \renewcommand{\headrulewidth}{0pt} % and the line
 }
+
+% Remove indents, add line breaks after paragraphs.
+\usepackage[parfill]{parskip}
 
 % Now to define several macros for commonly used abbreviations and such
 \usepackage{xspace}
@@ -62,6 +63,9 @@
 \usepackage[colorlinks=true,urlcolor=blue,citecolor=black,linkcolor=black,final=true]{hyperref}
 
 
+%Inlcuding Latex Macros -- a borrowed subset from the Paraview User's Guide.
+\include{LatexMacros}
+
 \title{RGG User's Guide}
 \author{Kitware, Inc.}
 
@@ -85,6 +89,14 @@
 \include{ConceptualOverviewAndTerminology}
 \include{BasicUIOverview}
 
+\chapter{Building Rectangular Cores}
+\label{chapter:ExampleBuildingARectangularCore}
+\include{ExampleBuildingARectangularCore}
+
+\chapter{Building Hexagonal Cores}
+\label{chapter:ExampleBuildingAHexagonalCore}
+\include{ExampleBuildingAHexagonalCore}
+
 \chapter{Meshing}
 \label{chapter:Meshing}
 \include{InterfacingWithMeshKitToolsAndCubit}
@@ -93,26 +105,10 @@
 
 \chapter{Advanced Techniques}
 \label{chapter:AdvancedTechniques}
-
-\chapter{Example -- Building a Hexagonal Core}
-\label{chapter:ExampleBuildingAHexagonalCore}
-\include{ExampleBuildingAHexagonalCore}
-
-\chapter{Example -- Building a Rectangular Core}
-\label{chapter:ExampleBuildingARectangularCore}
-\include{ExampleBuildingARectangularCore}
-
-\chapter{Example -- Building a $\frac{1}{6}$ Flat Hexagonal Core}
-\label{chapter:ExampleBuildingA6thFlatHexagonalCore}
-
-\chapter{Example -- Building a $\frac{1}{6}$ Vertex Hexagonal Core}
-\label{chapter:ExampleBuildingA6thVertexHexagonalCore}
-
-\chapter{Example -- Building a $\frac{1}{12}$ Hexagonal Core}
-\label{chapter:ExampleBuildingA12thHexagonalCore}
+\include{AdvancedTechniques}
 
 \part{Reference}
-\chapter{Interface Reference}
-\chapter{Action Reference}
+\printindex{keyword}{Main Index}
+\printindex{ui}{Interface Index}
 
 \end{document}
