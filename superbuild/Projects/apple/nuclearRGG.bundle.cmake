@@ -34,6 +34,12 @@ foreach(program ${rgg_programs_to_install})
   #-----------------------------------------------------------------------------
 endforeach()
 
+if(BUILD_DOCUMENTATION)
+  install(FILES ${install_location}/Docs/RGGUsersGuide.pdf
+          DESTINATION "Documentation"
+          COMPONENT superbuild)
+endif()
+
 add_test(NAME GenerateRGGPackage
          COMMAND ${CMAKE_CPACK_COMMAND} -G DragNDrop ${test_build_verbose}
          WORKING_DIRECTORY ${SuperBuild_BINARY_DIR})
