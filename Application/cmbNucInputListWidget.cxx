@@ -378,9 +378,12 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
 void cmbNucInputListWidget::onNewAssembly()
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  double r,g,b;
+  matColorMap->CalcRGB(r,g,b);
 
   this->setEnabled(1);
   cmbNucAssembly* assembly = new cmbNucAssembly;
+  assembly->SetLegendColor(QColor::fromRgbF(r,g,b));
   if(this->NuclearCore->IsHexType())
     {
     assembly->setGeometryLabel("Hexagonal");
@@ -444,6 +447,10 @@ void cmbNucInputListWidget::onNewDuct()
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewPin()
 {
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  double rgb[3];
+  matColorMap->CalcRGB(rgb[0],rgb[1],rgb[2]);
+
   cmbNucAssembly * assy = this->getCurrentAssembly();
   double px, py, height, r;
   if(!assy->getDefaults()->getPitch(px,py))
@@ -454,6 +461,7 @@ void cmbNucInputListWidget::onNewPin()
   assy->getDefaults()->getHeight(height);
   assy->calculateRadius(r);
   PinCell* newpin = new PinCell(px,py);
+  newpin->SetLegendColor(QColor::fromRgbF(rgb[0],rgb[1],rgb[2]));
   newpin->AddCylinder(new Cylinder(r, 0, height));
   QString pinname = QString("PinCell").append(
     QString::number(this->getCurrentAssembly()->GetNumberOfPinCells()+1));
