@@ -14,7 +14,7 @@ set (CPACK_NSIS_HELP_LINK "http://paraview.org/Wiki/ParaView")
 if(BUILD_DOCUMENTATION)
   set (CPACK_NSIS_MENU_LINKS
     "bin/RGGNuclear.exe" "RGG Nuclear GUI"
-    "Documentation/RGGUsersGuide.pdf" "Documentation")
+    "Documentation/RGGUsersGuide.pdf" "RGG Users Guide")
 else()
   set (CPACK_NSIS_MENU_LINKS
        "bin/RGGNuclear.exe" "RGG Nuclear GUI")
@@ -59,6 +59,13 @@ if(BUILD_DOCUMENTATION)
           DESTINATION "Documentation"
           COMPONENT superbuild)
 endif()
+
+install(DIRECTORY 
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/simple_hexflatcore-Modified
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexflatcore
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexvertexcore
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/twelfth_hexflatcore
+        DESTINATION ExampleModels)
 
 # install system runtimes.
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "bin")
