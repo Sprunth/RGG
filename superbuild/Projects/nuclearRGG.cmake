@@ -1,6 +1,3 @@
-option(BUILD_DOCUMENTATION "Build the RGG User's Guide PDF -- requires installed LaTeX" OFF)
-set(DOCUMENTATION_ARGS -DBUILD_DOCUMENTATION:BOOL=${BUILD_DOCUMENTATION})
-
 option( BUILD_WITH_MOAB "Build the MOAB support" OFF )
 
 if(BUILD_MESHKIT)
@@ -23,8 +20,7 @@ add_external_project_or_just_build_dependencies(nuclearRGG
   CMAKE_ARGS
     ${extra_cmake_args}
     ${MESH_ARGS}
-    ${DOCUMENTATION_ARGS}
-
+    
     # specify the apple app install prefix. No harm in specifying it for all
     # platforms.
     -DMACOSX_APP_INSTALL_PREFIX:PATH=<INSTALL_DIR>/Applications
@@ -40,8 +36,7 @@ add_external_project_or_just_build_dependencies(nuclearRGG
   CMAKE_ARGS
     ${extra_cmake_args}
     ${MESH_ARGS}
-    ${DOCUMENTATION_ARGS}
-
+    
     # specify the apple app install prefix. No harm in specifying it for all
     # platforms.
     -DMACOSX_APP_INSTALL_PREFIX:PATH=<INSTALL_DIR>/Applications
