@@ -132,8 +132,7 @@ void cmbNucAssemblyConnection::calculatePitch()
 
 void cmbNucAssemblyConnection::geometryChanged()
 {
-  v->setAndTestDiffFromFiles(true);
-  v->CreateData();
+  v->geometryChanged();
   emit dataChangedSig();
   emit colorChanged();
 }
@@ -170,6 +169,12 @@ cmbNucAssembly::~cmbNucAssembly()
   delete this->Parameters;
   delete this->Connection;
   delete this->Defaults;
+}
+
+void cmbNucAssembly::geometryChanged()
+{
+  setAndTestDiffFromFiles(true);
+  CreateData();
 }
 
 QColor cmbNucAssembly::GetLegendColor() const
@@ -638,7 +643,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
     ductSource->Update();
 
-    this->Data->SetBlock(this->Data->GetNumberOfBlocks() - i - 1, ductSource->GetOutput());
+    this->Data->SetBlock(this->AssyLattice.GetNumberOfCells() + i, ductSource->GetOutput());
     ductSource->Delete();
     }
 
