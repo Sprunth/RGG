@@ -40,6 +40,13 @@ if(BUILD_DOCUMENTATION)
           COMPONENT superbuild)
 endif()
 
+install(DIRECTORY 
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/simple_hexflatcore-Modified
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexflatcore
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexvertexcore
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/twelfth_hexflatcore
+        DESTINATION ExampleModels)
+
 add_test(NAME GenerateRGGPackage
          COMMAND ${CMAKE_CPACK_COMMAND} -G DragNDrop ${test_build_verbose}
          WORKING_DIRECTORY ${SuperBuild_BINARY_DIR})
