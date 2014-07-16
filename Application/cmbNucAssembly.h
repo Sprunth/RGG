@@ -207,6 +207,8 @@ public:
   // Call this when a pin cell property changes, it will rebuild the lattice
   void UpdateGrid();
 
+  void geometryChanged();
+
   // Returns the pincell with label. Returns 0 if no pincell with
   // label exists.
   PinCell* GetPinCell(const std::string &label);
