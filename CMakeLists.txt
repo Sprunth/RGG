@@ -180,7 +180,7 @@ endif()
 # LaTeX User's Guide
 #
 
-option(BUILD_DOCUMENTATION "Build RGGUsersGuide PDF" OFF)
+option(BUILD_DOCUMENTATION "Build the RGG User's Guide PDF -- requires installed LaTeX" OFF)
 
 if(BUILD_DOCUMENTATION)
   add_subdirectory(Documentation)
