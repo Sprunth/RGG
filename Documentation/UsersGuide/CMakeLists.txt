@@ -14,6 +14,7 @@ add_latex_document(
 		HowToMesh.tex
 		DisplayingMeshes.tex
 		AdvancedTechniques.tex
+		multind.sty
 	DEFAULT_PDF
 	INDEX_NAMES keyword ui
 	USE_INDEX
