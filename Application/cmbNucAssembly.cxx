@@ -873,7 +873,7 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
   }
   this->DifferentFromFile = false;
   QDateTime inpLM = inpInfo.lastModified();
-  QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName() + ".cub");
+  QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".cub");
   if(!cubInfo.exists())
   {
     this->DifferentFromCub = true;

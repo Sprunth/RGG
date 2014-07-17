@@ -475,7 +475,7 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
     QString pass = path + '/' + name;
-    QString cubFullFile = path + '/' + name.toLower();
+    QString cubFullFile = path + '/' + name.toLower()+".cub";
     emit currentProcess("  assygen " + name);
     QFile::remove(pass + ".jou");
     ExporterInput in(path, assygenExe, pass);
@@ -525,6 +525,7 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
                    "  cubit " + name + ".jou: " + lr.Result.c_str());
       return false;
     }
+    qDebug() <<cubFullFile;
     if(!QFileInfo(cubFullFile).exists())
     {
       failedHelper( "cubit failed to generate cubit file",
