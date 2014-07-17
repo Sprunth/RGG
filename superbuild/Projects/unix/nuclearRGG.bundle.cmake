@@ -6,17 +6,40 @@
 include(nuclearRGG.bundle.common)
 include(CPack)
 
+#install(DIRECTORY "@install_location@/lib"
+#  DESTINATION "lib"
+#  USE_SOURCE_PERMISSIONS
+#  COMPONENT superbuild)
+
+install(PROGRAMS ${install_location}/lib/RGGNuclear DESTINATION "lib")
+
+
+install(CODE
+      "execute_process(COMMAND
+      ${CMAKE_COMMAND}
+        -Dexecutable:PATH=${install_location}/lib/RGGNuclear
+        -Ddependencies_root:PATH=${install_location}
+        -Dpv_libraries_root:PATH=${install_location}/lib
+        -Dcmb_libraries_root:PATH=${install_location}/lib
+        -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/lib
+        -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
+    COMPONENT superbuild)
+
+install(PROGRAMS ${install_location}/bin/RGGNuclear DESTINATION "bin")
+
 #we have to install everything in bin that also wasn't in lib. The reason for this is that
 # all the paraview application in bin are just forward shells
 # install executables from bin that aren't in the programs_to install
-install(DIRECTORY
-    "@install_location@/bin/"
-    DESTINATION "bin"
-    USE_SOURCE_PERMISSIONS
-    COMPONENT superbuild
-    FILES_MATCHING
-    REGEX "RGG.*"
-    PATTERN "CMBNuclear")
+#install(DIRECTORY
+#    "@install_location@/bin/"
+#    DESTINATION "bin"
+#    USE_SOURCE_PERMISSIONS
+#    COMPONENT superbuild
+#    FILES_MATCHING
+#    REGEX "RGG.*"
+#    PATTERN "RGGNuclear")
+
+
 
 #install qt
 if (qt_ENABLED AND NOT USE_SYSTEM_qt)
