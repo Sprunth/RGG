@@ -148,12 +148,32 @@ if(APPLE)
                                Resources )
 endif()
 
+if(WIN32 OR APPLE)
 ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
 TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+else()
+
+message ("Forwarding")
+  include(vtkForwardingExecutable)
+  set(VTK_INSTALL_LIBRARY_DIR "lib")
+  set(BUILD_SHARED_LIBS TRUE)
+  vtk_add_executable_with_forwarding(rgg_exe_suffix
+                 RGGNuclear
+                 ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE}
+                 )
+  TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+
+  IF (rgg_exe_suffix)
+     # Shared forwarding enabled.
+     INSTALL(TARGETS RGGNuclear${rgg_exe_suffix}
+             DESTINATION "bin"
+             COMPONENT Runtime)
+  ENDIF ()
+endif()
+
 
 # The initial material color file
 set (materialColorsName "materialcolors")
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 if(WIN32)
   #quick work around since we don't know what build type we are doing on windows
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
@@ -184,5 +204,5 @@ else()
              ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
              @ONLY)
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
-  install(TARGETS RGGNuclear DESTINATION bin)
+  install(TARGETS RGGNuclear DESTINATION lib)
 endif()
