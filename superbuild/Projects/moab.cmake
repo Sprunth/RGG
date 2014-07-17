@@ -9,14 +9,13 @@ endif()
 
 #
 add_external_project(moab
-  DEPENDS hdf5 cgm netcdfcpp
+  DEPENDS hdf5 netcdfcpp
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>
     -DHDF5_DIR:path=<INSTALL_DIR>
     -DENABLE_IMESH:BOOL=ON
-    -DMOAB_USE_CGM:BOOL=ON
+    -DMOAB_USE_CGM:BOOL=OFF
     -DMOAB_USE_NETCDF:BOOL=ON
     -DMOAB_USE_HDF:BOOL=ON
-    -DCGM_CFG:path=<INSTALL_DIR>/lib/cgm.make
     -DNetCDF_DIR:path=<INSTALL_DIR>
 )

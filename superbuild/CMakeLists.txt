@@ -227,11 +227,9 @@ include(vtk)
 
 include(netcdf)
 include(ftgl)
-include(oce)
 include(freetype)
 include(netcdfcpp)
 include(szip)
-include(cgm)
 include(moab)
 
 if (UNIX AND NOT APPLE)
