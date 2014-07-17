@@ -478,7 +478,7 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
     QString cubFullFile = path + '/' + name.toLower()+".cub";
     emit currentProcess("  assygen " + name);
     QFile::remove(pass + ".jou");
-    ExporterInput in(path, assygenExe, pass);
+    ExporterInput in(path, assygenExe, name);
     {
       in.LibPath = "";
       std::stringstream ss(assygenLib.toStdString().c_str());
