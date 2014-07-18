@@ -11,6 +11,21 @@ include(CPack)
 #  USE_SOURCE_PERMISSIONS
 #  COMPONENT superbuild)
 
+if(BUILD_DOCUMENTATION)
+  install(FILES ${install_location}/Docs/RGGUsersGuide.pdf
+          DESTINATION "Documentation"
+          COMPONENT superbuild)
+endif()
+
+install(FILES ${CPACK_RESOURCE_FILE_LICENSE} DESTINATION bin)
+
+install(DIRECTORY 
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/simple_hexflatcore-Modified
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexflatcore
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexvertexcore
+        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/twelfth_hexflatcore
+        DESTINATION ExampleModels)
+
 install(PROGRAMS ${install_location}/lib/RGGNuclear DESTINATION "lib")
 
 
@@ -42,22 +57,22 @@ install(PROGRAMS ${install_location}/bin/RGGNuclear DESTINATION "bin")
 
 
 #install qt
-if (qt_ENABLED AND NOT USE_SYSTEM_qt)
-    install(DIRECTORY
+#if (qt_ENABLED AND NOT USE_SYSTEM_qt)
+#    install(DIRECTORY
       # install all qt plugins (including sqllite).
       # FIXME: we can reconfigure Qt to be built with inbuilt sqllite support to
       # avoid the need for plugins.
-      "@install_location@/plugins/"
-      DESTINATION "bin"
-      COMPONENT superbuild
-      PATTERN "*.a" EXCLUDE
-      PATTERN "paraview-${pv_version}" EXCLUDE
-      PATTERN "${program}-${cmb_version}" EXCLUDE
-      PATTERN "fontconfig" EXCLUDE
-      PATTERN "*.jar" EXCLUDE
-      PATTERN "*.debug.*" EXCLUDE
-      PATTERN "libboost*" EXCLUDE)
-  endif()
+#      "@install_location@/plugins/"
+#      DESTINATION "bin"
+#      COMPONENT superbuild
+#      PATTERN "*.a" EXCLUDE
+#      PATTERN "paraview-${pv_version}" EXCLUDE
+#      PATTERN "${program}-${cmb_version}" EXCLUDE
+#      PATTERN "fontconfig" EXCLUDE
+#      PATTERN "*.jar" EXCLUDE
+#      PATTERN "*.debug.*" EXCLUDE
+#      PATTERN "libboost*" EXCLUDE)
+#  endif()
 
 #add the installer as a test
 if (BUILD_TESTING)
