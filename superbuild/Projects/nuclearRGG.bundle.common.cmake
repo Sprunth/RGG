@@ -15,8 +15,8 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
   "rgg Suite of Tools.")
 set(CPACK_PACKAGE_NAME "rgg")
 set(CPACK_PACKAGE_VENDOR "Kitware, Inc.")
-#set(CPACK_RESOURCE_FILE_LICENSE
-#    "${CMBSuperBuild_SOURCE_DIR}/License.txt")
+set(CPACK_RESOURCE_FILE_LICENSE
+    "${CMBSuperBuild_SOURCE_DIR}/License.txt")
 set(CPACK_PACKAGE_VERSION_MAJOR ${rgg_version_major})
 set(CPACK_PACKAGE_VERSION_MINOR ${rgg_version_minor})
 if (rgg_version_suffix)
