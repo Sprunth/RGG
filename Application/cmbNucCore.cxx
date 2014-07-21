@@ -603,7 +603,7 @@ void cmbNucCore::calculateDefaults()
 
 void cmbNucCore::sendDefaults()
 {
-  std::vector< cmbNucAssembly* > assys = this->GetUsedAssemblies();
+  std::vector< cmbNucAssembly* > assys = this->Assemblies;
   for(unsigned int i = 0; i < assys.size(); ++i)
   {
     assys[i]->setFromDefaults(this->Defaults);
