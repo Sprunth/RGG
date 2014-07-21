@@ -72,6 +72,7 @@ public:
   std::string getLabel(){return "Duct";}
   virtual std::string getTitle(){ return "Duct"; }
   bool operator==(const DuctCell& obj);
+  void sort();
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

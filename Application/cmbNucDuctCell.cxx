@@ -166,6 +166,7 @@ void DuctCell::AddDuct(Duct* duct)
   QObject::connect( duct->GetConnection(), SIGNAL(Changed()),
                     this->Connection, SIGNAL(Changed()) );
   this->Ducts.push_back(duct);
+  this->sort();
   this->Connection->sendChange();
 }
 
@@ -257,6 +258,13 @@ void DuctCell::setLength(double l)
     if(duct->z2 == z2) duct->z2 = l;
     else duct->z2 = (duct->z2 - z1) / prevL * l;
   }
+}
+
+bool ductComp(Duct* i,Duct* j) { return (i->z1<j->z1); }
+
+void DuctCell::sort()
+{
+  std::sort(this->Ducts.begin(), this->Ducts.end(), ductComp);
 }
 
 bool DuctCell::operator==(const DuctCell& obj)

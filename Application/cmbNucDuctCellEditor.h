@@ -62,8 +62,8 @@ public slots:
 
 private slots:
   void ductTableCellSelection();
-  void addDuctBefore();
-  void addDuctAfter();
+  void splitDuct();
+  void deleteUp();
   void deleteDuct();
   void addLayerBefore();
   void addLayerAfter();
