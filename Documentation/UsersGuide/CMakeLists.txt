@@ -10,6 +10,7 @@ add_latex_document(
 		BasicUIOverview.tex
 		ExampleBuildingARectangularCore.tex
 		ExampleBuildingAHexagonalCore.tex
+		WhatMakesAGoodMesh.tex
 		InterfacingWithMeshKitToolsAndCubit.tex
 		HowToMesh.tex
 		DisplayingMeshes.tex
