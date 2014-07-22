@@ -1200,7 +1200,6 @@ void cmbNucMainWindow::updateCoreMaterialColors()
       {
       continue;
       }
-    realflatidx++;
     // for each assembly
     if(this->Internal->CurrentDataset->GetMetaData(block)->Has(vtkCompositeDataSet::NAME()))
       {

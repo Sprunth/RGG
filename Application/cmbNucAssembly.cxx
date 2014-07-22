@@ -342,22 +342,29 @@ void cmbNucAssembly::updateMaterialColors(
       }
     }
   }
-  /*if(this->AssyLattice.GetNumberOfCells() != 0)*/ realflatidx++;
+  /*if(this->AssyLattice.GetNumberOfCells() != 0)*/ //realflatidx++;
+  realflatidx++;
   for(unsigned int idx = 0; idx < this->AssyDuct.numberOfDucts(); ++idx)
   {
     realflatidx++;
     Duct* duct = this->AssyDuct.getDuct(idx);
     if(duct)
     {
-
       unsigned int numBlocks = duct->NumberOfLayers();
       for(unsigned int b = 0; b < numBlocks; b++)
       {
-        matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
+        realflatidx++;
+        matColorMap->SetBlockMaterialColor(attributes, realflatidx,
                                            duct->getMaterial(b));
       }
     }
+    //realflatidx++;
   }
+  if(this->AssyDuct.numberOfDucts() != 0)
+  {
+    realflatidx += this->AssyDuct.numberOfDucts()-1;
+  }
+  //realflatidx++;
 }
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
