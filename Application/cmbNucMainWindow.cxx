@@ -430,6 +430,11 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
       this->ResetView();
       }
     }
+  else if( selObj->GetType() == CMBNUC_ASSY_DUCTCELL)
+    {
+    DuctCell* selDuct = dynamic_cast<DuctCell*>(selObj);
+    if(selDuct) this->ResetView();
+    }
   else // assemblies or ducts
     {
     cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
@@ -465,6 +470,14 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
         this->updatePinCellMaterialColors(selPin);
         }
       }
+    else if(obj->GetType() == CMBNUC_ASSY_DUCTCELL)
+    {
+      DuctCell * dc = dynamic_cast<DuctCell*>(obj);
+      if(dc)
+      {
+        this->updateDuctCellMaterialColors(dc);
+      }
+    }
     else if(assy)
       {
       this->updateAssyMaterialColors(assy);
@@ -1077,6 +1090,39 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
     }
 }
 
+void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
+{
+  if(!dc)
+  {
+    return;
+  }
+  this->Internal->CurrentDataset = dc->CachedData;
+  vtkBoundingBox box;
+  computeBounds(this->Internal->CurrentDataset, &box);
+  box.GetBounds(this->Internal->Bounds);
+  setScaledBounds();
+
+  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
+  vtkCompositeDataDisplayAttributes *attributes =
+    this->Mapper->GetCompositeDataDisplayAttributes();
+
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  unsigned int flat_index = 1; // start from first child
+  for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
+  {
+    vtkMultiBlockDataSet* aSection = vtkMultiBlockDataSet::SafeDownCast(this->Internal->CurrentDataset->GetBlock(idx));
+    Duct* d = dc->getDuct(idx);
+    {
+      flat_index++;
+      for(int k = 0; k < d->NumberOfLayers(); k++)
+      {
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
+                                           d->getMaterial(k));
+      }
+    }
+  }
+}
+
 void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
 {
   if(!assy)
@@ -1154,6 +1200,7 @@ void cmbNucMainWindow::updateCoreMaterialColors()
       {
       continue;
       }
+    realflatidx++;
     // for each assembly
     if(this->Internal->CurrentDataset->GetMetaData(block)->Has(vtkCompositeDataSet::NAME()))
       {

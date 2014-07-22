@@ -342,14 +342,15 @@ void cmbNucAssembly::updateMaterialColors(
       }
     }
   }
+  /*if(this->AssyLattice.GetNumberOfCells() != 0)*/ realflatidx++;
   for(unsigned int idx = 0; idx < this->AssyDuct.numberOfDucts(); ++idx)
   {
     realflatidx++;
-    if(vtkMultiBlockDataSet* ductBlock =
-       vtkMultiBlockDataSet::SafeDownCast(this->Data->GetBlock(this->AssyLattice.GetNumberOfCells()+idx)))
+    Duct* duct = this->AssyDuct.getDuct(idx);
+    if(duct)
     {
-      Duct* duct = this->AssyDuct.getDuct(idx);
-      unsigned int numBlocks = ductBlock->GetNumberOfBlocks();
+
+      unsigned int numBlocks = duct->NumberOfLayers();
       for(unsigned int b = 0; b < numBlocks; b++)
       {
         matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
@@ -606,46 +607,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
     }
 
   // setup ducts
-  double z, deltaZ, height;
-  size_t numDucts = this->AssyDuct.numberOfDucts();
-  for(size_t i = 0; i < numDucts; i++)
-    {
-    Duct *duct = this->AssyDuct.getDuct(i);
-
-    vtkCmbDuctSource *ductSource = vtkCmbDuctSource::New();
-    z = duct->z1;
-    height = duct->z2 - duct->z1;
-    double deltaZ = height * 0.0005;
-    // For first duct, move the Origin up in z by 0.05 % of the the Height so
-    // that the bottoms of the pins are not covered by duct's bottom
-    // For last duct, Reduce the height by 0.1 % of the Height so
-    // that the tops of the pins are not covered by duct's top
-    if(i == 0) // first duct
-      {
-      z = duct->z1 + deltaZ;
-      // if more than one duct, first duct height need to be reduced by deltaZ
-      height = numDucts > 1 ? height - deltaZ : height - 2*deltaZ;
-      }
-    else if (i == numDucts - 1) // last duct
-      {
-      height -= 2*deltaZ;
-      }
-
-    ductSource->SetOrigin(duct->x, duct->y, z);
-    ductSource->SetHeight(height);
-    ductSource->SetGeometryType(this->AssyLattice.GetGeometryType());
-
-    for(size_t j = 0; j < duct->NumberOfLayers(); j++)
-      {
-      ductSource->AddLayer(duct->GetLayerThick(j,0) - duct->GetLayerThick(j,0)*0.0005,
-                           duct->GetLayerThick(j,1) - duct->GetLayerThick(j,0)*0.0005);
-      }
-
-    ductSource->Update();
-
-    this->Data->SetBlock(this->AssyLattice.GetNumberOfCells() + i, ductSource->GetOutput());
-    ductSource->Delete();
-    }
+  this->Data->SetBlock(this->AssyLattice.GetNumberOfCells(),
+                       CreateDuctCellMultiBlock(&this->AssyDuct, this->AssyLattice.GetGeometryType() == HEXAGONAL));
 
   for(unsigned int i = 0; i < this->Transforms.size(); ++i)
     {
@@ -799,6 +762,67 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
       }
     }
 
+  return dataSet;
+}
+
+vtkMultiBlockDataSet*
+cmbNucAssembly::CreateDuctCellMultiBlock( DuctCell *ductcell,
+                                          bool isHex,
+                                          bool cutaway )
+{
+  vtkMultiBlockDataSet *dataSet = vtkMultiBlockDataSet::New();
+  dataSet->SetNumberOfBlocks(ductcell->numberOfDucts());
+
+  double z, deltaZ, height;
+  size_t numDucts = ductcell->numberOfDucts();
+  for(size_t i = 0; i < numDucts; i++)
+  {
+    Duct *duct = ductcell->getDuct(i);
+
+    vtkCmbDuctSource *ductSource = vtkCmbDuctSource::New();
+    z = duct->z1;
+    height = duct->z2 - duct->z1;
+    double deltaZ = height * 0.0005;
+    // For first duct, move the Origin up in z by 0.05 % of the the Height so
+    // that the bottoms of the pins are not covered by duct's bottom
+    // For last duct, Reduce the height by 0.1 % of the Height so
+    // that the tops of the pins are not covered by duct's top
+    if(i == 0) // first duct
+    {
+      z = duct->z1 + deltaZ;
+      // if more than one duct, first duct height need to be reduced by deltaZ
+      height = numDucts > 1 ? height - deltaZ : height - 2*deltaZ;
+    }
+    else if (i == numDucts - 1) // last duct
+    {
+      height -= 2*deltaZ;
+    }
+
+    ductSource->SetOrigin(duct->x, duct->y, z);
+    ductSource->SetHeight(height);
+    ductSource->SetGeometryType((isHex)?HEXAGONAL:RECTILINEAR);
+
+    for(size_t j = 0; j < duct->NumberOfLayers(); j++)
+    {
+      ductSource->AddLayer(duct->GetLayerThick(j,0) - duct->GetLayerThick(j,0)*0.0005,
+                           duct->GetLayerThick(j,1) - duct->GetLayerThick(j,0)*0.0005);
+    }
+
+    ductSource->Update();
+
+    if(cutaway)
+    {
+      vtkMultiBlockDataSet *ductData = ductSource->GetOutput();
+      double normal[] = {0, 1, 0};
+      clip(ductData,ductData,normal);
+      dataSet->SetBlock(i, ductData);
+    }
+    else
+    {
+      dataSet->SetBlock(i, ductSource->GetOutput());
+    }
+    ductSource->Delete();
+  }
   return dataSet;
 }
 

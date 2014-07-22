@@ -53,26 +53,29 @@ public:
   void clear();
 
 signals:
-  void display(std::vector<Duct*>);
+  void ductcellModified(AssyPartObj*);
   void valueChange();
 
 public slots:
   void Apply();
   void Reset();
+  void update();
 
 private slots:
   void ductTableCellSelection();
   void splitDuct();
   void deleteUp();
-  void deleteDuct();
+  void deleteDown();
   void addLayerBefore();
   void addLayerAfter();
   void deleteLayer();
+  void onUpdateLayerMaterial();
 
 private:
   void rebuildLayersFromTable();
 
   void setDuctRow(int i, Duct * d);
+  void setDuctMaterialRow(int i, Duct * d);
 
   void fillMaterialTable(Duct * d);
 

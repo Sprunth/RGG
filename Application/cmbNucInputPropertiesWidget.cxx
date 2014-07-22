@@ -386,6 +386,8 @@ void cmbNucInputPropertiesWidget::colorChanged()
       this->Internal->PinCellEditor->UpdateData();
       break;
     case CMBNUC_ASSY_DUCTCELL:
+      this->Internal->DuctCellEditor->update();
+      break;
     case CMBNUC_ASSY_LATTICE:
     case CMBNUC_ASSY_BASEOBJ:
       this->setEnabled(0);
@@ -703,6 +705,9 @@ void cmbNucInputPropertiesWidget::showDuctCellEditor()
     this->Internal->DuctCellEditor = new cmbNucDuctCellEditor(this);
     this->Internal->ductEditorContainer->addWidget(this->Internal->DuctCellEditor);
     //Setup connections
+    QObject::connect(this->Internal->DuctCellEditor,
+                     SIGNAL(ductcellModified(AssyPartObj*)),
+                     this, SIGNAL(objGeometryChanged(AssyPartObj*)));
   }
   this->Internal->DuctCellEditor->SetDuctCell(ductcell, this->getAssembly()->IsHexType());
   this->Internal->DuctCellEditor->SetAssembly(this->getAssembly());

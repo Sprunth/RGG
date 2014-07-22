@@ -33,6 +33,9 @@ public:
 
   void setMaterial( int i, QPointer<cmbNucMaterial> mat );
 
+  void insertLayer( int a );
+  void removeLayer( int a );
+
   bool operator==(const Duct& obj);
 
   QSet< cmbNucMaterial* > getMaterials();
@@ -73,6 +76,7 @@ public:
   virtual std::string getTitle(){ return "Duct"; }
   bool operator==(const DuctCell& obj);
   void sort();
+  vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;
