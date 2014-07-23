@@ -273,6 +273,7 @@ public:
   }
 
   std::string getLabel(){return label;}
+  void setLabel(std::string & n);
   std::string getFileName(){return FileName;}
   virtual std::string getTitle(){ return "Assembly: " + label; }
 

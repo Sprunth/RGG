@@ -1010,6 +1010,15 @@ bool cmbNucAssembly::addTransform(cmbNucAssembly::Transform * in)
   return false;
 }
 
+void cmbNucAssembly::setLabel(std::string & n)
+{
+  if(this->label != n)
+  {
+    this->setAndTestDiffFromFiles(true);
+    this->label = n;
+  }
+}
+
 bool cmbNucAssembly::updateTransform(int at, Transform * in)
 {
   if(in != NULL && in->isValid() && at <= this->Transforms.size())

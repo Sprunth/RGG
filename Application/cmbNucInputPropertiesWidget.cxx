@@ -580,6 +580,28 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
+  std::string new_label = this->Internal->AssyLabel->text().toStdString();
+  std::string old_label = assy->getLabel();
+  std::replace(new_label.begin(), new_label.end(), ' ', '_');
+  if( old_label != new_label)
+  {
+    if(this->Core->label_unique(new_label))
+    {
+      //change label
+      if(this->Core->CoreLattice.replaceLabel(old_label,new_label))
+      {
+        this->Core->setAndTestDiffFromFiles(true);
+      }
+      assy->setLabel(new_label);
+      this->Internal->AssyLabel->setText(new_label.c_str());
+      emit currentObjectNameChanged( assy->getTitle().c_str() );
+      emit sendLabelChange( QString(new_label.c_str()) );
+    }
+    else
+    {
+      this->Internal->AssyLabel->setText(old_label.c_str());
+    }
+  }
   this->assyConf->applyToAssembly(assy);
   this->assyDefaults->apply();
   double px, py;
@@ -628,6 +650,7 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 {
   this->assyConf->resetAssembly(assy);
   this->Internal->CenterPins->setChecked(assy->isPinsAutoCentered());
+  this->Internal->AssyLabel->setText(assy->getLabel().c_str());
 
   // Show color swatch with legendColor
   QLabel* swatch = this->Internal->assyColorSwatch;

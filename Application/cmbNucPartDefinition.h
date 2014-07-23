@@ -280,8 +280,9 @@ enum enumGeometryControls
       return r;
       }
 
-    void replaceLabel(const std::string &oldL, const std::string &newL)
+    bool replaceLabel(const std::string &oldL, const std::string &newL)
       {
+      bool changed = false;
       for(size_t i = 0; i < this->Grid.size(); i++)
         {
         for(size_t j = 0; j < this->Grid[i].size(); j++)
@@ -289,9 +290,11 @@ enum enumGeometryControls
           if(this->GetCell(i, j).label == oldL)
             {
             this->SetCell(i, j, newL, Qt::white);
+            changed = true;
             }
           }
         }
+      return changed;
       }
 
     enumNucPartsType GetType() const

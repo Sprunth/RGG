@@ -277,7 +277,7 @@
            <property name="margin">
             <number>10</number>
            </property>
-           <item row="3" column="0">
+           <item row="4" column="0">
             <widget class="QWidget" name="latticecontainerLayout_2" native="true">
              <layout class="QVBoxLayout" name="latticecontainerLayout">
               <property name="margin">
@@ -294,7 +294,7 @@
                    <x>0</x>
                    <y>0</y>
                    <width>381</width>
-                   <height>290</height>
+                   <height>257</height>
                   </rect>
                  </property>
                 </widget>
@@ -303,7 +303,7 @@
              </layout>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="5" column="0">
             <widget class="QWidget" name="hexLatticeAssyContainer_2" native="true">
              <layout class="QVBoxLayout" name="hexLatticeAssyContainer">
               <property name="margin">
@@ -313,6 +313,45 @@
             </widget>
            </item>
            <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QLabel" name="assyColorSwatch">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>30</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>35</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="autoFillBackground">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="assyColorSelectButton">
+               <property name="text">
+                <string>Change Key Color...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QLabel" name="AssemblyLabelX">
@@ -364,41 +403,16 @@
             </layout>
            </item>
            <item row="0" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
-              <widget class="QLabel" name="assyColorSwatch">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>30</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>35</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="autoFillBackground">
-                <bool>true</bool>
-               </property>
+              <widget class="QLabel" name="label_5">
                <property name="text">
-                <string/>
+                <string>Label:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="assyColorSelectButton">
-               <property name="text">
-                <string>Change Key Color...</string>
-               </property>
-              </widget>
+              <widget class="QLineEdit" name="AssyLabel"/>
              </item>
             </layout>
            </item>
@@ -679,16 +693,17 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
-  <tabstop>coreLatticeX</tabstop>
-  <tabstop>coreLatticeY</tabstop>
-  <tabstop>coreLatticeContainer</tabstop>
-  <tabstop>HexCore</tabstop>
-  <tabstop>hexLattice</tabstop>
+  <tabstop>AssyLabel</tabstop>
   <tabstop>assyColorSelectButton</tabstop>
   <tabstop>latticeX</tabstop>
   <tabstop>latticeY</tabstop>
+  <tabstop>CenterPins</tabstop>
   <tabstop>assemblyLatticeContainer</tabstop>
+  <tabstop>ApplyButton</tabstop>
+  <tabstop>ResetButton</tabstop>
+  <tabstop>coreLatticeX</tabstop>
+  <tabstop>coreLatticeY</tabstop>
+  <tabstop>coreLatticeContainer</tabstop>
   <tabstop>DuctXPos</tabstop>
   <tabstop>DuctYPos</tabstop>
   <tabstop>DuctZPos1</tabstop>
@@ -699,10 +714,12 @@
   <tabstop>AddDuctMaterialBefore</tabstop>
   <tabstop>AddDuctMaterialAfter</tabstop>
   <tabstop>DeleteDuctMaterial</tabstop>
-  <tabstop>colorSelectButton</tabstop>
   <tabstop>MaterialLabel</tabstop>
-  <tabstop>ApplyButton</tabstop>
-  <tabstop>ResetButton</tabstop>
+  <tabstop>colorSelectButton</tabstop>
+  <tabstop>hexLattice</tabstop>
+  <tabstop>tabWidget_3</tabstop>
+  <tabstop>HexCore</tabstop>
+  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>
