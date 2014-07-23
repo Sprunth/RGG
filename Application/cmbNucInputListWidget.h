@@ -86,7 +86,6 @@ protected:
   void setActionsEnabled(bool val);
   void updateWithAssembly(cmbNucAssembly* assy, bool select=true);
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
-  cmbNucPartsTreeItem* getDuctCellNode(cmbNucPartsTreeItem* assyNode);
   void initCoreRootNode();
   void createMaterialItem( const QString& name, const QString& label,
                            const QColor& color );
@@ -104,7 +103,6 @@ private slots:
 
   // Description:
   // Tree widget context menu related slots
-  void onNewDuct();
   void onNewPin();
   void onRemoveSelectedPart();
   void onImportMaterial();

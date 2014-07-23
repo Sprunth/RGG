@@ -251,6 +251,15 @@ void
 cmbNucDuctCellEditor
 ::Apply()
 {
+  if(this->ExternalDuctCell != NULL)
+  {
+    if(!(*this->ExternalDuctCell == *this->InternalDuctCell))
+    {
+      this->ExternalDuctCell->fill(this->InternalDuctCell);
+      AssemblyObject->geometryChanged();
+      emit valueChange();
+    }
+  }
 }
 
 void

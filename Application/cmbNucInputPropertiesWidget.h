@@ -67,14 +67,12 @@ protected slots:
   void onReset();
   // reset property panel with given object
   void resetPinCell(PinCell* pincell);
-  void resetDuct(Duct* duct);
   void resetLattice(Lattice* lattice);
   void resetAssemblyLattice();
   void resetAssembly(cmbNucAssembly* assy);
 
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
-  void applyToDuct(Duct* duct);
   void applyToLattice(Lattice* lattice);
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToCore(cmbNucCore* nucCore);
@@ -91,14 +89,7 @@ protected slots:
   void choosePinLegendColor();
   void chooseAssyLegendColor();
 
-  void addDuctLayerBefore();
-  void addDuctLayerAfter();
-  void deleteDuctLayer();
-
 private:
-  void setUpDuctTable(bool isHex, Duct* duct);
-  bool setDuctValuesFromTable(Duct* duct);
-  void addDuctLayerSetRowValue(int row);
   bool RebuildCoreGrid;
   cmbNucInputPropertiesWidgetInternal* Internal;
 
