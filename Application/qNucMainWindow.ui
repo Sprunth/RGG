@@ -335,17 +335,17 @@
   </action>
   <action name="action1_6_Symetric_Flat">
    <property name="text">
-    <string>1/6 Symetric Flat</string>
+    <string>1/6 Symmetric Flat</string>
    </property>
   </action>
   <action name="action1_6_Symetric_Vertex">
    <property name="text">
-    <string>1/6 Symetric Vertex</string>
+    <string>1/6 Symmetric Vertex</string>
    </property>
   </action>
   <action name="action1_12_Symetric">
    <property name="text">
-    <string>1/12 Symetric</string>
+    <string>1/12 Symmetric</string>
    </property>
   </action>
   <action name="actionFullHexagonal">
