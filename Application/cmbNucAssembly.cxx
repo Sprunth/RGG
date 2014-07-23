@@ -804,6 +804,10 @@ cmbNucAssembly::CreateDuctCellMultiBlock( DuctCell *ductcell,
     {
       height -= 2*deltaZ;
     }
+    else
+    {
+      z = duct->z1 + deltaZ;
+    }
 
     ductSource->SetOrigin(duct->x, duct->y, z);
     ductSource->SetHeight(height);
