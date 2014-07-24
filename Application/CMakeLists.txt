@@ -33,6 +33,7 @@ SET(RGGNuclear_Srcs
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
   vtkCmbDuctSource.cxx
+  cmbNucLatticeWidget.cxx
   vtkCmbLayeredConeSource.cxx
   cmbNucPartsTreeItem.cxx
   cmbNucMaterialTreeItem.cxx
@@ -72,6 +73,7 @@ SET(RGGNuclear_Headers
   cmbNucDefaults.h
   cmbNucDefaultWidget.h
   cmbNucMainWindow.h
+  cmbNucLatticeWidget.h
   cmbNucInputListWidget.h
   cmbNucInputPropertiesWidget.h
   cmbNucMaterial.h

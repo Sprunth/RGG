@@ -51,6 +51,12 @@ signals:
   void badPinName(QString prev);
   void valuesChanged();
   void resetView();
+  void sendAssembly(cmbNucAssembly*);
+  void sendCore(cmbNucCore*);
+  void apply();
+  void reset();
+  void sendXSize(int i);
+  void sendYSize(int i);
 
 public slots:
   void colorChanged();
@@ -84,8 +90,6 @@ protected slots:
   void showPinCellEditor();
   void showDuctCellEditor();
 
-  void onCoreLayersChanged();
-  void onAssyLayersChanged();
   void choosePinLegendColor();
   void chooseAssyLegendColor();
 
@@ -100,8 +104,6 @@ private:
   cmbNucAssembly *Assembly;
   cmbNucCore *Core;
   cmbNucMainWindow *MainWindow;
-  cmbNucHexLattice* HexCore;
-  cmbNucHexLattice* HexAssy;
   cmbCoreParametersWidget* HexCoreProperties;
   cmbCoreParametersWidget* RectCoreProperties;
   cmbAssyParametersWidget* assyConf;

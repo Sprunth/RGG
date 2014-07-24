@@ -31,6 +31,7 @@ class cmbNucMaterialColors;
 class cmbNucExportDialog;
 class cmbNucPreferencesDialog;
 class NucMainInternal;
+class cmbNucLatticeWidget;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -136,6 +137,7 @@ private:
 
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
+  QPointer<cmbNucLatticeWidget> LatticeDraw;
 
   cmbNucMaterialColors* MaterialColors;
   double ZScale;

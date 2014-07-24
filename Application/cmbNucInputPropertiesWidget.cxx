@@ -82,12 +82,6 @@ void cmbNucInputPropertiesWidget::initUI()
   //this->CoreProperties->hide();
   //todo::add thins
 
-  this->HexCore = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
-  this->Internal->hexLatticeContainer->addWidget(this->HexCore);
-
-  this->HexAssy = new cmbNucHexLattice(HexLatticeItem::Hexagon, this);
-  this->Internal->hexLatticeAssyContainer_2->layout()->addWidget(this->HexAssy);
-
   this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
   this->Internal->assyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
 
@@ -95,6 +89,11 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onApply()));
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
     this, SLOT(onReset()));
+
+  QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
+                   this, SIGNAL(apply()));
+  QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
+                   this, SIGNAL(reset()));
 
   QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
     this, SLOT(onLatticeDimensionChanged()));
@@ -104,10 +103,17 @@ void cmbNucInputPropertiesWidget::initUI()
     this, SLOT(onCoreDimensionChanged()));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
     this, SLOT(onCoreDimensionChanged()));
-  QObject::connect(this->Internal->hexLattice, SIGNAL(valueChanged(int)),
-    this, SLOT(onCoreLayersChanged()));
+
   QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
-    this, SLOT(onAssyLayersChanged()));
+                   this, SIGNAL(sendXSize(int)));
+  QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
+                   this, SIGNAL(sendXSize(int)));
+  QObject::connect(this->Internal->coreLatticeX, SIGNAL(valueChanged(int)),
+                   this, SIGNAL(sendXSize(int)));
+  QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
+                   this, SIGNAL(sendYSize(int)));
+  QObject::connect(this->Internal->hexLattice, SIGNAL(valueChanged(int)),
+                   this, SIGNAL(sendXSize(int)));
 
   // pincell related connections
   QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
@@ -164,7 +170,6 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
   this->Assembly = assyObj;
   this->AssemblyEditor->setAssembly(assyObj);
   this->CoreEditor->setAssembly(assyObj);
-  this->HexAssy->setAssembly(assyObj);
   assyConf->setAssembly(assyObj);
 }
 
@@ -192,7 +197,7 @@ void cmbNucInputPropertiesWidget::onApply()
     case CMBNUC_ASSEMBLY:
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
       this->applyToAssembly(assy);
-      this->applyToLattice(&assy->AssyLattice);
+      //this->applyToLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
@@ -233,7 +238,6 @@ void cmbNucInputPropertiesWidget::onReset()
         {
           this->hexCoreDefaults->set(nucCore->GetDefaults(), true, true);
           this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageHexCore);
-          this->HexCore->setCore(nucCore);
         }
       else
         {
@@ -247,7 +251,6 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->AssemblyLabelY->setVisible(!assy->IsHexType());
       this->Internal->latticeY->setVisible(!assy->IsHexType());
       this->Internal->latticecontainerLayout_2->setVisible(!assy->IsHexType()); //rect
-      this->Internal->hexLatticeAssyContainer_2->setVisible(assy->IsHexType());
       this->assyDefaults->set(assy->Defaults, false, assy->IsHexType());
       if(assy->IsHexType())
         {
@@ -298,8 +301,6 @@ void cmbNucInputPropertiesWidget::clear()
   this->setObject(NULL,NULL);
   this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
   this->setAssembly(NULL);
-  this->HexCore->clear();
-  this->HexAssy->clear();
   this->AssemblyEditor->clearUI(true);
   this->CoreEditor->clearUI(true);
 }
@@ -453,10 +454,6 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       }
     if(this->Assembly->IsHexType())
       {
-      this->HexAssy->setActions(actionList);
-      this->HexAssy->resetWithGrid(this->Assembly->AssyLattice.Grid,
-                                   0);
-
       }
     else
       {
@@ -464,6 +461,7 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       this->AssemblyEditor->resetUI(this->Assembly->AssyLattice.Grid,
                                     actionList);
       }
+    emit(sendAssembly(this->Assembly));
     }
 }
 
@@ -504,7 +502,6 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
     }
   else if(lattice->GetGeometryType() == HEXAGONAL)
     {
-    change = this->HexAssy->applyToGrid(lattice->Grid);
     }
   if(change)
   {
@@ -564,7 +561,6 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
       }
     this->HexCoreProperties->applyToCore(nucCore);
     this->hexCoreDefaults->apply();
-    changed = this->HexCore->applyToGrid(nucCore->CoreLattice.Grid);
     }
   else
     {
@@ -633,14 +629,12 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       this->Internal->hexLattice->blockSignals(true);
       this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
       this->Internal->hexLattice->blockSignals(false);
-      this->HexCore->setActions(actionList);
-      this->HexCore->resetWithGrid(nucCore->CoreLattice.Grid,
-                                   nucCore->CoreLattice.subType);
       }
     else
       {
       this->CoreEditor->resetUI(nucCore->CoreLattice.Grid, actionList);
       }
+    emit(sendCore(nucCore));
     }
 }
 

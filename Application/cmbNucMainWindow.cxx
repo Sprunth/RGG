@@ -49,6 +49,7 @@
 #include "inpFileIO.h"
 
 #include "vtkCmbLayeredConeSource.h"
+#include "cmbNucLatticeWidget.h"
 
 #ifdef BUILD_WITH_MOAB
 #include "vtk_moab_reader/vtkMoabReader.h"
@@ -155,9 +156,18 @@ cmbNucMainWindow::cmbNucMainWindow()
 //  vtkAlgorithm::SetDefaultExecutivePrototype(compositeExec.GetPointer());
 
   this->ui = new Ui_qNucMainWindow;
+  this->setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+  this->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+  this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+  this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
   this->ui->setupUi(this);
   this->NuclearCore = new cmbNucCore(false);
   setTitle();
+
+  this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
+
+  LatticeDraw = new cmbNucLatticeWidget(this);
+  this->ui->Dock2D->setWidget(LatticeDraw);
 
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
@@ -380,6 +390,22 @@ void cmbNucMainWindow::initPanels()
                      this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
     QObject::connect(this->PropertyWidget, SIGNAL(currentObjectNameChanged(const QString&)),
                      this, SLOT(updatePropertyDockTitle(const QString&)));
+    QObject::connect(this->PropertyWidget, SIGNAL(sendAssembly(cmbNucAssembly*)),
+                     this->LatticeDraw,    SLOT(setAssembly(cmbNucAssembly*)));
+    QObject::connect(this->PropertyWidget, SIGNAL(sendCore(cmbNucCore*)),
+                     this->LatticeDraw,    SLOT(setCore(cmbNucCore*)));
+    QObject::connect(this->PropertyWidget, SIGNAL(apply()),
+                     this->LatticeDraw,    SLOT(apply()));
+    QObject::connect(this->PropertyWidget, SIGNAL(reset()),
+                     this->LatticeDraw,    SLOT(reset()));
+    QObject::connect(this->PropertyWidget, SIGNAL(sendXSize(int)),
+                     this->LatticeDraw,    SLOT(setLatticeXorLayers(int)));
+    QObject::connect(this->PropertyWidget, SIGNAL(sendYSize(int)),
+                     this->LatticeDraw,    SLOT(setLatticeY(int)));
+    QObject::connect(this->LatticeDraw, SIGNAL(valuesChanged()),
+                     this->InputsWidget, SLOT(valueChanged()));
+    QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
+                     this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
   }
   this->PropertyWidget->setEnabled(0);
 }
