@@ -7,7 +7,7 @@
 #include <QVBoxLayout>
 
 cmbNucLatticeWidget::cmbNucLatticeWidget(QWidget * parent)
-:QWidget(parent), assy(NULL), core(NULL)
+:QWidget(parent), lattice(NULL)
 {
   QVBoxLayout * box = new  QVBoxLayout();
   draw_control = new cmbNucHexLattice(HexLatticeItem::Hexagon, NULL);
@@ -20,47 +20,22 @@ cmbNucLatticeWidget::~cmbNucLatticeWidget()
   delete draw_control;
 }
 
-void cmbNucLatticeWidget::setAssembly(cmbNucAssembly * l)
+void cmbNucLatticeWidget::setLattice(LatticeContainer * l)
 {
-  assy = l;
+  lattice = l;
   QStringList actionList;
   actionList.append("xx");
-  for(size_t i = 0; i < this->assy->GetNumberOfPinCells(); i++)
-  {
-    PinCell *pincell = this->assy->GetPinCell(i);
-    actionList.append(pincell->label.c_str());
-  }
-  core = NULL;
+  lattice->fillList(actionList);
   draw_control->setActions(actionList);
-  draw_control->setAssembly(assy);
-  draw_control->resetWithGrid(this->assy->AssyLattice.Grid,
-                              this->assy->AssyLattice.subType);
-
-}
-
-void cmbNucLatticeWidget::setCore(cmbNucCore * l)
-{
-  core = l;
-  QStringList actionList;
-  actionList.append("xx");
-
-  // build the action list
-  for(int i = 0; i < this->core->GetNumberOfAssemblies(); i++)
-  {
-    cmbNucAssembly *t = this->core->GetAssembly(i);
-    actionList.append(t->label.c_str());
-  }
-  assy = NULL;
-  draw_control->setActions(actionList);
-  draw_control->setCore(core);
-  draw_control->resetWithGrid(this->core->CoreLattice.Grid,
-                              this->core->CoreLattice.subType);
+  draw_control->setLatticeContainer(lattice);
+  draw_control->resetWithGrid(this->lattice->getLattice().Grid,
+                              this->lattice->getLattice().subType);
 }
 
 void
 cmbNucLatticeWidget::setLatticeXorLayers(int v)
 {
-  if(assy != NULL || core != NULL)
+  if(lattice != NULL )
   {
     draw_control->setLayers(v);
   }
@@ -70,10 +45,7 @@ void
 cmbNucLatticeWidget::setLatticeY(int v)
 {
   //TODO
-  if(assy != NULL)
-  {
-  }
-  if(core != NULL)
+  if(lattice != NULL)
   {
   }
 }
@@ -82,32 +54,25 @@ void
 cmbNucLatticeWidget::apply()
 {
   bool change = false;
-  AssyPartObj* obj;
-  if(assy != NULL)
+  if(lattice != NULL)
   {
-    obj = assy;
-    change = this->draw_control->applyToGrid(assy->AssyLattice.Grid);
-  }
-  if(core != NULL)
-  {
-    obj = core;
-    change = this->draw_control->applyToGrid(core->CoreLattice.Grid);
+    change = this->draw_control->applyToGrid(lattice->getLattice().Grid);
   }
   if(change)
   {
     emit(valuesChanged());
-    emit(objGeometryChanged(obj));
+    emit(objGeometryChanged(lattice));
   }
 }
 
 void
 cmbNucLatticeWidget::reset()
 {
-  if(assy == NULL && core == NULL) return;
+  if(lattice == NULL) return;
 }
 
 void
 cmbNucLatticeWidget::redraw()
 {
-  if(assy == NULL && core == NULL) return;
+  if(lattice == NULL) return;
 }

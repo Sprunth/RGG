@@ -7,6 +7,7 @@ class cmbNucHexLattice;
 class cmbNucAssembly;
 class cmbNucCore;
 class AssyPartObj;
+class LatticeContainer;
 
 class cmbNucLatticeWidget : public QWidget
 {
@@ -17,8 +18,7 @@ public:
   virtual ~cmbNucLatticeWidget();
 
 public slots:
-  void setAssembly(cmbNucAssembly * l);
-  void setCore(cmbNucCore * l);
+  void setLattice(LatticeContainer * l);
   void setLatticeXorLayers(int v);
   void setLatticeY(int v);
   void apply();
@@ -28,8 +28,9 @@ signals:
   void valuesChanged();
   void objGeometryChanged(AssyPartObj* selObj);
 protected:
-  cmbNucAssembly * assy;
-  cmbNucCore     * core;
+  LatticeContainer * lattice;
+  //cmbNucAssembly * assy;
+  //cmbNucCore     * core;
   cmbNucHexLattice * draw_control;
 };
 #endif

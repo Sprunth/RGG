@@ -358,7 +358,7 @@ void cmbNucInputListWidget::onNewAssembly()
   if(this->NuclearCore->IsHexType())
     {
     assembly->setGeometryLabel("Hexagonal");
-    assembly->AssyLattice.SetDimensions(1, 0, true);
+    assembly->getLattice().SetDimensions(1, 0, true);
     }
   else
     {

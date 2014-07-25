@@ -390,10 +390,8 @@ void cmbNucMainWindow::initPanels()
                      this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
     QObject::connect(this->PropertyWidget, SIGNAL(currentObjectNameChanged(const QString&)),
                      this, SLOT(updatePropertyDockTitle(const QString&)));
-    QObject::connect(this->PropertyWidget, SIGNAL(sendAssembly(cmbNucAssembly*)),
-                     this->LatticeDraw,    SLOT(setAssembly(cmbNucAssembly*)));
-    QObject::connect(this->PropertyWidget, SIGNAL(sendCore(cmbNucCore*)),
-                     this->LatticeDraw,    SLOT(setCore(cmbNucCore*)));
+    QObject::connect(this->PropertyWidget, SIGNAL(sendLattice(LatticeContainer *)),
+                     this->LatticeDraw,    SLOT(setLattice(LatticeContainer *)));
     QObject::connect(this->PropertyWidget, SIGNAL(apply()),
                      this->LatticeDraw,    SLOT(apply()));
     QObject::connect(this->PropertyWidget, SIGNAL(reset()),
@@ -705,7 +703,7 @@ void cmbNucMainWindow::onFileOpen()
   else if(numNewAssy)
   {
     enumGeometryType geoType =
-        this->NuclearCore->GetAssembly(int(0))->AssyLattice.GetGeometryType();
+        this->NuclearCore->GetAssembly(int(0))->getLattice().GetGeometryType();
     this->PropertyWidget->resetCore(this->NuclearCore);
     switch(geoType)
     {

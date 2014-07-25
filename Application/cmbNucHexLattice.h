@@ -8,8 +8,7 @@
 #include "HexLatticeItem.h"
 
 class QMouseEvent;
-class cmbNucAssembly;
-class cmbNucCore;
+class LatticeContainer;
 
 class cmbNucHexLattice : public QGraphicsView {
   Q_OBJECT
@@ -30,8 +29,7 @@ public:
   void showContextMenu(HexLatticeItem* hexitem, QMouseEvent* event);
   void setActions(const QStringList& actions);
   void setItemShape(HexLatticeItem::ShapeStyle shapetype);
-  void setAssembly(cmbNucAssembly* assy);
-  void setCore(cmbNucCore* core);
+  void setLatticeContainer(LatticeContainer* l);
 
 public slots:
   void clear();
@@ -48,10 +46,9 @@ private slots:
   void addCell(double centerPos[2], double radius, int layer, int cellIdx);
 
 private:
-  cmbNucAssembly* CurrentAssembly;
-  cmbNucCore* CurrentCore;
+  LatticeContainer* CurrentLattice;
   QGraphicsScene Canvas;
-  HexMap HexGrid;
+  Lattice Grid;
 
   QStringList ActionList;
   HexLatticeItem::ShapeStyle ItemShape;

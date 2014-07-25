@@ -47,7 +47,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="pageCore">
       <layout class="QGridLayout" name="gridLayout_13">
@@ -292,39 +292,33 @@
            <property name="margin">
             <number>10</number>
            </property>
-           <item row="0" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>Label:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="AssyLabel"/>
-             </item>
-            </layout>
-           </item>
-           <item row="4" column="0">
+           <item row="3" column="0">
             <widget class="QWidget" name="latticecontainerLayout_2" native="true">
              <layout class="QVBoxLayout" name="latticecontainerLayout">
               <property name="margin">
                <number>0</number>
               </property>
+              <item>
+               <widget class="QScrollArea" name="assemblyLatticeContainer">
+                <property name="widgetResizable">
+                 <bool>true</bool>
+                </property>
+                <widget class="QWidget" name="scrollAreaWidgetContents_2">
+                 <property name="geometry">
+                  <rect>
+                   <x>0</x>
+                   <y>0</y>
+                   <width>381</width>
+                   <height>144</height>
+                  </rect>
+                 </property>
+                </widget>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
-           <item row="5" column="0">
-            <widget class="QWidget" name="hexLatticeAssyContainer_2" native="true">
-             <layout class="QVBoxLayout" name="hexLatticeAssyContainer">
-              <property name="margin">
-               <number>0</number>
-              </property>
-             </layout>
-            </widget>
-           </item>
-           <item row="1" column="0">
+           <item row="0" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
               <widget class="QLabel" name="assyColorSwatch">
@@ -363,7 +357,7 @@
              </item>
             </layout>
            </item>
-           <item row="2" column="0">
+           <item row="1" column="0">
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QLabel" name="AssemblyLabelX">
@@ -572,7 +566,6 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>AssyLabel</tabstop>
   <tabstop>assyColorSelectButton</tabstop>
   <tabstop>latticeX</tabstop>
   <tabstop>latticeY</tabstop>

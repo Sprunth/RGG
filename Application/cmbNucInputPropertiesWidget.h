@@ -51,8 +51,7 @@ signals:
   void badPinName(QString prev);
   void valuesChanged();
   void resetView();
-  void sendAssembly(cmbNucAssembly*);
-  void sendCore(cmbNucCore*);
+  void sendLattice(LatticeContainer *);
   void apply();
   void reset();
   void sendXSize(int i);

@@ -17,8 +17,7 @@
 
 cmbNucHexLattice::cmbNucHexLattice(HexLatticeItem::ShapeStyle shape,
     QWidget* parent, Qt::WindowFlags f)
-      : QGraphicsView(parent), ItemShape(shape), CurrentAssembly(NULL),
-        CurrentCore(NULL)
+      : QGraphicsView(parent), ItemShape(shape), CurrentLattice(NULL)
 {
   setScene(&this->Canvas);
   setInteractive(true);
@@ -27,7 +26,7 @@ cmbNucHexLattice::cmbNucHexLattice(HexLatticeItem::ShapeStyle shape,
   setAcceptDrops(true);
   setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-  this->HexGrid.SetNumberOfLayers(1);
+  this->Grid.SetDimensions(0,0);
   init();
 }
 
@@ -37,27 +36,27 @@ cmbNucHexLattice::~cmbNucHexLattice()
 
 void cmbNucHexLattice::clear()
 {
-  this->CurrentAssembly = NULL;
-  this->CurrentCore = NULL;
+  this->CurrentLattice = NULL;
   this->init();
 }
 
 void cmbNucHexLattice::init()
 {
   this->ActionList << "xx";
+  this->Grid.SetDimensions(0,0);
   this->rebuild();
 }
 
 void cmbNucHexLattice::resetWithGrid(std::vector<std::vector<LatticeCell> >& inGrid, int type)
 {
-  this->HexGrid.subType = type;
-  this->copyGrid(inGrid, this->HexGrid.Grid);
+  this->Grid.subType = type;
+  this->copyGrid(inGrid, this->Grid.Grid);
   this->rebuild();
 }
 
 bool cmbNucHexLattice::applyToGrid(std::vector<std::vector<LatticeCell> >& outGrid)
 {
-  return this->copyGrid(this->HexGrid.Grid, outGrid);
+  return this->copyGrid(this->Grid.Grid, outGrid);
 }
 
 bool cmbNucHexLattice::copyGrid(std::vector<std::vector<LatticeCell> >& inGrid,
@@ -85,16 +84,16 @@ void cmbNucHexLattice::setActions(const QStringList& actions)
 
 int cmbNucHexLattice::layers()
 {
-  return HexGrid.numberOfLayers();
+  return Grid.GetDimensions().first;
 }
 
 void cmbNucHexLattice::setLayers(int val)
 {
-  if(HexGrid.numberOfLayers() == val)
+  if(this->layers() == val)
     {
     return;
     }
-  HexGrid.SetNumberOfLayers(val);
+  Grid.SetDimensions(val, Grid.GetDimensions().second);
   this->rebuild();
 }
 
@@ -103,16 +102,9 @@ void cmbNucHexLattice::setItemShape(HexLatticeItem::ShapeStyle shapetype)
   this->ItemShape = shapetype;
 }
 
-void cmbNucHexLattice::setAssembly(cmbNucAssembly* assy)
+void cmbNucHexLattice::setLatticeContainer(LatticeContainer* l)
 {
-  this->CurrentAssembly = assy;
-  this->CurrentCore = NULL;
-}
-
-void cmbNucHexLattice::setCore(cmbNucCore* core)
-{
-  this->CurrentAssembly = NULL;
-  this->CurrentCore = core;
+  this->CurrentLattice = l;
 }
 
 void cmbNucHexLattice::addCell(
@@ -132,20 +124,15 @@ void cmbNucHexLattice::addCell(
   cell->setPos(centerPos[0] + this->rect().center().x(),
                centerPos[1] + this->rect().center().y());
 
-  LatticeCell lc = HexGrid.GetCell(layer, cellIdx);
+  LatticeCell lc = Grid.GetCell(layer, cellIdx);
   QColor color(Qt::white);
-  if(this->CurrentAssembly)
+  if(this->CurrentLattice)
     {
-    PinCell* pc = this->CurrentAssembly->GetPinCell(lc.label);
-    color = pc ? pc->GetLegendColor() : Qt::white;
-    }
-  else if(this->CurrentCore)
-    {
-    cmbNucAssembly* assy = this->CurrentCore->GetAssembly(lc.label);
-    color = assy ? assy->GetLegendColor() : Qt::white;
+    AssyPartObj * obj = this->CurrentLattice->getFromLabel(lc.label);
+    color = obj ? obj->GetLegendColor() : Qt::white;
     }
   // update color in hex map
-  this->HexGrid.SetCell(layer, cellIdx, lc.label, lc.color, lc.valid);
+  this->Grid.SetCell(layer, cellIdx, lc.label, lc.color, lc.valid);
   cell->setText(lc.label.c_str());
   cell->setColor(color);
   cell->set_available(lc.valid);
@@ -156,7 +143,7 @@ void cmbNucHexLattice::addCell(
 void cmbNucHexLattice::rebuild()
 {
   scene()->clear();
-  int numLayers = HexGrid.numberOfLayers();
+  int numLayers = this->layers();
   if(numLayers <= 0)
     {
     return;
@@ -243,21 +230,14 @@ void cmbNucHexLattice::showContextMenu(
     {
     hexitem->setText(assignAct->text());
     QColor color(Qt::white);
-    if(this->CurrentAssembly)
+    if(this->CurrentLattice)
       {
-      PinCell* pc = this->CurrentAssembly->GetPinCell(hexitem->text().toStdString());
-      color = pc ? pc->GetLegendColor() : Qt::white;
+      AssyPartObj * obj = this->CurrentLattice->getFromLabel(hexitem->text().toStdString());
+      color = obj ? obj->GetLegendColor() : Qt::white;
 
       hexitem->setColor(color);
       }
-    else if(this->CurrentCore)
-      {
-      cmbNucAssembly* assy = this->CurrentCore->GetAssembly(hexitem->text().toStdString());
-      color = assy ? assy->GetLegendColor() : Qt::white;
-
-      hexitem->setColor(color);
-      }
-    this->HexGrid.SetCell(hexitem->layer(), hexitem->cellIndex(),
+    this->Grid.SetCell(hexitem->layer(), hexitem->cellIndex(),
       assignAct->text().toStdString(), color, true);
     }
 }
@@ -272,21 +252,14 @@ void cmbNucHexLattice::dropEvent(QDropEvent* event)
 
   dest->setText(event->mimeData()->text());
   QColor color(Qt::white);
-  if(this->CurrentAssembly)
+  if(this->CurrentLattice)
     {
-    PinCell* pc = this->CurrentAssembly->GetPinCell(dest->text().toStdString());
-    color = pc ? pc->GetLegendColor() : Qt::white;
+    AssyPartObj * obj = this->CurrentLattice->getFromLabel(dest->text().toStdString());
+    color = obj ? obj->GetLegendColor() : Qt::white;
 
     dest->setColor(color);
     }
-  else if(this->CurrentCore)
-    {
-    cmbNucAssembly* assy = this->CurrentCore->GetAssembly(dest->text().toStdString());
-    color = assy ? assy->GetLegendColor() : Qt::white;
-
-    dest->setColor(color);
-    }
-  this->HexGrid.SetCell(dest->layer(), dest->cellIndex(),
+  this->Grid.SetCell(dest->layer(), dest->cellIndex(),
     dest->text().toStdString(), color, true);
   event->acceptProposedAction();
  }

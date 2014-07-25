@@ -197,7 +197,6 @@ void cmbNucInputPropertiesWidget::onApply()
     case CMBNUC_ASSEMBLY:
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
       this->applyToAssembly(assy);
-      //this->applyToLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
@@ -261,8 +260,8 @@ void cmbNucInputPropertiesWidget::onReset()
         this->Internal->AssemblyLabelX->setText("X:");
         }
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
+      this->setAssembly(assy);
       this->resetAssembly(assy);
-      this->resetLattice(&assy->AssyLattice);
       break;
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
@@ -336,7 +335,7 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
   AssyPartObj* selObj = this->CurrentObject;
   if(selObj->GetType() == CMBNUC_ASSY_PINCELL)
   {
-    this->Assembly->AssyLattice.replaceLabel(previous.toStdString(),
+    this->Assembly->getLattice().replaceLabel(previous.toStdString(),
                                              current.toStdString());
   }
   emit currentObjectNameChanged( selObj->getTitle().c_str() );
@@ -458,10 +457,8 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     else
       {
       this->Assembly->UpdateGrid();
-      this->AssemblyEditor->resetUI(this->Assembly->AssyLattice.Grid,
-                                    actionList);
       }
-    emit(sendAssembly(this->Assembly));
+    emit(sendLattice(this->Assembly));
     }
 }
 
@@ -571,7 +568,6 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
       }
     this->RectCoreProperties->applyToCore(nucCore);
     this->rectCoreDefaults->apply();
-    changed = this->CoreEditor->updateLatticeWithGrid(nucCore->CoreLattice.Grid);
     }
   nucCore->sendDefaults();
   if(changed) emit valuesChanged();
@@ -590,6 +586,7 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
   QPalette palette = swatch->palette();
   palette.setColor(swatch->backgroundRole(), assy->GetLegendColor());
   swatch->setPalette(palette);
+  emit(sendLattice(assy));
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
@@ -632,9 +629,8 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       }
     else
       {
-      this->CoreEditor->resetUI(nucCore->CoreLattice.Grid, actionList);
       }
-    emit(sendCore(nucCore));
+    emit(sendLattice(nucCore));
     }
 }
 

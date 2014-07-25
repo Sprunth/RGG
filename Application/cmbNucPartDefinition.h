@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QPointer>
 #include <QObject>
+#include <QStringList>
 #include <sstream>
 #include <assert.h>
 
@@ -76,6 +77,8 @@ enum enumGeometryControls
     virtual std::string getLabel() = 0;
     virtual std::string getTitle() = 0;
     virtual std::string getFileName(){return "";}
+    virtual QColor GetLegendColor() const
+    { return Qt::white; }
   };
 
   // Represents a cell in the lattice view widget, containing
@@ -169,18 +172,39 @@ enum enumGeometryControls
             else
               {
               // for each layer, we need 6*Layer cells
-              this->Grid[k].resize(6 * k);
-              for(int j = 0; j < 6 * k; j++)
+              int cols = 6*k;
+              this->Grid[k].resize(cols);
+              for(int j = 0; j < cols; j++)
                 {
-                this->Grid[k][j].label = "xx";
-                this->Grid[k][j].color = Qt::white;
-                this->Grid[k][j].valid = true;
+                  int start  = 0;
+                  if(subType != 0 && !(subType & ANGLE_360))
+                    {
+                    start = (subType & FLAT)?(k):(k-(k)/2);
+                    cols = ((subType & FLAT)?(k+1):(((k+1)-(k+2)%2)))+start;
+                    if(subType & ANGLE_30)
+                      {
+                      start = 2*k - k/2;
+                      cols = (k%2 ? (k+1)/2 :(k+2)/2) + start;
+                      }
+                    }
+                  if(start <= j && j < cols)
+                    {
+                    this->Grid[k][j].label = "xx";
+                    this->Grid[k][j].color = Qt::white;
+                    this->Grid[k][j].valid = true;
+                    }
+                  else
+                    {
+                    this->Grid[k][j].label = "";
+                    this->Grid[k][j].color = Qt::black;
+                    this->Grid[k][j].valid = false;
+                    }
+                  }
                 }
               }
             }
           }
         }
-      }
     // Returns the dimensions of the cell assembly.
     // For Hex type, first is number of layers, second is set to 6 (for hex)
     std::pair<int, int> GetDimensions() const
@@ -197,16 +221,17 @@ enum enumGeometryControls
 
     // Sets the contents of the cell (i, j) to name.
     // For Hex type, i is layer/ring index, j is index on that layer
-    void SetCell(int i, int j, const std::string &name, const QColor& color)
+    void SetCell(int i, int j, const std::string &name, const QColor& color, bool valid = true)
       {
       this->Grid[i][j].label = name;
       this->Grid[i][j].color = color;
+      this->Grid[i][j].valid = valid;
       }
     void SetCell(int i, int j, const std::string &name)
       {
       this->Grid[i][j].label = name;
       this->Grid[i][j].color = Qt::white;
-      this->Grid[i][j].valid = true;
+       true;
       }
     void setAsInvalid(int i, int j)
       {
@@ -335,105 +360,14 @@ enum enumGeometryControls
     int subType;
     };
 
-  class HexMap
+  class LatticeContainer: public AssyPartObj
     {
     public:
-      HexMap()
-        {
-        this->SetNumberOfLayers(0);
-        this->subType = 0;
-        }
-
-      // Sets the dimensions of the cell assembly.
-      void SetNumberOfLayers(int layers)
-        {
-        int current = this->Grid.size();
-        if(current == layers)
-          {
-          return;
-          }
-
-        this->Grid.resize(layers);
-
-        if(layers>current )
-          {
-          for(int k = current; k < layers; k++)
-            {
-            if(k==0)
-              {
-              this->Grid[k].resize(1);
-              this->Grid[k][0].label = "xx";
-              this->Grid[k][0].color = Qt::white;
-              }
-            else
-              {
-              int start  = 0;
-              int cols = 6*k;
-              if(subType != 0 && !(subType & ANGLE_360))
-                {
-                start = (subType & FLAT)?(k):(k-(k)/2);
-                cols = ((subType & FLAT)?(k+1):(((k+1)-(k+2)%2)))+start;
-                if(subType & ANGLE_30)
-                  {
-                  start = 2*k - k/2;
-                  cols = (k%2 ? (k+1)/2 :(k+2)/2) + start;
-                  }
-                }
-              // for each layer, we need 6*Layer cells
-              this->Grid[k].resize(6 * k);
-              for(int j = 0; j < 6 * k; j++)
-                {
-                if(start <= j && j < cols)
-                  {
-                  this->Grid[k][j].label = "xx";
-                  this->Grid[k][j].color = Qt::white;
-                  this->Grid[k][j].valid = true;
-                  }
-                else
-                  {
-                  this->Grid[k][j].label = "";
-                  this->Grid[k][j].color = Qt::black;
-                  this->Grid[k][j].valid = false;
-                  }
-                }
-              }
-            }
-          }
-        }
-
-      // Returns the layers of the hex grid.
-      int numberOfLayers() const
-        {
-        return (int)this->Grid.size();
-        }
-
-      // Sets the contents of the cell (i, j) to name.
-      void SetCell(int layer, int idx, const std::string &name, const QColor& color, bool valid)
-        {
-        this->Grid[layer][idx].label = name;
-        this->Grid[layer][idx].color = color;
-        this->Grid[layer][idx].valid = valid;
-        }
-
-      // Returns the contents of the cell (i, j).
-      LatticeCell GetCell(int layer, int idx) const
-        {
-        return this->Grid[layer][idx];
-        }
-
-      // Clears the contents of the cell (i, j). This is equivalent
-      // to calling SetCell(i, j, "xx").
-      void ClearCell(int layer, int idx)
-        {
-        this->SetCell(layer, idx, "xx", Qt::white, true);
-        }
-
-      // Stored as layered vectors. For each layer of hex cells
-      // we have a vector with 6*Layer cells, where Layer is the
-      // index into hex layers (starting 0), and Layer > 0.
-      // For Layer==0, just one cell.
-      std::vector<std::vector<LatticeCell> > Grid;
-      int subType;
+      Lattice & getLattice()
+      { return this->lattice; }
+      virtual void fillList(QStringList & l) = 0;
+      virtual AssyPartObj * getFromLabel(const std::string &) = 0;
+    protected:
+      Lattice lattice;
     };
-
 #endif
