@@ -189,7 +189,7 @@ endif()
 
 add_revision(remus
   GIT_REPOSITORY http://public.kitware.com/Remus.git
-  GIT_TAG master
+  GIT_TAG 6b382bd4df55585a96adfae9dd9d6e7198a25b23
   )
 
 add_revision(kml
