@@ -803,9 +803,10 @@ void cmbNucMainWindow::onSaveProjectAs()
   QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
   for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
+    QString label(NuclearCore->GetAssembly(i)->label.c_str());
+    std::string tmpl = label.toLower().toStdString();
     NuclearCore->GetAssembly(i)->FileName = dir.toStdString() +
-                                            "/assembly_" +
-                                            NuclearCore->GetAssembly(i)->label + ".inp";
+                                            "/assembly_" + tmpl + ".inp";
   }
   NuclearCore->FileName =dir.toStdString() + "/core.inp";
   this->saveAll(false, true);
@@ -855,7 +856,9 @@ void cmbNucMainWindow::save(cmbNucAssembly* assembly, bool request_file_name, bo
   QString fileName = assembly->FileName.c_str();
   if(request_file_name || fileName.isEmpty())
   {
-    QString defaultName = (fileName.isEmpty())?(std::string("assembly_") + assembly->label + ".inp").c_str():fileName;
+    QString label(assembly->label.c_str());
+    std::string tmpl = label.toLower().toStdString();
+    QString defaultName = (fileName.isEmpty())?(std::string("assembly_") + tmpl + ".inp").c_str():fileName;
     fileName = cmbNucMainWindow::requestInpFileName(defaultName, "Assembly");
   }
   if(fileName.isEmpty()) return;
