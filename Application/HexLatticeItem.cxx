@@ -91,7 +91,7 @@ void HexLatticeItem::paint(QPainter* painter,
     {
     this->drawCircle(painter);
     }
-  else if(this->m_shape == HexLatticeItem::Hexagon)
+  else if(this->m_shape == HexLatticeItem::Hexagon || this->m_shape == HexLatticeItem::Rectangle)
     {
     this->Superclass::paint(painter, option, widget);
     }

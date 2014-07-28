@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "cmbNucPartDefinition.h"
+#include "cmbNucLattice.h"
 #include <QStringList>
 #include <QPointer>
 
@@ -98,8 +99,6 @@ private:
 
   void initUI();
   AssyPartObj* CurrentObject;
-  cmbNucAssemblyEditor *AssemblyEditor;
-  cmbNucAssemblyEditor *CoreEditor;
   cmbNucAssembly *Assembly;
   cmbNucCore *Core;
   cmbNucMainWindow *MainWindow;

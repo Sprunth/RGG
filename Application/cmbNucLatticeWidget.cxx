@@ -44,9 +44,9 @@ cmbNucLatticeWidget::setLatticeXorLayers(int v)
 void
 cmbNucLatticeWidget::setLatticeY(int v)
 {
-  //TODO
   if(lattice != NULL)
   {
+    draw_control->setHeight(v);
   }
 }
 

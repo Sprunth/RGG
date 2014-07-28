@@ -12,7 +12,8 @@ public:
   enum ShapeStyle
     {
     Circle = 0,
-    Hexagon = 1
+    Hexagon = 1,
+    Rectangle = 2
     };
 
     HexLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,

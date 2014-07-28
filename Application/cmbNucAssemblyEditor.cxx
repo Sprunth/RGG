@@ -58,7 +58,7 @@ void cmbNucAssemblyEditor::clearUI(bool updateUI)
     }
 }
 void cmbNucAssemblyEditor::resetUI(
-  const std::vector<std::vector<LatticeCell> >& Grid,
+  const std::vector<std::vector<Lattice::LatticeCell> >& Grid,
   QStringList& actions)
 {
   this->clearUI();
@@ -89,7 +89,7 @@ void cmbNucAssemblyEditor::resetUI(
 }
 
 bool cmbNucAssemblyEditor::updateLatticeWithGrid(
-  std::vector<std::vector<LatticeCell> >& Grid)
+  std::vector<std::vector<Lattice::LatticeCell> >& Grid)
 {
   int x = (int)this->CurrentGrid.size();
   int y = (int)this->CurrentGrid[0].size();
@@ -158,7 +158,7 @@ void cmbNucAssemblyEditor::updateLatticeView(int x, int y)
     {
     for(int j = 0; j < y; j++)
       {
-      LatticeCell lc = this->CurrentGrid[i][j];
+      Lattice::LatticeCell lc = this->CurrentGrid[i][j];
       cmbNucDragLabel *wordLabel = new cmbNucDragLabel(
         lc.label.c_str(), this, i, j);
       wordLabel->setBackgroundColor(lc.color);

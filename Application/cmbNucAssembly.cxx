@@ -473,7 +473,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
     offY.resize(this->lattice.Grid.size(), std::vector< double >(this->lattice.Grid[0].size(), 0));
     for(size_t i = 0; i < this->lattice.Grid.size(); i++)
       {
-      const std::vector<LatticeCell> &row = this->lattice.Grid[i];
+      const std::vector<Lattice::LatticeCell> &row = this->lattice.Grid[i];
       for(size_t j = 0; j < row.size(); j++)
         {
         this->computeRecOffset(i, j, currentLaticePoint[0], currentLaticePoint[1]);
@@ -513,7 +513,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
     size_t startBlock = this->lattice.GetGeometryType() == HEXAGONAL ?
       (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->lattice.Grid[0].size());
-    const std::vector<LatticeCell> &row = this->lattice.Grid[i];
+    const std::vector<Lattice::LatticeCell> &row = this->lattice.Grid[i];
     for(size_t j = 0; j < row.size(); j++)
       {
       const std::string &type = row[j].label;

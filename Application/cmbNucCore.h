@@ -10,6 +10,7 @@
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
+#include "cmbNucLattice.h"
 #include "vtkSmartPointer.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkTransform.h"
@@ -230,7 +231,7 @@ public:
     this->lattice.SetCell(i, j, name, color);
     }
   // Returns the contents of the Assembly (i, j).
-  LatticeCell GetAssemblyLabel(int i, int j) const
+  Lattice::LatticeCell GetAssemblyLabel(int i, int j) const
     {
     return this->lattice.GetCell(i, j);
     }

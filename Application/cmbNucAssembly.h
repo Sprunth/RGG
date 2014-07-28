@@ -10,6 +10,7 @@
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
+#include "cmbNucLattice.h"
 #include "cmbNucPinCell.h"
 #include "cmbNucDuctCell.h"
 #include "vtkSmartPointer.h"

@@ -47,20 +47,20 @@ void cmbNucHexLattice::init()
   this->rebuild();
 }
 
-void cmbNucHexLattice::resetWithGrid(std::vector<std::vector<LatticeCell> >& inGrid, int type)
+void cmbNucHexLattice::resetWithGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid, int type)
 {
   this->Grid.subType = type;
   this->copyGrid(inGrid, this->Grid.Grid);
   this->rebuild();
 }
 
-bool cmbNucHexLattice::applyToGrid(std::vector<std::vector<LatticeCell> >& outGrid)
+bool cmbNucHexLattice::applyToGrid(std::vector<std::vector<Lattice::LatticeCell> >& outGrid)
 {
   return this->copyGrid(this->Grid.Grid, outGrid);
 }
 
-bool cmbNucHexLattice::copyGrid(std::vector<std::vector<LatticeCell> >& inGrid,
-  std::vector<std::vector<LatticeCell> >& outGrid)
+bool cmbNucHexLattice::copyGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid,
+  std::vector<std::vector<Lattice::LatticeCell> >& outGrid)
 {
   bool change = outGrid.size() != inGrid.size();
   outGrid.resize(inGrid.size());
@@ -89,11 +89,17 @@ int cmbNucHexLattice::layers()
 
 void cmbNucHexLattice::setLayers(int val)
 {
-  if(this->layers() == val)
-    {
-    return;
-    }
-  Grid.SetDimensions(val, Grid.GetDimensions().second);
+  std::pair<int, int> wh =Grid.GetDimensions();
+  if(val == wh.first) return;
+  Grid.SetDimensions(val, wh.second);
+  this->rebuild();
+}
+
+void cmbNucHexLattice::setHeight(int val)
+{
+  std::pair<int, int> wh =Grid.GetDimensions();
+  if(val == wh.second) return;
+  Grid.SetDimensions(wh.first,val);
   this->rebuild();
 }
 
@@ -105,26 +111,37 @@ void cmbNucHexLattice::setItemShape(HexLatticeItem::ShapeStyle shapetype)
 void cmbNucHexLattice::setLatticeContainer(LatticeContainer* l)
 {
   this->CurrentLattice = l;
+  if(l) this->Grid.enGeometryType = l->getLattice().enGeometryType;
 }
 
 void cmbNucHexLattice::addCell(
-  double centerPos[2], double radius, int layer, int cellIdx)
+  double centerPos[2], double radius, int layer, int cellIdx, bool hex)
 {
   QPolygon polygon;
 
-  polygon << QPoint(0, 2 * radius)
+  if(hex)
+  {
+    polygon << QPoint(0, 2 * radius)
             << QPoint(-radius * 1.73, radius )
             << QPoint(-radius * 1.73, -radius)
             << QPoint(0, -2 * radius )
             << QPoint( radius * 1.73, -radius)
             << QPoint( radius * 1.73, radius );
+  }
+  else
+  {
+    polygon << QPoint(-radius,-radius)
+            << QPoint(-radius, radius)
+            << QPoint( radius, radius)
+            << QPoint( radius,-radius);
+  }
   HexLatticeItem* cell = new HexLatticeItem(polygon, layer, cellIdx,
     this->ItemShape);
 
   cell->setPos(centerPos[0] + this->rect().center().x(),
                centerPos[1] + this->rect().center().y());
 
-  LatticeCell lc = Grid.GetCell(layer, cellIdx);
+  Lattice::LatticeCell lc = Grid.GetCell(layer, cellIdx);
   QColor color(Qt::white);
   if(this->CurrentLattice)
     {
@@ -149,58 +166,78 @@ void cmbNucHexLattice::rebuild()
     return;
     }
 
-  double centerPos[2], hexRadius, hexDiameter, layerRadius;
-  int squareLength = std::min(this->width(), this->height());
-  hexDiameter = squareLength / (double)(3 * numLayers + 1);
-  hexDiameter = std::max(hexDiameter, 20.0); // Enforce minimum size for hexes
-  hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
+  double centerPos[2];
   double layerCorners[6][2];
   int cornerIndices[6];
+  int squareLength = std::min(this->width(), this->height());
 
-  for(int i = 0; i < numLayers; i++)
-    {
-    if(i == 0)
+  if(CurrentLattice->IsHexType())
+  {
+    double hexRadius, hexDiameter, layerRadius;
+    hexDiameter = squareLength / (double)(3 * numLayers + 1);
+    hexDiameter = std::max(hexDiameter, 20.0); // Enforce minimum size for hexes
+    hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
+
+    for(int i = 0; i < numLayers; i++)
       {
-      centerPos[0] = 0;
-      centerPos[1] = 0;
-      this->addCell(centerPos, hexRadius, i, 0);
-      }
-    else
-      {
-      layerRadius = hexDiameter * (2 * i);
-      int cellIdx = 0;
-      for(int c = 0; c < 6; c++)
+      if(i == 0)
         {
-        double angle = 60.0*((c+4)%6)*vtkMath::Pi()/180.0;
-        //double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
-        layerCorners[c][0] = layerRadius * cos(angle);
-        layerCorners[c][1] = layerRadius * sin(angle);
-        // draw the corner hex
-        this->addCell(layerCorners[c], hexRadius, i, cellIdx);
-        cornerIndices[c] = cellIdx;
-        cellIdx = i==1 ? cellIdx+1 : cellIdx+i;
+        centerPos[0] = 0;
+        centerPos[1] = 0;
+        this->addCell(centerPos, hexRadius, i, 0, true);
         }
-      if(i < 2)
+      else
         {
-        continue;
-        }
-
-      // for each layer, we should have (numLayers-2) middle hexes
-      // between the corners
-      double deltx, delty, numSegs = i;
-      for(int c = 0; c < 6; c++)
-        {
-        int idxN = (c + 1) % 6;
-        deltx = (layerCorners[idxN][0] - layerCorners[c][0]) / numSegs;
-        delty = (layerCorners[idxN][1] - layerCorners[c][1]) / numSegs;
-
-        cellIdx = cornerIndices[c] + 1;
-        for(int b = 0; b < i - 1; b++)
+        layerRadius = hexDiameter * (2 * i);
+        int cellIdx = 0;
+        for(int c = 0; c < 6; c++)
           {
-          centerPos[0] = layerCorners[c][0] + deltx * (b + 1);
-          centerPos[1] = layerCorners[c][1] + delty * (b + 1);
-          this->addCell(centerPos, hexRadius, i, cellIdx++);
+          double angle = 60.0*((c+4)%6)*vtkMath::Pi()/180.0;
+          //double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
+          layerCorners[c][0] = layerRadius * cos(angle);
+          layerCorners[c][1] = layerRadius * sin(angle);
+          // draw the corner hex
+          this->addCell(layerCorners[c], hexRadius, i, cellIdx, true);
+          cornerIndices[c] = cellIdx;
+          cellIdx = i==1 ? cellIdx+1 : cellIdx+i;
           }
+        if(i < 2)
+          {
+          continue;
+          }
+
+        // for each layer, we should have (numLayers-2) middle hexes
+        // between the corners
+        double deltx, delty, numSegs = i;
+        for(int c = 0; c < 6; c++)
+          {
+          int idxN = (c + 1) % 6;
+          deltx = (layerCorners[idxN][0] - layerCorners[c][0]) / numSegs;
+          delty = (layerCorners[idxN][1] - layerCorners[c][1]) / numSegs;
+
+          cellIdx = cornerIndices[c] + 1;
+          for(int b = 0; b < i - 1; b++)
+          {
+            centerPos[0] = layerCorners[c][0] + deltx * (b + 1);
+            centerPos[1] = layerCorners[c][1] + delty * (b + 1);
+            this->addCell(centerPos, hexRadius, i, cellIdx++, true);
+            }
+          }
+        }
+      }
+    }
+  else
+    {
+    std::pair<int, int> wh = this->Grid.GetDimensions();
+    double tmax = std::max(wh.first, wh.second);
+    double radius = squareLength/tmax*0.5;
+    for(int i = 0; i < wh.first; ++i)
+      {
+      for(int j = 0; j < wh.second; ++j)
+        {
+          centerPos[1] = 2*(wh.first-1-i)*radius;
+          centerPos[0] = 2*(j)*radius;
+          this->addCell(centerPos, radius, i, j, false);
         }
       }
     }

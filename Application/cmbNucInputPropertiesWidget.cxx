@@ -59,12 +59,6 @@ cmbNucInputPropertiesWidget::~cmbNucInputPropertiesWidget()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::initUI()
 {
-  this->AssemblyEditor = new cmbNucAssemblyEditor(this, this->Assembly);
-  this->Internal->assemblyLatticeContainer->setWidget(this->AssemblyEditor);
-
-  this->CoreEditor = new cmbNucAssemblyEditor(this, NULL);
-  this->Internal->coreLatticeContainer->setWidget(this->CoreEditor);
-
   this->HexCoreProperties = new cmbCoreParametersWidget(this);
   this->Internal->hexCoreConfLayout->addWidget(this->HexCoreProperties);
   connect(this->HexCoreProperties, SIGNAL(valuesChanged()),
@@ -95,19 +89,19 @@ void cmbNucInputPropertiesWidget::initUI()
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
                    this, SIGNAL(reset()));
 
-  QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
-    this, SLOT(onLatticeDimensionChanged()));
-  QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
-    this, SLOT(onLatticeDimensionChanged()));
-  QObject::connect(this->Internal->coreLatticeX, SIGNAL(valueChanged(int)),
-    this, SLOT(onCoreDimensionChanged()));
-  QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
-    this, SLOT(onCoreDimensionChanged()));
+  //QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
+  //  this, SLOT(onLatticeDimensionChanged()));
+  //QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
+  //  this, SLOT(onLatticeDimensionChanged()));
+  //QObject::connect(this->Internal->coreLatticeX, SIGNAL(valueChanged(int)),
+  //  this, SLOT(onCoreDimensionChanged()));
+  //QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
+  //  this, SLOT(onCoreDimensionChanged()));
 
   QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
                    this, SIGNAL(sendXSize(int)));
   QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
-                   this, SIGNAL(sendXSize(int)));
+                   this, SIGNAL(sendYSize(int)));
   QObject::connect(this->Internal->coreLatticeX, SIGNAL(valueChanged(int)),
                    this, SIGNAL(sendXSize(int)));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
@@ -168,8 +162,6 @@ void cmbNucInputPropertiesWidget::setAssembly(cmbNucAssembly *assyObj)
     return;
     }
   this->Assembly = assyObj;
-  this->AssemblyEditor->setAssembly(assyObj);
-  this->CoreEditor->setAssembly(assyObj);
   assyConf->setAssembly(assyObj);
 }
 
@@ -300,8 +292,6 @@ void cmbNucInputPropertiesWidget::clear()
   this->setObject(NULL,NULL);
   this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
   this->setAssembly(NULL);
-  this->AssemblyEditor->clearUI(true);
-  this->CoreEditor->clearUI(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -475,31 +465,18 @@ void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 void cmbNucInputPropertiesWidget::onLatticeDimensionChanged()
 {
   if(this->getAssembly() == NULL || this->getAssembly()->IsHexType()) return;
-  this->AssemblyEditor->clearUI(false);
-  this->AssemblyEditor->updateLatticeView(this->Internal->latticeX->value(),
-                                          this->Internal->latticeY->value());
 }
 
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
 {
   if(this->Core == NULL || this->Core->IsHexType()) return;
-  this->CoreEditor->clearUI(false);
-  this->CoreEditor->updateLatticeView(this->Internal->coreLatticeX->value(),
-    this->Internal->coreLatticeY->value());
 }
 
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 {
   bool change = false;
-  if(lattice->GetGeometryType() == RECTILINEAR)
-    {
-    change = this->AssemblyEditor->updateLatticeWithGrid(lattice->Grid);
-    }
-  else if(lattice->GetGeometryType() == HEXAGONAL)
-    {
-    }
   if(change)
   {
     if(this->Assembly->isPinsAutoCentered()) this->Assembly->centerPins();
@@ -594,7 +571,6 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
   if(nucCore)
     {
     this->Core = nucCore;
-    this->CoreEditor->setCore(nucCore);
     this->HexCoreProperties->setCore(nucCore);
     this->HexCoreProperties->resetCore(nucCore);
     this->RectCoreProperties->setCore(nucCore);

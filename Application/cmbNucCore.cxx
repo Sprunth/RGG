@@ -201,7 +201,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
     size_t startBlock = isHex ?
       (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->lattice.Grid[0].size());
 
-    const std::vector<LatticeCell> &row = this->lattice.Grid[i];
+    const std::vector<Lattice::LatticeCell> &row = this->lattice.Grid[i];
 
     for(size_t j = 0; j < row.size(); j++)
       {

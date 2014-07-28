@@ -6,6 +6,7 @@
 
 #include <QStringList>
 #include "cmbNucPartDefinition.h"
+#include "cmbNucLattice.h"
 
 class QDragEnterEvent;
 class QDropEvent;
@@ -15,7 +16,6 @@ class QFrame;
 class cmbNucDragLabel;
 class cmbNucAssembly;
 class cmbNucCore;
-class LatticeCell;
 
 class cmbNucAssemblyEditor : public QFrame
 {
@@ -25,12 +25,12 @@ public:
   cmbNucAssemblyEditor(QWidget *parent, cmbNucAssembly* assy);
   ~cmbNucAssemblyEditor();
 
-  void resetUI(const std::vector<std::vector<LatticeCell> >& Grid,
+  void resetUI(const std::vector<std::vector<Lattice::LatticeCell> >& Grid,
     QStringList& availableActions);
   void updateLatticeView(int x, int y);
   void clearUI(bool updateUI=true);
   bool updateLatticeWithGrid(
-    std::vector<std::vector<LatticeCell> >& Grid);
+    std::vector<std::vector<Lattice::LatticeCell> >& Grid);
 
   void setAssembly(cmbNucAssembly* assy);
   void setCore(cmbNucCore* core);
@@ -42,7 +42,7 @@ private:
   cmbNucAssembly* CurrentAssembly;
 
   QGridLayout* LatticeLayout;
-  std::vector<std::vector<LatticeCell> > CurrentGrid;
+  std::vector<std::vector<Lattice::LatticeCell> > CurrentGrid;
   QStringList ActionList;
 };
 
