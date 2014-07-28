@@ -186,7 +186,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 
   this->Data->SetNumberOfBlocks(numBlocks);
 
-  if( subType & ANGLE_360 && this->CoreLattice.Grid.size()>1 )
+  if( isHex && subType & ANGLE_360 && this->CoreLattice.Grid.size()>1 )
   {
     double odc = outerDuctHeight*this->CoreLattice.Grid.size();
     double tmp = odc - outerDuctHeight;
