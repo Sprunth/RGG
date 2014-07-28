@@ -203,6 +203,6 @@ else()
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/materialcolors.ini.in"
              ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
              @ONLY)
-  install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION bin)
+  install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION lib)
   install(TARGETS RGGNuclear DESTINATION lib)
 endif()
