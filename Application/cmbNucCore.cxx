@@ -292,7 +292,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           {
           double tX = startX + i * (outerDuctWidth);
           double tY = startY + j * (outerDuctHeight);
-          transform->Translate(tY, tX-outerDuctWidth*(row.size()-1), 0);
+          transform->Translate(tY, tX-outerDuctWidth*(CoreLattice.Grid.size()-1), 0);
           }
         // transform block by block --- got to have better ways
         vtkSmartPointer<vtkMultiBlockDataSet> blockData = vtkSmartPointer<vtkMultiBlockDataSet>::New();
