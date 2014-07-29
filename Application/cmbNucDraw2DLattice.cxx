@@ -301,6 +301,12 @@ void cmbNucDraw2DLattice::dropEvent(QDropEvent* event)
   event->acceptProposedAction();
  }
 
+void cmbNucDraw2DLattice::resizeEvent( QResizeEvent * event )
+{
+  QGraphicsView::resizeEvent(event);
+  this->rebuild();
+}
+
 void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* event)
 {
   DrawLatticeItem* hitem = dynamic_cast<DrawLatticeItem*>(this->itemAt(

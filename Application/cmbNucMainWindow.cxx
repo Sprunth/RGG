@@ -404,8 +404,6 @@ void cmbNucMainWindow::initPanels()
                      this->InputsWidget, SLOT(valueChanged()));
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
                      this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
-    QObject::connect(this->ui->Dock2D, SIGNAL(visibilityChanged(bool)),
-                     this->LatticeDraw, SLOT(redraw()));
   }
   this->PropertyWidget->setEnabled(0);
 }

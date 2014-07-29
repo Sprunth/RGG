@@ -39,6 +39,7 @@ public slots:
 protected:
   virtual void mousePressEvent(QMouseEvent* event);
   virtual void dropEvent(QDropEvent* event);
+  virtual void resizeEvent( QResizeEvent * event );
 
 private slots:
   void init();
