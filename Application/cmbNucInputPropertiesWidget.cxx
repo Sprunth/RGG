@@ -81,8 +81,6 @@ void cmbNucInputPropertiesWidget::initUI()
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
     this, SLOT(onReset()));
 
-  QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
-                   this, SIGNAL(apply()));
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
                    this, SIGNAL(reset()));
 
@@ -171,10 +169,12 @@ void cmbNucInputPropertiesWidget::onApply()
   switch(selObj->GetType())
     {
     case CMBNUC_CORE:
+      emit(apply());
       nucCore = dynamic_cast<cmbNucCore*>(selObj);
       this->applyToCore(nucCore);
       break;
     case CMBNUC_ASSEMBLY:
+      emit(apply());
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
       this->applyToAssembly(assy);
       break;
