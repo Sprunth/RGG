@@ -306,6 +306,7 @@ cmbNucMainWindow::cmbNucMainWindow()
     this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
+  qDebug() << this->centralWidget()->size();
 }
 
 cmbNucMainWindow::~cmbNucMainWindow()
