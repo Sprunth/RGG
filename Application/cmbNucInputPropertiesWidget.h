@@ -56,6 +56,7 @@ signals:
   void reset();
   void sendXSize(int i);
   void sendYSize(int i);
+  void select3DModelView();
 
 public slots:
   void colorChanged();

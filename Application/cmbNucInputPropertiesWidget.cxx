@@ -251,6 +251,7 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pagePinCell);
       this->showPinCellEditor();
+      emit(select3DModelView());
       emit(sendLattice(NULL));
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
@@ -263,6 +264,7 @@ void cmbNucInputPropertiesWidget::onReset()
       emit(sendLattice(NULL));
       break;
     default:
+      emit(sendLattice(NULL));
       this->setEnabled(0);
       break;
     }

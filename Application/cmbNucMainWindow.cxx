@@ -404,6 +404,9 @@ void cmbNucMainWindow::initPanels()
                      this->InputsWidget, SLOT(valueChanged()));
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
                      this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
+
+    QObject::connect(this->PropertyWidget, SIGNAL(select3DModelView()),
+                     this->ui->Dock3D,     SLOT(raise()));
   }
   this->PropertyWidget->setEnabled(0);
 }
