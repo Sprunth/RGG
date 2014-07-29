@@ -526,16 +526,16 @@ void cmbNucMainWindow::onNewCore()
     std::string geoType = "HexFlat";;
     enumGeometryType geoTypeEnum = HEXAGONAL;
     int subtype = 1;
-    if(type.contains("1/6 Symetric Flat"))
+    if(type.contains("1/6 Symmetric Flat"))
     {
       subtype = 6;
     }
-    else if(type.contains("1/6 Symetric Vertex"))
+    else if(type.contains("1/6 Symmetric Vertex"))
     {
       subtype = 6;
       geoType = "HexVertex";
     }
-    else if(type.contains("1/12 Symetric"))
+    else if(type.contains("1/12 Symmetric"))
     {
       subtype = 12;
     }
