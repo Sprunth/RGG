@@ -1,4 +1,4 @@
-#include "cmbNucHexLattice.h"
+#include "cmbNucDraw2DLattice.h"
 
 #include <QMessageBox>
 #include <QApplication>
@@ -15,7 +15,7 @@
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
 
-cmbNucHexLattice::cmbNucHexLattice(HexLatticeItem::ShapeStyle shape,
+cmbNucDraw2DLattice::cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape,
     QWidget* parent, Qt::WindowFlags f)
       : QGraphicsView(parent), ItemShape(shape), CurrentLattice(NULL)
 {
@@ -30,36 +30,36 @@ cmbNucHexLattice::cmbNucHexLattice(HexLatticeItem::ShapeStyle shape,
   init();
 }
 
-cmbNucHexLattice::~cmbNucHexLattice()
+cmbNucDraw2DLattice::~cmbNucDraw2DLattice()
 {
 }
 
-void cmbNucHexLattice::clear()
+void cmbNucDraw2DLattice::clear()
 {
   this->CurrentLattice = NULL;
   this->init();
 }
 
-void cmbNucHexLattice::init()
+void cmbNucDraw2DLattice::init()
 {
   this->ActionList << "xx";
   this->Grid.SetDimensions(0,0);
   this->rebuild();
 }
 
-void cmbNucHexLattice::resetWithGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid, int type)
+void cmbNucDraw2DLattice::resetWithGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid, int type)
 {
   this->Grid.subType = type;
   this->copyGrid(inGrid, this->Grid.Grid);
   this->rebuild();
 }
 
-bool cmbNucHexLattice::applyToGrid(std::vector<std::vector<Lattice::LatticeCell> >& outGrid)
+bool cmbNucDraw2DLattice::applyToGrid(std::vector<std::vector<Lattice::LatticeCell> >& outGrid)
 {
   return this->copyGrid(this->Grid.Grid, outGrid);
 }
 
-bool cmbNucHexLattice::copyGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid,
+bool cmbNucDraw2DLattice::copyGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid,
   std::vector<std::vector<Lattice::LatticeCell> >& outGrid)
 {
   bool change = outGrid.size() != inGrid.size();
@@ -77,17 +77,17 @@ bool cmbNucHexLattice::copyGrid(std::vector<std::vector<Lattice::LatticeCell> >&
   return change;
 }
 
-void cmbNucHexLattice::setActions(const QStringList& actions)
+void cmbNucDraw2DLattice::setActions(const QStringList& actions)
 {
   this->ActionList = actions;
 }
 
-int cmbNucHexLattice::layers()
+int cmbNucDraw2DLattice::layers()
 {
   return Grid.GetDimensions().first;
 }
 
-void cmbNucHexLattice::setLayers(int val)
+void cmbNucDraw2DLattice::setLayers(int val)
 {
   std::pair<int, int> wh =Grid.GetDimensions();
   if(val == wh.first) return;
@@ -95,7 +95,7 @@ void cmbNucHexLattice::setLayers(int val)
   this->rebuild();
 }
 
-void cmbNucHexLattice::setHeight(int val)
+void cmbNucDraw2DLattice::setHeight(int val)
 {
   std::pair<int, int> wh =Grid.GetDimensions();
   if(val == wh.second) return;
@@ -103,18 +103,18 @@ void cmbNucHexLattice::setHeight(int val)
   this->rebuild();
 }
 
-void cmbNucHexLattice::setItemShape(HexLatticeItem::ShapeStyle shapetype)
+void cmbNucDraw2DLattice::setItemShape(DrawLatticeItem::ShapeStyle shapetype)
 {
   this->ItemShape = shapetype;
 }
 
-void cmbNucHexLattice::setLatticeContainer(LatticeContainer* l)
+void cmbNucDraw2DLattice::setLatticeContainer(LatticeContainer* l)
 {
   this->CurrentLattice = l;
   if(l) this->Grid.enGeometryType = l->getLattice().enGeometryType;
 }
 
-void cmbNucHexLattice::addCell(
+void cmbNucDraw2DLattice::addCell(
   double centerPos[2], double radius, int layer, int cellIdx, bool hex)
 {
   QPolygon polygon;
@@ -135,7 +135,7 @@ void cmbNucHexLattice::addCell(
             << QPoint( radius, radius)
             << QPoint( radius,-radius);
   }
-  HexLatticeItem* cell = new HexLatticeItem(polygon, layer, cellIdx,
+  DrawLatticeItem* cell = new DrawLatticeItem(polygon, layer, cellIdx,
     this->ItemShape);
 
   cell->setPos(centerPos[0] + this->rect().center().x(),
@@ -157,7 +157,7 @@ void cmbNucHexLattice::addCell(
   scene()->addItem(cell);
 }
 
-void cmbNucHexLattice::rebuild()
+void cmbNucDraw2DLattice::rebuild()
 {
   scene()->clear();
   int numLayers = this->layers();
@@ -245,8 +245,8 @@ void cmbNucHexLattice::rebuild()
   this->repaint();
 }
 
-void cmbNucHexLattice::showContextMenu(
-  HexLatticeItem *hexitem, QMouseEvent* event)
+void cmbNucDraw2DLattice::showContextMenu(
+  DrawLatticeItem *hexitem, QMouseEvent* event)
 {
   if(!hexitem || !hexitem->is_available())
     {
@@ -279,9 +279,9 @@ void cmbNucHexLattice::showContextMenu(
     }
 }
 
-void cmbNucHexLattice::dropEvent(QDropEvent* event)
+void cmbNucDraw2DLattice::dropEvent(QDropEvent* event)
 {
-  HexLatticeItem* dest = dynamic_cast<HexLatticeItem*>(this->itemAt(event->pos()));
+  DrawLatticeItem* dest = dynamic_cast<DrawLatticeItem*>(this->itemAt(event->pos()));
   if(!dest || !dest->is_available())
     {
     return;
@@ -301,9 +301,9 @@ void cmbNucHexLattice::dropEvent(QDropEvent* event)
   event->acceptProposedAction();
  }
 
-void cmbNucHexLattice::mousePressEvent(QMouseEvent* event)
+void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* event)
 {
-  HexLatticeItem* hitem = dynamic_cast<HexLatticeItem*>(this->itemAt(
+  DrawLatticeItem* hitem = dynamic_cast<DrawLatticeItem*>(this->itemAt(
     this->mapFromGlobal(event->globalPos())));
   if(!hitem || !hitem->is_available())
     {

@@ -1,24 +1,24 @@
-#ifndef __cmbNucHexLattice_h
-#define __cmbNucHexLattice_h
+#ifndef __cmbNucDraw2DLattice_h
+#define __cmbNucDraw2DLattice_h
 
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
 #include "cmbNucPartDefinition.h"
-#include "HexLatticeItem.h"
+#include "DrawLatticeItem.h"
 #include "cmbNucLattice.h"
 
 class QMouseEvent;
 class LatticeContainer;
 
-class cmbNucHexLattice : public QGraphicsView {
+class cmbNucDraw2DLattice : public QGraphicsView {
   Q_OBJECT
   typedef QGraphicsView Superclass;
 
 public:
-  cmbNucHexLattice(HexLatticeItem::ShapeStyle shape = HexLatticeItem::Circle,
-                   QWidget* parent = 0, Qt::WindowFlags f = 0);
-  ~cmbNucHexLattice();
+  cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape = DrawLatticeItem::Circle,
+                      QWidget* parent = 0, Qt::WindowFlags f = 0);
+  ~cmbNucDraw2DLattice();
 
   int layers();
   void setLayers(int val);
@@ -28,9 +28,9 @@ public:
   // build lattice with given Grid[layer][idx]
   void resetWithGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid, int subType);
   bool applyToGrid(std::vector<std::vector<Lattice::LatticeCell> >& outGrid);
-  void showContextMenu(HexLatticeItem* hexitem, QMouseEvent* event);
+  void showContextMenu(DrawLatticeItem* hexitem, QMouseEvent* event);
   void setActions(const QStringList& actions);
-  void setItemShape(HexLatticeItem::ShapeStyle shapetype);
+  void setItemShape(DrawLatticeItem::ShapeStyle shapetype);
   void setLatticeContainer(LatticeContainer* l);
 
 public slots:
@@ -53,7 +53,7 @@ private:
   Lattice Grid;
 
   QStringList ActionList;
-  HexLatticeItem::ShapeStyle ItemShape;
+  DrawLatticeItem::ShapeStyle ItemShape;
 };
 
 #endif

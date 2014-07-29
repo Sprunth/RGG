@@ -15,8 +15,6 @@
 #include "cmbNucDefaultWidget.h"
 #include "cmbNucDefaults.h"
 
-#include "cmbNucHexLattice.h"
-
 #include <QLabel>
 #include <QPointer>
 #include <QtDebug>

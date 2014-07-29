@@ -1,6 +1,6 @@
 #include "cmbNucLatticeWidget.h"
 
-#include "cmbNucHexLattice.h"
+#include "cmbNucDraw2DLattice.h"
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
 
@@ -10,7 +10,7 @@ cmbNucLatticeWidget::cmbNucLatticeWidget(QWidget * parent)
 :QWidget(parent), lattice(NULL)
 {
   QVBoxLayout * box = new  QVBoxLayout();
-  draw_control = new cmbNucHexLattice(HexLatticeItem::Hexagon, NULL);
+  draw_control = new cmbNucDraw2DLattice(DrawLatticeItem::Hexagon, NULL);
   box->addWidget(draw_control);
   this->setLayout(box);
 }

@@ -1,10 +1,9 @@
-
-#ifndef __HexLatticeItem_h
-#define __HexLatticeItem_h
+#ifndef __DrawLatticeItem_h
+#define __DrawLatticeItem_h
 
 #include <QGraphicsPolygonItem>
 
-class HexLatticeItem : public QGraphicsPolygonItem
+class DrawLatticeItem : public QGraphicsPolygonItem
 {
   typedef QGraphicsPolygonItem Superclass;
 
@@ -16,8 +15,8 @@ public:
     Rectangle = 2
     };
 
-    HexLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
-                   HexLatticeItem::ShapeStyle shape=HexLatticeItem::Circle,
+    DrawLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
+                   DrawLatticeItem::ShapeStyle shape=DrawLatticeItem::Circle,
                    QGraphicsItem* parent = 0);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -25,7 +24,7 @@ public:
     const QString& text() const;
     void setColor(const QColor& color);
     void setText(const QString& text);
-    void setShape(HexLatticeItem::ShapeStyle sstyle);
+    void setShape(DrawLatticeItem::ShapeStyle sstyle);
     int layer();
     int cellIndex();
 

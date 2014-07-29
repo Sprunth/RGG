@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-class cmbNucHexLattice;
+class cmbNucDraw2DLattice;
 class cmbNucAssembly;
 class cmbNucCore;
 class AssyPartObj;
@@ -31,6 +31,6 @@ protected:
   LatticeContainer * lattice;
   //cmbNucAssembly * assy;
   //cmbNucCore     * core;
-  cmbNucHexLattice * draw_control;
+  cmbNucDraw2DLattice * draw_control;
 };
 #endif
