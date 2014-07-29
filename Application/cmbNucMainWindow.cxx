@@ -277,6 +277,8 @@ cmbNucMainWindow::cmbNucMainWindow()
           this, SLOT(useParallelProjection(bool)));
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
 
+  //this->centralWidget()->hide();
+
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();
   QString materialfile =
@@ -304,6 +306,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->VTKToQt->Connect(
     iStyle, vtkCommand::EndInteractionEvent,
     this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
+
+  this->ui->toolBar->addWidget(this->ui->viewScaleWidget);
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
 }
