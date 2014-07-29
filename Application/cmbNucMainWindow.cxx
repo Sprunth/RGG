@@ -306,7 +306,6 @@ cmbNucMainWindow::cmbNucMainWindow()
     this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
-  qDebug() << this->centralWidget()->size();
 }
 
 cmbNucMainWindow::~cmbNucMainWindow()
@@ -405,6 +404,8 @@ void cmbNucMainWindow::initPanels()
                      this->InputsWidget, SLOT(valueChanged()));
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
                      this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
+    QObject::connect(this->ui->Dock2D, SIGNAL(visibilityChanged(bool)),
+                     this->LatticeDraw, SLOT(redraw()));
   }
   this->PropertyWidget->setEnabled(0);
 }

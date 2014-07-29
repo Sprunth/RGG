@@ -82,4 +82,5 @@ void
 cmbNucLatticeWidget::redraw()
 {
   if(lattice == NULL) return;
+  this->draw_control->rebuild();
 }
