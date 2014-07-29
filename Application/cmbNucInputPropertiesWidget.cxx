@@ -261,6 +261,7 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pagePinCell);
       this->showPinCellEditor();
+      emit(sendLattice(NULL));
       break;
     case CMBNUC_ASSY_FRUSTUM_PIN:
     case CMBNUC_ASSY_CYLINDER_PIN:
@@ -269,6 +270,7 @@ void cmbNucInputPropertiesWidget::onReset()
     case CMBNUC_ASSY_DUCTCELL:
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageDuctCell);
       this->showDuctCellEditor();
+      emit(sendLattice(NULL));
       break;
     default:
       this->setEnabled(0);
