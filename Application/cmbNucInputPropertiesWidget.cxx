@@ -3,7 +3,6 @@
 #include "ui_qInputPropertiesWidget.h"
 
 #include "cmbNucAssembly.h"
-#include "cmbNucAssemblyEditor.h"
 #include "cmbNucCore.h"
 #include "cmbNucPinCellEditor.h"
 #include "cmbNucDuctCellEditor.h"
@@ -86,15 +85,6 @@ void cmbNucInputPropertiesWidget::initUI()
                    this, SIGNAL(apply()));
   QObject::connect(this->Internal->ResetButton, SIGNAL(clicked()),
                    this, SIGNAL(reset()));
-
-  //QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
-  //  this, SLOT(onLatticeDimensionChanged()));
-  //QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
-  //  this, SLOT(onLatticeDimensionChanged()));
-  //QObject::connect(this->Internal->coreLatticeX, SIGNAL(valueChanged(int)),
-  //  this, SLOT(onCoreDimensionChanged()));
-  //QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
-  //  this, SLOT(onCoreDimensionChanged()));
 
   QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
                    this, SIGNAL(sendXSize(int)));
@@ -441,13 +431,6 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       PinCell *pincell = this->Assembly->GetPinCell(i);
       actionList.append(pincell->label.c_str());
       }
-    if(this->Assembly->IsHexType())
-      {
-      }
-    else
-      {
-      this->Assembly->UpdateGrid();
-      }
     emit(sendLattice(this->Assembly));
     }
 }
@@ -459,18 +442,6 @@ void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
   this->Internal->PinCellEditor->Apply();
   emit this->objGeometryChanged(pincell);
   this->Internal->PinCellEditor->UpdateData();
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::onLatticeDimensionChanged()
-{
-  if(this->getAssembly() == NULL || this->getAssembly()->IsHexType()) return;
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::onCoreDimensionChanged()
-{
-  if(this->Core == NULL || this->Core->IsHexType()) return;
 }
 
 //-----------------------------------------------------------------------------
@@ -602,9 +573,6 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       this->Internal->hexLattice->blockSignals(true);
       this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
       this->Internal->hexLattice->blockSignals(false);
-      }
-    else
-      {
       }
     emit(sendLattice(nucCore));
     }

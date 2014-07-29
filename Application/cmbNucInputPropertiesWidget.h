@@ -8,7 +8,6 @@
 #include <QPointer>
 
 class cmbNucInputPropertiesWidgetInternal;
-class cmbNucAssemblyEditor;
 class cmbNucMainWindow;
 class cmbNucAssembly;
 class cmbNucCore;
@@ -82,10 +81,6 @@ protected slots:
   void applyToLattice(Lattice* lattice);
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToCore(cmbNucCore* nucCore);
-
-  // Slot for Lattice dimensions
-  void onLatticeDimensionChanged();
-  void onCoreDimensionChanged();
 
   void showPinCellEditor();
   void showDuctCellEditor();
