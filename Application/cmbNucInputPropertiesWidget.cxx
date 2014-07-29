@@ -224,6 +224,7 @@ void cmbNucInputPropertiesWidget::onReset()
         this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
         }
       this->resetCore(nucCore);
+      emit(sendLattice(nucCore));
       break;
     case CMBNUC_ASSEMBLY:
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
@@ -242,6 +243,7 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
       this->setAssembly(assy);
       this->resetAssembly(assy);
+      emit(sendLattice(assy));
       break;
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
@@ -431,7 +433,6 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
       PinCell *pincell = this->Assembly->GetPinCell(i);
       actionList.append(pincell->label.c_str());
       }
-    emit(sendLattice(this->Assembly));
     }
 }
 
@@ -534,7 +535,7 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
   QPalette palette = swatch->palette();
   palette.setColor(swatch->backgroundRole(), assy->GetLegendColor());
   swatch->setPalette(palette);
-  emit(sendLattice(assy));
+  this->resetLattice(&assy->getLattice());
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
@@ -574,7 +575,6 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
       this->Internal->hexLattice->blockSignals(false);
       }
-    emit(sendLattice(nucCore));
     }
 }
 
