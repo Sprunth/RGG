@@ -69,7 +69,7 @@ public:
 
   bool getValidRange(int layer, int & start, int & end) const;
 
-  void replaceLabel(const std::string &oldL, const std::string &newL);
+  bool replaceLabel(const std::string &oldL, const std::string &newL);
 
   enumNucPartsType GetType() const;
 

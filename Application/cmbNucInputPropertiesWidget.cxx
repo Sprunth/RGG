@@ -479,7 +479,7 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
     if(this->Core->label_unique(new_label))
     {
       //change label
-      if(this->Core->CoreLattice.replaceLabel(old_label,new_label))
+      if(this->Core->getLattice().replaceLabel(old_label,new_label))
       {
         this->Core->setAndTestDiffFromFiles(true);
       }
@@ -693,15 +693,4 @@ void cmbNucInputPropertiesWidget::chooseAssyLegendColor()
     // next time we select the core
     this->RebuildCoreGrid = true;
     }
-}
-
-void cmbNucInputPropertiesWidget::onCoreLayersChanged()
-{
-  this->HexCore->setLayers(this->Internal->hexLattice->value());
-}
-
-void cmbNucInputPropertiesWidget::onAssyLayersChanged()
-{
-  if(this->getAssembly() == NULL || !this->getAssembly()->IsHexType()) return;
-  this->HexAssy->setLayers(this->Internal->latticeX->value());
 }

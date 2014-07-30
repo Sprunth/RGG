@@ -209,18 +209,21 @@ bool Lattice::ClearCell(const std::string &label)
   return r;
 }
 
-void Lattice::replaceLabel(const std::string &oldL, const std::string &newL)
+bool Lattice::replaceLabel(const std::string &oldL, const std::string &newL)
 {
+  bool result = false;
   for(size_t i = 0; i < this->Grid.size(); i++)
   {
     for(size_t j = 0; j < this->Grid[i].size(); j++)
     {
       if(this->GetCell(i, j).label == oldL)
       {
+        result = true;
         this->SetCell(i, j, newL, Qt::white);
       }
     }
   }
+  return result;
 }
 
 enumNucPartsType Lattice::GetType() const
