@@ -22,6 +22,7 @@ class QVTKWidget;
 class cmbNucAssembly;
 class cmbNucCore;
 class PinCell;
+class DuctCell;
 class Frustum;
 class Cylinder;
 class cmbNucInputPropertiesWidget;
@@ -102,6 +103,7 @@ protected slots:
   void updateCoreMaterialColors();
   void updateAssyMaterialColors(cmbNucAssembly* assy);
   void updatePinCellMaterialColors(PinCell*);
+  void updateDuctCellMaterialColors(DuctCell*);
 
   // Change the title on the property dock based on selected object
   void updatePropertyDockTitle(const QString& title);

@@ -1,4 +1,5 @@
 #include "cmbNucDuctCell.h"
+#include "cmbNucMaterialColors.h"
 
 void DuctConnection::sendChange()
 {
@@ -16,7 +17,7 @@ Duct::Duct(double height, double thickX, double thickY)
   thickness[1] = thickY;
 }
 
-Duct::Duct(Duct * previous)
+Duct::Duct(Duct * previous, bool resize)
 {
   Connection = new DuctConnection();
   x=previous->x;
@@ -24,9 +25,17 @@ Duct::Duct(Duct * previous)
   double tz1 = previous->z1;
   double tz2 = previous->z2;
   double tl = previous->z2 - previous->z1;
-  previous->z2 = tz1 + tl*0.5;
-  z1=previous->z2;
-  z2=tz2;
+  if(resize)
+  {
+    previous->z2 = tz1 + tl*0.5;
+    z1=previous->z2;
+    z2=tz2;
+  }
+  else
+  {
+    z1=tz1;
+    z2=tz2;
+  }
   this->SetNumberOfLayers(previous->NumberOfLayers());
   thickness[0] = previous->thickness[0];
   thickness[1] = previous->thickness[1];
@@ -56,6 +65,65 @@ enumNucPartsType Duct::GetType() const
 double Duct::GetLayerThick(size_t layer, size_t t) const
 {
   return Materials[layer].getThickness()[t] * this->thickness[t];
+}
+
+void Duct::insertLayer( int a )
+{
+  if(a > this->Materials.size()) return; //Do nothing
+  this->SetNumberOfLayers(this->Materials.size()+1);
+  if(a == this->Materials.size()-1)
+  {
+    this->getNormThick(a)[0] = 1.0;
+    this->getNormThick(a)[1] = 1.0;
+    if(this->Materials.size() > 1)
+    {
+      double other[2] = {0,0};
+      if(this->Materials.size() > 2)
+      {
+        other[0] =this->getNormThick(a-2)[0];
+        other[1] =this->getNormThick(a-2)[1];
+      }
+      this->getNormThick(a-1)[0] = (other[0]+1)*0.5;
+      this->getNormThick(a-1)[1] = (other[1]+1)*0.5;
+    }
+    return;
+  }
+  for(int i = this->Materials.size()-1; i > a; --i)
+  {
+    this->setMaterial(i, this->getMaterial(i-1));
+    double * ntat = getNormThick(i);
+    double * ntatm1 = getNormThick(i-1);
+    ntat[0] = ntatm1[0];
+    ntat[1] = ntatm1[1];
+  }
+  double * r = this->getNormThick(a+1);
+  double l[2] = {0.0,0.0};
+  if(a != 0)
+  {
+    l[0] =this->getNormThick(a-1)[0];
+    l[1] =this->getNormThick(a-1)[1];
+  }
+  this->getNormThick(a)[0] = (l[0]+r[0])*0.5;
+  this->getNormThick(a)[1] = (l[1]+r[1])*0.5;
+  this->setMaterial(a, cmbNucMaterialColors::instance()->getUnknownMaterial());
+}
+
+void Duct::removeLayer( int a )
+{
+  if(this->Materials.size() == 1) return; //Must have one
+  if(a >= this->Materials.size()) return; //outside range
+
+  for(int i = a+1; i < this->Materials.size(); i++)
+  {
+    this->setMaterial(i-1, this->getMaterial(i));
+    double * ntat = getNormThick(i-1);
+    double * ntatm1 = getNormThick(i);
+    ntat[0] = ntatm1[0];
+    ntat[1] = ntatm1[1];
+  }
+  this->SetNumberOfLayers(this->Materials.size()-1);
+  this->getNormThick(this->Materials.size()-1)[0] = 1.0;
+  this->getNormThick(this->Materials.size()-1)[1] = 1.0;
 }
 
 bool Duct::operator==(const Duct& obj)
@@ -163,6 +231,7 @@ void DuctCell::AddDuct(Duct* duct)
   QObject::connect( duct->GetConnection(), SIGNAL(Changed()),
                     this->Connection, SIGNAL(Changed()) );
   this->Ducts.push_back(duct);
+  this->sort();
   this->Connection->sendChange();
 }
 
@@ -175,6 +244,20 @@ Duct * DuctCell::getDuct(int i)
 {
   if (i > this->Ducts.size()) return NULL;
   return this->Ducts[i];
+}
+
+void DuctCell::fill(DuctCell* other)
+{
+  for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    delete(this->Ducts[i]);
+  }
+  this->Ducts.resize(0);
+  for(unsigned int i = 0; i < other->Ducts.size(); ++i)
+  {
+    Duct * tmp = new Duct(other->Ducts[i], false);
+    this->AddDuct(tmp);
+  }
 }
 
 QSet< cmbNucMaterial* > DuctCell::getMaterials()
@@ -240,4 +323,23 @@ void DuctCell::setLength(double l)
     if(duct->z2 == z2) duct->z2 = l;
     else duct->z2 = (duct->z2 - z1) / prevL * l;
   }
+}
+
+bool ductComp(Duct* i,Duct* j) { return (i->z1<j->z1); }
+
+void DuctCell::sort()
+{
+  std::sort(this->Ducts.begin(), this->Ducts.end(), ductComp);
+}
+
+bool DuctCell::operator==(const DuctCell& obj)
+{
+  if(this->Ducts.size() != obj.Ducts.size()) return false;
+  for (unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    Duct * d1 = this->Ducts[i];
+    Duct * d2 = obj.Ducts[i];
+    if(! (*d1 == *d2) ) return false;
+  }
+  return true;
 }

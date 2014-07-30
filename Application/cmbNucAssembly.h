@@ -243,6 +243,10 @@ public:
                                                        bool isHex,
                                                        bool cutaway = false);
 
+  static vtkMultiBlockDataSet* CreateDuctCellMultiBlock(DuctCell *ductcell,
+                                                        bool isHex,
+                                                        bool cutaway = false);
+
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
   //Set the different from file and tests the cub file;
