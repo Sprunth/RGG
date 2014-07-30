@@ -71,20 +71,11 @@ void Lattice::SetDimensions(int i, int j, bool reset)
           // for each layer, we need 6*Layer cells
           int cols = 6*k;
           this->Grid[k].resize(cols);
+          int start, end;
+          getValidRange(k, start, end);
           for(int j = 0; j < cols; j++)
           {
-            int start  = 0;
-            if(subType != 0 && !(subType & ANGLE_360))
-            {
-              start = (subType & FLAT)?(k):(k-(k)/2);
-              cols = ((subType & FLAT)?(k+1):(((k+1)-(k+2)%2)))+start;
-              if(subType & ANGLE_30)
-              {
-                start = 2*k - k/2;
-                cols = (k%2 ? (k+1)/2 :(k+2)/2) + start;
-              }
-            }
-            if(start <= j && j < cols)
+            if(start <= j && j <= end)
             {
               this->Grid[k][j].label = "xx";
               this->Grid[k][j].color = Qt::white;
@@ -101,6 +92,27 @@ void Lattice::SetDimensions(int i, int j, bool reset)
       }
     }
   }
+}
+
+bool Lattice::getValidRange(int layer, int & start, int & end) const
+{
+  if(this->enGeometryType == HEXAGONAL)
+  {
+    start = 0;
+    end = 6*layer-1;
+    if(subType != 0 && !(subType & ANGLE_360))
+    {
+      start = (subType & FLAT)?(layer):(layer-(layer)/2);
+      end = ((subType & FLAT)?(layer+1):(((layer+1)-(layer+2)%2)))+start-1;
+      if(subType & ANGLE_30)
+      {
+        start = 2*layer - layer/2;
+        end = (layer%2 ? (layer+1)/2 :(layer+2)/2) + start - 1;
+      }
+    }
+    return true;
+  }
+  return false;
 }
 
 std::pair<int, int> Lattice::GetDimensions() const

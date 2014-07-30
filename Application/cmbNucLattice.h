@@ -67,6 +67,8 @@ public:
   void ClearCell(int i, int j);
   bool ClearCell(const std::string &label);
 
+  bool getValidRange(int layer, int & start, int & end) const;
+
   void replaceLabel(const std::string &oldL, const std::string &newL);
 
   enumNucPartsType GetType() const;
