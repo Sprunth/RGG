@@ -185,19 +185,21 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Actor->SetMapper(this->Mapper.GetPointer());
   this->Actor->GetProperty()->SetShading(1);
   this->Actor->GetProperty()->SetInterpolationToPhong();
-// this->Actor->GetProperty()->EdgeVisibilityOn();
   this->Renderer->AddActor(this->Actor);
 
   CubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
   CubeAxesActor->SetCamera(this->Renderer->GetActiveCamera());
   CubeAxesActor->GetTitleTextProperty(0)->SetColor(1.0, 0.0, 0.0);
   CubeAxesActor->GetLabelTextProperty(0)->SetColor(1.0, 0.0, 0.0);
+  CubeAxesActor->GetLabelTextProperty(0)->SetOrientation(90);
 
   CubeAxesActor->GetTitleTextProperty(1)->SetColor(0.0, 1.0, 0.0);
   CubeAxesActor->GetLabelTextProperty(1)->SetColor(0.0, 1.0, 0.0);
+  CubeAxesActor->GetLabelTextProperty(1)->SetOrientation(90);
 
   CubeAxesActor->GetTitleTextProperty(2)->SetColor(0.0, 0.5, 1.0);
   CubeAxesActor->GetLabelTextProperty(2)->SetColor(0.0, 0.5, 1.0);
+  CubeAxesActor->GetLabelTextProperty(2)->SetOrientation(90);
 
   CubeAxesActor->DrawXGridlinesOn();
   CubeAxesActor->DrawYGridlinesOn();
@@ -227,11 +229,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
   this->Mapper->SetCompositeDataDisplayAttributes(attributes);
   attributes->Delete();
-
-  // add axes actor
-  //vtkAxesActor *axesActor = vtkAxesActor::New();
-  //this->Renderer->AddActor(axesActor);
-  //axesActor->Delete();
 
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
