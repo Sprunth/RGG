@@ -409,6 +409,9 @@ void cmbNucMainWindow::initPanels()
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
                      this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
 
+    QObject::connect(this->PropertyWidget, SIGNAL(sendLatticeFullMode(cmbNucDraw2DLattice::CellDrawMode)),
+                     this->LatticeDraw,    SLOT(set_full_mode(cmbNucDraw2DLattice::CellDrawMode)));
+
     QObject::connect(this->PropertyWidget, SIGNAL(select3DModelView()),
                      this->ui->Dock3D,     SLOT(raise()));
   }

@@ -17,7 +17,7 @@
 
 cmbNucDraw2DLattice::cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape,
     QWidget* parent, Qt::WindowFlags f)
-      : QGraphicsView(parent), ItemShape(shape), CurrentLattice(NULL)
+      : QGraphicsView(parent), ItemShape(shape), CurrentLattice(NULL), FullCellMode(HEX_FULL)
 {
   setScene(&this->Canvas);
   setInteractive(true);
@@ -112,6 +112,11 @@ void cmbNucDraw2DLattice::setLatticeContainer(LatticeContainer* l)
 {
   this->CurrentLattice = l;
   if(l) this->Grid.enGeometryType = l->getLattice().enGeometryType;
+}
+
+void cmbNucDraw2DLattice::setFullCellMode(CellDrawMode m)
+{
+  FullCellMode = m;
 }
 
 void cmbNucDraw2DLattice::addCell(
@@ -249,7 +254,7 @@ void cmbNucDraw2DLattice::rebuild()
         centerPos[1] = 0;
         if(this->Grid.subType & ANGLE_360)
           {
-          this->addCell(centerPos, hexRadius, i, 0, HEX_FULL);
+          this->addCell(centerPos, hexRadius, i, 0, FullCellMode);
           }
         else if(this->Grid.subType & ANGLE_60 &&
                 this->Grid.subType & FLAT)
@@ -276,7 +281,8 @@ void cmbNucDraw2DLattice::rebuild()
           // draw the corner hex
 
           if(( this->Grid.subType & ANGLE_60 &&
-               this->Grid.subType & VERTEX ))
+               this->Grid.subType & VERTEX ) ||
+             ( this->Grid.subType & ANGLE_360 && FullCellMode == HEX_FULL_30 ) )
             {
             angle = 2 * (vtkMath::Pi() / 6.0) * ((c+1)%6 + 3.5);
             }
@@ -337,7 +343,7 @@ cmbNucDraw2DLattice::CellDrawMode cmbNucDraw2DLattice::getHexDrawMode(int index,
 {
   if(this->Grid.subType & ANGLE_360)
   {
-    return HEX_FULL;
+    return FullCellMode;
   }
   else if( this->Grid.subType & ANGLE_60 &&
            this->Grid.subType & FLAT )

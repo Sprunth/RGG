@@ -224,6 +224,7 @@ void cmbNucInputPropertiesWidget::onReset()
         this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
         }
       this->resetCore(nucCore);
+      sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL);
       emit(sendLattice(nucCore));
       break;
     case CMBNUC_ASSEMBLY:
@@ -243,6 +244,15 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
       this->setAssembly(assy);
       this->resetAssembly(assy);
+      if( this->Core->getLattice().subType & ANGLE_60 &&
+          this->Core->getLattice().subType & VERTEX )
+        {
+        sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL);
+        }
+      else
+        {
+        sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL_30);
+        }
       emit(sendLattice(assy));
       break;
     case CMBNUC_ASSY_PINCELL:

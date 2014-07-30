@@ -2,6 +2,7 @@
 #define __cmbNucLatticeWidget_h
 
 #include <QWidget>
+#include "cmbNucDraw2DLattice.h"
 
 class cmbNucDraw2DLattice;
 class cmbNucAssembly;
@@ -24,13 +25,12 @@ public slots:
   void apply();
   void reset();
   void redraw();
+  void set_full_mode(cmbNucDraw2DLattice::CellDrawMode m);
 signals:
   void valuesChanged();
   void objGeometryChanged(AssyPartObj* selObj);
 protected:
   LatticeContainer * lattice;
-  //cmbNucAssembly * assy;
-  //cmbNucCore     * core;
   cmbNucDraw2DLattice * draw_control;
 };
 #endif

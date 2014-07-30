@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "cmbNucPartDefinition.h"
 #include "cmbNucLattice.h"
+#include "cmbNucDraw2DLattice.h"
 #include <QStringList>
 #include <QPointer>
 
@@ -52,6 +53,7 @@ signals:
   void valuesChanged();
   void resetView();
   void sendLattice(LatticeContainer *);
+  void sendLatticeFullMode(cmbNucDraw2DLattice::CellDrawMode);
   void apply();
   void reset();
   void sendXSize(int i);

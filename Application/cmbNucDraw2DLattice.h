@@ -36,6 +36,7 @@ public:
   void setActions(const QStringList& actions);
   void setItemShape(DrawLatticeItem::ShapeStyle shapetype);
   void setLatticeContainer(LatticeContainer* l);
+  void setFullCellMode(CellDrawMode m);
 
 public slots:
   void clear();
@@ -56,6 +57,8 @@ private:
   LatticeContainer* CurrentLattice;
   QGraphicsScene Canvas;
   Lattice Grid;
+
+  CellDrawMode FullCellMode;
 
   QStringList ActionList;
   DrawLatticeItem::ShapeStyle ItemShape;
