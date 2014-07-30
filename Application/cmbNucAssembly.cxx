@@ -104,7 +104,32 @@ cmbNucAssembly::Section::apply( vtkMultiBlockDataSet * input,
   normal[0] /= sum;
   normal[1] /= sum;
   normal[2] /= sum;
-  cmbNucAssembly::clip(input, output, normal);
+  int block = 0;
+  for(; block < input->GetNumberOfBlocks()-1; block++)
+  {
+    if(vtkDataObject* objBlock = input->GetBlock(block))
+    {
+      if(vtkMultiBlockDataSet* pin =
+         vtkMultiBlockDataSet::SafeDownCast(objBlock))
+      {
+        vtkSmartPointer<vtkMultiBlockDataSet> clipPart = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+        clipPart->SetNumberOfBlocks(pin->GetNumberOfBlocks());
+        clip(pin, clipPart, normal, 1);
+        output->SetBlock(block, clipPart);
+      }
+    }
+  }
+  if(vtkDataObject* objBlock = input->GetBlock(block))
+  {
+    if(vtkMultiBlockDataSet* duct =
+       vtkMultiBlockDataSet::SafeDownCast(objBlock))
+    {
+      vtkSmartPointer<vtkMultiBlockDataSet> clipPart = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+      clipPart->SetNumberOfBlocks(duct->GetNumberOfBlocks());
+      clip(duct, clipPart, normal, 0);
+      output->SetBlock(block, clipPart);
+    }
+  }
 }
 
 std::ostream&
