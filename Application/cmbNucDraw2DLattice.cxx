@@ -239,8 +239,20 @@ void cmbNucDraw2DLattice::rebuild()
 
   if(CurrentLattice->IsHexType())
   {
+    if(this->Grid.subType & ANGLE_60)
+    {
+      squareLength = std::min(this->width(), static_cast<int>(this->height()*1.3));
+    }
+    else if(this->Grid.subType & ANGLE_30)
+    {
+      squareLength = std::min(this->width(), static_cast<int>(this->height()*1.6));
+    }
     double hexRadius, hexDiameter, layerRadius;
     hexDiameter = squareLength / (double)(3 * numLayers + 1);
+    if(!(this->Grid.subType & ANGLE_360))
+    {
+      hexDiameter *= 1.8;
+    }
     hexDiameter = std::max(hexDiameter, 20.0); // Enforce minimum size for hexes
     hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
     int begin, end;
@@ -273,7 +285,8 @@ void cmbNucDraw2DLattice::rebuild()
         }
       else
         {
-        layerRadius = hexDiameter * (2 * i);
+        /*if(this->Grid.subType & ANGLE_360)*/ layerRadius = hexDiameter * (2 * i);
+        /*else layerRadius = hexDiameter * i;*/
         int cellIdx = 0;
         for(int c = 0; c < 6; c++)
           {
