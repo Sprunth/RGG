@@ -609,3 +609,13 @@ void cmbNucCore::sendDefaults()
     assys[i]->setFromDefaults(this->Defaults);
   }
 }
+
+bool cmbNucCore::label_unique(std::string & n)
+{
+  std::vector< cmbNucAssembly* > assys = this->Assemblies;
+  for(unsigned int i = 0; i < assys.size(); ++i)
+  {
+    if(assys[i]->getLabel() == n) return false;
+  }
+  return true;
+}

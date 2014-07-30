@@ -208,6 +208,8 @@ public:
   cmbNucAssembly* GetAssembly(const std::string &label);
   cmbNucAssembly* GetAssembly(int idx);
 
+  bool label_unique(std::string & n);
+
   std::vector< cmbNucAssembly* > GetUsedAssemblies();
 
   // Return the number of assemblies in the core
