@@ -28,6 +28,7 @@ install(DIRECTORY
         DESTINATION ExampleModels)
 
 install(PROGRAMS ${install_location}/lib/RGGNuclear DESTINATION "lib")
+install(FILES ${install_location}/lib/materialcolors.ini DESTINATION "lib")
 
 
 install(CODE
