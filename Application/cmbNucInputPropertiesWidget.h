@@ -101,11 +101,9 @@ private:
   cmbNucAssembly *Assembly;
   cmbNucCore *Core;
   cmbNucMainWindow *MainWindow;
-  cmbCoreParametersWidget* HexCoreProperties;
-  cmbCoreParametersWidget* RectCoreProperties;
+  cmbCoreParametersWidget* CoreProperties;
   cmbAssyParametersWidget* assyConf;
-  QPointer<cmbNucDefaultWidget> hexCoreDefaults;
-  QPointer<cmbNucDefaultWidget> rectCoreDefaults;
+  QPointer<cmbNucDefaultWidget> CoreDefaults;
   QPointer<cmbNucDefaultWidget> assyDefaults;
 };
 #endif

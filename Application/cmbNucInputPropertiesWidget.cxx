@@ -56,22 +56,15 @@ cmbNucInputPropertiesWidget::~cmbNucInputPropertiesWidget()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::initUI()
 {
-  this->HexCoreProperties = new cmbCoreParametersWidget(this);
-  this->Internal->hexCoreConfLayout->addWidget(this->HexCoreProperties);
-  connect(this->HexCoreProperties, SIGNAL(valuesChanged()),
-          this, SIGNAL(valuesChanged()));
-  this->RectCoreProperties = new cmbCoreParametersWidget(this);
-  this->Internal->rectCoreConfLayout->addWidget(this->RectCoreProperties);
-  connect(this->RectCoreProperties, SIGNAL(valuesChanged()),
+  this->CoreProperties = new cmbCoreParametersWidget(this);
+  this->Internal->CoreConfLayout->addWidget(this->CoreProperties);
+  connect(this->CoreProperties, SIGNAL(valuesChanged()),
           this, SIGNAL(valuesChanged()));
 
   this->assyConf = new cmbAssyParametersWidget(this);
   this->Internal->AssyConfLayout->addWidget(this->assyConf);
   connect(this->assyConf, SIGNAL(valuesChanged()),
           this, SIGNAL(valuesChanged()));
-
-  //this->CoreProperties->hide();
-  //todo::add thins
 
   this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
   this->Internal->assyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
@@ -92,8 +85,6 @@ void cmbNucInputPropertiesWidget::initUI()
                    this, SIGNAL(sendXSize(int)));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
                    this, SIGNAL(sendYSize(int)));
-  QObject::connect(this->Internal->hexLattice, SIGNAL(valueChanged(int)),
-                   this, SIGNAL(sendXSize(int)));
 
   // pincell related connections
   QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
@@ -101,13 +92,10 @@ void cmbNucInputPropertiesWidget::initUI()
   QObject::connect(this->Internal->assyColorSelectButton, SIGNAL(clicked()),
     this, SLOT(chooseAssyLegendColor()));
 
-  hexCoreDefaults = new cmbNucDefaultWidget();
-  this->Internal->hexCoreDefaults->addWidget(hexCoreDefaults);
-  rectCoreDefaults = new cmbNucDefaultWidget();
-  this->Internal->rectCoreDefaults->addWidget(rectCoreDefaults);
+  CoreDefaults = new cmbNucDefaultWidget();
+  this->Internal->CoreDefaults->addWidget(CoreDefaults);
 
-  connect( hexCoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
-  connect( rectCoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
+  connect( CoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
 
   assyDefaults = new cmbNucDefaultWidget();
   this->Internal->AssyDefaults->addWidget(assyDefaults);
@@ -213,15 +201,17 @@ void cmbNucInputPropertiesWidget::onReset()
     {
     case CMBNUC_CORE:
       nucCore = dynamic_cast<cmbNucCore*>(selObj);
+      this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
+      this->CoreDefaults->set(nucCore->GetDefaults(), true, nucCore->IsHexType());
+      this->Internal->coreLabelY->setVisible(!nucCore->IsHexType());
+      this->Internal->coreLatticeY->setVisible(!nucCore->IsHexType());
       if(nucCore->IsHexType())
         {
-          this->hexCoreDefaults->set(nucCore->GetDefaults(), true, true);
-          this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageHexCore);
+        this->Internal->coreLabelX->setText("Number Of Layers:");
         }
       else
         {
-        this->rectCoreDefaults->set(nucCore->GetDefaults(), true, false);
-        this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
+        this->Internal->coreLabelX->setText("X:");
         }
       this->resetCore(nucCore);
       sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL);
@@ -231,11 +221,10 @@ void cmbNucInputPropertiesWidget::onReset()
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
       this->Internal->AssemblyLabelY->setVisible(!assy->IsHexType());
       this->Internal->latticeY->setVisible(!assy->IsHexType());
-      this->Internal->latticecontainerLayout_2->setVisible(!assy->IsHexType()); //rect
       this->assyDefaults->set(assy->Defaults, false, assy->IsHexType());
       if(assy->IsHexType())
         {
-        this->Internal->AssemblyLabelX->setText("Number Of Layers");
+        this->Internal->AssemblyLabelX->setText("Number Of Layers:");
         }
       else
         {
@@ -507,34 +496,23 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
   assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
 }
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
   bool changed = false;
-  if(nucCore->IsHexType())
+  if(this->CoreDefaults->assyPitchChanged())
     {
-    if(this->hexCoreDefaults->assyPitchChanged())
-      {
-      changed = true;
-      nucCore->setAndTestDiffFromFiles(true);
-      }
-    this->HexCoreProperties->applyToCore(nucCore);
-    this->hexCoreDefaults->apply();
+    changed = true;
+    nucCore->setAndTestDiffFromFiles(true);
     }
-  else
-    {
-    if(this->rectCoreDefaults->assyPitchChanged())
-      {
-      changed = true;
-      nucCore->setAndTestDiffFromFiles(true);
-      }
-    this->RectCoreProperties->applyToCore(nucCore);
-    this->rectCoreDefaults->apply();
-    }
+  this->CoreProperties->applyToCore(nucCore);
+  this->CoreDefaults->apply();
   nucCore->sendDefaults();
   if(changed) emit valuesChanged();
   emit this->objGeometryChanged(nucCore);
 }
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 {
@@ -556,10 +534,8 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
   if(nucCore)
     {
     this->Core = nucCore;
-    this->HexCoreProperties->setCore(nucCore);
-    this->HexCoreProperties->resetCore(nucCore);
-    this->RectCoreProperties->setCore(nucCore);
-    this->RectCoreProperties->resetCore(nucCore);
+    this->CoreProperties->setCore(nucCore);
+    this->CoreProperties->resetCore(nucCore);
     this->Internal->coreLatticeX->blockSignals(true);
     this->Internal->coreLatticeY->blockSignals(true);
     this->Internal->coreLatticeX->setValue(nucCore->GetDimensions().first);
@@ -581,12 +557,6 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       {
       cmbNucAssembly *assy = nucCore->GetAssembly(i);
       actionList.append(assy->label.c_str());
-      }
-    if(nucCore->IsHexType())
-      {
-      this->Internal->hexLattice->blockSignals(true);
-      this->Internal->hexLattice->setValue(nucCore->GetDimensions().first);
-      this->Internal->hexLattice->blockSignals(false);
       }
     }
 }
