@@ -59,6 +59,7 @@ signals:
   void sendXSize(int i);
   void sendYSize(int i);
   void select3DModelView();
+  void checkSaveAndGenerate();
 
 public slots:
   void colorChanged();

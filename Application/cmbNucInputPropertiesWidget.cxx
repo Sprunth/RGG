@@ -487,6 +487,7 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
       this->Internal->AssyLabel->setText(new_label.c_str());
       emit currentObjectNameChanged( assy->getTitle().c_str() );
       emit sendLabelChange( QString(new_label.c_str()) );
+      emit checkSaveAndGenerate();
     }
     else
     {

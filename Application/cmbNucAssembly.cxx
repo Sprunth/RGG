@@ -1083,7 +1083,6 @@ void cmbNucAssembly::setLabel(std::string & n)
 {
   if(this->label != n)
   {
-    this->setAndTestDiffFromFiles(true);
     this->label = n;
   }
 }
