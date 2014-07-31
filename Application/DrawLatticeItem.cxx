@@ -93,7 +93,7 @@ void DrawLatticeItem::paint(QPainter* painter,
     {
     this->drawCircle(painter);
     }
-  else if(this->m_shape == DrawLatticeItem::Hexagon || this->m_shape == DrawLatticeItem::Rectangle)
+  else if(this->m_shape == DrawLatticeItem::Polygon)
     {
     this->Superclass::paint(painter, option, widget);
     }

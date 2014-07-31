@@ -10,7 +10,7 @@ cmbNucLatticeWidget::cmbNucLatticeWidget(QWidget * parent)
 :QWidget(parent), lattice(NULL)
 {
   QVBoxLayout * box = new  QVBoxLayout();
-  draw_control = new cmbNucDraw2DLattice(DrawLatticeItem::Hexagon, NULL);
+  draw_control = new cmbNucDraw2DLattice(DrawLatticeItem::Polygon, NULL);
   box->addWidget(draw_control);
   this->setLayout(box);
 }

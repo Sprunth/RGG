@@ -11,8 +11,7 @@ public:
   enum ShapeStyle
     {
     Circle = 0,
-    Hexagon = 1,
-    Rectangle = 2
+    Polygon = 1
     };
 
     DrawLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
