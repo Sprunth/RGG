@@ -55,8 +55,6 @@ signals:
 
   void pinsModified(cmbNucAssembly*);
   void assembliesModified(cmbNucCore*);
-  void switchToModelTab();
-  void switchToNonModelTab(int);
 
   void deleteCore();
 

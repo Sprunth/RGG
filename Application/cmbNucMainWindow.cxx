@@ -409,8 +409,6 @@ void cmbNucMainWindow::initPanels()
     QObject::connect(this->ExportDialog, SIGNAL(finished(QString)),
             this->Internal->MoabSource, SLOT(openFile(QString)));
     QObject::connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
-    QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab(int)),
-                     this, SLOT(onChangeFromModelTab(int)));
     QObject::connect(this->ui->drawEdges, SIGNAL(clicked(bool)),
                      this, SLOT(onChangeMeshEdgeMode(bool)));
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
@@ -1533,19 +1531,6 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
   {
     this->MeshRenderer->Render();
     this->ui->qvtkMeshWidget->update();
-  }
-}
-
-void cmbNucMainWindow::onChangeFromModelTab(int i)
-{
-  if(i == 0)
-  {
-#ifdef BUILD_WITH_MOAB
-    vtkProperty* property = this->Actor->GetProperty();
-    property->SetEdgeVisibility(0);
-    disconnect(this->Internal->MoabSource, SIGNAL(update()),
-               this, SLOT(onSelectionChange()));
-#endif
   }
 }
 

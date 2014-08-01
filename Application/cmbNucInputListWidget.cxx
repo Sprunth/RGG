@@ -287,22 +287,12 @@ void cmbNucInputListWidget::initUI()
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onTabChanged(int currentTab)
 {
-  if(currentTab == 0) // parts
+  if(currentTab == 1) // materials
     {
-    this->onPartsSelectionChanged();
-    emit switchToNonModelTab(0);
-    }
-  else if(currentTab == 1) // materials
-    {
-    emit switchToNonModelTab(1);
     bool is_checked = this->Internal->showJustUsedMaterial->isChecked();
     cmbNucMaterialColors::instance()->showJustUsed(is_checked);
     }
-  else if(currentTab) //model
-    {
-    emit(switchToModelTab());
-    }
-}
+ }
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::setActionsEnabled(bool val)
 {
