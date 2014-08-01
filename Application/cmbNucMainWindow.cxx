@@ -94,7 +94,15 @@ public:
   vtkSmartPointer<vtkMultiBlockDataSet> CurrentDataset;
   DuctCell* CurrentDuctCell;
   PinCell* CurrentPinCell;
-  double Bounds[6];
+  bool CamerasLinked;
+  vtkSmartPointer<vtkCamera> UnlinkCameraModel;
+  vtkSmartPointer<vtkCamera> UnlinkCameraMesh;
+  vtkSmartPointer<vtkCamera> LinkCamera;
+  bool MeshOpen;
+  bool IsCoreView;
+  bool IsFullMesh;
+  double BoundsModel[6];
+  double BoundsMesh[6];
 };
 
 int numAssemblyDefaultColors = 42;
@@ -174,6 +182,9 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
   Internal = new NucMainInternal();
+  this->Internal->IsCoreView = false;
+  this->Internal->IsFullMesh = false;
+  this->Internal->CamerasLinked = false;
 #ifdef BUILD_WITH_MOAB
   this->Internal->MoabSource = NULL;
 #endif
@@ -214,6 +225,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->MeshRenderer->AddActor(this->MeshActor);
 
   CubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
+  MeshCubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
   CubeAxesActor->SetCamera(this->Renderer->GetActiveCamera());
   CubeAxesActor->GetTitleTextProperty(0)->SetColor(1.0, 0.0, 0.0);
   CubeAxesActor->GetLabelTextProperty(0)->SetColor(1.0, 0.0, 0.0);
@@ -238,10 +250,37 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   CubeAxesActor->SetGridLineLocation(VTK_GRID_LINES_FURTHEST);
 
-  this->Renderer->AddActor(CubeAxesActor);
-  this->MeshRenderer->AddActor(CubeAxesActor);
+  MeshCubeAxesActor->SetCamera(this->Renderer->GetActiveCamera());
+  MeshCubeAxesActor->GetTitleTextProperty(0)->SetColor(1.0, 0.0, 0.0);
+  MeshCubeAxesActor->GetLabelTextProperty(0)->SetColor(1.0, 0.0, 0.0);
+  MeshCubeAxesActor->GetLabelTextProperty(0)->SetOrientation(90);
 
-  this->MeshRenderer->SetActiveCamera(Renderer->GetActiveCamera());
+  MeshCubeAxesActor->GetTitleTextProperty(1)->SetColor(0.0, 1.0, 0.0);
+  MeshCubeAxesActor->GetLabelTextProperty(1)->SetColor(0.0, 1.0, 0.0);
+  MeshCubeAxesActor->GetLabelTextProperty(1)->SetOrientation(90);
+
+  MeshCubeAxesActor->GetTitleTextProperty(2)->SetColor(0.0, 0.5, 1.0);
+  MeshCubeAxesActor->GetLabelTextProperty(2)->SetColor(0.0, 0.5, 1.0);
+  MeshCubeAxesActor->GetLabelTextProperty(2)->SetOrientation(90);
+
+  MeshCubeAxesActor->DrawXGridlinesOn();
+  MeshCubeAxesActor->DrawYGridlinesOn();
+  MeshCubeAxesActor->DrawZGridlinesOn();
+
+  MeshCubeAxesActor->XAxisMinorTickVisibilityOn();
+  MeshCubeAxesActor->YAxisMinorTickVisibilityOn();
+  MeshCubeAxesActor->ZAxisMinorTickVisibilityOn();
+  MeshCubeAxesActor->SetRebuildAxes(true);
+
+  MeshCubeAxesActor->SetGridLineLocation(VTK_GRID_LINES_FURTHEST);
+
+  this->Renderer->AddActor(CubeAxesActor);
+  this->MeshRenderer->AddActor(MeshCubeAxesActor);
+
+  this->Internal->UnlinkCameraMesh = MeshRenderer->GetActiveCamera();
+  this->Internal->UnlinkCameraModel = Renderer->GetActiveCamera();
+  this->Internal->LinkCamera = Renderer->MakeCamera();
+  //this->Internal->UnlinkCamera = Renderer->MakeCamera();
   this->Renderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerMesh);
   this->MeshRenderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerModel);
 
@@ -252,7 +291,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Internal->CurrentDataset = cone->GetOutput();
   vtkBoundingBox box;
   computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->Bounds);
+  box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
   cone->Delete();
@@ -343,7 +382,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 
 void cmbNucMainWindow::CameraMovedHandlerModel()
 {
-  if(isCameraIsMoving) return;
+  if(isCameraIsMoving || !this->Internal->CamerasLinked) return;
   isCameraIsMoving = true;
   this->ui->qvtkWidget->GetRenderWindow()->Render();
   isCameraIsMoving = false;
@@ -351,13 +390,10 @@ void cmbNucMainWindow::CameraMovedHandlerModel()
 
 void cmbNucMainWindow::CameraMovedHandlerMesh()
 {
-  if(isCameraIsMoving) return;
-  if( isMeshTabVisible() )
-  {
-    isCameraIsMoving = true;
-    this->ui->qvtkMeshWidget->GetRenderWindow()->Render();
-    isCameraIsMoving = false;
-  }
+  if(isCameraIsMoving || !this->Internal->CamerasLinked || !isMeshTabVisible()) return;
+  isCameraIsMoving = true;
+  this->ui->qvtkMeshWidget->GetRenderWindow()->Render();
+  isCameraIsMoving = false;
 }
 
 cmbNucMainWindow::~cmbNucMainWindow()
@@ -406,6 +442,7 @@ void cmbNucMainWindow::initPanels()
   {
     delete(this->Internal->MoabSource);
     this->Internal->MoabSource = new cmbNucCoregen(this->ui->meshSubcomponent);
+    this->Internal->MeshOpen = false;
     QObject::connect(this->ExportDialog, SIGNAL(finished(QString)),
             this->Internal->MoabSource, SLOT(openFile(QString)));
     QObject::connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
@@ -484,11 +521,13 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
     {
     this->updateCoreMaterialColors();
     this->ResetView();
+    this->setCameras(true, this->Internal->IsFullMesh);
     }
   else if( selObj->GetType() == CMBNUC_ASSY_PINCELL ||
           selObj->GetType() == CMBNUC_ASSY_CYLINDER_PIN ||
           selObj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN )
     {
+    this->setCameras(false, this->Internal->IsFullMesh);
     PinCell* selPin = NULL;
     if(selObj->GetType() == CMBNUC_ASSY_PINCELL)
       {
@@ -510,14 +549,16 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
     }
   else if( selObj->GetType() == CMBNUC_ASSY_DUCTCELL)
     {
+    this->setCameras(false, this->Internal->IsFullMesh);
     DuctCell* selDuct = dynamic_cast<DuctCell*>(selObj);
     if(selDuct)
     {
       this->ResetView();
     }
     }
-  else // assemblies or ducts
+  else // assemblies
     {
+    this->setCameras(false, this->Internal->IsFullMesh);
     cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
     this->updateAssyMaterialColors(assy);
     this->ResetView();
@@ -548,6 +589,7 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
       PinCell* selPin = dynamic_cast<PinCell*>(obj);
       if(selPin)
         {
+        this->setCameras(false, this->Internal->IsFullMesh);
         this->Internal->CurrentPinCell = selPin;
         this->updatePinCellMaterialColors(selPin);
         }
@@ -557,6 +599,7 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
       DuctCell * dc = dynamic_cast<DuctCell*>(obj);
       if(dc)
       {
+        this->setCameras(false, this->Internal->IsFullMesh);
         this->Internal->CurrentDuctCell = dc;
         this->updateDuctCellMaterialColors(dc);
       }
@@ -565,6 +608,7 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
       {
       this->updateAssyMaterialColors(assy);
       }
+    //this->Render();
     this->ui->qvtkWidget->update();
     }
 }
@@ -857,11 +901,43 @@ void cmbNucMainWindow::onFileOpenMoab()
   this->ui->meshControls->setVisible(true);
   this->ui->meshSubcomponent->setVisible(true);
   this->ui->drawEdges->setVisible(true);
-  if(!this->InputsWidget->isEnabled())
-  {
-    this->InputsWidget->switchToMesh();
-  }
+  this->Internal->MeshOpen = true;
 #endif
+}
+
+void cmbNucMainWindow::setCameras(bool coreModel, bool fullMesh)
+{
+  if( coreModel && fullMesh && !this->Internal->CamerasLinked)
+  {
+    this->Internal->CamerasLinked = true;
+    if(this->Internal->IsFullMesh != fullMesh && coreModel == this->Internal->IsCoreView)
+      this->Internal->LinkCamera->DeepCopy(this->Renderer->GetActiveCamera());
+    else if(this->Internal->IsFullMesh == fullMesh && coreModel != this->Internal->IsCoreView)
+      this->Internal->LinkCamera->DeepCopy(this->MeshRenderer->GetActiveCamera());
+    this->Renderer->SetActiveCamera(this->Internal->LinkCamera);
+    this->MeshRenderer->SetActiveCamera(this->Internal->LinkCamera);
+    setScaledBounds();
+    if(this->isMeshTabVisible())
+    {
+      this->ui->qvtkMeshWidget->update();
+    }
+  }
+  else if( this->Internal->CamerasLinked &&
+           (coreModel != this->Internal->IsCoreView ||
+            fullMesh != this->Internal->IsFullMesh) )
+  {
+    this->Internal->CamerasLinked = false;
+    this->Internal->UnlinkCameraMesh->DeepCopy(this->MeshRenderer->GetActiveCamera());
+    this->Internal->UnlinkCameraModel->DeepCopy(this->Renderer->GetActiveCamera());
+    this->Renderer->SetActiveCamera(this->Internal->UnlinkCameraModel);
+    this->MeshRenderer->SetActiveCamera(this->Internal->UnlinkCameraMesh);
+    if(this->isMeshTabVisible())
+    {
+      this->ui->qvtkMeshWidget->update();
+    }
+  }
+  this->Internal->IsCoreView = coreModel;
+  this->Internal->IsFullMesh = fullMesh;
 }
 
 void cmbNucMainWindow::onSaveSelected()
@@ -1073,7 +1149,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->Internal->CurrentDataset = NULL;
   vtkBoundingBox box;
   computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->Bounds);
+  box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
 
   this->Mapper->SetInputDataObject(NULL);
@@ -1122,17 +1198,25 @@ void cmbNucMainWindow::clearCore()
 
 void cmbNucMainWindow::setScaledBounds()
 {
-  if(this->Internal->Bounds != NULL)
+  double * bounds1;
+  double * bounds2;
+  if(this->Internal->CamerasLinked)
   {
-    this->CubeAxesActor->SetBounds(this->Internal->Bounds[0],
-                                   this->Internal->Bounds[1],
-                                   this->Internal->Bounds[2],
-                                   this->Internal->Bounds[3],
-                                   this->Internal->Bounds[4]*this->ZScale,
-                                   this->Internal->Bounds[5]*this->ZScale);
-    this->CubeAxesActor->SetZAxisRange(this->Internal->Bounds[4],
-                                       this->Internal->Bounds[5]);
+    bounds1 = bounds2 = this->Internal->BoundsMesh;
   }
+  else
+  {
+    bounds1 = this->Internal->BoundsModel;
+    bounds2 = this->Internal->BoundsMesh;
+  }
+  this->CubeAxesActor->SetBounds( bounds1[0], bounds1[1], bounds1[2], bounds1[3],
+                                  bounds1[4]*this->ZScale, bounds1[5]*this->ZScale);
+  this->CubeAxesActor->SetZAxisRange(bounds1[4], bounds1[5]);
+  this->CubeAxesActor->SetCamera(this->Renderer->GetActiveCamera());
+  this->MeshCubeAxesActor->SetBounds( bounds2[0], bounds2[1], bounds2[2], bounds2[3],
+                                      bounds2[4]*this->ZScale, bounds2[5]*this->ZScale);
+  this->MeshCubeAxesActor->SetZAxisRange( bounds2[4], bounds2[5]);
+  this->MeshCubeAxesActor->SetCamera(this->MeshRenderer->GetActiveCamera());
 }
 
 void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
@@ -1144,7 +1228,7 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
   this->Internal->CurrentDataset = pin->CachedData;
   vtkBoundingBox box;
   computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->Bounds);
+  box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
 
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
@@ -1182,7 +1266,7 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
   this->Internal->CurrentDataset = dc->CachedData;
   vtkBoundingBox box;
   computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->Bounds);
+  box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
 
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
@@ -1221,7 +1305,7 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
   cmbNucCore::transformData(assy->GetData(),this->Internal->CurrentDataset, transform.GetPointer());
   vtkBoundingBox box;
   computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->Bounds);
+  box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
 
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
@@ -1260,7 +1344,7 @@ void cmbNucMainWindow::updateCoreMaterialColors()
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
   vtkBoundingBox box;
   computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->Bounds);
+  box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
   if(!this->Internal->CurrentDataset)
     {
@@ -1311,7 +1395,17 @@ void cmbNucMainWindow::zScaleChanged(int value)
   this->Actor->SetScale(1, 1, this->ZScale);
   this->MeshActor->SetScale(1, 1, this->ZScale);
   this->setScaledBounds();
-  this->ResetView();
+  this->CubeAxesActor->Modified();
+  this->Renderer->Modified();
+  this->Renderer->ResetCamera();
+  this->ui->qvtkWidget->update();
+
+  if(!this->Internal->CamerasLinked && this->isMeshTabVisible())
+  {
+    this->MeshRenderer->Modified();
+    this->MeshRenderer->ResetCamera();
+    this->ui->qvtkMeshWidget->update();
+  }
 
   emit updateGlobalZScale(this->ZScale);
 }
@@ -1370,13 +1464,15 @@ void cmbNucMainWindow::onChangeToModelTab()
 
 void cmbNucMainWindow::onSelectionChange()
 {
+#ifdef BUILD_WITH_MOAB
   this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
   this->onChangeMeshEdgeMode(this->ui->drawEdges->isChecked());
-#ifdef BUILD_WITH_MOAB
+  int sel = this->Internal->MoabSource->getSelectedType();
+  this->setCameras(this->Internal->IsCoreView, sel == 0 || sel == 3 || sel == 5);
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
   vtkBoundingBox box;
   computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
-  box.GetBounds(this->Internal->Bounds);
+  box.GetBounds(this->Internal->BoundsMesh);
   setScaledBounds();
 #endif
   if( isMeshTabVisible() )
@@ -1646,10 +1742,17 @@ void cmbNucMainWindow::setAxis(bool ison)
   if(ison)
   {
     this->CubeAxesActor->VisibilityOn();
+    this->MeshCubeAxesActor->VisibilityOn();
   }
   else
   {
     this->CubeAxesActor->VisibilityOff();
+    this->MeshCubeAxesActor->VisibilityOff();
   }
   this->Render();
+  if(!this->Internal->CamerasLinked && this->isMeshTabVisible())
+  {
+    this->MeshRenderer->Modified();
+    this->ui->qvtkMeshWidget->update();
+  }
 }

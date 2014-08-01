@@ -132,6 +132,7 @@ private:
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
   vtkSmartPointer<vtkCompositePolyDataMapper2> MeshMapper;
   vtkSmartPointer<vtkCubeAxesActor> CubeAxesActor;
+  vtkSmartPointer<vtkCubeAxesActor> MeshCubeAxesActor;
   vtkSmartPointer<vtkActor> Actor;
   vtkSmartPointer<vtkActor> MeshActor;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
@@ -150,6 +151,7 @@ private:
   double ZScale;
 
   bool isMeshTabVisible();
+  void setCameras(bool coreModel, bool fullMesh);
   bool isCameraIsMoving;
 };
 
