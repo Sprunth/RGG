@@ -90,10 +90,11 @@ public:
 #ifdef BUILD_WITH_MOAB
   cmbNucCoregen *MoabSource;
 #endif
-  vtkSmartPointer<vtkMultiBlockDataSet> PreviousDataset;
+
   vtkSmartPointer<vtkMultiBlockDataSet> CurrentDataset;
+  DuctCell* CurrentDuctCell;
+  PinCell* CurrentPinCell;
   double Bounds[6];
-  bool WasMeshTab;
 };
 
 int numAssemblyDefaultColors = 42;
@@ -173,7 +174,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
   Internal = new NucMainInternal();
-  this->Internal->WasMeshTab = false;
 #ifdef BUILD_WITH_MOAB
   this->Internal->MoabSource = NULL;
 #endif
@@ -308,7 +308,7 @@ cmbNucMainWindow::cmbNucMainWindow()
     QCoreApplication::applicationDirPath() + "/materialcolors.ini";
   this->MaterialColors->OpenFile(materialfile);
 
-  connect(this->MaterialColors, SIGNAL(materialColorChanged()), this, SLOT(Render()));
+  connect(this->MaterialColors, SIGNAL(materialColorChanged()), this, SLOT(colorChange()));
 
   this->initPanels();
 
@@ -513,7 +513,10 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
   else if( selObj->GetType() == CMBNUC_ASSY_DUCTCELL)
     {
     DuctCell* selDuct = dynamic_cast<DuctCell*>(selObj);
-    if(selDuct) this->ResetView();
+    if(selDuct)
+    {
+      this->ResetView();
+    }
     }
   else // assemblies or ducts
     {
@@ -547,6 +550,7 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
       PinCell* selPin = dynamic_cast<PinCell*>(obj);
       if(selPin)
         {
+        this->Internal->CurrentPinCell = selPin;
         this->updatePinCellMaterialColors(selPin);
         }
       }
@@ -555,6 +559,7 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
       DuctCell * dc = dynamic_cast<DuctCell*>(obj);
       if(dc)
       {
+        this->Internal->CurrentDuctCell = dc;
         this->updateDuctCellMaterialColors(dc);
       }
     }
@@ -569,19 +574,12 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
 void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
 {
   // update material colors
-  if(this->Internal->WasMeshTab)
-  {
-     this->onSelectionChange();
-  }
-  else
-  {
-    this->updateCoreMaterialColors();
+  this->updateCoreMaterialColors();
 
-    if(obj && obj->GetType() == CMBNUC_CORE)
-      {
-        this->Renderer->ResetCamera();
-      }
-  }
+  if(obj && obj->GetType() == CMBNUC_CORE)
+    {
+    this->Renderer->ResetCamera();
+    }
   // render
   this->ui->qvtkWidget->update();
 }
@@ -1327,13 +1325,35 @@ void cmbNucMainWindow::ResetView()
   this->ui->qvtkWidget->update();
 }
 
+void cmbNucMainWindow::colorChange()
+{
+  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  switch(cp->GetType())
+  {
+    case CMBNUC_CORE:
+      this->updateCoreMaterialColors();
+      break;
+    case CMBNUC_ASSEMBLY:
+      this->updateAssyMaterialColors(dynamic_cast<cmbNucAssembly*>(cp));
+      break;
+    case CMBNUC_ASSY_DUCTCELL:
+      this->updateDuctCellMaterialColors(this->Internal->CurrentDuctCell);
+      break;
+    case CMBNUC_ASSY_PINCELL:
+      this->updatePinCellMaterialColors(this->Internal->CurrentPinCell);
+      break;
+    default:
+      return; //nothing is changed
+  }
+  this->Mapper->Modified();
+  this->ui->qvtkWidget->update();
+}
+
 void cmbNucMainWindow::Render()
 {
-  if(this->Internal->WasMeshTab)
-  {
-    this->onChangeMeshColorMode(this->InputsWidget->getMeshColorState());
-    return;
-  }
+  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+
   //this->updateCoreMaterialColors();
   this->PropertyWidget->colorChanged();
   this->Mapper->Modified();
@@ -1344,7 +1364,6 @@ void cmbNucMainWindow::Render()
 void cmbNucMainWindow::onChangeToModelTab()
 {
 #ifdef BUILD_WITH_MOAB
-  this->Internal->WasMeshTab = true;
   this->onSelectionChange();
   connect(this->Internal->MoabSource, SIGNAL(update()),
           this, SLOT(onSelectionChange()));
@@ -1354,7 +1373,7 @@ void cmbNucMainWindow::onChangeToModelTab()
 void cmbNucMainWindow::onSelectionChange()
 {
   this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
-  this->onChangeMeshEdgeMode(this->InputsWidget->getMeshEdgeState());
+  this->onChangeMeshEdgeMode(this->ui->drawEdges->isChecked());
 #ifdef BUILD_WITH_MOAB
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
   vtkBoundingBox box;
@@ -1521,7 +1540,6 @@ void cmbNucMainWindow::onChangeFromModelTab(int i)
 {
   if(i == 0)
   {
-    this->Internal->WasMeshTab = false;
 #ifdef BUILD_WITH_MOAB
     vtkProperty* property = this->Actor->GetProperty();
     property->SetEdgeVisibility(0);
@@ -1537,12 +1555,12 @@ void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long ev
     {
     case vtkCommand::StartInteractionEvent:
       //this->Renderer->UseDepthPeelingOff();
-      this->Renderer->SetMaximumNumberOfPeels(3);
+      this->Renderer->SetMaximumNumberOfPeels(1);
       this->MeshRenderer->SetUseDepthPeeling(0);
       break;
     case vtkCommand::EndInteractionEvent:
       //this->Renderer->UseDepthPeelingOn();
-      this->Renderer->SetMaximumNumberOfPeels(10);
+      this->Renderer->SetMaximumNumberOfPeels(5);
       //Overlapping surfaces make ugly peeling
       this->MeshRenderer->SetUseDepthPeeling(0);
       break;

@@ -33,14 +33,6 @@ public:
   AssyPartObj* getSelectedCoreOrAssembly();
   cmbNucPartsTreeItem* getSelectedPartNode();
 
-  QTreeWidget * getModelTree();
-
-  void setMeshColorState(bool b);
-  void setMeshEdgeState(bool b);
-
-  bool getMeshColorState();
-  bool getMeshEdgeState();
-
   bool onlyMeshLoaded();
 
   void clear();
@@ -67,9 +59,6 @@ signals:
   void switchToNonModelTab(int);
 
   void deleteCore();
-
-  void meshEdgeChange(bool);
-  void meshColorChange(bool);
 
   void checkSavedAndGenerate();
 

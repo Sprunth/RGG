@@ -67,9 +67,9 @@ void cmbNucCoregen::openFile(QString file)
       this->selectedType = i;
     }
   }
+  List->addItem("No Color");
   List->blockSignals(false);
   List->setCurrentIndex(5);
-  color = false;
 }
 
 void cmbNucCoregen::onSelectionChanged( int sel )

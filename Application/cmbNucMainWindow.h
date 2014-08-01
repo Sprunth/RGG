@@ -120,6 +120,8 @@ protected slots:
 
   void setTitle();
 
+  void colorChange();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
