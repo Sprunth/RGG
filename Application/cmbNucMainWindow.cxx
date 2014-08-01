@@ -338,6 +338,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->Preferences, SIGNAL(actionParallelProjection(bool)),
           this, SLOT(useParallelProjection(bool)));
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
+  connect(this->ui->actionClear_Mesh, SIGNAL(triggered()), this, SLOT(onClearMesh()));
 
   //this->centralWidget()->hide();
 
@@ -881,6 +882,19 @@ void cmbNucMainWindow::onReloadAll()
   emit checkSave();
 }
 
+void cmbNucMainWindow::onClearMesh()
+{
+#ifdef BUILD_WITH_MOAB
+  Internal->MoabSource->clear();
+  this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
+  this->ui->DockMesh->setVisible(false);
+  this->ui->meshSubcomponent->setVisible(false);
+  this->ui->drawEdges->setVisible(false);
+  this->Internal->MeshOpen = false;
+  this->setCameras(this->Internal->IsCoreView, false);
+#endif
+}
+
 void cmbNucMainWindow::onFileOpenMoab()
 {
 #ifdef BUILD_WITH_MOAB
@@ -1163,9 +1177,9 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->ui->actionNew_Assembly->setEnabled(false);
   this->ui->actionExport->setEnabled(false);
 
-#ifdef BUILD_WITH_MOAB
-  if(this->Internal->MoabSource != NULL) this->Internal->MoabSource->clear();
-#endif
+  if(this->Internal->MoabSource != NULL) this->onClearMesh();
+
+  this->setCameras(false, false);
 
   this->MaterialColors->clear();
   QString materialfile =

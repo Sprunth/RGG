@@ -74,6 +74,7 @@ public slots:
   void useParallelProjection(bool val);
   void checkForNewCUBH5MFiles();
   void setAxis(bool ison);
+  void onClearMesh();
 
 signals:
   void updateGlobalZScale(double scale);
