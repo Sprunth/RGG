@@ -14,23 +14,12 @@
 #include <iostream>
 #include <QDebug>
 
-class meshOptionItem : public QTreeWidgetItem
-{
-public:
-  meshOptionItem(const char* name, unsigned int i)
-  {
-    this->setText(0,name);
-    Id = i;
-  }
-  unsigned int Id;
-};
-
-cmbNucCoregen::cmbNucCoregen(QTreeWidget * l)
+cmbNucCoregen::cmbNucCoregen(QComboBox * l)
 {
   this->MoabReader = vtkMoabReader::New();
   this->List = l;
-  QObject::connect(this->List, SIGNAL(itemSelectionChanged()),
-                   this, SLOT(onSelectionChanged()), Qt::UniqueConnection);
+  QObject::connect(this->List, SIGNAL(currentIndexChanged(int)),
+                   this,       SLOT(onSelectionChanged(int)), Qt::UniqueConnection);
 }
 
 cmbNucCoregen::~cmbNucCoregen()
@@ -40,10 +29,12 @@ cmbNucCoregen::~cmbNucCoregen()
 
 void cmbNucCoregen::clear()
 {
+  List->blockSignals(true);
   this->List->clear();
   this->MoabReader = vtkMoabReader::New();
   this->Data = NULL;
   this->DataSets.clear();
+  List->blockSignals(false);
 }
 
 vtkSmartPointer<vtkDataObject>
@@ -60,6 +51,7 @@ void cmbNucCoregen::openFile(QString file)
   vtkSmartPointer<vtkMultiBlockDataSet> tmp = this->MoabReader->GetOutput();
   DataSets.resize(tmp->GetNumberOfBlocks());
   this->GeoFilt.resize(tmp->GetNumberOfBlocks(), NULL);
+  List->blockSignals(true);
   List->clear();
   for (unsigned int i = 0; i < tmp->GetNumberOfBlocks(); ++i)
   {
@@ -69,30 +61,32 @@ void cmbNucCoregen::openFile(QString file)
     this->GeoFilt[i]->Update();
     DataSets[i].TakeReference(this->GeoFilt[i]->GetOutputDataObject(0)->NewInstance());
     DataSets[i]->DeepCopy(this->GeoFilt[i]->GetOutputDataObject(0));
-    QTreeWidgetItem * atwi = new meshOptionItem(name, i);
-    List->addTopLevelItem(atwi);
+    List->addItem(name);
     if(i == 0)
     {
-      atwi->setSelected(true);
       this->selectedType = i;
     }
   }
-  this->Data = DataSets[0];
+  List->blockSignals(false);
+  List->setCurrentIndex(5);
   color = false;
 }
 
-void cmbNucCoregen::onSelectionChanged()
+void cmbNucCoregen::onSelectionChanged( int sel )
 {
   List->blockSignals(true);
-  QList<QTreeWidgetItem*> selItems = List->selectedItems();
-  meshOptionItem* selItem =
-      selItems.count()>0 ? dynamic_cast<meshOptionItem*>(selItems.value(0)) : NULL;
-  if(selItem)
+  if(sel == 6)
   {
-    this->Data = DataSets[selItem->Id];
-    this->color = selItem->Id == 5;
-    this->selectedType = selItem->Id;
-    emit(update());
+    this->Data = DataSets[0];
+    this->color = false;
+    this->selectedType = 0;
   }
+  else
+  {
+    this->Data = DataSets[sel];
+    this->color = true;
+    this->selectedType = sel;
+  }
+  emit(update());
   List->blockSignals(false);
 }

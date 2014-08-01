@@ -70,6 +70,7 @@ public slots:
   void ResetView();
   void Render();
   void onInteractionTransition(vtkObject *, unsigned long event);
+  void onInteractionMeshTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);
   void checkForNewCUBH5MFiles();
   void setAxis(bool ison);
@@ -86,6 +87,8 @@ protected:
   void save(cmbNucCore*, bool request_file_name, bool force);
   QString requestInpFileName(QString name, QString type);
   virtual void closeEvent(QCloseEvent *event);
+  void CameraMovedHandlerMesh();
+  void CameraMovedHandlerModel();
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
@@ -124,9 +127,12 @@ private:
   void doClearAll(bool needSave = false);
 
   vtkSmartPointer<vtkRenderer> Renderer;
+  vtkSmartPointer<vtkRenderer> MeshRenderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
+  vtkSmartPointer<vtkCompositePolyDataMapper2> MeshMapper;
   vtkSmartPointer<vtkCubeAxesActor> CubeAxesActor;
   vtkSmartPointer<vtkActor> Actor;
+  vtkSmartPointer<vtkActor> MeshActor;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
 
   cmbNucCore *NuclearCore;
@@ -141,6 +147,9 @@ private:
 
   cmbNucMaterialColors* MaterialColors;
   double ZScale;
+
+  bool isMeshTabVisible();
+  bool isCameraIsMoving;
 };
 
 #endif // cmbNucMainWindow_H

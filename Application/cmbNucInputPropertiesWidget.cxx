@@ -587,7 +587,6 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
   PinCell* pincell = dynamic_cast<PinCell*>(this->CurrentObject);
   if(!pincell)
     {
-//    std::cerr << "Error: don't have pincell" << std::endl;
     return;
     }
   if(!this->Internal->PinCellEditor)

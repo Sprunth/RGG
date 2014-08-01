@@ -77,12 +77,6 @@ namespace
           vtkDataSet* part = vtkDataSet::SafeDownCast(objBlock);
           double tmpb[6];
           part->GetBounds(tmpb);
-          /*for(unsigned i = 0; i < 6; i += 2)
-          {
-            double d = (tmpb[i+1] - tmpb[i])*0.05;
-            tmpb[i+1] += d;
-            tmpb[i]   -= d;
-          }*/
           box->AddBounds(tmpb);
         }
       }
@@ -154,6 +148,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 {
 //  vtkNew<vtkCompositeDataPipeline> compositeExec;
 //  vtkAlgorithm::SetDefaultExecutivePrototype(compositeExec.GetPointer());
+  isCameraIsMoving = false;
 
   this->ui = new Ui_qNucMainWindow;
   this->setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
@@ -165,6 +160,12 @@ cmbNucMainWindow::cmbNucMainWindow()
   setTitle();
 
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
+  this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
+  this->ui->Dock3D->raise();
+  this->ui->DockMesh->setVisible(false);
+  this->ui->meshSubcomponent->setVisible(false);
+  this->ui->drawEdges->setVisible(false);
+  //this->ui->meshControls->setVisible(false);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
   this->ui->Dock2D->setWidget(LatticeDraw);
@@ -179,23 +180,38 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
+  this->MeshRenderer = vtkSmartPointer<vtkRenderer>::New();
   vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
+  vtkRenderWindow *meshRenderWindow = this->ui->qvtkMeshWidget->GetRenderWindow();
   renderWindow->AddRenderer(this->Renderer);
+  meshRenderWindow->AddRenderer(this->MeshRenderer);
   this->VTKToQt = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
   // setup depth peeling
   renderWindow->SetAlphaBitPlanes(1);
   renderWindow->SetMultiSamples(0);
+  meshRenderWindow->SetAlphaBitPlanes(1);
+  meshRenderWindow->SetMultiSamples(0);
   this->Renderer->SetUseDepthPeeling(1);
   this->Renderer->SetMaximumNumberOfPeels(5);
+  //Mesh Not doing depth peeling, looks like crap because of shared surfaces.
+  this->MeshRenderer->SetUseDepthPeeling(0);
+  this->MeshRenderer->SetMaximumNumberOfPeels(5);
 
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
   this->Mapper->SetScalarVisibility(0);
+  this->MeshMapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
+  this->MeshMapper->SetScalarVisibility(0);
   this->Actor = vtkSmartPointer<vtkActor>::New();
   this->Actor->SetMapper(this->Mapper.GetPointer());
   this->Actor->GetProperty()->SetShading(1);
   this->Actor->GetProperty()->SetInterpolationToPhong();
+  this->MeshActor = vtkSmartPointer<vtkActor>::New();
+  this->MeshActor->SetMapper(this->MeshMapper.GetPointer());
+  this->MeshActor->GetProperty()->SetShading(1);
+  this->MeshActor->GetProperty()->SetInterpolationToPhong();
   this->Renderer->AddActor(this->Actor);
+  this->MeshRenderer->AddActor(this->MeshActor);
 
   CubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
   CubeAxesActor->SetCamera(this->Renderer->GetActiveCamera());
@@ -223,6 +239,11 @@ cmbNucMainWindow::cmbNucMainWindow()
   CubeAxesActor->SetGridLineLocation(VTK_GRID_LINES_FURTHEST);
 
   this->Renderer->AddActor(CubeAxesActor);
+  this->MeshRenderer->AddActor(CubeAxesActor);
+
+  this->MeshRenderer->SetActiveCamera(Renderer->GetActiveCamera());
+  this->Renderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerMesh);
+  this->MeshRenderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerModel);
 
   vtkCmbLayeredConeSource *cone = vtkCmbLayeredConeSource::New();
   cone->SetNumberOfLayers(3);
@@ -239,6 +260,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
   this->Mapper->SetCompositeDataDisplayAttributes(attributes);
   attributes->Delete();
+  attributes = vtkCompositeDataDisplayAttributes::New();
+  this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
 
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
@@ -306,14 +329,40 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->VTKToQt->Connect(
     iStyle, vtkCommand::EndInteractionEvent,
     this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
+  iStyle = meshRenderWindow->GetInteractor()->GetInteractorStyle();
+  this->VTKToQt->Connect(iStyle, vtkCommand::StartInteractionEvent,
+                         this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
+  this->VTKToQt->Connect(iStyle, vtkCommand::EndInteractionEvent,
+                         this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
 
   this->ui->toolBar->addWidget(this->ui->viewScaleWidget);
+  this->ui->toolBar->addWidget(this->ui->meshControls);
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
 }
 
+void cmbNucMainWindow::CameraMovedHandlerModel()
+{
+  if(isCameraIsMoving) return;
+  isCameraIsMoving = true;
+  this->ui->qvtkWidget->GetRenderWindow()->Render();
+  isCameraIsMoving = false;
+}
+
+void cmbNucMainWindow::CameraMovedHandlerMesh()
+{
+  if(isCameraIsMoving) return;
+  if( isMeshTabVisible() )
+  {
+    isCameraIsMoving = true;
+    this->ui->qvtkMeshWidget->GetRenderWindow()->Render();
+    isCameraIsMoving = false;
+  }
+}
+
 cmbNucMainWindow::~cmbNucMainWindow()
 {
+  this->ui->qvtkWidget->GetRenderWindow()->RemoveObserver(vtkCommand::AnyEvent);
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
   this->InputsWidget->setCore(NULL);
@@ -356,18 +405,16 @@ void cmbNucMainWindow::initPanels()
   //if(this->Internal->MoabSource == NULL)
   {
     delete(this->Internal->MoabSource);
-    this->Internal->MoabSource = new cmbNucCoregen(this->InputsWidget->getModelTree());
+    this->Internal->MoabSource = new cmbNucCoregen(this->ui->meshSubcomponent);
     QObject::connect(this->ExportDialog, SIGNAL(finished(QString)),
             this->Internal->MoabSource, SLOT(openFile(QString)));
     QObject::connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
-    QObject::connect(this->InputsWidget, SIGNAL(switchToModelTab()),
-                     this, SLOT(onChangeToModelTab()));
     QObject::connect(this->InputsWidget, SIGNAL(switchToNonModelTab(int)),
                      this, SLOT(onChangeFromModelTab(int)));
-    QObject::connect(this->InputsWidget, SIGNAL(meshEdgeChange(bool)),
+    QObject::connect(this->ui->drawEdges, SIGNAL(clicked(bool)),
                      this, SLOT(onChangeMeshEdgeMode(bool)));
-    QObject::connect(this->InputsWidget, SIGNAL(meshColorChange(bool)),
-                     this, SLOT(onChangeMeshColorMode(bool)));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
+                     this, SLOT(onSelectionChange()));
   }
 #endif
 
@@ -810,6 +857,10 @@ void cmbNucMainWindow::onFileOpenMoab()
     return;
   }
   Internal->MoabSource->openFile(fileNames.first());
+  this->ui->DockMesh->setVisible(true);
+  this->ui->meshControls->setVisible(true);
+  this->ui->meshSubcomponent->setVisible(true);
+  this->ui->drawEdges->setVisible(true);
   if(!this->InputsWidget->isEnabled())
   {
     this->InputsWidget->switchToMesh();
@@ -1262,6 +1313,7 @@ void cmbNucMainWindow::zScaleChanged(int value)
 {
   this->ZScale = 1.0 / value;
   this->Actor->SetScale(1, 1, this->ZScale);
+  this->MeshActor->SetScale(1, 1, this->ZScale);
   this->setScaledBounds();
   this->ResetView();
 
@@ -1271,6 +1323,7 @@ void cmbNucMainWindow::zScaleChanged(int value)
 void cmbNucMainWindow::ResetView()
 {
   this->Renderer->ResetCamera();
+
   this->ui->qvtkWidget->update();
 }
 
@@ -1300,17 +1353,19 @@ void cmbNucMainWindow::onChangeToModelTab()
 
 void cmbNucMainWindow::onSelectionChange()
 {
-  this->onChangeMeshColorMode(this->InputsWidget->getMeshColorState());
+  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
   this->onChangeMeshEdgeMode(this->InputsWidget->getMeshEdgeState());
 #ifdef BUILD_WITH_MOAB
-  this->Mapper->SetInputDataObject(this->Internal->MoabSource->getData());
+  this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
   vtkBoundingBox box;
   computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
   box.GetBounds(this->Internal->Bounds);
   setScaledBounds();
 #endif
-  this->Renderer->ResetCamera();
-  this->ui->qvtkWidget->update();
+  if( isMeshTabVisible() )
+  {
+    this->ui->qvtkMeshWidget->update();
+  }
 }
 
 QString createMaterialLabel(const char * name)
@@ -1375,7 +1430,7 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
     if(data == NULL) return;
     QColor color;
     bool visible;
-    vtkCompositeDataDisplayAttributes *att = this->Mapper->GetCompositeDataDisplayAttributes();
+    vtkCompositeDataDisplayAttributes *att = this->MeshMapper->GetCompositeDataDisplayAttributes();
     if(att == NULL) return;
     att->RemoveBlockVisibilites();
     att->RemoveBlockOpacities();
@@ -1425,18 +1480,24 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
   else
   {
     vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
-    this->Mapper->SetCompositeDataDisplayAttributes(attributes);
+    this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
     attributes->Delete();
   }
-  this->Mapper->Modified();
-  this->Renderer->Render();
-  this->ui->qvtkWidget->update();
+  //this->MeshRenderer->SetActiveCamera(Renderer->GetActiveCamera());
+  this->MeshMapper->Modified();
+  if( isMeshTabVisible() )
+  {
+    this->MeshRenderer->Render();
+    this->Renderer->Render();
+    this->ui->qvtkMeshWidget->update();
+    this->ui->qvtkWidget->update();
+  }
 #endif
 }
 
 void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
 {
-  vtkProperty* property = this->Actor->GetProperty();
+  vtkProperty* property = this->MeshActor->GetProperty();
   if(b)
   {
     property->SetEdgeVisibility(1);
@@ -1446,11 +1507,14 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
   {
     property->SetEdgeVisibility(0);
   }
-  this->Actor->Modified();
-  this->Mapper->Modified();
-  this->Renderer->Modified();
-  this->Renderer->Render();
-  this->ui->qvtkWidget->update();
+  this->MeshActor->Modified();
+  this->MeshMapper->Modified();
+  this->MeshRenderer->Modified();
+  if( isMeshTabVisible() )
+  {
+    this->MeshRenderer->Render();
+    this->ui->qvtkMeshWidget->update();
+  }
 }
 
 void cmbNucMainWindow::onChangeFromModelTab(int i)
@@ -1474,12 +1538,28 @@ void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long ev
     case vtkCommand::StartInteractionEvent:
       //this->Renderer->UseDepthPeelingOff();
       this->Renderer->SetMaximumNumberOfPeels(3);
+      this->MeshRenderer->SetUseDepthPeeling(0);
       break;
     case vtkCommand::EndInteractionEvent:
       //this->Renderer->UseDepthPeelingOn();
       this->Renderer->SetMaximumNumberOfPeels(10);
+      //Overlapping surfaces make ugly peeling
+      this->MeshRenderer->SetUseDepthPeeling(0);
       break;
     }
+}
+
+void cmbNucMainWindow::onInteractionMeshTransition(vtkObject *, unsigned long event)
+{
+  switch (event)
+  {
+    case vtkCommand::StartInteractionEvent:
+      this->MeshRenderer->SetMaximumNumberOfPeels(3);
+      break;
+    case vtkCommand::EndInteractionEvent:
+      this->MeshRenderer->SetMaximumNumberOfPeels(10);
+      break;
+  }
 }
 
 void cmbNucMainWindow::useParallelProjection(bool val)
@@ -1487,12 +1567,25 @@ void cmbNucMainWindow::useParallelProjection(bool val)
   if (val)
     {
     this->Renderer->GetActiveCamera()->ParallelProjectionOn();
+    this->MeshRenderer->GetActiveCamera()->ParallelProjectionOn();
     }
   else
     {
     this->Renderer->GetActiveCamera()->ParallelProjectionOff();
+    this->MeshRenderer->GetActiveCamera()->ParallelProjectionOff();
     }
   this->ui->qvtkWidget->update();
+  if(isMeshTabVisible()) this->ui->qvtkMeshWidget->update();
+}
+
+bool cmbNucMainWindow::isMeshTabVisible()
+{
+  return this->ui->DockMesh->isVisible() &&
+         //It appears either how I am hiding things or a weirdness of
+         //docking, is visible is not enough.  As such, if it is tabbed,
+         //I make sure it is has a visible region
+        (tabifiedDockWidgets(this->ui->DockMesh).isEmpty() ||
+         !this->ui->DockMesh->visibleRegion().isEmpty());
 }
 
 void cmbNucMainWindow::updatePropertyDockTitle(const QString& title)
