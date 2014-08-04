@@ -205,8 +205,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   meshRenderWindow->SetMultiSamples(0);
   this->Renderer->SetUseDepthPeeling(1);
   this->Renderer->SetMaximumNumberOfPeels(5);
-  //Mesh Not doing depth peeling, looks like crap because of shared surfaces.
-  this->MeshRenderer->SetUseDepthPeeling(0);
+  this->MeshRenderer->SetUseDepthPeeling(1);
   this->MeshRenderer->SetMaximumNumberOfPeels(5);
 
   this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
@@ -1651,13 +1650,12 @@ void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long ev
     case vtkCommand::StartInteractionEvent:
       //this->Renderer->UseDepthPeelingOff();
       this->Renderer->SetMaximumNumberOfPeels(1);
-      this->MeshRenderer->SetUseDepthPeeling(0);
+      this->MeshRenderer->SetUseDepthPeeling(1);
       break;
     case vtkCommand::EndInteractionEvent:
       //this->Renderer->UseDepthPeelingOn();
       this->Renderer->SetMaximumNumberOfPeels(5);
-      //Overlapping surfaces make ugly peeling
-      this->MeshRenderer->SetUseDepthPeeling(0);
+      this->MeshRenderer->SetUseDepthPeeling(5);
       break;
     }
 }
