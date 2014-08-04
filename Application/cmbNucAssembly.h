@@ -10,6 +10,7 @@
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
+#include "cmbNucLattice.h"
 #include "cmbNucPinCell.h"
 #include "cmbNucDuctCell.h"
 #include "vtkSmartPointer.h"
@@ -121,7 +122,7 @@ signals:
 // and the surrounding ducting. Assemblies can be loaded and stored to files
 // with the ReadFile() and Write() file methods. Assemblies are grouped together
 // into cores (cmbNucCore).
-class cmbNucAssembly : public AssyPartObj
+class cmbNucAssembly : public LatticeContainer
 {
 public:
   class Transform
@@ -283,7 +284,6 @@ public:
 
   // Expose assembly parts for UI access
   DuctCell AssyDuct;
-  Lattice AssyLattice;
   std::string label;
 
   std::string FileName;
@@ -305,6 +305,13 @@ public:
   bool removeOldTransforms(int newSize);
   Transform* getTransform(int i) const; //NULL if not found
   size_t getNumberOfTransforms() const;
+
+  void fillList(QStringList & l);
+
+  virtual AssyPartObj * getFromLabel(const std::string & s)
+  {
+    return this->GetPinCell(s);
+  }
 
 protected:
   std::vector<PinCell*> PinCells;

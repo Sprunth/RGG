@@ -284,7 +284,7 @@ bool inpFileReader
       }
     else if(value == "geometrytype")
       {
-      helper.readGeometryType( input, assembly, assembly.AssyLattice );
+      helper.readGeometryType( input, assembly, assembly.getLattice() );
       }
     else if(value == "materials")
       {
@@ -300,7 +300,7 @@ bool inpFileReader
       }
     else if(value == "assembly")
       {
-      helper.readLattice( input, assembly.AssyLattice );
+      helper.readLattice( input, assembly.getLattice() );
       }
     else if(value == "tetmeshsize")
       {
@@ -403,7 +403,7 @@ bool inpFileReader
       }
     else if(value == "geometrytype")
       {
-      helper.readGeometryType( input, core, core.CoreLattice );
+      helper.readGeometryType( input, core, core.getLattice() );
       }
     else if(value == "symmetry")
       {
@@ -417,7 +417,7 @@ bool inpFileReader
       }
     else if(value == "lattice")
       {
-      helper.readLattice( input, core.CoreLattice );
+      helper.readLattice( input, core.getLattice() );
       }
     else if(value == "background")
       {
@@ -611,7 +611,7 @@ bool inpFileWriter::write(std::string fname,
   helper.writePincell( output, assembly );
   helper.writeLattice( output, "Assembly",
                        false,
-                       assembly.AssyLattice );
+                       assembly.getLattice() );
   //Other Parameters
   WRITE_PARAM_VALUE(TetMeshSize, TetMeshSize);
   WRITE_PARAM_VALUE(RadialMeshSize, RadialMeshSize);
@@ -678,8 +678,8 @@ bool inpFileWriter::write(std::string fname,
   core.computePitch();
   helper.writeHeader(output,"Assembly");
   int sym;
-  enumGeometryType type = core.CoreLattice.GetGeometryType();
-  int subType = core.CoreLattice.GetGeometrySubType();
+  enumGeometryType type = core.getLattice().GetGeometryType();
+  int subType = core.getLattice().GetGeometrySubType();
   if(subType & JUST_ANGLE)
   {
     output << "Symmetry ";
@@ -694,7 +694,7 @@ bool inpFileWriter::write(std::string fname,
   else if(subType & VERTEX) output << "HexVertex\n";
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
-  helper.writeLattice( output, "Lattice", true, core.CoreLattice );
+  helper.writeLattice( output, "Lattice", true, core.getLattice() );
   std::cout << "\n\nbackground " << core.Params.BackgroundFullPath << std::endl;
   if( !core.Params.Background.empty() &&
       QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() )

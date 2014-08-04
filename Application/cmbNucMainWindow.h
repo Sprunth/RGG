@@ -31,6 +31,7 @@ class cmbNucMaterialColors;
 class cmbNucExportDialog;
 class cmbNucPreferencesDialog;
 class NucMainInternal;
+class cmbNucLatticeWidget;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -69,9 +70,11 @@ public slots:
   void ResetView();
   void Render();
   void onInteractionTransition(vtkObject *, unsigned long event);
+  void onInteractionMeshTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);
   void checkForNewCUBH5MFiles();
   void setAxis(bool ison);
+  void onClearMesh();
 
 signals:
   void updateGlobalZScale(double scale);
@@ -85,6 +88,8 @@ protected:
   void save(cmbNucCore*, bool request_file_name, bool force);
   QString requestInpFileName(QString name, QString type);
   virtual void closeEvent(QCloseEvent *event);
+  void CameraMovedHandlerMesh();
+  void CameraMovedHandlerModel();
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
@@ -92,7 +97,6 @@ protected slots:
   void onObjectGeometryChanged(AssyPartObj* obj);
 
   void onChangeToModelTab();
-  void onChangeFromModelTab(int);
 
   void onSelectionChange();
 
@@ -116,6 +120,8 @@ protected slots:
 
   void setTitle();
 
+  void colorChange();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
@@ -123,9 +129,13 @@ private:
   void doClearAll(bool needSave = false);
 
   vtkSmartPointer<vtkRenderer> Renderer;
+  vtkSmartPointer<vtkRenderer> MeshRenderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
+  vtkSmartPointer<vtkCompositePolyDataMapper2> MeshMapper;
   vtkSmartPointer<vtkCubeAxesActor> CubeAxesActor;
+  vtkSmartPointer<vtkCubeAxesActor> MeshCubeAxesActor;
   vtkSmartPointer<vtkActor> Actor;
+  vtkSmartPointer<vtkActor> MeshActor;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
 
   cmbNucCore *NuclearCore;
@@ -136,9 +146,14 @@ private:
 
   QPointer<cmbNucInputPropertiesWidget> PropertyWidget;
   QPointer<cmbNucInputListWidget> InputsWidget;
+  QPointer<cmbNucLatticeWidget> LatticeDraw;
 
   cmbNucMaterialColors* MaterialColors;
   double ZScale;
+
+  bool isMeshTabVisible();
+  void setCameras(bool coreModel, bool fullMesh);
+  bool isCameraIsMoving;
 };
 
 #endif // cmbNucMainWindow_H

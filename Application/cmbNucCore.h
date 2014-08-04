@@ -6,9 +6,11 @@
 #include <QColor>
 #include <QObject>
 #include <QPointer>
+#include <QStringList>
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
+#include "cmbNucLattice.h"
 #include "vtkSmartPointer.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkTransform.h"
@@ -171,7 +173,7 @@ signals:
 
 // Represents the core which is composed of multiple assemblies
 // (cmbNucAssembly). Assemblies are layed out on a lattice.
-class cmbNucCore : public AssyPartObj
+class cmbNucCore : public LatticeContainer
 {
 public:
 
@@ -221,23 +223,23 @@ public:
 
   std::pair<int, int> GetDimensions() const
     {
-    return this->CoreLattice.GetDimensions();
+    return this->lattice.GetDimensions();
     }
   // Sets the contents of the Assembly (i, j) to name.
   void SetAssemblyLabel(int i, int j, const std::string &name, const QColor& color)
     {
-    this->CoreLattice.SetCell(i, j, name, color);
+    this->lattice.SetCell(i, j, name, color);
     }
   // Returns the contents of the Assembly (i, j).
-  LatticeCell GetAssemblyLabel(int i, int j) const
+  Lattice::LatticeCell GetAssemblyLabel(int i, int j) const
     {
-    return this->CoreLattice.GetCell(i, j);
+    return this->lattice.GetCell(i, j);
     }
   // Clears the contents of the Assembly (i, j). This is equivalent
   // to calling SetAssembly(i, j, "xx", Qt::white).
   void ClearAssemblyLabel(int i, int j)
     {
-    this->CoreLattice.ClearCell(i, j);
+    this->lattice.ClearCell(i, j);
     }
 
   // Rebuild the grid (which for now just updates the colors at each cell)
@@ -273,7 +275,6 @@ public:
 
   void setGeometryLabel(std::string geomType);
 
-  Lattice CoreLattice;
   std::string FileName;
   std::string h5mFile;
   void setHexSymmetry(int sym);
@@ -291,6 +292,10 @@ public:
 
 
   void checkUsedAssembliesForGen();
+
+  void fillList(QStringList & l);
+
+  virtual AssyPartObj * getFromLabel(const std::string & s);
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;

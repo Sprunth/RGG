@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QString>
-#include <QTreeWidget>
+#include <QComboBox>
 #include <QCheckBox>
 #include <QObject>
 #include <vtkSmartPointer.h>
@@ -21,7 +21,7 @@ class cmbNucCoregen : public QObject
 {
   Q_OBJECT
 public:
-  cmbNucCoregen(QTreeWidget *);
+  cmbNucCoregen(QComboBox *);
   ~cmbNucCoregen();
 
   vtkSmartPointer<vtkDataObject> getData();
@@ -46,12 +46,12 @@ private:
   std::vector< vtkSmartPointer<vtkGeometryFilter> > GeoFilt;
   vtkSmartPointer<vtkDataObject> Data;
   std::vector< vtkSmartPointer<vtkDataObject> > DataSets;
-  QTreeWidget * List;
+  QComboBox * List;
   bool color;
   unsigned int selectedType;
 
 protected slots:
-  void onSelectionChanged();
+  void onSelectionChanged(int sel);
 };
 
 #endif

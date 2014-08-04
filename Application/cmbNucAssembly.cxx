@@ -104,7 +104,32 @@ cmbNucAssembly::Section::apply( vtkMultiBlockDataSet * input,
   normal[0] /= sum;
   normal[1] /= sum;
   normal[2] /= sum;
-  cmbNucAssembly::clip(input, output, normal);
+  int block = 0;
+  for(; block < input->GetNumberOfBlocks()-1; block++)
+  {
+    if(vtkDataObject* objBlock = input->GetBlock(block))
+    {
+      if(vtkMultiBlockDataSet* pin =
+         vtkMultiBlockDataSet::SafeDownCast(objBlock))
+      {
+        vtkSmartPointer<vtkMultiBlockDataSet> clipPart = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+        clipPart->SetNumberOfBlocks(pin->GetNumberOfBlocks());
+        clip(pin, clipPart, normal, 1);
+        output->SetBlock(block, clipPart);
+      }
+    }
+  }
+  if(vtkDataObject* objBlock = input->GetBlock(block))
+  {
+    if(vtkMultiBlockDataSet* duct =
+       vtkMultiBlockDataSet::SafeDownCast(objBlock))
+    {
+      vtkSmartPointer<vtkMultiBlockDataSet> clipPart = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+      clipPart->SetNumberOfBlocks(duct->GetNumberOfBlocks());
+      clip(duct, clipPart, normal, 0);
+      output->SetBlock(block, clipPart);
+    }
+  }
 }
 
 std::ostream&
@@ -189,22 +214,22 @@ void cmbNucAssembly::SetLegendColor(const QColor& color)
 
 void cmbNucAssembly::UpdateGrid()
 {
-  std::pair<int, int> dim = this->AssyLattice.GetDimensions();
+  std::pair<int, int> dim = this->lattice.GetDimensions();
   for(size_t i = 0; i < dim.first; i++)
     {
-    size_t layerCells = this->AssyLattice.GetGeometryType() == HEXAGONAL ?
+    size_t layerCells = this->lattice.GetGeometryType() == HEXAGONAL ?
       6*i : dim.second;
     for(size_t j = 0; j < layerCells; j++)
       {
-      std::string label = this->AssyLattice.GetCell(i, j).label;
+      std::string label = this->lattice.GetCell(i, j).label;
       PinCell* pc = this->GetPinCell(label);
       if(pc)
         {
-        this->AssyLattice.SetCell(i, j, label, pc->GetLegendColor());
+        this->lattice.SetCell(i, j, label, pc->GetLegendColor());
         }
       else
         {
-        this->AssyLattice.ClearCell(i, j);
+        this->lattice.ClearCell(i, j);
         }
       }
     }
@@ -231,10 +256,19 @@ void cmbNucAssembly::RemovePinCell(const std::string label)
       }
     }
   // update the Grid
-  if(this->AssyLattice.ClearCell(label))
+  if(this->lattice.ClearCell(label))
   {
     setAndTestDiffFromFiles(true);
     CreateData();
+  }
+}
+
+void cmbNucAssembly::fillList(QStringList & l)
+{
+  for(size_t i = 0; i < this->GetNumberOfPinCells(); i++)
+  {
+    PinCell *pincell = this->GetPinCell(i);
+    l.append(pincell->label.c_str());
   }
 }
 
@@ -277,17 +311,17 @@ void cmbNucAssembly::setGeometryLabel(std::string geomType)
                  geomType.begin(), ::tolower);
   if(geomType == "hexagonal")
   {
-    this->AssyLattice.SetGeometryType(HEXAGONAL);
+    this->lattice.SetGeometryType(HEXAGONAL);
   }
   else
   {
-    this->AssyLattice.SetGeometryType(RECTILINEAR);
+    this->lattice.SetGeometryType(RECTILINEAR);
   }
 }
 
 bool cmbNucAssembly::IsHexType()
 {
-  return this->AssyLattice.GetGeometryType() == HEXAGONAL;
+  return this->lattice.GetGeometryType() == HEXAGONAL;
 }
 
 void cmbNucAssembly::ReadFile(const std::string &FileName)
@@ -311,17 +345,17 @@ void cmbNucAssembly::updateMaterialColors(
 {
 
   // count number of pin blocks in the data set
-  int pins = this->AssyLattice.GetNumberOfCells();
+  int pins = this->lattice.GetNumberOfCells();
   int pin_count = 0;
   int ducts_count = 0;
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
 
-  int numAssyBlocks = this->AssyLattice.GetNumberOfCells() +
+  int numAssyBlocks = this->lattice.GetNumberOfCells() +
                       this->AssyDuct.numberOfDucts();
-  for(unsigned int idx = 0; idx < this->AssyLattice.GetNumberOfCells(); ++idx)
+  for(unsigned int idx = 0; idx < this->lattice.GetNumberOfCells(); ++idx)
   {
     realflatidx++;
-    std::string label = this->AssyLattice.GetCell(idx).label;
+    std::string label = this->lattice.GetCell(idx).label;
     PinCell* pinCell = this->GetPinCell(label);
 
     if(pinCell)
@@ -379,7 +413,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
 void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
                                       double &tx, double &ty)
 {
-  std::string const& l = this->AssyLattice.Grid[i][j].label;
+  std::string const& l = this->lattice.Grid[i][j].label;
   double pitch_ij[2] = {0,0};
   PinCell* pincell = NULL;
   if(!l.empty() && l != "xx" && l != "XX" && (pincell = this->GetPinCell(l)) != NULL )
@@ -406,7 +440,7 @@ void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
   }
   else if(j == 0)
   {
-    std::string const& l2 = this->AssyLattice.Grid[i-1][j].label;
+    std::string const& l2 = this->lattice.Grid[i-1][j].label;
     if(!l2.empty() && l2 != "xx" && l2 != "XX" && (pincell = this->GetPinCell(l2)) != NULL)
     {
       ty += (pitch_ij[1] + pincell->pitchY) * 0.5;
@@ -423,7 +457,7 @@ void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
   }
   else
   {
-    std::string const& l2 = this->AssyLattice.Grid[i][j-1].label;
+    std::string const& l2 = this->lattice.Grid[i][j-1].label;
     if(!l2.empty() && l2 != "xx" && l2 != "XX" && (pincell = this->GetPinCell(l2)) != NULL)
     {
       tx += (pitch_ij[0] + pincell->pitchX) * 0.5;
@@ -449,7 +483,7 @@ void cmbNucAssembly::setPitch(double x, double y)
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 {
-  if(this->AssyDuct.numberOfDucts()==0 || this->AssyLattice.Grid.size() == 0)
+  if(this->AssyDuct.numberOfDucts()==0 || this->lattice.Grid.size() == 0)
     {
     return NULL;
     }
@@ -458,13 +492,13 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
   std::vector< std::vector< double > > offX, offY;
 
-  if(this->AssyLattice.GetGeometryType() == RECTILINEAR)
+  if(this->lattice.GetGeometryType() == RECTILINEAR)
     {
-    offX.resize(this->AssyLattice.Grid.size(), std::vector< double >(this->AssyLattice.Grid[0].size(), 0));
-    offY.resize(this->AssyLattice.Grid.size(), std::vector< double >(this->AssyLattice.Grid[0].size(), 0));
-    for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
+    offX.resize(this->lattice.Grid.size(), std::vector< double >(this->lattice.Grid[0].size(), 0));
+    offY.resize(this->lattice.Grid.size(), std::vector< double >(this->lattice.Grid[0].size(), 0));
+    for(size_t i = 0; i < this->lattice.Grid.size(); i++)
       {
-      const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
+      const std::vector<Lattice::LatticeCell> &row = this->lattice.Grid[i];
       for(size_t j = 0; j < row.size(); j++)
         {
         this->computeRecOffset(i, j, currentLaticePoint[0], currentLaticePoint[1]);
@@ -472,15 +506,15 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
         offY[i][j] = currentLaticePoint[1];
         }
       }
-    size_t r = this->AssyLattice.Grid.size()-1;
-    size_t c = this->AssyLattice.Grid[0].size()-1;
+    size_t r = this->lattice.Grid.size()-1;
+    size_t c = this->lattice.Grid[0].size()-1;
     double maxLatPt[2] = {offX[r][c], offY[r][c]};
     latticeOffset[0] = -maxLatPt[0]*0.5;
     latticeOffset[1] = -maxLatPt[1]*0.5;
     }
 
   // setup data
-  this->Data->SetNumberOfBlocks(this->AssyLattice.GetNumberOfCells() +
+  this->Data->SetNumberOfBlocks(this->lattice.GetNumberOfCells() +
                                 this->AssyDuct.numberOfDucts());
 
   // For Hex type
@@ -488,11 +522,11 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
   double layerCorners[8][2], layerRadius;
 
   double overallDx = 0;
-  for(size_t i = 0; i < this->AssyLattice.Grid.size(); i++)
+  for(size_t i = 0; i < this->lattice.Grid.size(); i++)
     {
     double overallDy = 0;
     // For hex geometry type, figure out the six corners first
-    if(this->AssyLattice.GetGeometryType() == HEXAGONAL && i>0)
+    if(this->lattice.GetGeometryType() == HEXAGONAL && i>0)
       {
       for(int c = 0; c < 6; c++)
         {
@@ -502,9 +536,9 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
         }
       }
 
-    size_t startBlock = this->AssyLattice.GetGeometryType() == HEXAGONAL ?
-      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->AssyLattice.Grid[0].size());
-    const std::vector<LatticeCell> &row = this->AssyLattice.Grid[i];
+    size_t startBlock = this->lattice.GetGeometryType() == HEXAGONAL ?
+      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->lattice.Grid[0].size());
+    const std::vector<Lattice::LatticeCell> &row = this->lattice.Grid[i];
     for(size_t j = 0; j < row.size(); j++)
       {
       const std::string &type = row[j].label;
@@ -545,7 +579,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
               // move the polydata to the correct position
               vtkTransform *transform = vtkTransform::New();
 
-              if(this->AssyLattice.GetGeometryType() == HEXAGONAL)
+              if(this->lattice.GetGeometryType() == HEXAGONAL)
                 {
                 double pinDistFromCenter = pincell->pitchX * (i);
                 double tX=hexDuct->x, tY=hexDuct->y, tZ=0.0;
@@ -614,8 +648,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
     }
 
   // setup ducts
-  this->Data->SetBlock(this->AssyLattice.GetNumberOfCells(),
-                       CreateDuctCellMultiBlock(&this->AssyDuct, this->AssyLattice.GetGeometryType() == HEXAGONAL));
+  this->Data->SetBlock(this->lattice.GetNumberOfCells(),
+                       CreateDuctCellMultiBlock(&this->AssyDuct, this->lattice.GetGeometryType() == HEXAGONAL));
 
   for(unsigned int i = 0; i < this->Transforms.size(); ++i)
     {
@@ -658,15 +692,15 @@ void cmbNucAssembly::calculatePitch(double & x, double & y)
   if(this->IsHexType())
   {
     const double d = inDuctThick[0]-inDuctThick[0]*0.035; // make it slightly smaller to make exporting happy
-    const double l = this->AssyLattice.Grid.size();
+    const double l = this->lattice.Grid.size();
     const double cost=0.86602540378443864676372317075294;
     const double sint=0.5;
     x = y = (cost*d)/(l+sint*(l-1));
   }
   else
   {
-    double w = AssyLattice.Grid[0].size();
-    double h = AssyLattice.Grid.size();
+    double w = lattice.Grid[0].size();
+    double h = lattice.Grid.size();
     x = (inDuctThick[0])/(w+0.5);
     y = (inDuctThick[1])/(h+0.5);
   }
@@ -687,13 +721,13 @@ void cmbNucAssembly::calculateRadius(double & r)
   if(this->IsHexType())
   {
     minWidth = inDuctThick[0]/2.0;
-    maxNumber = AssyLattice.Grid.size()-0.5;
+    maxNumber = lattice.Grid.size()-0.5;
   }
   else
   {
     minWidth = std::min(inDuctThick[0],inDuctThick[1]);
-    maxNumber = std::max(AssyLattice.Grid[0].size(),
-                         AssyLattice.Grid.size());
+    maxNumber = std::max(lattice.Grid[0].size(),
+                         lattice.Grid.size());
   }
   r = (minWidth/maxNumber)*0.5;
   r = r - r*0.25;
@@ -1049,7 +1083,6 @@ void cmbNucAssembly::setLabel(std::string & n)
 {
   if(this->label != n)
   {
-    this->setAndTestDiffFromFiles(true);
     this->label = n;
   }
 }

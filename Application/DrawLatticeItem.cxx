@@ -1,8 +1,10 @@
-#include "HexLatticeItem.h"
-#include "cmbNucHexLattice.h"
+#include "DrawLatticeItem.h"
 
-HexLatticeItem::HexLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
-  HexLatticeItem::ShapeStyle shape, QGraphicsItem* parent)
+#include <QFont>
+#include <QPainter>
+
+DrawLatticeItem::DrawLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
+  DrawLatticeItem::ShapeStyle shape, QGraphicsItem* parent)
     : QGraphicsPolygonItem(polygon, parent), m_color(Qt::gray),
       m_text("xx"), m_shape(shape),
       m_layer(layer), m_cellIndex(cellIdx), m_available(true)
@@ -10,29 +12,29 @@ HexLatticeItem::HexLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
   this->setAcceptDrops(true);
 }
 
-bool HexLatticeItem::is_available()
+bool DrawLatticeItem::is_available()
 {
   return m_available;
 }
 
-void HexLatticeItem::set_available(bool b)
+void DrawLatticeItem::set_available(bool b)
 {
   m_available = b;
 }
 
-const QString& HexLatticeItem::text() const
+const QString& DrawLatticeItem::text() const
 {
   //if(m_available)
   return this->m_text;
   //return QString("");
 }
 
-void HexLatticeItem::setColor(const QColor& color)
+void DrawLatticeItem::setColor(const QColor& color)
 {
   this->m_color = color;
 }
 
-void HexLatticeItem::setText(const QString& text)
+void DrawLatticeItem::setText(const QString& text)
 {
   if(this->m_text == text)
     {
@@ -42,22 +44,22 @@ void HexLatticeItem::setText(const QString& text)
   this->update();
 }
 
-void HexLatticeItem::setShape(HexLatticeItem::ShapeStyle sstyle)
+void DrawLatticeItem::setShape(DrawLatticeItem::ShapeStyle sstyle)
 {
   this->m_shape = sstyle;
 }
 
-int HexLatticeItem::layer()
+int DrawLatticeItem::layer()
 {
   return m_layer;
 }
 
-int HexLatticeItem::cellIndex()
+int DrawLatticeItem::cellIndex()
 {
   return m_cellIndex;
 }
 
-void HexLatticeItem::drawText(QPainter *painter)
+void DrawLatticeItem::drawText(QPainter *painter)
 {
   QRectF textRect = boundingRect();
   int flags = Qt::AlignCenter | Qt::AlignCenter | Qt::TextWordWrap;
@@ -71,7 +73,7 @@ void HexLatticeItem::drawText(QPainter *painter)
   painter->drawText(textRect, flags, m_text);
 }
 
-void HexLatticeItem::drawCircle(QPainter *painter)
+void DrawLatticeItem::drawCircle(QPainter *painter)
 {
   painter->setPen(Qt::gray);
   painter->setBrush(QBrush(m_color));
@@ -81,17 +83,17 @@ void HexLatticeItem::drawCircle(QPainter *painter)
   painter->drawEllipse(circleRect);
 }
 
-void HexLatticeItem::paint(QPainter* painter,
+void DrawLatticeItem::paint(QPainter* painter,
   const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   this->setBrush(QBrush((m_available)?m_color:Qt::black));
   painter->setPen(Qt::gray);
 
-  if(this->m_shape == HexLatticeItem::Circle)
+  if(this->m_shape == DrawLatticeItem::Circle)
     {
     this->drawCircle(painter);
     }
-  else if(this->m_shape == HexLatticeItem::Hexagon)
+  else if(this->m_shape == DrawLatticeItem::Polygon)
     {
     this->Superclass::paint(painter, option, widget);
     }

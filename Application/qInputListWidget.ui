@@ -105,43 +105,6 @@ Used</string>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabModel">
-      <attribute name="title">
-       <string>Mesh</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <property name="margin">
-        <number>1</number>
-       </property>
-       <item row="0" column="0">
-        <widget class="QTreeWidget" name="ModelTree">
-         <column>
-          <property name="text">
-           <string>Name</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QCheckBox" name="ShowEdges">
-           <property name="text">
-            <string>Show Edges</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="ColorMesh">
-           <property name="text">
-            <string>Color</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
     </widget>
    </item>
   </layout>

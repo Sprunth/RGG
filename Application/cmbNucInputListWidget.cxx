@@ -136,11 +136,6 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   QObject::connect(this, SIGNAL(deleteAssembly(QTreeWidgetItem*)),
                    this, SLOT(onDeleteAssembly(QTreeWidgetItem*)));
 
-  QObject::connect(this->Internal->ColorMesh, SIGNAL(toggled(bool)),
-                   this, SIGNAL(meshColorChange(bool)));
-  QObject::connect(this->Internal->ShowEdges, SIGNAL(toggled(bool)),
-                   this, SIGNAL(meshEdgeChange(bool)));
-
   this->initUI();
 }
 
@@ -207,36 +202,6 @@ void cmbNucInputListWidget::setCore(cmbNucCore* core)
     connect( this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
              this, SLOT(repaintList()) );
   }
-}
-
-//-----------------------------------------------------------------------------
-QTreeWidget * cmbNucInputListWidget::getModelTree()
-{
-  return this->Internal->ModelTree;
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucInputListWidget::setMeshColorState(bool b)
-{
-  this->Internal->ColorMesh->setChecked(b);
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucInputListWidget::setMeshEdgeState(bool b)
-{
-  this->Internal->ShowEdges->setChecked(b);
-}
-
-//-----------------------------------------------------------------------------
-bool cmbNucInputListWidget::getMeshColorState()
-{
-  return this->Internal->ColorMesh->isChecked();
-}
-
-//-----------------------------------------------------------------------------
-bool cmbNucInputListWidget::getMeshEdgeState()
-{
-  return this->Internal->ShowEdges->isChecked();
 }
 
 //-----------------------------------------------------------------------------
@@ -322,22 +287,12 @@ void cmbNucInputListWidget::initUI()
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onTabChanged(int currentTab)
 {
-  if(currentTab == 0) // parts
+  if(currentTab == 1) // materials
     {
-    this->onPartsSelectionChanged();
-    emit switchToNonModelTab(0);
-    }
-  else if(currentTab == 1) // materials
-    {
-    emit switchToNonModelTab(1);
     bool is_checked = this->Internal->showJustUsedMaterial->isChecked();
     cmbNucMaterialColors::instance()->showJustUsed(is_checked);
     }
-  else if(currentTab) //model
-    {
-    emit(switchToModelTab());
-    }
-}
+ }
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::setActionsEnabled(bool val)
 {
@@ -358,7 +313,7 @@ void cmbNucInputListWidget::onNewAssembly()
   if(this->NuclearCore->IsHexType())
     {
     assembly->setGeometryLabel("Hexagonal");
-    assembly->AssyLattice.SetDimensions(1, 0, true);
+    assembly->getLattice().SetDimensions(1, 0, true);
     }
   else
     {
