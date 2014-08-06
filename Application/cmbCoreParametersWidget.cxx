@@ -47,6 +47,8 @@ void cmbCoreParametersWidget::initUI()
   connect(Internal->NewmannSetDel, SIGNAL(clicked()), this, SLOT(onDeleteRow()));
   connect( this->Internal->BackgroundSetting, SIGNAL(clicked()),
            this, SLOT(onSetBackgroundMesh()) );
+  connect( this->Internal->BackgroundClear, SIGNAL(clicked()),
+           this, SLOT(onClearBackgroundMesh()));
 }
 
 //-----------------------------------------------------------------------------
@@ -107,6 +109,16 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
   QFileInfo info(fileNames[0]);
   this->Internal->background_full_path = info.absoluteFilePath().toStdString();
   Internal->Background->setText(info.fileName());
+}
+
+void cmbCoreParametersWidget::onClearBackgroundMesh()
+{
+  if(this->Core == NULL)
+  {
+    return;
+  }
+  this->Internal->background_full_path = "";
+  Internal->Background->setText("");
 }
 
 //-------
