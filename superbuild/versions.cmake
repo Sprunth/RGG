@@ -162,14 +162,6 @@ add_revision(portfwd
   URL "http://www.paraview.org/files/dependencies/portfwd-0.29.tar.gz"
   URL_MD5 93161c91e12b0d67ca52dc13708a2f2f)
 
-#------------------------------------------------------------------------------
-# CMB versions
-#------------------------------------------------------------------------------
-add_revision(cmb
-  GIT_REPOSITORY git@www.kitware.com:ERDC/CMB.git
-  GIT_TAG "master"
-  )
-
 add_revision(vxl
   URL http://vtk.org/files/support/vxl_r35313.tar.gz
   URL_MD5 cb7884a8eb0f816a4bb378dc968c8333)
@@ -201,10 +193,6 @@ add_revision(gdal
   URL http://vtk.org/files/support/gdal_5b8309b.tar.gz
   URL_MD5 8d77df722a01cc86b292300a007a3282
   )
-
-add_revision(smtk
-  GIT_REPOSITORY git@www.kitware.com:SMTK.git
-  GIT_TAG master)
 
 add_revision(shiboken
   GIT_REPOSITORY https://github.com/OpenGeoscience/shiboken.git
