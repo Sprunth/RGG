@@ -84,7 +84,7 @@ add_revision(molequeue
   GIT_TAG e545ee25b4b79d5bae9e1)
 
 add_revision(nuclearRGG
-  GIT_REPOSITORY git@www.kitware.com:cmbnuclear.git
+  GIT_REPOSITORY https://github.com/Kitware/RGG
   GIT_TAG origin/master)
 
 add_revision(vtk
