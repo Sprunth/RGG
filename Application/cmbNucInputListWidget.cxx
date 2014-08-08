@@ -117,21 +117,23 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
                    cmbNucMaterialColors::instance(), SLOT(CreateNewMaterial()));
   QObject::connect(this->Internal->delMaterial, SIGNAL(clicked()),
                    cmbNucMaterialColors::instance(), SLOT(deleteSelected()));
-  QObject::connect(this->Internal->showJustUsedMaterial, SIGNAL(clicked(bool)),
-                   cmbNucMaterialColors::instance(), SLOT(showJustUsed(bool)));
+  QObject::connect(this->Internal->hideLabels, SIGNAL(clicked(bool)),
+                   this,                       SLOT(hideLabels(bool)));
   QObject::connect(this->Internal->importMaterial, SIGNAL(clicked()),
-    this, SLOT(onImportMaterial()));
+                   this, SLOT(onImportMaterial()));
   QObject::connect(this->Internal->saveMaterial, SIGNAL(clicked()),
-    this, SLOT(onSaveMaterial()));
+                   this, SLOT(onSaveMaterial()));
+  QObject::connect(this->Internal->materialDisplayed, SIGNAL(currentIndexChanged(int)),
+                   cmbNucMaterialColors::instance(), SLOT(controlShow(int)));
 
   QObject::connect(this->Internal->PartsList, SIGNAL(itemSelectionChanged()),
-    this, SLOT(onPartsSelectionChanged()), Qt::QueuedConnection);
+                   this, SLOT(onPartsSelectionChanged()), Qt::QueuedConnection);
 
   QObject::connect(this->Internal->MaterialTree, SIGNAL(itemClicked (QTreeWidgetItem*, int)),
-    this, SLOT(onMaterialClicked(QTreeWidgetItem*, int)), Qt::QueuedConnection);
+                   this, SLOT(onMaterialClicked(QTreeWidgetItem*, int)), Qt::QueuedConnection);
 
   QObject::connect(this->Internal->tabInputs, SIGNAL(currentChanged(int)),
-    this, SLOT(onTabChanged(int)));
+                   this, SLOT(onTabChanged(int)));
 
   QObject::connect(this, SIGNAL(deleteAssembly(QTreeWidgetItem*)),
                    this, SLOT(onDeleteAssembly(QTreeWidgetItem*)));
@@ -289,8 +291,8 @@ void cmbNucInputListWidget::onTabChanged(int currentTab)
 {
   if(currentTab == 1) // materials
     {
-    bool is_checked = this->Internal->showJustUsedMaterial->isChecked();
-    cmbNucMaterialColors::instance()->showJustUsed(is_checked);
+      int i = this->Internal->materialDisplayed->currentIndex();
+      cmbNucMaterialColors::instance()->controlShow(i);
     }
  }
 //----------------------------------------------------------------------------
@@ -847,4 +849,9 @@ AssyPartObj* cmbNucInputListWidget::getSelectedCoreOrAssembly()
 void cmbNucInputListWidget::clearTable()
 {
   this->Internal->PartsList->clear();
+}
+
+void cmbNucInputListWidget::hideLabels(bool v)
+{
+  this->Internal->MaterialTree->setColumnHidden(2,v);
 }

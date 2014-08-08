@@ -95,12 +95,12 @@ bool cmbNucMaterialLayer::operator==( const cmbNucMaterialLayer & other ) const
 }
 
 cmbNucMaterial::cmbNucMaterial()
-: Visible(true), NumberReferenced(0)
+: Visible(true), NumberReferenced(0), IsDisplayed(false)
 {}
 
 cmbNucMaterial::cmbNucMaterial(const QString& name,
                                const QString& label, const QColor& color)
-: Name(name), Label(label), Color(color), Visible(true), NumberReferenced(0)
+: Name(name), Label(label), Color(color), Visible(true), NumberReferenced(0), IsDisplayed(false)
 {}
 
 cmbNucMaterial::~cmbNucMaterial()
@@ -161,12 +161,22 @@ void cmbNucMaterial::setColor(QColor c)
 void cmbNucMaterial::inc()
 {
   NumberReferenced++;
+  if(NumberReferenced == 1)
+  {
+    emit useChanged();
+  }
 }
 
 void cmbNucMaterial::dec()
 {
   if(NumberReferenced != 0)
+  {
     NumberReferenced--;
+    if(NumberReferenced == 0)
+    {
+      emit useChanged();
+    }
+  }
 }
 
 bool cmbNucMaterial::isUsed()
@@ -194,4 +204,19 @@ void cmbNucMaterial::revertLabel(QString label)
 {
   this->Label = label;
   emit invalidLabel();
+}
+
+bool cmbNucMaterial::isDisplayed()
+{
+  return IsDisplayed;
+}
+
+void cmbNucMaterial::clearDisplayed()
+{
+  IsDisplayed = false;
+}
+
+void cmbNucMaterial::setDisplayed()
+{
+  IsDisplayed = true;
 }
