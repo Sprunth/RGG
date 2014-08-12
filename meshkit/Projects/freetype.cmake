@@ -1,5 +1,4 @@
 set(CMAKE_C_FLAGS ${cflags})
-message("CMAKE_C_FLAGS: ${CMAKE_C_FLAGS}")
 add_external_project(
   freetype
   DEPENDS zlib

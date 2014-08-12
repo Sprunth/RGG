@@ -45,7 +45,7 @@ add_revision(hdf5
 
 add_revision(moab
   GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-  GIT_TAG 4.6.3
+  GIT_TAG Version4.7.0
   )
 
 add_revision(cgm
@@ -55,9 +55,10 @@ add_revision(cgm
 
 add_revision(lasso
   GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
+  GIT_TAG Version3.1
   )
 
 add_revision(meshkit
   GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-  GIT_TAG master
+  GIT_TAG MeshKitv1.2
   )
