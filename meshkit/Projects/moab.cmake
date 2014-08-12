@@ -9,13 +9,12 @@ get_libraries(netcdf netcdf_libraries)
 get_filename_component(szip_path ${szip_libraries} PATH)
 get_filename_component(zlib_path ${zlib_libraries} PATH)
 get_filename_component(hdf5_path ${hdf5_libraries} PATH)
-get_filename_component(netcdf_path ${netcdf_libraries} PATH)
+set(netcdf_path ${install_location})
 
 #strip the lib directory
 get_filename_component(szip_path "${szip_path}../" PATH)
 get_filename_component(zlib_path "${zlib_path}../" PATH)
 get_filename_component(hdf5_path "${hdf5_path}../" PATH)
-get_filename_component(netcdf_path "${netcdf_path}../" PATH)
 
 #we are presuming the library for all these projects are
 #in a folder called lib, on some systems like

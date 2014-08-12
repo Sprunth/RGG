@@ -30,7 +30,7 @@ add_external_project(netcdf
     -DSZIP_INCLUDE_DIR:FILEPATH=${install_location}/include
 )
 
-add_external_project_step(patch_fix_ncgen3
+ExternalProject_Add_Step(netcdf patch_fix_ncgen3
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
            ${CMAKE_SOURCE_DIR}/Projects/patches/netcdf.ncgen3.load.c
           <SOURCE_DIR>/ncgen3/load.c
@@ -45,7 +45,7 @@ set_libraries(netcdf ${install_dir}/lib/libnetcdf${CMAKE_SHARED_LIBRARY_SUFFIX})
 if(APPLE)
 #special mac only script to fixup boost plugin install-names so that developers
 #can use the superbuild properly from other projects
-add_external_project_step(install_name_fixup
+ExternalProject_Add_Step(netcdf install_name_fixup
   COMMENT "Fixing netcdf library install_names."
   COMMAND  ${CMAKE_COMMAND}
     -Dinstall_location:PATH=${install_location}
