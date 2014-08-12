@@ -19,11 +19,12 @@
 #include <QItemDelegate>
 #include <QMenu>
 #include <QHeaderView>
+#include <QPainter>
 
-class MyItemDelegate: public QItemDelegate
+class PartsItemDelegate: public QItemDelegate
 {
 public:
-  MyItemDelegate(QObject* pParent = 0) : QItemDelegate(pParent)
+  PartsItemDelegate(QObject* pParent = 0) : QItemDelegate(pParent)
   {
   }
 
@@ -53,6 +54,31 @@ public:
   }
 };
 
+class MaterialItemDelegate: public QItemDelegate
+{
+public:
+  MaterialItemDelegate(QObject* pParent = 0) : QItemDelegate(pParent)
+  {
+  }
+
+  void paint(QPainter* pPainter, const QStyleOptionViewItem& rOption, const QModelIndex& rIndex) const
+  {
+    if(rOption.state & QStyle::State_Selected)
+    {
+
+      if(rIndex.column() == 3)
+      {
+        QStyleOptionViewItem unSelect = rOption;
+        unSelect.state &= (~QStyle::State_Selected);
+        QItemDelegate::paint(pPainter,unSelect,rIndex);
+        return;
+      }
+    }
+    QItemDelegate::paint(pPainter,rOption,rIndex);
+  }
+  QTreeWidget* treeWidget;
+};
+
 
 class cmbNucInputListWidgetInternal :
   public Ui::InputListWidget
@@ -61,7 +87,8 @@ public:
   cmbNucInputListWidgetInternal()
   {
     this->RootCoreNode = NULL;
-    TreeItemDelegate = new MyItemDelegate();
+    TreeItemDelegate = new PartsItemDelegate();
+    MaterialDelegate = new MaterialItemDelegate();
   }
   virtual ~cmbNucInputListWidgetInternal()
   {
@@ -69,6 +96,7 @@ public:
     delete Action_NewPin;
     delete Action_DeletePart;
     delete TreeItemDelegate;
+    delete MaterialDelegate;
   }
   void initActions()
     {
@@ -86,7 +114,8 @@ public:
 
   cmbNucPartsTreeItem* RootCoreNode;
 
-  MyItemDelegate * TreeItemDelegate;
+  PartsItemDelegate * TreeItemDelegate;
+  MaterialItemDelegate * MaterialDelegate;
 };
 
 //-----------------------------------------------------------------------------
@@ -104,6 +133,9 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   // set up the UI trees
   QTreeWidget* treeWidget = this->Internal->PartsList;
   treeWidget->setItemDelegate(this->Internal->TreeItemDelegate);
+
+  this->Internal->MaterialTree->setItemDelegate(this->Internal->MaterialDelegate);
+  this->Internal->MaterialDelegate->treeWidget = this->Internal->MaterialTree;
 
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
