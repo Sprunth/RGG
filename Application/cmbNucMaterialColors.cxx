@@ -544,8 +544,8 @@ void cmbNucMaterialColors::deleteSelected()
     cmbNucMaterialTreeItem * cnmti = dynamic_cast<cmbNucMaterialTreeItem *>(selitem);
     if(cnmti == NULL) continue;
     if(cnmti->getMaterial() == UnknownMaterial) continue;
-    disconnect( this, SIGNAL(showModeSig(bool)),
-                cnmti->getConnection(), SLOT(show(bool)) );
+    disconnect(this, SIGNAL(showModeSig(int)),
+               cnmti->getConnection(), SLOT(show(int)));
     this->RemoveMaterialByName(cnmti->getMaterial()->getName());
     UnknownMaterialTreeItem->getConnection()->show(showMode);
     delete cnmti;
