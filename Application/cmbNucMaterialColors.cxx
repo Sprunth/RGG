@@ -277,18 +277,19 @@ void cmbNucMaterialColors::RemoveMaterialByName(const QString& name)
   Material_Map::iterator it = this->find(name, this->NameToMaterial);
   if(it != this->NameToMaterial.end())
     {
+      bool is_used = false;
       if(it.value())
         {
         QString label = it.value()->getLabel();
-        bool is_used = it.value()->isUsed();
+        is_used = it.value()->isUsed();
         delete it.value();
         RemoveMaterialByLabel(label);
-        if(is_used)
-          {
-          emit materialColorChanged();
-          }
         }
     this->NameToMaterial.erase(it);
+    if(is_used)
+      {
+      emit materialColorChanged();
+      }
     }
 }
 
@@ -589,6 +590,7 @@ cmbNucMaterialColors
 void cmbNucMaterialColors
 ::clearDisplayed()
 {
+  UnknownMaterial->clearDisplayed();
   foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
   {
     mat->clearDisplayed();
