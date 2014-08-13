@@ -101,12 +101,12 @@
          </item>
          <item>
           <property name="text">
-           <string>Used</string>
+           <string>Core</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Displayed</string>
+           <string>Selected</string>
           </property>
          </item>
         </widget>
