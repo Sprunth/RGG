@@ -39,6 +39,11 @@ void cmbNucLatticeWidget::setLattice(LatticeContainer * l)
   }
 }
 
+void cmbNucLatticeWidget::clear()
+{
+  this->setLattice(NULL);
+}
+
 void
 cmbNucLatticeWidget::setLatticeXorLayers(int v)
 {

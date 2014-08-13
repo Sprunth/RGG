@@ -1167,6 +1167,8 @@ void cmbNucMainWindow::doClearAll(bool needSave)
 
   this->Mapper->SetInputDataObject(NULL);
 
+  this->LatticeDraw->clear();
+
   this->PropertyWidget->clear();
   this->InputsWidget->clear();
 
