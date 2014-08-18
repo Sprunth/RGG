@@ -39,6 +39,7 @@ public slots:
 signals:
   void error(QString);
   void update();
+  void fileOpen(bool);
 
 private:
   // Designer form

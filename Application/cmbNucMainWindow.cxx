@@ -450,6 +450,8 @@ void cmbNucMainWindow::initPanels()
                      this, SLOT(onChangeMeshEdgeMode(bool)));
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
                      this, SLOT(onSelectionChange()));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(fileOpen(bool)),
+                     this->ui->DockMesh, SLOT(setVisible(bool)));
   }
 #endif
 
@@ -910,7 +912,6 @@ void cmbNucMainWindow::onFileOpenMoab()
     return;
   }
   Internal->MoabSource->openFile(fileNames.first());
-  this->ui->DockMesh->setVisible(true);
   this->ui->meshControls->setVisible(true);
   this->ui->meshSubcomponent->setVisible(true);
   this->ui->drawEdges->setVisible(true);
@@ -1427,7 +1428,8 @@ void cmbNucMainWindow::zScaleChanged(int value)
   this->Renderer->ResetCamera();
   this->ui->qvtkWidget->update();
 
-  if(!this->Internal->CamerasLinked && this->isMeshTabVisible())
+  if((!this->Internal->CamerasLinked && this->isMeshTabVisible()) ||
+     (this->Internal->CamerasLinked && !this->is3DTabVisible()))
   {
     this->MeshRenderer->Modified();
     this->MeshRenderer->ResetCamera();
@@ -1711,6 +1713,16 @@ bool cmbNucMainWindow::isMeshTabVisible()
          //I make sure it is has a visible region
         (tabifiedDockWidgets(this->ui->DockMesh).isEmpty() ||
          !this->ui->DockMesh->visibleRegion().isEmpty());
+}
+
+bool cmbNucMainWindow::is3DTabVisible()
+{
+  return this->ui->Dock3D->isVisible() &&
+  //It appears either how I am hiding things or a weirdness of
+  //docking, is visible is not enough.  As such, if it is tabbed,
+  //I make sure it is has a visible region
+  (tabifiedDockWidgets(this->ui->Dock3D).isEmpty() ||
+   !this->ui->Dock3D->visibleRegion().isEmpty());
 }
 
 void cmbNucMainWindow::updatePropertyDockTitle(const QString& title)
