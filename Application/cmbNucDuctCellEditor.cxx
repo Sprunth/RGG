@@ -226,6 +226,14 @@ cmbNucDuctCellEditor
   this->isHex = hex;
 
   this->ExternalDuctCell = ductcell;
+
+  this->Ui->Split->setEnabled(false);
+  this->Ui->DeleteUp->setEnabled(false);
+  this->Ui->DeleteDown->setEnabled(false);
+  this->Ui->AddMaterialBefore->setEnabled(false);
+  this->Ui->AddMaterialAfter->setEnabled(false);
+  this->Ui->DeleteMaterial->setEnabled(false);
+
   this->Reset();
 }
 
