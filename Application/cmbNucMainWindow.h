@@ -152,6 +152,7 @@ private:
   double ZScale;
 
   bool isMeshTabVisible();
+  bool is3DTabVisible();
   void setCameras(bool coreModel, bool fullMesh);
   bool isCameraIsMoving;
 };

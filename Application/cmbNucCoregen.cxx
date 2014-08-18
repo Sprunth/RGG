@@ -70,6 +70,7 @@ void cmbNucCoregen::openFile(QString file)
   List->addItem("No Color");
   List->blockSignals(false);
   List->setCurrentIndex(5);
+  emit fileOpen(true);
 }
 
 void cmbNucCoregen::onSelectionChanged( int sel )
