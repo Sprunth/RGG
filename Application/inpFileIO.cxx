@@ -61,9 +61,9 @@ public:
 
   void writeHeader( std::ofstream &output, std::string type );
   void writeMaterials( std::ofstream &output, cmbNucAssembly &assembly );
-  void writeDuct( std::ofstream &output, cmbNucAssembly &assembly );
+  void writeDuct( std::ofstream &output, cmbNucAssembly &assembly, bool limited = false );
   void writePincell( std::ofstream &output, cmbNucAssembly &assembly );
-  void writeLattice( std::ofstream &output, std::string key, bool useAmp, Lattice &lat );
+  void writeLattice( std::ofstream &output, std::string key, bool useAmp, Lattice &lat, std::string forceLabel = "" );
   void writeAssemblies( std::ofstream &output, std::string outFileName,
                         cmbNucCore &core );
 
@@ -589,7 +589,7 @@ if(params->isValueSet(params->VALUE))\
 
 bool inpFileWriter::write(std::string fname,
                           cmbNucAssembly & assembly,
-                          bool updateFname)
+                          bool updateFname, bool limited)
 {
   inpFileHelper helper;
   std::ofstream output(fname.c_str());
@@ -597,7 +597,7 @@ bool inpFileWriter::write(std::string fname,
     {
     return false;
     }
-  if(updateFname)
+  if(updateFname && !limited)
     {
     assembly.FileName = fname;
     }
@@ -607,11 +607,26 @@ bool inpFileWriter::write(std::string fname,
   output << "GeometryType " << assembly.getGeometryLabel() << "\n";
   WRITE_PARAM_VALUE(Geometry, Geometry);
   helper.writeMaterials( output, assembly );
-  helper.writeDuct( output, assembly );
-  helper.writePincell( output, assembly );
-  helper.writeLattice( output, "Assembly",
-                       false,
-                       assembly.getLattice() );
+  helper.writeDuct( output, assembly, limited );
+  if(!limited)
+  {
+    helper.writePincell( output, assembly );
+    helper.writeLattice( output, "Assembly",
+                         false,
+                         assembly.getLattice() );
+  }
+  else
+  {
+    enumGeometryType type = assembly.getLattice().GetGeometryType();
+    output << "Assembly";
+    if(type == RECTILINEAR)
+    {
+      output  << " " << 1;
+    }
+    output << " " << 1;
+    output << std::endl;
+    output << "xx\n\n";
+  }
   //Other Parameters
   WRITE_PARAM_VALUE(TetMeshSize, TetMeshSize);
   WRITE_PARAM_VALUE(RadialMeshSize, RadialMeshSize);
@@ -677,7 +692,6 @@ bool inpFileWriter::write(std::string fname,
   }
   core.computePitch();
   helper.writeHeader(output,"Assembly");
-  int sym;
   enumGeometryType type = core.getLattice().GetGeometryType();
   int subType = core.getLattice().GetGeometrySubType();
   if(subType & JUST_ANGLE)
@@ -771,6 +785,47 @@ bool inpFileWriter::write(std::string fname,
   return true;
 }
 
+bool inpFileWriter::writeGSH(std::string fname, cmbNucCore & core, std::string assyName)
+{
+  inpFileHelper helper;
+  std::ofstream output(fname.c_str());
+  if(!output.is_open())
+  {
+    return false;
+  }
+  helper.writeHeader(output,"Core");
+  enumGeometryType type = core.getLattice().GetGeometryType();
+  int subType = core.getLattice().GetGeometrySubType();
+  if(subType & JUST_ANGLE)
+  {
+    output << "Symmetry ";
+    if(subType & ANGLE_360) output << 1 << "\n";
+    else if (subType & ANGLE_60) output << 6 << "\n";
+    else if (subType & ANGLE_30) output << 12 << "\n";
+    else output << -1 << "\n";
+  }
+  output << "ProblemType Geometry\n"; //This currently needs to written before geometryType.
+  output << "GeometryType ";
+  if(type == RECTILINEAR) output << "Rectangular\n";
+  else if(subType & FLAT ) output << "hexflat\n";
+  else if(subType & VERTEX) output << "HexVertex\n";
+  else output << "ERROR !INVALID TYPE IN SYSTEM\n";
+  output << "Assemblies " << 1;
+  output << " " << core.AssyemblyPitchX;
+  if(!core.IsHexType())
+  {
+    output << " " << core.AssyemblyPitchY;
+  }
+  output << "\n";
+  output << QFileInfo(assyName.c_str()).completeBaseName().toStdString() << ".sat aa" << "\n";
+  helper.writeLattice( output, "Lattice", true, core.getLattice(), "aa" );
+
+  output << "outputfilename " + QFileInfo(fname.c_str()).completeBaseName().toStdString() + ".sat\n";
+  output << "End\n";
+
+  return true;
+}
+
 //============================================================================
 //Helpers
 //============================================================================
@@ -836,15 +891,16 @@ void inpFileHelper::readMaterials( std::stringstream & input,
     }
 }
 
-void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly )
+void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly, bool limited )
 {
   for(size_t i = 0; i < assembly.AssyDuct.numberOfDucts(); i++)
   {
     Duct *duct = assembly.AssyDuct.getDuct(i);
+    int nl = duct->NumberOfLayers();
 
-    output << "duct " << duct->NumberOfLayers() << " ";
+    output << "duct " << (limited?1:nl) << " ";
     output << std::showpoint << duct->x << " " << duct->y << " " << duct->z1 << " " << duct->z2;
-    for(int i = 0; i <  duct->NumberOfLayers(); i++)
+    for(int i = limited?nl-1:0; i <  nl; i++)
       {
       output << " " << duct->GetLayerThick(i, 0);
       if(!assembly.IsHexType())
@@ -852,7 +908,7 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly 
           output << " " << duct->GetLayerThick(i, 1);
         }
       }
-    for(size_t j = 0; j < duct->NumberOfLayers(); j++)
+    for(int j = 0; j < nl; j++)
       {
       output << " " << duct->getMaterial(j)->getLabel().toStdString();
       }
@@ -1173,7 +1229,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 }
 
 void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
-                                  bool useAmp, Lattice &lat )
+                                  bool useAmp, Lattice &lat, std::string forceLabel )
 {
   enumGeometryType type = lat.GetGeometryType();
   int subType = lat.GetGeometrySubType();
@@ -1221,17 +1277,32 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
               {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
-              hexArray[i][j] = lat.Grid[k][layerIdx].label;
+              std::string label = lat.Grid[k][layerIdx].label;
+              if( !forceLabel.empty() && (label != "XX" && label != "xx") )
+                {
+                label = forceLabel;
+                }
+              hexArray[i][j] = label;
               }
             }
           else // rows between first and last
             {
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
-            hexArray[i][startCol] = lat.Grid[k][layerIdx].label;
+            std::string label =lat.Grid[k][layerIdx].label;
+            if( !forceLabel.empty() && (label != "XX" && label != "xx") )
+            {
+              label = forceLabel;
+            }
+            hexArray[i][startCol] = label;
             layerIdx = k+(i-startRow);
             size_t colIdx = hexArray[i].size() -1 - startCol;
-            hexArray[i][colIdx] =lat.Grid[k][layerIdx].label;
+            label =lat.Grid[k][layerIdx].label;
+            if( !forceLabel.empty() && (label != "XX" && label != "xx") )
+              {
+              label = forceLabel;
+              }
+            hexArray[i][colIdx] = label;
             }
           }
         }
@@ -1268,6 +1339,10 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
         for( size_t j = start; j < cols; j++)
           {
           std::string label = lat.Grid[i][j].label;
+          if( forceLabel.empty() && (label != "XX" && label == "xx") )
+            {
+            label = forceLabel;
+            }
           if(label.empty())
             {
             label = "xx";
@@ -1288,6 +1363,10 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
       for(size_t j = 0; j < sizeati; j++)
         {
         std::string label = lat.Grid[ati][j].label;
+        if( forceLabel.empty() && (label != "XX" && label == "xx") )
+          {
+          label = forceLabel;
+          }
         if(label.empty())
           {
           label = "xx";

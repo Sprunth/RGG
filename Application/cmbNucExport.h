@@ -82,6 +82,16 @@ public slots:
             const QString coregenLib,
             const QString coregenFile,
             const QString CoreGenOutputFile);
+  void runCylinder( const QString assygenExe,
+                    const QString assygenLib,
+                    const QString assygenFile,
+                    const QString cubitExe,
+                    const QString cubitFile,
+                    const QString cubitOutputFile,
+                    const QString coregenExe,
+                    const QString coregenLib,
+                    const QString coregenFile,
+                    const QString coregenResultFile );
   void runAssy( const QString assygenExe,
                 const QString assygenLib,
                 const QStringList &assygenFile,
@@ -90,6 +100,10 @@ public slots:
                const QString coregenLib,
                const QString coregenFile,
                const QString CoreGenOutputFile);
+  void runCubit( const QString cubitExe,
+                 const QString cubitLib,
+                 const QString cubitFile,
+                 const QString cubitOutputFile );
   void cancel();
 signals:
   void done();
@@ -111,6 +125,9 @@ private:
                       const QStringList &assygenFile,
                       const QString cubitExe,
                       double & count, double max_count );
+  bool runCubitHelper(const QString cubitExe, const QString cubitFile,
+                      const QString cubitOutputFile,
+                      double & count, double max_count);
   bool runCoreHelper( const QString coregenExe,
                       const QString coregenLib,
                       const QString coregenFile,

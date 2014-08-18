@@ -407,6 +407,88 @@ void cmbNucExport::run( const QString assygenExe,
   this->finish();
 }
 
+void
+cmbNucExport::runCylinder( const QString assygenExe,
+                           const QString assygenLib,
+                           const QString assygenFile,
+                           const QString cubitExe,
+                           const QString cubitFile,
+                           const QString cubitOutputFile,
+                           const QString coregenExe,
+                           const QString coregenLib,
+                           const QString coregenFile,
+                           const QString coregenResultFile )
+{
+  double total_number_of_file =  8;
+  double current = 0;
+  if(!this->startUpHelper(current, total_number_of_file)) return;
+
+  //Run assygen
+  {
+    AssygenExporter ae("Assygen");
+    if(!keepGoing())
+    {
+      cancelHelper();
+      return;
+    }
+    QFileInfo fi(assygenFile);
+    QString path = fi.absolutePath();
+    QString name = fi.completeBaseName();
+    QString pass = path + '/' + name;
+    emit currentProcess("  assygen " + name);
+    QFile::remove(pass + ".jou");
+    ExporterInput in(path, assygenExe, name);
+    {
+      in.LibPath = "";
+      std::stringstream ss(assygenLib.toStdString().c_str());
+      std::string line;
+      unsigned int i = 0;
+      while( std::getline(ss, line))
+      {
+        in.LibPath += line + ":";
+      }
+      QFileInfo libPaths(assygenExe);
+      in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
+      in.LibPath += ":"+ QFileInfo(cubitExe).absolutePath().toStdString();
+    }
+
+    ExporterOutput lr = ae.getOutput(in);
+    current++;
+    emit progress(static_cast<int>(current/total_number_of_file*100));
+    if(!lr.Valid)
+    {
+      failedHelper("Assygen failed",
+                   "  assygen " + name + ": " + lr.Result.c_str());
+      return;
+    }
+    if(!QFileInfo(pass + ".jou").exists())
+    {
+      failedHelper("Assygen failed to generate jou file",
+                   "  "+name + ".jou does not exist");
+      return;
+    }
+    if(!keepGoing())
+    {
+      cancelHelper();
+      return;
+    }
+  }
+
+  //run coregen
+  if(!this->runCoreHelper( coregenExe, coregenLib, coregenFile, coregenResultFile,
+                          current, total_number_of_file ))
+    return;
+
+  //Run cubit
+  if(!runCubitHelper(cubitExe, cubitFile,
+                     cubitOutputFile,
+                     current, total_number_of_file))
+    return;
+
+  this->finish();
+
+}
+
 void cmbNucExport::runAssy( const QString assygenExe,
                             const QString assygenLib,
                             const QStringList &assygenFile,
@@ -419,6 +501,16 @@ void cmbNucExport::runAssy( const QString assygenExe,
                           current, total_number_of_file) )
     return;
   this->finish();
+}
+
+void cmbNucExport::runCubit( const QString cubitExe,
+                             const QString cubitLib,
+                             const QString cubitFile,
+                             const QString cubitOutputFile )
+{
+  double total_number_of_file = 6;
+  double current = 0;
+  if(!this->startUpHelper(current, total_number_of_file)) return;
 }
 
 void cmbNucExport::runCore( const QString coregenExe,
@@ -538,6 +630,40 @@ bool cmbNucExport::runAssyHelper( const QString assygenExe,
       cancelHelper();
       return false;
     }
+  }
+  return true;
+}
+
+bool cmbNucExport::runCubitHelper(const QString cubitExe, const QString cubitFile,
+                                  const QString cubitOutputFile,
+                                  double & count, double max_count)
+{
+  CubitExporter ce("Cubit");
+  if(!keepGoing())
+  {
+    cancelHelper();
+    return false;
+  }
+  QFileInfo fi(cubitFile);
+  QString path = fi.absolutePath();
+  QString name = fi.completeBaseName();
+
+  emit currentProcess("  cubit " + name.toLower() + ".jou");
+  QFile::remove(cubitOutputFile);
+  ExporterOutput lr = ce.getOutput(ExporterInput(path, cubitExe, cubitFile));
+  count++;
+  emit progress(static_cast<int>(count/max_count*100));
+  if(!lr.Valid)
+  {
+    failedHelper("Cubit failed",
+                 "  cubit " + name + ".jou: " + lr.Result.c_str());
+    return false;
+  }
+  if(!QFileInfo(cubitOutputFile).exists())
+  {
+    failedHelper( "cubit failed to generate cubit file",
+                 "  " + cubitOutputFile+ " does not exist");
+    return false;
   }
   return true;
 }

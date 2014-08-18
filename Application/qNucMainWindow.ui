@@ -134,6 +134,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionExport"/>
+    <addaction name="actionGenerate_Cylinder"/>
    </widget>
    <widget class="QMenu" name="menuCreate">
     <property name="title">
@@ -504,6 +505,11 @@
   <action name="actionClear_Mesh">
    <property name="text">
     <string>Clear Mesh</string>
+   </property>
+  </action>
+  <action name="actionGenerate_Cylinder">
+   <property name="text">
+    <string>Generate Cylinder</string>
    </property>
   </action>
  </widget>

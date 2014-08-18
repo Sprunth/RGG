@@ -45,6 +45,7 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
 #include "cmbNucPreferencesDialog.h"
+#include "cmbNucGenerateOuterCylinder.h"
 #include "cmbNucMaterial.h"
 #include "inpFileIO.h"
 
@@ -180,6 +181,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->Dock2D->setWidget(LatticeDraw);
 
   this->ExportDialog = new cmbNucExportDialog(this);
+  this->CylinderGenerator = new cmbNucGenerateOuterCylinder(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
   Internal = new NucMainInternal();
   this->Internal->IsCoreView = false;
@@ -334,6 +336,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
           this->Preferences, SLOT(setPreferences()));
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
+  connect(this->ui->actionGenerate_Cylinder, SIGNAL(triggered()), this, SLOT(generateCylinder()));
   connect(this->Preferences, SIGNAL(actionParallelProjection(bool)),
           this, SLOT(useParallelProjection(bool)));
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
@@ -435,6 +438,7 @@ void cmbNucMainWindow::initPanels()
   }
   this->InputsWidget->setEnabled(0);
   this->ui->actionExport->setEnabled(false);
+  this->ui->actionGenerate_Cylinder->setEnabled(false);
   this->InputsWidget->setCore(this->NuclearCore);
 
 #ifdef BUILD_WITH_MOAB
@@ -698,6 +702,7 @@ void cmbNucMainWindow::onNewCore()
     this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);
     this->ui->actionExport->setEnabled(true);
+    this->ui->actionGenerate_Cylinder->setEnabled(true);
     this->Renderer->ResetCamera();
     this->Renderer->Render();
   }
@@ -771,6 +776,7 @@ void cmbNucMainWindow::onFileOpen()
         need_to_use_assem = true;
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
+        this->ui->actionGenerate_Cylinder->setEnabled(true);
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -785,6 +791,7 @@ void cmbNucMainWindow::onFileOpen()
                                                       defaultAssemblyColors);
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
+        this->ui->actionGenerate_Cylinder->setEnabled(true);
         this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
         break;
@@ -1175,6 +1182,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->InputsWidget->setCore(this->NuclearCore);
   this->ui->actionNew_Assembly->setEnabled(false);
   this->ui->actionExport->setEnabled(false);
+  this->ui->actionGenerate_Cylinder->setEnabled(false);
 
   if(this->Internal->MoabSource != NULL) this->onClearMesh();
 
@@ -1400,6 +1408,11 @@ void cmbNucMainWindow::updateCoreMaterialColors()
 void cmbNucMainWindow::exportRGG()
 {
   this->ExportDialog->exportFile(NuclearCore);
+}
+
+void cmbNucMainWindow::generateCylinder()
+{
+  this->CylinderGenerator->exportFile(NuclearCore);
 }
 
 void cmbNucMainWindow::zScaleChanged(int value)
