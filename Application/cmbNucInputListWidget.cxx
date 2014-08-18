@@ -19,11 +19,12 @@
 #include <QItemDelegate>
 #include <QMenu>
 #include <QHeaderView>
+#include <QPainter>
 
-class MyItemDelegate: public QItemDelegate
+class PartsItemDelegate: public QItemDelegate
 {
 public:
-  MyItemDelegate(QObject* pParent = 0) : QItemDelegate(pParent)
+  PartsItemDelegate(QObject* pParent = 0) : QItemDelegate(pParent)
   {
   }
 
@@ -53,6 +54,31 @@ public:
   }
 };
 
+class MaterialItemDelegate: public QItemDelegate
+{
+public:
+  MaterialItemDelegate(QObject* pParent = 0) : QItemDelegate(pParent)
+  {
+  }
+
+  void paint(QPainter* pPainter, const QStyleOptionViewItem& rOption, const QModelIndex& rIndex) const
+  {
+    if(rOption.state & QStyle::State_Selected)
+    {
+
+      if(rIndex.column() == 3)
+      {
+        QStyleOptionViewItem unSelect = rOption;
+        unSelect.state &= (~QStyle::State_Selected);
+        QItemDelegate::paint(pPainter,unSelect,rIndex);
+        return;
+      }
+    }
+    QItemDelegate::paint(pPainter,rOption,rIndex);
+  }
+  QTreeWidget* treeWidget;
+};
+
 
 class cmbNucInputListWidgetInternal :
   public Ui::InputListWidget
@@ -61,7 +87,8 @@ public:
   cmbNucInputListWidgetInternal()
   {
     this->RootCoreNode = NULL;
-    TreeItemDelegate = new MyItemDelegate();
+    TreeItemDelegate = new PartsItemDelegate();
+    MaterialDelegate = new MaterialItemDelegate();
   }
   virtual ~cmbNucInputListWidgetInternal()
   {
@@ -69,6 +96,7 @@ public:
     delete Action_NewPin;
     delete Action_DeletePart;
     delete TreeItemDelegate;
+    delete MaterialDelegate;
   }
   void initActions()
     {
@@ -86,7 +114,8 @@ public:
 
   cmbNucPartsTreeItem* RootCoreNode;
 
-  MyItemDelegate * TreeItemDelegate;
+  PartsItemDelegate * TreeItemDelegate;
+  MaterialItemDelegate * MaterialDelegate;
 };
 
 //-----------------------------------------------------------------------------
@@ -105,6 +134,9 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   QTreeWidget* treeWidget = this->Internal->PartsList;
   treeWidget->setItemDelegate(this->Internal->TreeItemDelegate);
 
+  this->Internal->MaterialTree->setItemDelegate(this->Internal->MaterialDelegate);
+  this->Internal->MaterialDelegate->treeWidget = this->Internal->MaterialTree;
+
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
     this, SLOT(onNewAssembly()));
@@ -117,21 +149,23 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
                    cmbNucMaterialColors::instance(), SLOT(CreateNewMaterial()));
   QObject::connect(this->Internal->delMaterial, SIGNAL(clicked()),
                    cmbNucMaterialColors::instance(), SLOT(deleteSelected()));
-  QObject::connect(this->Internal->showJustUsedMaterial, SIGNAL(clicked(bool)),
-                   cmbNucMaterialColors::instance(), SLOT(showJustUsed(bool)));
+  QObject::connect(this->Internal->hideLabels, SIGNAL(clicked(bool)),
+                   this,                       SLOT(hideLabels(bool)));
   QObject::connect(this->Internal->importMaterial, SIGNAL(clicked()),
-    this, SLOT(onImportMaterial()));
+                   this, SLOT(onImportMaterial()));
   QObject::connect(this->Internal->saveMaterial, SIGNAL(clicked()),
-    this, SLOT(onSaveMaterial()));
+                   this, SLOT(onSaveMaterial()));
+  QObject::connect(this->Internal->materialDisplayed, SIGNAL(currentIndexChanged(int)),
+                   cmbNucMaterialColors::instance(), SLOT(controlShow(int)));
 
   QObject::connect(this->Internal->PartsList, SIGNAL(itemSelectionChanged()),
-    this, SLOT(onPartsSelectionChanged()), Qt::QueuedConnection);
+                   this, SLOT(onPartsSelectionChanged()), Qt::QueuedConnection);
 
   QObject::connect(this->Internal->MaterialTree, SIGNAL(itemClicked (QTreeWidgetItem*, int)),
-    this, SLOT(onMaterialClicked(QTreeWidgetItem*, int)), Qt::QueuedConnection);
+                   this, SLOT(onMaterialClicked(QTreeWidgetItem*, int)), Qt::QueuedConnection);
 
   QObject::connect(this->Internal->tabInputs, SIGNAL(currentChanged(int)),
-    this, SLOT(onTabChanged(int)));
+                   this, SLOT(onTabChanged(int)));
 
   QObject::connect(this, SIGNAL(deleteAssembly(QTreeWidgetItem*)),
                    this, SLOT(onDeleteAssembly(QTreeWidgetItem*)));
@@ -289,8 +323,8 @@ void cmbNucInputListWidget::onTabChanged(int currentTab)
 {
   if(currentTab == 1) // materials
     {
-    bool is_checked = this->Internal->showJustUsedMaterial->isChecked();
-    cmbNucMaterialColors::instance()->showJustUsed(is_checked);
+      int i = this->Internal->materialDisplayed->currentIndex();
+      cmbNucMaterialColors::instance()->controlShow(i);
     }
  }
 //----------------------------------------------------------------------------
@@ -847,4 +881,9 @@ AssyPartObj* cmbNucInputListWidget::getSelectedCoreOrAssembly()
 void cmbNucInputListWidget::clearTable()
 {
   this->Internal->PartsList->clear();
+}
+
+void cmbNucInputListWidget::hideLabels(bool v)
+{
+  this->Internal->MaterialTree->setColumnHidden(2,v);
 }

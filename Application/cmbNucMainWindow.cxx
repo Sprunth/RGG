@@ -1251,6 +1251,7 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
     this->Mapper->GetCompositeDataDisplayAttributes();
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  matColorMap->clearDisplayed();
   unsigned int flat_index = 1; // start from first child
   for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
     {
@@ -1260,16 +1261,19 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
       flat_index++;
       for(int k = 0; k < pin->GetNumberOfLayers(); k++)
         {
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
-                                           pin->GetPart(idx)->GetMaterial(k));
+        QPointer<cmbNucMaterial> mat = pin->GetPart(idx)->GetMaterial(k);
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
+        mat->setDisplayed();
         }
       }
       if(pin->cellMaterialSet())
       {
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
-                                           pin->getCellMaterial());
+        QPointer<cmbNucMaterial> mat = pin->getCellMaterial();
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
+        mat->setDisplayed();
       }
     }
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
@@ -1289,6 +1293,7 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
     this->Mapper->GetCompositeDataDisplayAttributes();
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  matColorMap->clearDisplayed();
   unsigned int flat_index = 1; // start from first child
   for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
   {
@@ -1298,11 +1303,13 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
       flat_index++;
       for(int k = 0; k < d->NumberOfLayers(); k++)
       {
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
-                                           d->getMaterial(k));
+        QPointer<cmbNucMaterial> mat = d->getMaterial(k);
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
+        mat->setDisplayed();
       }
     }
   }
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
@@ -1333,7 +1340,9 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
     this->Mapper->GetCompositeDataDisplayAttributes();
 
   unsigned int realflatidx = 0;
+  cmbNucMaterialColors::instance()->clearDisplayed();
   assy->updateMaterialColors(realflatidx, attributes);
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucMainWindow::exportVTKFile(const QString &fileName)
@@ -1369,6 +1378,8 @@ void cmbNucMainWindow::updateCoreMaterialColors()
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
 
+  cmbNucMaterialColors::instance()->clearDisplayed();
+
   unsigned int realflatidx = 0;
   for(unsigned int block = 0; block < numCoreBlocks; block++)
     {
@@ -1397,6 +1408,7 @@ void cmbNucMainWindow::updateCoreMaterialColors()
       assy->updateMaterialColors(realflatidx, attributes);
       }
     }
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucMainWindow::exportRGG()

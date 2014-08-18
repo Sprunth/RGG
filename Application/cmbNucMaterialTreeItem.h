@@ -47,7 +47,7 @@ public:
 signals:
 public slots:
   void revert();
-  void show(bool justUsed);
+  void show(int mode);
 };
 
 

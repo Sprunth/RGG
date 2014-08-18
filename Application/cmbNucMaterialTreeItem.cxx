@@ -13,14 +13,25 @@ void cmbNucMaterialTreeItemConnection::revert()
   v->setHidden(false);
 }
 
-void cmbNucMaterialTreeItemConnection::show(bool justUsed)
+void cmbNucMaterialTreeItemConnection::show(int mode)
 {
   if(this->v->Material == NULL)
   {
     this->v->setHidden(true);
     return;
   }
-  this->v->setHidden(justUsed && !this->v->Material->isUsed());
+  switch(mode)
+  {
+    case 0:
+      this->v->setHidden(false);
+      break;
+    case 1:
+      this->v->setHidden(!this->v->Material->isUsed());
+      break;
+    case 2:
+      this->v->setHidden(!this->v->Material->isDisplayed());
+      break;
+  }
 }
 
 //-----------------------------------------------------------------------------
