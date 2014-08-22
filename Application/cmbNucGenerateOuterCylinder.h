@@ -28,6 +28,7 @@ protected slots:
   void Generate();
   void done();
   void cancel();
+  void updateCylinder();
 
 signals:
   void process( const QString assygenExe,
@@ -45,6 +46,8 @@ signals:
   void error(QString);
   void finished(QString);
   void fileFinish();
+  void drawCylinder(double r, int inter);
+  void clearCylinder();
 
 private:
   // Designer form

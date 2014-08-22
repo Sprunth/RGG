@@ -29,7 +29,10 @@ QString GetRandomString(int length)
 
 cmbNucGenerateOuterCylinder
 ::cmbNucGenerateOuterCylinder(cmbNucMainWindow* mainWindow)
-: Core(NULL), MainWindow(mainWindow), QDialog(mainWindow)
+: Core(NULL), MainWindow(mainWindow),
+  QDialog(mainWindow, Qt::CustomizeWindowHint |
+                      Qt::WindowTitleHint |
+                      Qt::WindowMinMaxButtonsHint)
 {
   ui = new Ui_CylinderCreateGui;
   this->ui->setupUi(this);
@@ -57,6 +60,11 @@ cmbNucGenerateOuterCylinder
   connect( this->ui->Cancel, SIGNAL(clicked()),
           this, SLOT(cancel()));
 
+  connect(this->ui->OuterEdgeInterval, SIGNAL(valueChanged(int)),
+          this, SLOT(updateCylinder()));
+  connect(this->ui->RadiusBox, 	SIGNAL(valueChanged(double)),
+          this, SLOT(updateCylinder()));
+
   Thread.start();
 }
 
@@ -75,10 +83,13 @@ cmbNucGenerateOuterCylinder
   Core = core;
   double initRadius = Core->getLattice().Grid.size() * Core->AssyemblyPitchX;
   this->ui->RadiusBox->setValue(initRadius);
-  this->ui->OuterEdgeInterval->setValue(Core->getLattice().Grid.size()*12);
+  int ei;
+  Core->GetDefaults()->getEdgeInterval(ei);
+  this->ui->OuterEdgeInterval->setValue(Core->getLattice().Grid.size()*ei*12);
   deleteTempFiles();
   random = GetRandomString(8);
   this->show();
+  updateCylinder();
 }
 
 void cmbNucGenerateOuterCylinder
@@ -131,6 +142,7 @@ cmbNucGenerateOuterCylinder
 ::Generate()
 {
   deleteTempFiles();
+  emit clearCylinder();
   this->ui->FileName->setText("");
   this->ui->ProcessOutput->clear();
   this->ui->Generate->setEnabled(false);
@@ -201,12 +213,12 @@ void cmbNucGenerateOuterCylinder
   this->hide();
   this->Exporter->cancel();
   deleteTempFiles();
+  emit clearCylinder();
 }
 
 void cmbNucGenerateOuterCylinder
 ::deleteTempFiles()
 {
-  return;
   if(random.isEmpty()) return;
   QString path = QFileInfo(FileName).dir().absolutePath();;
   QDir dir(path);
@@ -216,4 +228,12 @@ void cmbNucGenerateOuterCylinder
   {
     dir.remove(dirFile);
   }
+}
+
+void cmbNucGenerateOuterCylinder
+::updateCylinder()
+{
+  int i = this->ui->OuterEdgeInterval->text().toInt();
+  double r = this->ui->RadiusBox->text().toDouble();
+  emit drawCylinder(r, i);
 }

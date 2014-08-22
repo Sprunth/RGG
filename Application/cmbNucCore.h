@@ -166,6 +166,7 @@ private:
 public slots:
   void dataChanged();
   void assemblyChanged();
+  void clearData();
 signals:
   void dataChangedSig();
   void colorChanged();
@@ -185,8 +186,12 @@ public:
   // Creates an empty Core.
   cmbNucCore(bool needSaved = true);
 
+  const static double CosSinAngles[6][2];
+
   // Destroys the Core.
   ~cmbNucCore();
+
+  void clearOldGeometry();
 
   cmbNucCoreConnection* GetConnection(){return this->Connection;}
 
@@ -290,6 +295,10 @@ public:
   void sendDefaults();
   void initDefaults();
 
+  void drawCylinder();
+  void drawCylinder(double r, int i);
+  void clearCylinder();
+
 
   void checkUsedAssembliesForGen();
 
@@ -299,6 +308,12 @@ public:
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
+  bool hasCylinder;
+  double cylinderRadius;
+  int cylinderOuterSpacing;
+
+  void generateData();
+
   std::vector<cmbNucAssembly*> Assemblies;
   cmbNucCoreConnection * Connection;
 

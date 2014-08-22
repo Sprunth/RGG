@@ -17,6 +17,8 @@
 #include "vtkMath.h"
 #include "cmbNucDefaults.h"
 
+#include "vtkCmbLayeredConeSource.h"
+
 #include <QFileInfo>
 #include <QDateTime>
 #include <QDir>
@@ -25,7 +27,13 @@
 void cmbNucCoreConnection::dataChanged()
 {
   v->setAndTestDiffFromFiles(true);
+  v->clearOldGeometry();
   emit dataChangedSig();
+}
+
+void cmbNucCoreConnection::clearData()
+{
+  v->clearOldGeometry();
 }
 
 void cmbNucCoreConnection::assemblyChanged()
@@ -34,15 +42,32 @@ void cmbNucCoreConnection::assemblyChanged()
   emit dataChangedSig();
 }
 
+const double cmbNucCore::CosSinAngles[6][2] =
+{ { cos( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (4 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (4 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ) } };
+
 cmbNucCore::cmbNucCore(bool needSaved)
 {
-  this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+  clearOldGeometry();
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
   DifferentFromH5M = true;
   this->Connection = new cmbNucCoreConnection();
   this->Connection->v = this;
+  hasCylinder = false;
+  cylinderRadius = 0;
+  cylinderOuterSpacing = 0;
 }
 
 cmbNucCore::~cmbNucCore()
@@ -60,6 +85,11 @@ cmbNucCore::~cmbNucCore()
   delete this->Connection;
 }
 
+void cmbNucCore::clearOldGeometry()
+{
+  this->Data = NULL;
+}
+
 void cmbNucCore::SetDimensions(int i, int j)
 {
   this->lattice.SetDimensions(i, j);
@@ -67,7 +97,7 @@ void cmbNucCore::SetDimensions(int i, int j)
 
 void cmbNucCore::clearExceptAssembliesAndGeom()
 {
-  this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+  clearOldGeometry();
   this->lattice.SetDimensions(1, 1, true);
   this->setAndTestDiffFromFiles(true);
   FileName = "";
@@ -93,6 +123,8 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
                    this->Connection, SIGNAL(colorChanged()));
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SLOT(assemblyChanged()));
+  QObject::connect(this->Connection, SIGNAL(dataChangedSig()),
+                   this->Connection, SLOT(clearData()));
   if(this->Assemblies.size() == 1)
     {
     this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
@@ -112,7 +144,11 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
       }
     }
   // update the Grid
-  if(this->lattice.ClearCell(label)) this->setAndTestDiffFromFiles(true);
+  if(this->lattice.ClearCell(label))
+  {
+    this->setAndTestDiffFromFiles(true);
+    clearOldGeometry();
+  }
 }
 
 cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
@@ -157,16 +193,26 @@ std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 {
+  if(this->Data == NULL)
+  {
+    generateData();
+  }
+  return this->Data;
+}
+
+void cmbNucCore::generateData()
+{
   if(this->Assemblies.size()==0 || this->lattice.Grid.size()==0
     || this->lattice.Grid[0].size()==0)
     {
-    return NULL;
+    clearOldGeometry(); return;
     }
   // we need at least one duct
   if(Assemblies[0]->AssyDuct.numberOfDucts()==0)
     {
-    return NULL;
+    clearOldGeometry(); return;
     }
+  this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
   int subType = this->lattice.GetGeometrySubType();
 
   double startX = this->Assemblies[0]->AssyDuct.getDuct(0)->x;
@@ -184,7 +230,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
     (1 + 3*(int)this->lattice.Grid.size()*((int)this->lattice.Grid.size() - 1)) :
     this->lattice.Grid.size()*this->lattice.Grid[0].size();
 
-  this->Data->SetNumberOfBlocks(numBlocks);
+  this->Data->SetNumberOfBlocks(numBlocks+1);
 
   if( isHex && subType & ANGLE_360 && this->lattice.Grid.size()>1 )
   {
@@ -241,9 +287,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
             for(int c = 0; c < 6; c++)
               {
               // Needs a little more thinking on math here?
-              double angle = 2 * (vtkMath::Pi() / 6.0) * (c+3);
-              layerCorners[c][0] = layerRadius * cos(angle);
-              layerCorners[c][1] = layerRadius * sin(angle);
+              layerCorners[c][0] = layerRadius * CosSinAngles[c][0];
+              layerCorners[c][1] = layerRadius * CosSinAngles[c][1];
               }
             }
 
@@ -323,8 +368,6 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
         }
       }
     }
-
-  return this->Data;
 }
 
 void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
@@ -632,4 +675,105 @@ void cmbNucCore::fillList(QStringList & l)
 AssyPartObj * cmbNucCore::getFromLabel(const std::string & s)
 {
   return this->GetAssembly(s);
+}
+
+void cmbNucCore::drawCylinder()
+{
+  if(cylinderRadius <= 0 || cylinderOuterSpacing <= 0)
+  {
+    return;
+  }
+  if(!hasCylinder) return;
+
+  vtkSmartPointer<vtkCmbLayeredConeSource> cylinder = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
+  //cylinder->SetGenerateEnds(0);
+
+  double outerDuctHeight = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[0];
+  double extraXTrans = 0, extraYTrans = 0;
+
+  // setup data
+  {
+    double odc = outerDuctHeight*this->lattice.Grid.size();
+    double tmp = odc - outerDuctHeight;
+    double t2 = tmp*0.5;
+    double ty = std::sqrt(tmp*tmp-t2*t2);
+    extraYTrans = -ty;
+    extraXTrans = odc;
+  }
+
+  double h;
+  Defaults->getHeight(h);
+  cylinder->SetHeight(h);
+  cylinder->SetNumberOfLayers(1);
+  cylinder->SetTopRadius(0, cylinderRadius);
+  cylinder->SetBaseRadius(0, cylinderRadius);
+  cylinder->SetResolution(0, cylinderOuterSpacing);
+  for(int i = 0; i < 6; ++i)
+  {
+    double odc = outerDuctHeight*this->lattice.Grid.size();
+    cylinder->addInnerPoint(odc * CosSinAngles[i][0],
+                            odc * CosSinAngles[i][1]);
+  }
+  double bc[] = {extraXTrans, extraYTrans, 0};
+  cylinder->SetBaseCenter(bc);
+  cylinder->Update();
+  //vtkPolyData * pd = cylinder->GetOutput();
+  //vtkIdType offset = pd->GetNumberOfPoints();
+
+  /*vtkPoints * points = pd->GetPoints();
+  vtkCellArray *cells = pd->GetCells();
+  double layerCorners[6][2];
+  hexDiameter = hexDuct->thickness[0];
+
+  layerRadius = outerDuctHeight * i;
+  for(int c = 0; c < 6; c++)
+  {
+    // Needs a little more thinking on math here?
+    layerCorners[c][0] = layerRadius * CosSinAngles[c][0];
+    layerCorners[c][1] = layerRadius * CosSinAngles[c][1];
+  }
+
+  for(int i = 0; c < 5; ++c)
+  {
+    double point[] = {layerCorners[c][0],layerCorners[c][1],0};
+    points->InsertNextPoint(point);
+  }
+  for(int i = 0; c < 5; ++c)
+  {
+    double point[] = {layerCorners[c][0],layerCorners[c][1],5};
+    points->InsertNextPoint(point);
+  }
+
+  if(1)
+  {
+    int offset = outerRes+innerRes;
+    for(unsigned int i = 0; i < 5; ++i)
+    {
+      pts[0] = i + offset;
+      pts[3] = (i+1) % 6 + offset;
+      pts[2] = (i+1) % 6 + 6+offset;
+      pts[1] = i + offset + 6;
+      cells->InsertNextCell(4, pts);
+    }
+  }*/
+
+  Data->SetBlock(Data->GetNumberOfBlocks()-1, cylinder->GetOutput());
+}
+
+void cmbNucCore::drawCylinder(double r, int i)
+{
+  if(r <= 0 || i <= 0)
+  {
+    return;
+  }
+  hasCylinder = true;
+  cylinderRadius = r;
+  cylinderOuterSpacing = i;
+  drawCylinder();
+}
+
+void cmbNucCore::clearCylinder()
+{
+  hasCylinder = false;
+  Data->SetBlock(Data->GetNumberOfBlocks()-1, NULL);
 }

@@ -509,7 +509,11 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
   this->CoreProperties->applyToCore(nucCore);
   this->CoreDefaults->apply();
   nucCore->sendDefaults();
-  if(changed) emit valuesChanged();
+  if(changed)
+  {
+    nucCore->clearOldGeometry();
+    emit valuesChanged();
+  }
   emit this->objGeometryChanged(nucCore);
 }
 

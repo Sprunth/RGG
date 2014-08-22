@@ -17,6 +17,10 @@
 #include <vtkAppendPolyData.h>
 #include <vtkDoubleArray.h>
 
+#include <vtkDelaunay2D.h>
+#include <vtkPolygon.h>
+#include <vtkSmartPointer.h>
+
 #include <QDebug>
 
 #include <cassert>
@@ -38,6 +42,7 @@ vtkCmbLayeredConeSource::vtkCmbLayeredConeSource()
   this->Direction[1] = 0.0;
   this->Direction[2] = 1.0;
   this->GenerateNormals = 1;
+  this->GenerateEnds = 1;
 }
 
 vtkCmbLayeredConeSource::~vtkCmbLayeredConeSource()
@@ -180,27 +185,6 @@ int vtkCmbLayeredConeSource::RequestData(
   return 1;
 }
 
-#define CREATE_END(OFFSET)                       \
-if(innerRes == 0)                                \
-{                                                \
-  for(int i = 0; i < outerRes; ++i)              \
-  {                                              \
-    pts[outerRes - 1 - i] = i+OFFSET;                           \
-  }                                              \
-  cells->InsertNextCell(outerRes, pts);          \
-}                                                \
-else if(innerRes == outerRes)                    \
-{                                                \
-  for(int i = 0; i < innerRes; ++i)              \
-  {                                              \
-    pts[0] = i + OFFSET;                         \
-    pts[3] = (i+1)%innerRes + OFFSET;            \
-    pts[2] = (i+1)%innerRes + innerRes + OFFSET; \
-    pts[1] = i+innerRes + OFFSET;                \
-    cells->InsertNextCell(4, pts);               \
-  }                                              \
-}                                                \
-
 namespace
 {
   void Upsample(vtkPoints *points, double * pt0, double * pt1, int number)
@@ -303,6 +287,110 @@ namespace
   };
 };
 
+void vtkCmbLayeredConeSource
+::TriangulateEnd(const int innerRes, const int outerRes,
+                 bool forceDelaunay, vtkCellArray *cells, vtkPoints * fullPoints)
+{
+  vtkIdType pts[32];
+  const int offset = outerRes+innerRes;
+  const bool has_hole = innerRes != 0;
+  if(!forceDelaunay && has_hole && outerRes == innerRes && outerRes < 32)
+  {
+    for(int i = 0; i < innerRes; ++i)
+    {
+      pts[0] = i;
+      pts[3] = (i+1)%innerRes;
+      pts[2] = (i+1)%innerRes + innerRes;
+      pts[1] = i+innerRes;
+      cells->InsertNextCell(4, pts);
+    }
+    for(int i = 0; i < innerRes; ++i)
+    {
+      pts[0] = i + offset;
+      pts[3] = (i+1)%innerRes + offset;
+      pts[2] = (i+1)%innerRes + innerRes + offset;
+      pts[1] = i+innerRes + offset;
+      cells->InsertNextCell(4, pts);
+    }
+  }
+  else if(!forceDelaunay && !has_hole && outerRes<32)
+  {
+    for(int i = 0; i < outerRes; ++i)
+    {
+      pts[outerRes - 1 - i] = i;
+    }
+    cells->InsertNextCell(outerRes, pts);
+    for(int i = 0; i < outerRes; ++i)
+    {
+      pts[outerRes - 1 - i] = i+offset;
+    }
+    cells->InsertNextCell(outerRes, pts);
+  }
+  else
+  {
+    vtkPoints *points = vtkPoints::New();
+    // Create a cell array to store the polygon in
+    vtkSmartPointer<vtkCellArray> aCellArray =
+      vtkSmartPointer<vtkCellArray>::New();
+
+    // Define a polygonal hole with a clockwise polygon
+    vtkSmartPointer<vtkPolygon> aPolygon =
+      vtkSmartPointer<vtkPolygon>::New();
+    for(int i = 0; i < outerRes; ++i)
+    {
+      double * pts = fullPoints->GetPoint(i);
+      points->InsertNextPoint(pts[0], pts[1], 0);
+    }
+    for(int i = outerRes; i < offset; ++i)
+    {
+      double * pts = fullPoints->GetPoint(i);
+      points->InsertNextPoint(pts[0], pts[1], 0);
+      aPolygon->GetPointIds()->InsertNextId(offset-(i-outerRes)-1);
+    }
+
+    vtkSmartPointer<vtkPolyData> aPolyData =
+      vtkSmartPointer<vtkPolyData>::New();
+    aPolyData->SetPoints(points);
+
+    aCellArray->InsertNextCell(aPolygon);
+    vtkSmartPointer<vtkPolyData> boundary =
+      vtkSmartPointer<vtkPolyData>::New();
+    boundary->SetPoints(aPolyData->GetPoints());
+    boundary->SetPolys(aCellArray);
+    vtkSmartPointer<vtkDelaunay2D> delaunay =
+      vtkSmartPointer<vtkDelaunay2D>::New();
+
+    delaunay->SetInputData(aPolyData);
+    delaunay->SetSourceData(boundary);
+
+    delaunay->Update();
+
+    vtkPolyData * pd = delaunay->GetOutput();
+
+    vtkCellArray * tri = pd->GetPolys();
+    tri->InitTraversal();
+
+    vtkIdType npts;
+    vtkIdType * tmppts;
+    while(tri->GetNextCell(npts, tmppts))
+    {
+      assert(npts == 3);
+      pts[0] = tmppts[0];
+      pts[1] = tmppts[2];
+      pts[2] = tmppts[1];
+      cells->InsertNextCell(3,pts);
+    }
+
+    tri->InitTraversal();
+    while(tri->GetNextCell(npts, tmppts))
+    {
+      for(int j = 0; j < npts; ++j) pts[j] = tmppts[j] + offset;
+      cells->InsertNextCell(npts,pts);
+    }
+    points->Delete();
+  }
+}
+
 vtkPolyData *
 vtkCmbLayeredConeSource
 ::CreateLayer( double h,
@@ -320,15 +408,35 @@ vtkCmbLayeredConeSource
 
   points->SetDataTypeToDouble(); //used later during transformation
 
-  vtkIdType pts[VTK_CELL_SIZE];
+  vtkIdType pts[5];
+  double tpt[3];
+  bool forceDelaunay = false;
 
-  if(innerRes == 0)
+  if(innerRes == 0 && InnerPoints.empty())
   {
     GeneratePoints gp(outerRes);
     outerRes = gp.usedResolution();
     points->Allocate(outerRes*2);
     gp.AddPoints(points, 0, outerBottomR, 0);
     gp.AddPoints(points, h, outerTopR, 0);
+  }
+  else if(innerRes == 0 && !InnerPoints.empty())
+  {
+    GeneratePoints gp(outerRes);
+    outerRes = gp.usedResolution();
+    innerRes = InnerPoints.size();
+    points->Allocate((outerRes+innerRes)*2);
+    gp.AddPoints(points, 0, outerBottomR, 0);
+    for(unsigned int i = 0; i < InnerPoints.size(); ++i)
+    {
+      points->InsertNextPoint(InnerPoints[i][0],InnerPoints[i][1],0);
+    }
+    gp.AddPoints(points, h, outerTopR, 0);
+    for(unsigned int i = 0; i < InnerPoints.size(); ++i)
+    {
+      points->InsertNextPoint(InnerPoints[i][0],InnerPoints[i][1],h);
+    }
+    forceDelaunay = true;
   }
   else if(innerRes == outerRes)
   {
@@ -340,33 +448,19 @@ vtkCmbLayeredConeSource
     gp.AddPoints(points, h, outerTopR,    0);
     gp.AddPoints(points, h, innerTopR,    0.0005);
   }
-  else if(innerRes > outerRes)
+  else
   {
     GeneratePoints gpO(outerRes);
     GeneratePoints gpI(innerRes);
-    innerRes = outerRes = gpI.usedResolution();
-    points->Allocate(outerRes*4);
-    gpO.AddPointsUpsampled(points, 0, outerBottomR, innerRes, 0);
-    gpI.AddPoints(points, 0, innerBottomR, 0.0005);
-    gpO.AddPointsUpsampled(points, h, outerTopR,    innerRes, 0);
-    gpI.AddPoints(points, h, innerTopR,    0.0005);
-  }
-  else // outerRes > innerRes
-  {
-    GeneratePoints gpO(outerRes);
-    GeneratePoints gpI(innerRes);
-    innerRes = outerRes = gpO.usedResolution();
-    points->Allocate(outerRes*4);
+    points->Allocate((outerRes+innerRes)*2);
     gpO.AddPoints(points, 0, outerBottomR, 0);
-    gpI.AddPointsUpsampled(points, 0, innerBottomR, innerRes, 0.0005);
+    gpI.AddPoints(points, 0, innerBottomR, 0.0005);
     gpO.AddPoints(points, h, outerTopR, 0);
-    gpI.AddPointsUpsampled(points, h, innerTopR, innerRes, 0.0005);
+    gpI.AddPoints(points, h, innerTopR,    0.0005);
   }
 
   //Add bottom calls
-  if(1) { CREATE_END(0) }
-  //Create top
-  if(1) { const int offset = outerRes+innerRes; CREATE_END(offset) }
+  if(GenerateEnds) { TriangulateEnd(innerRes, outerRes, forceDelaunay, cells, points); }
   //Outer Wall;
   if(1)
   {
@@ -400,6 +494,17 @@ vtkCmbLayeredConeSource
   cells->Delete();
 
   return polyData;
+}
+
+void vtkCmbLayeredConeSource::addInnerPoint(double x, double y)
+{
+  std::vector<double> pt(2);
+  pt[0] = x; pt[1] = y;
+  InnerPoints.push_back(pt);
+}
+void vtkCmbLayeredConeSource::clearInnerPoints()
+{
+  InnerPoints.clear();
 }
 
 void vtkCmbLayeredConeSource::PrintSelf(ostream &os, vtkIndent indent)

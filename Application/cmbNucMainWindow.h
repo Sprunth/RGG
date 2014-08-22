@@ -15,6 +15,7 @@ class vtkActor;
 class vtkAxesActor;
 class vtkCubeAxesActor;
 class vtkCompositePolyDataMapper2;
+class vtkPolyDataMapper;
 class vtkEventQtSlotConnect;
 class vtkObject;
 class vtkRenderer;
@@ -124,6 +125,9 @@ protected slots:
   void setTitle();
 
   void colorChange();
+
+  void outerLayer(double r, int i);
+  void clearOuter();
 
 private:
   // Designer form

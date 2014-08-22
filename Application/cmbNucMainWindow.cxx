@@ -23,6 +23,7 @@
 #include "vtkTransformFilter.h"
 #include <vtkTextProperty.h>
 #include <vtkBoundingBox.h>
+#include <vtkPolyDataMapper.h>
 #include "vtkMath.h"
 
 #include <QFileDialog>
@@ -182,6 +183,10 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->ExportDialog = new cmbNucExportDialog(this);
   this->CylinderGenerator = new cmbNucGenerateOuterCylinder(this);
+  connect(this->CylinderGenerator, SIGNAL(drawCylinder(double, int)),
+          this, SLOT(outerLayer(double, int)));
+  connect(this->CylinderGenerator, SIGNAL(clearCylinder()),
+          this, SLOT(clearOuter()));
   this->Preferences = new cmbNucPreferencesDialog(this);
   Internal = new NucMainInternal();
   this->Internal->IsCoreView = false;
@@ -1356,6 +1361,34 @@ void cmbNucMainWindow::exportVTKFile(const QString &fileName)
   writer->SetInputData(coredata);
   writer->SetFileName(fileName.toLocal8Bit().data());
   writer->Write();
+}
+
+void cmbNucMainWindow::outerLayer(double r, int i)
+{
+  NuclearCore->drawCylinder(r,i);
+  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  switch(cp->GetType())
+  {
+    case CMBNUC_CORE:
+      updateCoreMaterialColors();
+      this->Render();
+    default:
+      break;
+  }
+}
+
+void cmbNucMainWindow::clearOuter()
+{
+  NuclearCore->clearCylinder();
+  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  switch(cp->GetType())
+  {
+    case CMBNUC_CORE:
+      updateCoreMaterialColors();
+      this->Render();
+    default:
+      break;
+  }
 }
 
 void cmbNucMainWindow::updateCoreMaterialColors()
