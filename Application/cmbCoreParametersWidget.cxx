@@ -64,6 +64,8 @@ void cmbCoreParametersWidget::initUI()
 
   connect(this->Internal->JacketMode, SIGNAL(currentIndexChanged(int)),
           this, SLOT(controlDisplayBackgroundControls(int)));
+  this->Internal->FileName->setVisible(false);
+  this->Internal->GenerateControls->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------

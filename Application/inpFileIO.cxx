@@ -726,7 +726,7 @@ bool inpFileWriter::write(std::string fname,
       }
     output << "Background " << core.Params.Background << "\n";
     }
-  else if( !core.Params.Background.empty() )
+  else if( core.Params.BackgroundMode != cmbNucCoreParams::None && !core.Params.Background.empty() )
     {
     QMessageBox msgBox;
     msgBox.setText( QString(core.Params.Background.c_str()) +
