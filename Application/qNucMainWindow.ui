@@ -134,7 +134,6 @@
      <string>Tools</string>
     </property>
     <addaction name="actionExport"/>
-    <addaction name="actionGenerate_Cylinder"/>
    </widget>
    <widget class="QMenu" name="menuCreate">
     <property name="title">

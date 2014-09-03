@@ -117,8 +117,6 @@ protected slots:
   // Runs Assygen, Cubit, and CoreGen
   void exportRGG();
 
-  void generateCylinder();
-
   // called when the z-scale slider or spin box changes
   void zScaleChanged(int value);
 
@@ -147,7 +145,6 @@ private:
 
   cmbNucCore *NuclearCore;
   cmbNucExportDialog *ExportDialog;
-  cmbNucGenerateOuterCylinder *CylinderGenerator;
   cmbNucPreferencesDialog *Preferences;
 
   NucMainInternal *Internal;

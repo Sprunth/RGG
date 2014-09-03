@@ -96,20 +96,6 @@ void vtkCmbLayeredConeSource::SetResolution(int layer, int res)
   this->LayerRadii[layer].Resolution = res;
 }
 
-#define ADD_DATA(IN)                         \
-if (this->GenerateNormals)                   \
-{                                            \
-  vtkNew<vtkPolyDataNormals> normals;        \
-  normals->SetInputDataObject(IN);           \
-  normals->ComputePointNormalsOn();          \
-  normals->Update();                         \
-  output->SetBlock(i, normals->GetOutput()); \
-}                                            \
-else                                         \
-{                                            \
-  output->SetBlock(i, IN);                   \
-}
-
 double vtkCmbLayeredConeSource::GetBaseRadius(int layer)
 {
   return this->LayerRadii[layer].BaseRadii[0];
@@ -211,30 +197,36 @@ namespace
       bool rect = false;
       if(res == 4)
       {
-        res = 6;
+        res = 8;
         rect = true;
       }
       multX.resize(res);
       multY.resize(res);
       if(rect)
       {
-        multX[0] = 1;
+        multX[0] = -1;
         multY[0] = 0;
 
-        multX[1] = 1;
+        multX[1] = -1;
         multY[1] = 1;
 
-        multX[2] = -1;
+        multX[2] = 0;
         multY[2] = 1;
 
-        multX[3] = -1;
-        multY[3] = 0;
+        multX[3] = 1;
+        multY[3] = 1;
 
-        multX[4] = -1;
-        multY[4] = -1;
+        multX[4] = 1;
+        multY[4] = 0;
 
         multX[5] = 1;
         multY[5] = -1;
+
+        multX[6] = 0;
+        multY[6] = -1;
+
+        multX[7] = -1;
+        multY[7] = -1;
       }
       else
       {
@@ -451,7 +443,9 @@ vtkCmbLayeredConeSource
   else
   {
     GeneratePoints gpO(outerRes);
+    outerRes = gpO.usedResolution();
     GeneratePoints gpI(innerRes);
+    innerRes = gpI.usedResolution();
     points->Allocate((outerRes+innerRes)*2);
     gpO.AddPoints(points, 0, outerBottomR, 0);
     gpI.AddPoints(points, 0, innerBottomR, 0.0005);

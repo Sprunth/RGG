@@ -182,11 +182,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->Dock2D->setWidget(LatticeDraw);
 
   this->ExportDialog = new cmbNucExportDialog(this);
-  this->CylinderGenerator = new cmbNucGenerateOuterCylinder(this);
-  connect(this->CylinderGenerator, SIGNAL(drawCylinder(double, int)),
-          this, SLOT(outerLayer(double, int)));
-  connect(this->CylinderGenerator, SIGNAL(clearCylinder()),
-          this, SLOT(clearOuter()));
   this->Preferences = new cmbNucPreferencesDialog(this);
   Internal = new NucMainInternal();
   this->Internal->IsCoreView = false;
@@ -341,7 +336,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
           this->Preferences, SLOT(setPreferences()));
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
-  connect(this->ui->actionGenerate_Cylinder, SIGNAL(triggered()), this, SLOT(generateCylinder()));
   connect(this->Preferences, SIGNAL(actionParallelProjection(bool)),
           this, SLOT(useParallelProjection(bool)));
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
@@ -497,6 +491,11 @@ void cmbNucMainWindow::initPanels()
                      this->LatticeDraw,    SLOT(setLatticeXorLayers(int)));
     QObject::connect(this->PropertyWidget, SIGNAL(sendYSize(int)),
                      this->LatticeDraw,    SLOT(setLatticeY(int)));
+    QObject::connect(this->PropertyWidget, SIGNAL(drawCylinder(double,int)),
+                     this, SLOT(outerLayer(double,int)));
+    QObject::connect(this->PropertyWidget, SIGNAL(clearCylinder()),
+                     this, SLOT(clearOuter()));
+    
     QObject::connect(this->LatticeDraw, SIGNAL(valuesChanged()),
                      this->InputsWidget, SLOT(valueChanged()));
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
@@ -1381,6 +1380,7 @@ void cmbNucMainWindow::clearOuter()
 {
   NuclearCore->clearCylinder();
   AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  if(cp == NULL) return;
   switch(cp->GetType())
   {
     case CMBNUC_CORE:
@@ -1436,16 +1436,16 @@ void cmbNucMainWindow::updateCoreMaterialColors()
       assy->updateMaterialColors(realflatidx, attributes);
       }
     }
+  {
+    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+    matColorMap->SetBlockMaterialColor(attributes, realflatidx,
+                                       matColorMap->getUnknownMaterial());
+  }
 }
 
 void cmbNucMainWindow::exportRGG()
 {
   this->ExportDialog->exportFile(NuclearCore);
-}
-
-void cmbNucMainWindow::generateCylinder()
-{
-  this->CylinderGenerator->exportFile(NuclearCore);
 }
 
 void cmbNucMainWindow::zScaleChanged(int value)

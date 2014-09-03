@@ -73,37 +73,31 @@ public:
   cmbNucExport();
   ~cmbNucExport();
   void setKeepGoing(bool);
+  void setAssygen(QString assygenExe,QString assygenLib);
+  void setCoregen(QString coregenExe,QString coregenLib);
+  void setCubit(QString cubitExe);
 public slots:
-  void run( const QString assygenExe,
-            const QString assygenLib,
-            const QStringList &assygenFile,
-            const QString cubitExe,
-            const QString coregenExe,
-            const QString coregenLib,
+  void run( const QStringList &assygenFile,
             const QString coregenFile,
             const QString CoreGenOutputFile);
-  void runCylinder( const QString assygenExe,
-                    const QString assygenLib,
-                    const QString assygenFile,
-                    const QString cubitExe,
-                    const QString cubitFile,
-                    const QString cubitOutputFile,
-                    const QString coregenExe,
-                    const QString coregenLib,
-                    const QString coregenFile,
-                    const QString coregenResultFile );
-  void runAssy( const QString assygenExe,
-                const QString assygenLib,
-                const QStringList &assygenFile,
-                const QString cubitExe );
-  void runCore(const QString coregenExe,
-               const QString coregenLib,
-               const QString coregenFile,
+  void run( const QStringList &assygenFile,
+            const QString coregenFile,
+            const QString CoreGenOutputFile,
+            const QString assygenFileCylinder,
+            const QString cubitFileCylinder,
+            const QString cubitOutputFileCylinder,
+            const QString coregenFileCylinder,
+            const QString coregenResultFileCylinder );
+  void runAssy( const QStringList &assygenFile );
+  void runCore(const QString coregenFile,
                const QString CoreGenOutputFile);
-  void runCubit( const QString cubitExe,
-                 const QString cubitLib,
-                 const QString cubitFile,
-                 const QString cubitOutputFile );
+  void runCore(const QString coregenFile,
+               const QString CoreGenOutputFile,
+               const QString assygenFileCylinder,
+               const QString cubitFileCylinder,
+               const QString cubitOutputFileCylinder,
+               const QString coregenFileCylinder,
+               const QString coregenResultFileCylinder);
   void cancel();
 signals:
   void done();
@@ -120,19 +114,21 @@ signals:
   void startWorkers();
   void endWorkers();
 private:
-  bool runAssyHelper( const QString assygenExe,
-                      const QString assygenLib,
-                      const QStringList &assygenFile,
-                      const QString cubitExe,
+  bool runAssyHelper( const QStringList &assygenFile,
                       double & count, double max_count );
-  bool runCubitHelper(const QString cubitExe, const QString cubitFile,
+  bool runCubitHelper(const QString cubitFile,
                       const QString cubitOutputFile,
                       double & count, double max_count);
-  bool runCoreHelper( const QString coregenExe,
-                      const QString coregenLib,
-                      const QString coregenFile,
+  bool runCoreHelper( const QString coregenFile,
                       const QString CoreGenOutputFile,
                       double & count, double max_count );
+  bool exportCylinder( const QString assygenFile,
+                       const QString cubitFile,
+                       const QString cubitOutputFile,
+                       const QString coregenFile,
+                       const QString coregenResultFile,
+                       double & total_number_of_file,
+                       double & current );
   void finish();
   void cancelHelper();
   void failedHelper(QString msg, QString pmsg);
@@ -151,6 +147,9 @@ private:
   remus::server::Server * Server;
   remus::worker::ServerConnection ServerConnection;
   boost::shared_ptr<remus::server::WorkerFactory> factory;
+  QString AssygenExe, AssygenLib;
+  QString CoregenExe, CoregenLib;
+  QString CubitExe;
 };
 
 #endif //cmbNucExport_H

@@ -3,6 +3,7 @@
 #include "ui_qCoreParameters.h"
 
 #include "cmbNucCore.h"
+#include "cmbNucDefaults.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -15,6 +16,7 @@
 #include <QFileDialog>
 
 #include <sstream>
+#include <cmath>
 
 class cmbCoreParametersWidget::cmbCoreParametersWidgetInternal :
   public Ui::qCoreParametersWidget
@@ -28,6 +30,8 @@ cmbCoreParametersWidget::cmbCoreParametersWidget(QWidget *p)
   : QFrame(p)
 {
   this->Internal = new cmbCoreParametersWidgetInternal;
+  this->currentRadius = 0;
+  this->currentInterval = 0;
   this->Internal->setupUi(this);
   this->initUI();
   this->Core = NULL;
@@ -49,6 +53,25 @@ void cmbCoreParametersWidget::initUI()
            this, SLOT(onSetBackgroundMesh()) );
   connect( this->Internal->BackgroundClear, SIGNAL(clicked()),
            this, SLOT(onClearBackgroundMesh()));
+  connect(this->Internal->OuterEdgeInterval, SIGNAL(valueChanged(int)),
+          this, SLOT(onIntervalChanged(int)));
+  connect(this->Internal->RadiusBox, 	SIGNAL(valueChanged(double)),
+          this, SLOT(onRadiusChanged(double)));
+  connect(this->Internal->CalculateDefaults, SIGNAL(clicked()),
+          this, SLOT(onCalculateCylinderDefaults()));
+  connect(this->Internal->NoJacket, SIGNAL(clicked()),
+          this, SLOT(onDrawCylinder()));
+  connect(this->Internal->ExternalJacket, SIGNAL(clicked()),
+          this, SLOT(onDrawCylinder()));
+  connect(this->Internal->GenerateJacket, SIGNAL(clicked()),
+          this, SLOT(onDrawCylinder()));
+
+  connect(this->Internal->NoJacket, SIGNAL(clicked()),
+          this, SLOT(controlDisplayBackgroundControls()));
+  connect(this->Internal->ExternalJacket, SIGNAL(clicked()),
+          this, SLOT(controlDisplayBackgroundControls()));
+  connect(this->Internal->GenerateJacket, SIGNAL(clicked()),
+          this, SLOT(controlDisplayBackgroundControls()));
 }
 
 //-----------------------------------------------------------------------------
@@ -59,6 +82,8 @@ void cmbCoreParametersWidget::setCore(cmbNucCore *CoreObj)
     return;
     }
   this->Core = CoreObj;
+  this->previousRadius = CoreObj->getCylinderRadius();
+  this->previousInterval = CoreObj->getCylinderOuterSpacing();
   this->onReset();
 }
 
@@ -91,22 +116,62 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
   {
     return;
   }
-  // Use cached value for last used directory if there is one,
-  // or default to the user's home dir if not.
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
-
-  QStringList fileNames =
-  QFileDialog::getOpenFileNames(this,
-                                "Open File...",
-                                dir.path(),
-                                "cub Files (*.cub)");
-  if(fileNames.count()==0)
+  QString fileName;
+  if(this->Internal->GenerateJacket->isChecked())
   {
-    return;
+    QString defaultLoc;
+    QString name(Core->FileName.c_str());
+    if(!name.isEmpty())
+    {
+      QFileInfo fi(name);
+      QDir dir = fi.dir();
+      if(dir.path() == ".")
+      {
+        QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                                QDir::homePath()).toString();
+        defaultLoc = tdir.path();
+      }
+      else
+      {
+        defaultLoc = dir.path();
+      }
+    }
+    else
+    {
+      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                              QDir::homePath()).toString();
+      defaultLoc = tdir.path();
+    }
+    QFileDialog saveQD( this, "Save Outer Cylinder File...", defaultLoc, "cub Files (*.cub)");
+    saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
+    saveQD.setAcceptMode(QFileDialog::AcceptSave);
+    saveQD.selectFile("outer_cylinder.cub");
+
+    if(saveQD.exec()== QDialog::Accepted)
+    {
+      fileName = saveQD.selectedFiles().first();
+    }
+  }
+  else
+  {
+    // Use cached value for last used directory if there is one,
+    // or default to the user's home dir if not.
+    QSettings settings("CMBNuclear", "CMBNuclear");
+    QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+    QStringList fileNames =
+    QFileDialog::getOpenFileNames(this,
+                                  "Open File...",
+                                  dir.path(),
+                                  "cub Files (*.cub)");
+    if(fileNames.count()==0)
+    {
+      return;
+    }
+    fileName =fileNames[0];
   }
   // Cache the directory for the next time the dialog is opened
-  QFileInfo info(fileNames[0]);
+  QFileInfo info(fileName);
   this->Internal->background_full_path = info.absoluteFilePath().toStdString();
   Internal->Background->setText(info.fileName());
 }
@@ -268,7 +333,28 @@ changed |= setValue(Core->Params.Var, Internal->Var);
   USED_SIMPLE_VARABLE_MACRO()
 
 #undef FUN_SIMPLE
-  if(Core->Params.BackgroundFullPath != Internal->background_full_path)
+
+  if(this->Internal->NoJacket->isChecked() &&
+     Core->Params.BackgroundMode != cmbNucCoreParams::None)
+  {
+    Core->Params.BackgroundMode = cmbNucCoreParams::None;
+    changed = true;
+  }
+  else if( this->Internal->ExternalJacket->isChecked() &&
+           Core->Params.BackgroundMode != cmbNucCoreParams::External )
+  {
+    Core->Params.BackgroundMode = cmbNucCoreParams::External;
+    changed = true;
+  }
+  else if( this->Internal->GenerateJacket->isChecked() &&
+          Core->Params.BackgroundMode != cmbNucCoreParams::Generate )
+  {
+    Core->Params.BackgroundMode = cmbNucCoreParams::Generate;
+    changed = true;
+  }
+
+  if(Core->Params.BackgroundFullPath != Internal->background_full_path &&
+     Core->Params.BackgroundMode != cmbNucCoreParams::None)
   {
     Core->Params.BackgroundFullPath = Internal->background_full_path;
     changed = true;
@@ -313,6 +399,19 @@ changed |= setValue(Core->Params.Var, Internal->Var);
     j++;
     line.clear();
   }
+  if(this->previousRadius != this->currentRadius && Core->Params.BackgroundIsSet() )
+  {
+    Core->setCylinderRadius(this->currentRadius);
+    this->previousRadius = this->currentRadius;
+    changed = true;
+  }
+
+  if(this->previousInterval != this->currentInterval && Core->Params.BackgroundIsSet())
+  {
+    Core->setCylinderOuterSpacing(this->currentInterval);
+    this->previousInterval = this->currentInterval;
+    changed = true;
+  }
   if(changed) emit valuesChanged();
 }
 
@@ -330,6 +429,23 @@ else{ setValue(Internal->Var, DEFAULT); }
   Internal->OutputFile->setText(Core->h5mFile.c_str());
 
   this->Internal->background_full_path = Core->Params.BackgroundFullPath;
+
+  this->Internal->OuterEdgeInterval->setValue(this->previousInterval);
+  this->Internal->RadiusBox->setValue(this->previousRadius);
+
+  switch(Core->Params.BackgroundMode)
+  {
+    case cmbNucCoreParams::None:
+      this->Internal->NoJacket->setChecked(true);
+      break;
+    case cmbNucCoreParams::External:
+      this->Internal->ExternalJacket->setChecked(true);
+      break;
+    case cmbNucCoreParams::Generate:
+      this->Internal->GenerateJacket->setChecked(true);
+      break;
+  }
+  this->controlDisplayBackgroundControls();
 
   std::vector<cmbNucCoreParams::NeumannSetStruct> & ns = Core->Params.NeumannSet;
   while ( Internal->NeumannSetTable->rowCount() > 0)
@@ -368,4 +484,105 @@ void cmbCoreParametersWidget::addToTable(QString side, QString sid, QString equ)
   Internal->NeumannSetTable->setItem ( row, 1, item );
   item = new QTableWidgetItem(equ);
   Internal->NeumannSetTable->setItem ( row, 2, item );
+}
+
+void cmbCoreParametersWidget::onRadiusChanged(double v)
+{
+  this->currentRadius = v;
+  this->onDrawCylinder();
+}
+
+void cmbCoreParametersWidget::onIntervalChanged(int v)
+{
+  this->currentInterval = v;
+  this->onDrawCylinder();
+}
+
+void cmbCoreParametersWidget::onDrawCylinder()
+{
+  if(this->Internal->GenerateJacket->isChecked())
+  {
+    emit drawCylinder(this->currentRadius, this->currentInterval);
+  }
+  else
+  {
+    emit clearCylinder();
+  }
+}
+
+void cmbCoreParametersWidget::onCalculateCylinderDefaults()
+{
+  double initRadius;
+  int ei = 0;
+  Core->GetDefaults()->getEdgeInterval(ei);
+  if(!Core->GetDefaults()->getEdgeInterval(ei)) ei = 10;
+  double ductsize[2];
+  Core->GetDefaults()->getDuctThickness(ductsize[0],ductsize[1]);
+  if(Core->IsHexType())
+  {
+    initRadius = Core->getLattice().Grid.size() * ductsize[0];
+    this->Internal->OuterEdgeInterval->setValue(Core->getLattice().Grid.size()*ei*12);
+  }
+  else
+  {
+    double ti = Core->getLattice().Grid[0].size() * ductsize[0];
+    double tj = Core->getLattice().Grid.size() * ductsize[1];
+    double tr = std::sqrt(ti*ti+tj*tj);
+    initRadius = tr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
+    this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().Grid.size(),Core->getLattice().Grid[0].size())
+                                                *ei*4);
+  }
+
+  this->Internal->RadiusBox->setValue(initRadius);
+}
+
+void cmbCoreParametersWidget::controlDisplayBackgroundControls()
+{
+  this->Internal->FileName->setVisible(!this->Internal->NoJacket->isChecked());
+  this->Internal->GenerateControls->setVisible(this->Internal->GenerateJacket->isChecked());
+  if(this->Internal->GenerateJacket->isChecked())
+  {
+    double ductsize[2];
+    Core->GetDefaults()->getDuctThickness(ductsize[0],ductsize[1]);
+    this->Internal->GenerateControls->setVisible(true);
+    if(this->currentRadius != 0 && this->currentInterval != 0)
+    {
+      this->onDrawCylinder();
+    }
+    if(this->currentRadius == 0)
+    {
+      double ir =0;
+      if(Core->IsHexType())
+      {
+        ir = Core->getLattice().Grid.size() * ductsize[0];
+      }
+      else
+      {
+        double ti = Core->getLattice().Grid[0].size() * ductsize[0];
+        double tj = Core->getLattice().Grid.size() * ductsize[1];
+        double tr = std::sqrt(ti*ti+tj*tj);
+        ir = tr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
+      }
+      this->Internal->RadiusBox->setValue(ir);
+    }
+    if(this->currentInterval == 0)
+    {
+      int ei = 0;
+      ;
+      if(!Core->GetDefaults()->getEdgeInterval(ei)) ei = 10;
+      if(Core->IsHexType())
+      {
+        this->Internal->OuterEdgeInterval->setValue(Core->getLattice().Grid.size()*ei*12);
+      }
+      else
+      {
+        this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().Grid.size(),Core->getLattice().Grid[0].size())
+                                                    *ei*4);
+      }
+    }
+  }
+  else
+  {
+    emit clearCylinder();
+  }
 }

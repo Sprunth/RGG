@@ -73,7 +73,6 @@ SET(RGGNuclear_Headers
   cmbNucDuctCellEditor.h
   cmbNucDefaults.h
   cmbNucDefaultWidget.h
-  cmbNucGenerateOuterCylinder.h
   cmbNucMainWindow.h
   cmbNucLatticeWidget.h
   cmbNucInputListWidget.h

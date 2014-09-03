@@ -60,6 +60,8 @@ signals:
   void sendYSize(int i);
   void select3DModelView();
   void checkSaveAndGenerate();
+  void drawCylinder(double r, int i);
+  void clearCylinder();
 
 public slots:
   void colorChanged();

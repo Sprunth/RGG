@@ -428,11 +428,16 @@ bool inpFileReader
                        core.Params.Background.c_str() );
       if(!tmpFI.exists())
         {
+        core.Params.BackgroundMode = cmbNucCoreParams::None;
         QMessageBox msgBox;
         msgBox.setText( QString(core.Params.Background.c_str()) +
-                        QString(" was not found in same director as the core inp file."));
+                        QString(" was not found in same director as the core inp file.  Will be ingored."));
         msgBox.exec();
         }
+      else
+      {
+        core.Params.BackgroundMode = cmbNucCoreParams::External;
+      }
       core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
 
       }
@@ -709,8 +714,8 @@ bool inpFileWriter::write(std::string fname,
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", true, core.getLattice() );
-  std::cout << "\n\nbackground " << core.Params.BackgroundFullPath << std::endl;
-  if( !core.Params.Background.empty() &&
+  if( core.Params.BackgroundMode != cmbNucCoreParams::None &&
+     !core.Params.Background.empty() &&
       QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() )
     {
     QFile src(core.Params.BackgroundFullPath.c_str());
@@ -1278,7 +1283,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
               {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
               std::string label = lat.Grid[k][layerIdx].label;
-              if( !forceLabel.empty() && (label != "XX" && label != "xx") )
+              if( !forceLabel.empty() )
                 {
                 label = forceLabel;
                 }
@@ -1290,7 +1295,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
             std::string label =lat.Grid[k][layerIdx].label;
-            if( !forceLabel.empty() && (label != "XX" && label != "xx") )
+            if( !forceLabel.empty() )
             {
               label = forceLabel;
             }
@@ -1298,7 +1303,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             layerIdx = k+(i-startRow);
             size_t colIdx = hexArray[i].size() -1 - startCol;
             label =lat.Grid[k][layerIdx].label;
-            if( !forceLabel.empty() && (label != "XX" && label != "xx") )
+            if( !forceLabel.empty() )
               {
               label = forceLabel;
               }
@@ -1339,7 +1344,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
         for( size_t j = start; j < cols; j++)
           {
           std::string label = lat.Grid[i][j].label;
-          if( forceLabel.empty() && (label != "XX" && label == "xx") )
+          if( forceLabel.empty() )
             {
             label = forceLabel;
             }
@@ -1363,7 +1368,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
       for(size_t j = 0; j < sizeati; j++)
         {
         std::string label = lat.Grid[ati][j].label;
-        if( forceLabel.empty() && (label != "XX" && label == "xx") )
+        if( forceLabel.empty() )
           {
           label = forceLabel;
           }

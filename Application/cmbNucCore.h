@@ -67,6 +67,8 @@ public:
     { return (Side == "" && Id == -100) == b; }
   };
 
+  enum {None,External,Generate} BackgroundMode;
+
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
   TYPE Var; \
   bool Var##IsSet() \
@@ -85,6 +87,7 @@ public:
   {
     Background = "";
     BackgroundFullPath = "";
+    BackgroundMode = None;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) Var = DEFAULT;
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, DK) Var = TYPE();
     EXTRA_VARABLE_MACRO()
@@ -305,6 +308,27 @@ public:
   void fillList(QStringList & l);
 
   virtual AssyPartObj * getFromLabel(const std::string & s);
+
+  double getCylinderRadius()
+  { return cylinderRadius; }
+
+  int getCylinderOuterSpacing()
+  { return cylinderOuterSpacing; }
+
+  void setCylinderRadius(double r)
+  {
+    this->cylinderRadius = r;
+  }
+
+  void setCylinderOuterSpacing(int v)
+  {
+    this->cylinderOuterSpacing = v;
+  }
+
+  bool getHasCylinder()
+  {
+    return hasCylinder;
+  }
 
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
