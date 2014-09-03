@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>448</width>
-        <height>846</height>
+        <height>852</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -379,7 +379,7 @@
        <item row="6" column="0" colspan="2">
         <widget class="QGroupBox" name="OuterJacket">
          <property name="title">
-          <string>Outer Jacket</string>
+          <string>Reactor Vessel</string>
          </property>
          <property name="checkable">
           <bool>false</bool>
@@ -394,28 +394,36 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
-             <widget class="QRadioButton" name="NoJacket">
-              <property name="text">
-               <string>None</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
+             <widget class="QComboBox" name="JacketMode">
+              <item>
+               <property name="text">
+                <string>None</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>External</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Generate</string>
+               </property>
+              </item>
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="ExternalJacket">
-              <property name="text">
-               <string>External</string>
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="GenerateJacket">
-              <property name="text">
-               <string>Generate</string>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
               </property>
-             </widget>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -484,7 +492,7 @@
              </size>
             </property>
             <property name="title">
-             <string>Generate Controls</string>
+             <string>Generation Controls</string>
             </property>
             <property name="checkable">
              <bool>false</bool>

@@ -40,7 +40,7 @@ public slots:
   void onCalculateCylinderDefaults();
   void onDrawCylinder();
   void onClearBackgroundMesh();
-  void controlDisplayBackgroundControls();
+  void controlDisplayBackgroundControls(int index);
 
 public slots:  // reset property panel with given object
   void resetCore(cmbNucCore* Core);

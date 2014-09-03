@@ -16,6 +16,7 @@
 #include "vtkTransformFilter.h"
 #include "vtkMath.h"
 #include "cmbNucDefaults.h"
+#include "cmbNucMaterialColors.h"
 
 #include "vtkCmbLayeredConeSource.h"
 
@@ -782,6 +783,10 @@ void cmbNucCore::drawCylinder(double r, int i)
   {
     return;
   }
+  if(!hasCylinder)
+  {
+    cmbNucMaterialColors::instance()->getUnknownMaterial()->inc();
+  }
   hasCylinder = true;
   cylinderRadius = r;
   cylinderOuterSpacing = i;
@@ -790,6 +795,10 @@ void cmbNucCore::drawCylinder(double r, int i)
 
 void cmbNucCore::clearCylinder()
 {
+  if(hasCylinder)
+  {
+    cmbNucMaterialColors::instance()->getUnknownMaterial()->dec();
+  }
   hasCylinder = false;
   if(Data != NULL)
   {

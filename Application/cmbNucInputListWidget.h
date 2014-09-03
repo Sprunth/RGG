@@ -96,6 +96,7 @@ private slots:
   void onSaveMaterial();
 
   void repaintList();
+  void hideLabels(bool);
 
 signals:
   void deleteAssembly(QTreeWidgetItem*);

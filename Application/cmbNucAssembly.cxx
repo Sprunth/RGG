@@ -378,13 +378,15 @@ void cmbNucAssembly::updateMaterialColors(
         realflatidx++; // increase one for this Part
         for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
         {
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
-                                             pinCell->GetPart(cidx)->GetMaterial(k));
+          QPointer<cmbNucMaterial> mat = pinCell->GetPart(cidx)->GetMaterial(k);
+          mat->setDisplayed();
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, mat);
         }
         if(pinCell->cellMaterialSet())
         {
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,
-                                             pinCell->getCellMaterial());
+          QPointer<cmbNucMaterial> mat = pinCell->getCellMaterial();
+          mat->setDisplayed();
+          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,mat);
         }
       }
     }
@@ -401,8 +403,9 @@ void cmbNucAssembly::updateMaterialColors(
       for(unsigned int b = 0; b < numBlocks; b++)
       {
         realflatidx++;
-        matColorMap->SetBlockMaterialColor(attributes, realflatidx,
-                                           duct->getMaterial(b));
+        QPointer<cmbNucMaterial> mat = duct->getMaterial(b);
+        mat->setDisplayed();
+        matColorMap->SetBlockMaterialColor(attributes, realflatidx,mat);
       }
     }
     //realflatidx++;

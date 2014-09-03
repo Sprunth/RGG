@@ -453,6 +453,8 @@ void cmbNucMainWindow::initPanels()
                      this, SLOT(onChangeMeshEdgeMode(bool)));
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
                      this, SLOT(onSelectionChange()));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(fileOpen(bool)),
+                     this->ui->DockMesh, SLOT(setVisible(bool)));
   }
 #endif
 
@@ -921,7 +923,6 @@ void cmbNucMainWindow::onFileOpenMoab()
     return;
   }
   Internal->MoabSource->openFile(fileNames.first());
-  this->ui->DockMesh->setVisible(true);
   this->ui->meshControls->setVisible(true);
   this->ui->meshSubcomponent->setVisible(true);
   this->ui->drawEdges->setVisible(true);
@@ -1178,6 +1179,8 @@ void cmbNucMainWindow::doClearAll(bool needSave)
 
   this->Mapper->SetInputDataObject(NULL);
 
+  this->LatticeDraw->clear();
+
   this->PropertyWidget->clear();
   this->InputsWidget->clear();
 
@@ -1261,6 +1264,7 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
     this->Mapper->GetCompositeDataDisplayAttributes();
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  matColorMap->clearDisplayed();
   unsigned int flat_index = 1; // start from first child
   for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
     {
@@ -1270,16 +1274,19 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
       flat_index++;
       for(int k = 0; k < pin->GetNumberOfLayers(); k++)
         {
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
-                                           pin->GetPart(idx)->GetMaterial(k));
+        QPointer<cmbNucMaterial> mat = pin->GetPart(idx)->GetMaterial(k);
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
+        mat->setDisplayed();
         }
       }
       if(pin->cellMaterialSet())
       {
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
-                                           pin->getCellMaterial());
+        QPointer<cmbNucMaterial> mat = pin->getCellMaterial();
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
+        mat->setDisplayed();
       }
     }
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
@@ -1299,6 +1306,7 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
     this->Mapper->GetCompositeDataDisplayAttributes();
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  matColorMap->clearDisplayed();
   unsigned int flat_index = 1; // start from first child
   for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
   {
@@ -1308,11 +1316,13 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
       flat_index++;
       for(int k = 0; k < d->NumberOfLayers(); k++)
       {
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,
-                                           d->getMaterial(k));
+        QPointer<cmbNucMaterial> mat = d->getMaterial(k);
+        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
+        mat->setDisplayed();
       }
     }
   }
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
@@ -1343,7 +1353,9 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
     this->Mapper->GetCompositeDataDisplayAttributes();
 
   unsigned int realflatidx = 0;
+  cmbNucMaterialColors::instance()->clearDisplayed();
   assy->updateMaterialColors(realflatidx, attributes);
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucMainWindow::exportVTKFile(const QString &fileName)
@@ -1366,6 +1378,7 @@ void cmbNucMainWindow::outerLayer(double r, int i)
 {
   NuclearCore->drawCylinder(r,i);
   AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  if(cp == NULL) return;
   switch(cp->GetType())
   {
     case CMBNUC_CORE:
@@ -1408,6 +1421,8 @@ void cmbNucMainWindow::updateCoreMaterialColors()
   vtkCompositeDataDisplayAttributes *attributes =
     this->Mapper->GetCompositeDataDisplayAttributes();
 
+  cmbNucMaterialColors::instance()->clearDisplayed();
+
   unsigned int realflatidx = 0;
   for(unsigned int block = 0; block < numCoreBlocks; block++)
     {
@@ -1436,11 +1451,14 @@ void cmbNucMainWindow::updateCoreMaterialColors()
       assy->updateMaterialColors(realflatidx, attributes);
       }
     }
-  {
+  if(NuclearCore->getHasCylinder())
+    {
     cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
     matColorMap->SetBlockMaterialColor(attributes, realflatidx,
                                        matColorMap->getUnknownMaterial());
-  }
+    matColorMap->getUnknownMaterial()->setDisplayed();
+    }
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucMainWindow::exportRGG()
@@ -1459,7 +1477,8 @@ void cmbNucMainWindow::zScaleChanged(int value)
   this->Renderer->ResetCamera();
   this->ui->qvtkWidget->update();
 
-  if(!this->Internal->CamerasLinked && this->isMeshTabVisible())
+  if((!this->Internal->CamerasLinked && this->isMeshTabVisible()) ||
+     (this->Internal->CamerasLinked && !this->is3DTabVisible()))
   {
     this->MeshRenderer->Modified();
     this->MeshRenderer->ResetCamera();
@@ -1743,6 +1762,16 @@ bool cmbNucMainWindow::isMeshTabVisible()
          //I make sure it is has a visible region
         (tabifiedDockWidgets(this->ui->DockMesh).isEmpty() ||
          !this->ui->DockMesh->visibleRegion().isEmpty());
+}
+
+bool cmbNucMainWindow::is3DTabVisible()
+{
+  return this->ui->Dock3D->isVisible() &&
+  //It appears either how I am hiding things or a weirdness of
+  //docking, is visible is not enough.  As such, if it is tabbed,
+  //I make sure it is has a visible region
+  (tabifiedDockWidgets(this->ui->Dock3D).isEmpty() ||
+   !this->ui->Dock3D->visibleRegion().isEmpty());
 }
 
 void cmbNucMainWindow::updatePropertyDockTitle(const QString& title)

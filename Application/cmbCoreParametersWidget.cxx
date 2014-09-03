@@ -59,19 +59,11 @@ void cmbCoreParametersWidget::initUI()
           this, SLOT(onRadiusChanged(double)));
   connect(this->Internal->CalculateDefaults, SIGNAL(clicked()),
           this, SLOT(onCalculateCylinderDefaults()));
-  connect(this->Internal->NoJacket, SIGNAL(clicked()),
-          this, SLOT(onDrawCylinder()));
-  connect(this->Internal->ExternalJacket, SIGNAL(clicked()),
-          this, SLOT(onDrawCylinder()));
-  connect(this->Internal->GenerateJacket, SIGNAL(clicked()),
+  connect(this->Internal->JacketMode, SIGNAL(currentIndexChanged(int)),
           this, SLOT(onDrawCylinder()));
 
-  connect(this->Internal->NoJacket, SIGNAL(clicked()),
-          this, SLOT(controlDisplayBackgroundControls()));
-  connect(this->Internal->ExternalJacket, SIGNAL(clicked()),
-          this, SLOT(controlDisplayBackgroundControls()));
-  connect(this->Internal->GenerateJacket, SIGNAL(clicked()),
-          this, SLOT(controlDisplayBackgroundControls()));
+  connect(this->Internal->JacketMode, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(controlDisplayBackgroundControls(int)));
 }
 
 //-----------------------------------------------------------------------------
@@ -117,7 +109,7 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
     return;
   }
   QString fileName;
-  if(this->Internal->GenerateJacket->isChecked())
+  if(this->Internal->JacketMode->currentIndex() == cmbNucCoreParams::Generate)
   {
     QString defaultLoc;
     QString name(Core->FileName.c_str());
@@ -334,22 +326,22 @@ changed |= setValue(Core->Params.Var, Internal->Var);
 
 #undef FUN_SIMPLE
 
-  if(this->Internal->NoJacket->isChecked() &&
-     Core->Params.BackgroundMode != cmbNucCoreParams::None)
+  if(Core->Params.BackgroundMode != this->Internal->JacketMode->currentIndex())
   {
-    Core->Params.BackgroundMode = cmbNucCoreParams::None;
-    changed = true;
-  }
-  else if( this->Internal->ExternalJacket->isChecked() &&
-           Core->Params.BackgroundMode != cmbNucCoreParams::External )
-  {
-    Core->Params.BackgroundMode = cmbNucCoreParams::External;
-    changed = true;
-  }
-  else if( this->Internal->GenerateJacket->isChecked() &&
-          Core->Params.BackgroundMode != cmbNucCoreParams::Generate )
-  {
-    Core->Params.BackgroundMode = cmbNucCoreParams::Generate;
+    switch(this->Internal->JacketMode->currentIndex())
+    {
+      case cmbNucCoreParams::None:
+        Core->Params.BackgroundMode =cmbNucCoreParams::None;
+        break;
+      case cmbNucCoreParams::External:
+        Core->Params.BackgroundMode =cmbNucCoreParams::External;
+        break;
+      case cmbNucCoreParams::Generate:
+        Core->Params.BackgroundMode =cmbNucCoreParams::Generate;
+        break;
+      default:
+        break;
+    }
     changed = true;
   }
 
@@ -433,19 +425,7 @@ else{ setValue(Internal->Var, DEFAULT); }
   this->Internal->OuterEdgeInterval->setValue(this->previousInterval);
   this->Internal->RadiusBox->setValue(this->previousRadius);
 
-  switch(Core->Params.BackgroundMode)
-  {
-    case cmbNucCoreParams::None:
-      this->Internal->NoJacket->setChecked(true);
-      break;
-    case cmbNucCoreParams::External:
-      this->Internal->ExternalJacket->setChecked(true);
-      break;
-    case cmbNucCoreParams::Generate:
-      this->Internal->GenerateJacket->setChecked(true);
-      break;
-  }
-  this->controlDisplayBackgroundControls();
+  this->Internal->JacketMode->setCurrentIndex(Core->Params.BackgroundMode);
 
   std::vector<cmbNucCoreParams::NeumannSetStruct> & ns = Core->Params.NeumannSet;
   while ( Internal->NeumannSetTable->rowCount() > 0)
@@ -500,7 +480,7 @@ void cmbCoreParametersWidget::onIntervalChanged(int v)
 
 void cmbCoreParametersWidget::onDrawCylinder()
 {
-  if(this->Internal->GenerateJacket->isChecked())
+  if(this->Internal->JacketMode->currentIndex() == cmbNucCoreParams::Generate)
   {
     emit drawCylinder(this->currentRadius, this->currentInterval);
   }
@@ -536,11 +516,11 @@ void cmbCoreParametersWidget::onCalculateCylinderDefaults()
   this->Internal->RadiusBox->setValue(initRadius);
 }
 
-void cmbCoreParametersWidget::controlDisplayBackgroundControls()
+void cmbCoreParametersWidget::controlDisplayBackgroundControls(int index)
 {
-  this->Internal->FileName->setVisible(!this->Internal->NoJacket->isChecked());
-  this->Internal->GenerateControls->setVisible(this->Internal->GenerateJacket->isChecked());
-  if(this->Internal->GenerateJacket->isChecked())
+  this->Internal->FileName->setVisible(index != cmbNucCoreParams::None);
+  this->Internal->GenerateControls->setVisible(index == cmbNucCoreParams::Generate);
+  if(index == cmbNucCoreParams::Generate)
   {
     double ductsize[2];
     Core->GetDefaults()->getDuctThickness(ductsize[0],ductsize[1]);

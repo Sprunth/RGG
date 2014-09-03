@@ -67,7 +67,7 @@ public:
     { return (Side == "" && Id == -100) == b; }
   };
 
-  enum {None,External,Generate} BackgroundMode;
+  enum {None=0,External=1,Generate=2} BackgroundMode;
 
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
   TYPE Var; \
