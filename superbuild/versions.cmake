@@ -85,7 +85,7 @@ add_revision(molequeue
 
 add_revision(nuclearRGG
   GIT_REPOSITORY https://github.com/Kitware/RGG
-  GIT_TAG origin/master)
+  GIT_TAG 4186f7ce3af93e23d1864d5f8624ea5c9afd109c)
 
 add_revision(vtk
   GIT_REPOSITORY git://vtk.org/VTK.git
@@ -193,10 +193,6 @@ add_revision(gdal
   URL http://vtk.org/files/support/gdal_5b8309b.tar.gz
   URL_MD5 8d77df722a01cc86b292300a007a3282
   )
-
-add_revision(shiboken
-  GIT_REPOSITORY https://github.com/OpenGeoscience/shiboken.git
-  GIT_TAG smtk-head)
 
 #------------------------------------------------------------------------------
 # moab versions
