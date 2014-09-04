@@ -85,7 +85,7 @@ add_revision(molequeue
 
 add_revision(nuclearRGG
   GIT_REPOSITORY https://github.com/Kitware/RGG
-  GIT_TAG 4186f7ce3af93e23d1864d5f8624ea5c9afd109c)
+  GIT_TAG 4a3bc58d02cf92d8b582154ddcae32e9d1117a5d)
 
 add_revision(vtk
   GIT_REPOSITORY git://vtk.org/VTK.git
