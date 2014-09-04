@@ -1,5 +1,6 @@
 include(ExternalProject)
 include(CMakeParseArguments)
+#include (ParaViewModules)
 
 #Add ability to use autoconf
 function(ExternalProject_AutoConf_Step name)
