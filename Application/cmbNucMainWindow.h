@@ -15,6 +15,7 @@ class vtkActor;
 class vtkAxesActor;
 class vtkCubeAxesActor;
 class vtkCompositePolyDataMapper2;
+class vtkPolyDataMapper;
 class vtkEventQtSlotConnect;
 class vtkObject;
 class vtkRenderer;
@@ -32,6 +33,7 @@ class cmbNucExportDialog;
 class cmbNucPreferencesDialog;
 class NucMainInternal;
 class cmbNucLatticeWidget;
+class cmbNucGenerateOuterCylinder;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -121,6 +123,9 @@ protected slots:
   void setTitle();
 
   void colorChange();
+
+  void outerLayer(double r, int i);
+  void clearOuter();
 
 private:
   // Designer form

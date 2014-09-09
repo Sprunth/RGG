@@ -38,6 +38,19 @@ std::string TO_AXIS_STRING[] = {"X", "Y", "Z"};
 
 //transformation helper classes
 
+const double cmbNucAssembly::CosSinAngles[6][2] = { { cos( 2*(vtkMath::Pi() / 6.0) * (0 + 3.5) ),
+                                                      sin( 2*(vtkMath::Pi() / 6.0) * (0 + 3.5) ) },
+                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (1 + 3.5) ),
+                                                      sin( 2*(vtkMath::Pi() / 6.0) * (1 + 3.5) ) },
+                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (2 + 3.5) ),
+                                                      sin( 2*(vtkMath::Pi() / 6.0) * (2 + 3.5) ) },
+                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (3 + 3.5) ),
+                                                      sin( 2*(vtkMath::Pi() / 6.0) * (3 + 3.5) ) },
+                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (4 + 3.5) ),
+                                                      sin( 2*(vtkMath::Pi() / 6.0) * (4 + 3.5) ) },
+                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (5 + 3.5) ),
+                                                      sin( 2*(vtkMath::Pi() / 6.0) * (5 + 3.5) ) } };
+
 void cmbNucAssembly::Transform::setAxis(std::string a)
 {
   Valid = true;
@@ -522,22 +535,12 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
 
   // For Hex type
   Duct *hexDuct = this->AssyDuct.getDuct(0);
-  double layerCorners[8][2], layerRadius;
+  double layerRadius;
 
   double overallDx = 0;
   for(size_t i = 0; i < this->lattice.Grid.size(); i++)
     {
     double overallDy = 0;
-    // For hex geometry type, figure out the six corners first
-    if(this->lattice.GetGeometryType() == HEXAGONAL && i>0)
-      {
-      for(int c = 0; c < 6; c++)
-        {
-        double angle = 2 * (vtkMath::Pi() / 6.0) * (c + 3.5);
-        layerCorners[c][0] = cos(angle);
-        layerCorners[c][1] = sin(angle);
-        }
-      }
 
     size_t startBlock = this->lattice.GetGeometryType() == HEXAGONAL ?
       (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->lattice.Grid[0].size());
@@ -590,8 +593,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                 if(i == 1)
                   {
                   cornerIdx = j%6;
-                  tX += pinDistFromCenter*layerCorners[cornerIdx][0];
-                  tY += pinDistFromCenter*layerCorners[cornerIdx][1];
+                  tX += pinDistFromCenter*CosSinAngles[cornerIdx][0];
+                  tY += pinDistFromCenter*CosSinAngles[cornerIdx][1];
                   }
                 else if( i > 1)
                   {
@@ -599,8 +602,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                   int idxOnEdge = j%i;
                   if(idxOnEdge == 0) // one of the corners
                     {
-                    tX += pinDistFromCenter*layerCorners[cornerIdx][0];
-                    tY += pinDistFromCenter*layerCorners[cornerIdx][1];
+                    tX += pinDistFromCenter*CosSinAngles[cornerIdx][0];
+                    tY += pinDistFromCenter*CosSinAngles[cornerIdx][1];
                     }
                   else
                     {
@@ -608,10 +611,10 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
                     // between the corners
                     double deltx, delty, numSegs = i, centerPos[2];
                     int idxNext = cornerIdx==5 ? 0 : cornerIdx+1;
-                    deltx = pinDistFromCenter*(layerCorners[idxNext][0] - layerCorners[cornerIdx][0]) / numSegs;
-                    delty = pinDistFromCenter*(layerCorners[idxNext][1] - layerCorners[cornerIdx][1]) / numSegs;
-                    centerPos[0] = pinDistFromCenter*layerCorners[cornerIdx][0] + deltx * (idxOnEdge);
-                    centerPos[1] = pinDistFromCenter*layerCorners[cornerIdx][1] + delty * (idxOnEdge);
+                    deltx = pinDistFromCenter*(CosSinAngles[idxNext][0] - CosSinAngles[cornerIdx][0]) / numSegs;
+                    delty = pinDistFromCenter*(CosSinAngles[idxNext][1] - CosSinAngles[cornerIdx][1]) / numSegs;
+                    centerPos[0] = pinDistFromCenter*CosSinAngles[cornerIdx][0] + deltx * (idxOnEdge);
+                    centerPos[1] = pinDistFromCenter*CosSinAngles[cornerIdx][1] + delty * (idxOnEdge);
                     tX += centerPos[0];
                     tY += centerPos[1];
                     }

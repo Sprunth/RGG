@@ -60,6 +60,10 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->CoreConfLayout->addWidget(this->CoreProperties);
   connect(this->CoreProperties, SIGNAL(valuesChanged()),
           this, SIGNAL(valuesChanged()));
+  connect(this->CoreProperties, SIGNAL(drawCylinder(double, int)),
+          this, SIGNAL(drawCylinder(double,int)));
+  connect(this->CoreProperties, SIGNAL(clearCylinder()),
+          this, SIGNAL(clearCylinder()));
 
   this->assyConf = new cmbAssyParametersWidget(this);
   this->Internal->AssyConfLayout->addWidget(this->assyConf);
@@ -509,7 +513,11 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
   this->CoreProperties->applyToCore(nucCore);
   this->CoreDefaults->apply();
   nucCore->sendDefaults();
-  if(changed) emit valuesChanged();
+  if(changed)
+  {
+    nucCore->clearOldGeometry();
+    emit valuesChanged();
+  }
   emit this->objGeometryChanged(nucCore);
 }
 

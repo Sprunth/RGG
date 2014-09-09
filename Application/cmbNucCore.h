@@ -67,6 +67,8 @@ public:
     { return (Side == "" && Id == -100) == b; }
   };
 
+  enum {None=0,External=1,Generate=2} BackgroundMode;
+
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
   TYPE Var; \
   bool Var##IsSet() \
@@ -85,6 +87,7 @@ public:
   {
     Background = "";
     BackgroundFullPath = "";
+    BackgroundMode = None;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) Var = DEFAULT;
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, DK) Var = TYPE();
     EXTRA_VARABLE_MACRO()
@@ -166,6 +169,7 @@ private:
 public slots:
   void dataChanged();
   void assemblyChanged();
+  void clearData();
 signals:
   void dataChangedSig();
   void colorChanged();
@@ -185,8 +189,12 @@ public:
   // Creates an empty Core.
   cmbNucCore(bool needSaved = true);
 
+  const static double CosSinAngles[6][2];
+
   // Destroys the Core.
   ~cmbNucCore();
+
+  void clearOldGeometry();
 
   cmbNucCoreConnection* GetConnection(){return this->Connection;}
 
@@ -290,6 +298,10 @@ public:
   void sendDefaults();
   void initDefaults();
 
+  void drawCylinder();
+  void drawCylinder(double r, int i);
+  void clearCylinder();
+
 
   void checkUsedAssembliesForGen();
 
@@ -297,8 +309,35 @@ public:
 
   virtual AssyPartObj * getFromLabel(const std::string & s);
 
+  double getCylinderRadius()
+  { return cylinderRadius; }
+
+  int getCylinderOuterSpacing()
+  { return cylinderOuterSpacing; }
+
+  void setCylinderRadius(double r)
+  {
+    this->cylinderRadius = r;
+  }
+
+  void setCylinderOuterSpacing(int v)
+  {
+    this->cylinderOuterSpacing = v;
+  }
+
+  bool getHasCylinder()
+  {
+    return hasCylinder;
+  }
+
 private:
   vtkSmartPointer<vtkMultiBlockDataSet> Data;
+  bool hasCylinder;
+  double cylinderRadius;
+  int cylinderOuterSpacing;
+
+  void generateData();
+
   std::vector<cmbNucAssembly*> Assemblies;
   cmbNucCoreConnection * Connection;
 

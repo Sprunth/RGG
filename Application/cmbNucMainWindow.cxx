@@ -23,6 +23,7 @@
 #include "vtkTransformFilter.h"
 #include <vtkTextProperty.h>
 #include <vtkBoundingBox.h>
+#include <vtkPolyDataMapper.h>
 #include "vtkMath.h"
 
 #include <QFileDialog>
@@ -45,6 +46,7 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
 #include "cmbNucPreferencesDialog.h"
+#include "cmbNucGenerateOuterCylinder.h"
 #include "cmbNucMaterial.h"
 #include "inpFileIO.h"
 
@@ -435,6 +437,7 @@ void cmbNucMainWindow::initPanels()
   }
   this->InputsWidget->setEnabled(0);
   this->ui->actionExport->setEnabled(false);
+  this->ui->actionGenerate_Cylinder->setEnabled(false);
   this->InputsWidget->setCore(this->NuclearCore);
 
 #ifdef BUILD_WITH_MOAB
@@ -490,6 +493,11 @@ void cmbNucMainWindow::initPanels()
                      this->LatticeDraw,    SLOT(setLatticeXorLayers(int)));
     QObject::connect(this->PropertyWidget, SIGNAL(sendYSize(int)),
                      this->LatticeDraw,    SLOT(setLatticeY(int)));
+    QObject::connect(this->PropertyWidget, SIGNAL(drawCylinder(double,int)),
+                     this, SLOT(outerLayer(double,int)));
+    QObject::connect(this->PropertyWidget, SIGNAL(clearCylinder()),
+                     this, SLOT(clearOuter()));
+    
     QObject::connect(this->LatticeDraw, SIGNAL(valuesChanged()),
                      this->InputsWidget, SLOT(valueChanged()));
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
@@ -700,6 +708,7 @@ void cmbNucMainWindow::onNewCore()
     this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);
     this->ui->actionExport->setEnabled(true);
+    this->ui->actionGenerate_Cylinder->setEnabled(true);
     this->Renderer->ResetCamera();
     this->Renderer->Render();
   }
@@ -773,6 +782,7 @@ void cmbNucMainWindow::onFileOpen()
         need_to_use_assem = true;
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
+        this->ui->actionGenerate_Cylinder->setEnabled(true);
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -787,6 +797,7 @@ void cmbNucMainWindow::onFileOpen()
                                                       defaultAssemblyColors);
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
+        this->ui->actionGenerate_Cylinder->setEnabled(true);
         this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
         break;
@@ -1178,6 +1189,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->InputsWidget->setCore(this->NuclearCore);
   this->ui->actionNew_Assembly->setEnabled(false);
   this->ui->actionExport->setEnabled(false);
+  this->ui->actionGenerate_Cylinder->setEnabled(false);
 
   if(this->Internal->MoabSource != NULL) this->onClearMesh();
 
@@ -1362,6 +1374,36 @@ void cmbNucMainWindow::exportVTKFile(const QString &fileName)
   writer->Write();
 }
 
+void cmbNucMainWindow::outerLayer(double r, int i)
+{
+  NuclearCore->drawCylinder(r,i);
+  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  if(cp == NULL) return;
+  switch(cp->GetType())
+  {
+    case CMBNUC_CORE:
+      updateCoreMaterialColors();
+      this->Render();
+    default:
+      break;
+  }
+}
+
+void cmbNucMainWindow::clearOuter()
+{
+  NuclearCore->clearCylinder();
+  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  if(cp == NULL) return;
+  switch(cp->GetType())
+  {
+    case CMBNUC_CORE:
+      updateCoreMaterialColors();
+      this->Render();
+    default:
+      break;
+  }
+}
+
 void cmbNucMainWindow::updateCoreMaterialColors()
 {
   // regenerate core and assembly view
@@ -1408,6 +1450,13 @@ void cmbNucMainWindow::updateCoreMaterialColors()
 
       assy->updateMaterialColors(realflatidx, attributes);
       }
+    }
+  if(NuclearCore->getHasCylinder())
+    {
+    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+    matColorMap->SetBlockMaterialColor(attributes, realflatidx,
+                                       matColorMap->getUnknownMaterial());
+    matColorMap->getUnknownMaterial()->setDisplayed();
     }
   cmbNucMaterialColors::instance()->testShow();
 }

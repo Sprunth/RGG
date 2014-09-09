@@ -26,6 +26,7 @@ SET(RGGNuclear_Srcs
   cmbNucDuctCellEditor.cxx
   cmbNucDefaults.cxx
   cmbNucDefaultWidget.cxx
+  cmbNucGenerateOuterCylinder.cxx
   cmbNucInputListWidget.cxx
   cmbNucInputPropertiesWidget.cxx
   cmbNucMaterial.cxx
@@ -61,6 +62,7 @@ SET(RGGNuclear_UI
   qCoregenModel.ui
   qDefaults.ui
   Preferences.ui
+  CylinderCreateGui.ui
   qAssyParameters.ui
   qCoreParameters.ui
 )

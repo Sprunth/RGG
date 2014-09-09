@@ -194,6 +194,8 @@ public:
   // Destroys the assembly.
   ~cmbNucAssembly();
 
+  const static double CosSinAngles[6][2];
+
   cmbNucAssemblyConnection * GetConnection() {return this->Connection; }
 
   virtual enumNucPartsType GetType() const {return CMBNUC_ASSEMBLY;}

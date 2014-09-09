@@ -813,6 +813,7 @@ void cmbNucInputListWidget::coreModified()
   if(selItem && NuclearCore)
   {
     NuclearCore->setAndTestDiffFromFiles(true);
+    NuclearCore->clearOldGeometry();
     selItem->setHightlights(NuclearCore->changeSinceLastSave(),
                             NuclearCore->changeSinceLastGenerate());
     this->Internal->PartsList->repaint();
