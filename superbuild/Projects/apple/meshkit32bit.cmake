@@ -1,0 +1,21 @@
+set(BACKUP_CFLAGS ${cflags})
+  set(BACKUP_CXXFLAGS ${cxxflags})
+  set(BACKUP_CMAKE_OSX_ARCHITECTURES ${CMAKE_OSX_ARCHITECTURES})
+  set(cflags "" FORCE)
+  set(cxxflags "" FORCE)
+  set(CMAKE_OSX_ARCHITECTURES i386)
+  
+ # message("32 bit: ${CMAKE_OSX_ARCHITECTURES}")
+
+  add_external_project(meshkit32bit
+    APPLE_32Bit
+    CMAKE_ARGS
+      -DBUILD_WITH_CUBIT:BOOL=ON
+      -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>/meshkitCubit
+      -DCMAKE_PREFIX_PATH:path=<INSTALL_DIR>/meshkitCubit
+      -DCMAKE_OSX_ARCHITECTURES:STRING=i386
+      -DCUBIT_PATH:PATH=${CUBIT_PATH})
+
+  set(cflags ${BACKUP_CFLAGS})
+  set(cxxflags ${BACKUP_CXXFLAGS})
+  set(CMAKE_OSX_ARCHITECTURES ${BACKUP_CMAKE_OSX_ARCHITECTURES})

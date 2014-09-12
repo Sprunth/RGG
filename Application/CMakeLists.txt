@@ -91,35 +91,32 @@ SET(RGGNuclear_Headers
 
 SET(RGGNuclear_other_headers )
 
-OPTION( VTK_MOAB_SUPPORT "Build with VTK MOAB support"  OFF )
-IF(VTK_MOAB_SUPPORT)
-  FIND_PACKAGE(MOAB)
-  message(${MOAB_INCLUDE_DIR})
-  INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
-  INCLUDE_DIRECTORIES(vtk_moab_reader)
-  SET(RGGNuclear_Headers ${RGGNuclear_Headers} cmbNucCoregen.h)
-  SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
-                               vtk_moab_reader/CellSets.h
-                               vtk_moab_reader/DataSetConverter.h
-                               vtk_moab_reader/detail/CellTypeToType.h
-                               vtk_moab_reader/detail/ContinousCellInfo.h
-                               vtk_moab_reader/detail/LoadGeometry.h
-                               vtk_moab_reader/detail/MixedCellConnectivity.h
-                               vtk_moab_reader/detail/ReadSparseTag.h
-                               vtk_moab_reader/detail/ReduceSpectralMesh.h
-                               vtk_moab_reader/detail/UsageTable.h
-                               vtk_moab_reader/ExtractShell.h
-                               vtk_moab_reader/FaceSets.h
-                               vtk_moab_reader/SimpleMoab.h
-                               vtk_moab_reader/vtkMoabReader.h)
-  SET(RGGNuclear_Srcs ${RGGNuclear_Srcs}
-                      vtk_moab_reader/vtkMoabReader.cxx
-                      cmbNucCoregen.cxx )
-  SET(MOAB_LIB MOAB)
-  SET_SOURCE_FILES_PROPERTIES(cmbNucMainWindow.cxx cmbNucMainWindow.h
-                              PROPERTIES
-                              COMPILE_FLAGS "-DBUILD_WITH_MOAB")
-ENDIF()
+FIND_PACKAGE(MOAB)
+message(${MOAB_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(vtk_moab_reader)
+SET(RGGNuclear_Headers ${RGGNuclear_Headers} cmbNucCoregen.h)
+SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
+                             vtk_moab_reader/CellSets.h
+                             vtk_moab_reader/DataSetConverter.h
+                             vtk_moab_reader/detail/CellTypeToType.h
+                             vtk_moab_reader/detail/ContinousCellInfo.h
+                             vtk_moab_reader/detail/LoadGeometry.h
+                             vtk_moab_reader/detail/MixedCellConnectivity.h
+                             vtk_moab_reader/detail/ReadSparseTag.h
+                             vtk_moab_reader/detail/ReduceSpectralMesh.h
+                             vtk_moab_reader/detail/UsageTable.h
+                             vtk_moab_reader/ExtractShell.h
+                             vtk_moab_reader/FaceSets.h
+                             vtk_moab_reader/SimpleMoab.h
+                             vtk_moab_reader/vtkMoabReader.h)
+SET(RGGNuclear_Srcs ${RGGNuclear_Srcs}
+                    vtk_moab_reader/vtkMoabReader.cxx
+                    cmbNucCoregen.cxx )
+SET(MOAB_LIB MOAB)
+SET_SOURCE_FILES_PROPERTIES(cmbNucMainWindow.cxx cmbNucMainWindow.h
+                            PROPERTIES
+                            COMPILE_FLAGS "-DBUILD_WITH_MOAB")
 
 QT4_WRAP_UI(UISrcs ${RGGNuclear_UI})
 QT4_WRAP_CPP(MOCSrcs ${RGGNuclear_Headers} )

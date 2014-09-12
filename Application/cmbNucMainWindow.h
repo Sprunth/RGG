@@ -113,6 +113,7 @@ protected slots:
   void zScaleChanged(int value);
 
   void setTitle();
+  //void retryExport();
 
 private:
   // Designer form

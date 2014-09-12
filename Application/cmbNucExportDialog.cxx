@@ -2,10 +2,10 @@
 #include "cmbNucAssembly.h"
 #include "ui_qExporterDialog.h"
 #include "ui_qProgress.h"
+#include "cmbNucPreferencesDialog.h"
 
 #include <QFileDialog>
 #include <QDebug>
-#include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
 
@@ -94,30 +94,6 @@ void cmbNucExportDialog::exportFile(cmbNucCore * core)
 void cmbNucExportDialog::sendSignalToProcess()
 {
   qDebug() << "SENDING TO THREAD";
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QString assygenExe = settings.value("EXPORTER/assygen_exe").toString();
-  QString assyGenLibs = settings.value("EXPORTER/assygen_libs").toString();
-  QString coregenExe = settings.value("EXPORTER/coregen_exe").toString();
-  QString cubitExe = settings.value("EXPORTER/cubit_exe").toString();
-  QString coreGenLibs = settings.value("EXPORTER/coregen_libs").toString();
-  if(assygenExe.isEmpty())
-  {
-    qDebug() << "Failed assygen is empty";
-    emit error("Failed assygen is empty");
-    return;
-  }
-  if(cubitExe.isEmpty())
-  {
-    qDebug() << "Failed cubit is empty";
-    emit error("Failed cubit is empty");
-    return;
-  }
-  if(coregenExe.isEmpty())
-  {
-    qDebug() << "Failed coregen is empty";
-    emit error("Failed coregen is empty");
-    return;
-  }
   if(this->AssygenFileList.empty())
   {
     this->runCoregen();
@@ -126,6 +102,14 @@ void cmbNucExportDialog::sendSignalToProcess()
   if(CoregenFile.isEmpty())
   {
     this->runAssygen();
+    return;
+  }
+  QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
+                                             coregenExe, coreGenLibs))
+  {
+    qDebug() << "One of the export exe is missing";
+    emit error("One of the export exe is missing");
     return;
   }
   this->Progress->show();
@@ -153,25 +137,15 @@ void cmbNucExportDialog::sendSignalToProcess()
 
 void cmbNucExportDialog::runAssygen()
 {
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QString assygenExe = settings.value("EXPORTER/assygen_exe").toString();
-  QString assyGenLibs = settings.value("EXPORTER/assygen_libs").toString();
+  QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
+                                             coregenExe, coreGenLibs))
+  {
+    qDebug() << "One of the export exe is missing";
+    emit error("One of the export exe is missing");
+    return;
+  }
   this->hide();
-
-  if(assygenExe.isEmpty())
-  {
-    qDebug() << "Failed assygen is empty";
-    emit error("Failed assygen is empty");
-    return;
-  }
-
-  QString cubitExe = settings.value("EXPORTER/cubit_exe").toString();
-  if(cubitExe.isEmpty())
-  {
-    qDebug() << "Failed cubit is empty";
-    emit error("Failed cubit is empty");
-    return;
-  }
 
   if(this->AssygenFileList.empty())
   {
@@ -197,9 +171,14 @@ void cmbNucExportDialog::runSelectedAssygen()
 void cmbNucExportDialog::runCoregen()
 {
   qDebug() << "SENDING TO THREAD";
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QString coregenExe = settings.value("EXPORTER/coregen_exe").toString();
-  QString coreGenLibs = settings.value("EXPORTER/coregen_libs").toString();
+  QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
+                                             coregenExe, coreGenLibs))
+  {
+    qDebug() << "One of the export exe is missing";
+    emit error("One of the export exe is missing");
+    return;
+  }
   this->hide();
   if(CoregenFile.isEmpty())
   {

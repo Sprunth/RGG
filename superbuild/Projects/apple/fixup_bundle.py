@@ -88,7 +88,10 @@ class Library(object):
       return self.__dependencies
     collection = set()
     for dep in getdependencies(self.RealPath):
-      collection.add(Library.createFromReference(dep, exepath))
+      if not re.match(r".*libcubit.*\.dylib", dep): #(dep):
+        collection.add(Library.createFromReference(dep, exepath))
+      else:
+        logging.info("SKIPPING THIS DEP: %s"%dep)
     self.__dependencies = collection
     return self.__dependencies
 
@@ -205,6 +208,8 @@ def isexcluded(id):
     return True
   if re.match(r"^/usr/local", id):
     return True
+  #if re.match(r".*libcubit.*\.dylib", id):
+  # return True
   return False
 
 def _isframework(path):
@@ -301,6 +306,7 @@ if __name__ == "__main__":
 
   indirect_mLibraries = recursive_dependency_scan(mLibraries, mLibraries)
   logging.info( "Found %d indirect external dependencies." % (len(indirect_mLibraries)) )
+  logging.info( indirect_mLibraries )
   logging.info( "" )
   mLibraries.update(indirect_mLibraries)
 
@@ -333,6 +339,7 @@ if __name__ == "__main__":
   result = ""
   for dep in binaries_to_fix:
     commands.getoutput('chmod u+w "%s"' % dep)
+    logging.info('install_name_tool %s "%s"' % (install_name_tool_command, dep))
     commands.getoutput('install_name_tool %s "%s"' % (install_name_tool_command, dep))
 
     commands.getoutput('chmod a-w "%s"' % dep)

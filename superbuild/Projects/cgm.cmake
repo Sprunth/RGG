@@ -5,9 +5,7 @@ if(BUILD_WITH_CUBIT)
   else()
     set(ldFlags "LDFLAGS=-L${CUBIT_PATH}")
   endif()
-  message("CGM: CFLAGS=${cflags} CXXFLAGS=${cxxflags}")
   add_external_project(cgm
-    USE_AUTOCONF
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
       --with-cubit=${CUBIT_PATH}
@@ -32,7 +30,6 @@ else()
   #cgm has to be built in source to work
   add_external_project(cgm
     DEPENDS OCE
-    USE_AUTOCONF
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
       --with-occ=<INSTALL_DIR>

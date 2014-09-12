@@ -190,13 +190,9 @@ include(CTest)
 set (CM_PROJECTS_ALL)
 
 #setup the options to choose the paraview tag we use
-option(USE_PARAVIEW_next "set paraview to use next instead of cmb tag")
-option(USE_PARAVIEW_master "set paraview to use master instead of cmb tag")
 
 #setup if we build with meshing support, we just pass this down to cmb proper
 option(USE_MESHING_SUPPORT "build rgg programs that require meshing" ON)
-
-option(BUILD_MESHKIT "Build meshkit tools (Assygen and Coregen)" OFF)
 
 option(BUILD_DOCUMENTATION "Build the RGG Documentation" OFF)
 
@@ -224,6 +220,23 @@ include(zlib)
 include(zeroMQ)
 include(remus)
 include(vtk)
+
+include(OCE)
+include(cgm)
+include(lasso)
+
+include(meshkit)
+
+if(APPLE AND BUILD_WITH_CUBIT)
+
+  option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
+  
+  include(meshkit32bit)
+  set(ENABLE_meshkit32bit ON)
+  mark_as_advanced(ENABLE_meshkit32bit)
+  #mark_as_advanced(ENABLE_meshkit32bit ON)
+endif()
+
 
 include(netcdf)
 include(ftgl)
