@@ -83,9 +83,7 @@ add_revision(molequeue
   GIT_REPOSITORY git://source.openchemistry.org/molequeue.git
   GIT_TAG e545ee25b4b79d5bae9e1)
 
-add_revision(nuclearRGG
-  GIT_REPOSITORY https://github.com/Kitware/RGG
-  GIT_TAG 4a3bc58d02cf92d8b582154ddcae32e9d1117a5d)
+add_revision( nuclearRGG SOURCE_DIR ${CMAKE_SOURCE_DIR}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY git://vtk.org/VTK.git
