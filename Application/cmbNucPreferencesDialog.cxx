@@ -1,16 +1,16 @@
 #include "cmbNucPreferencesDialog.h"
-#include "cmbNucMainWindow.h"
 #include <QSettings>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QDebug>
 #include <QDir>
 #include <QCoreApplication>
+#include <QMainWindow>
 
 #define NAME_PROJECT "RGGNuclear"
 #define EXPORTER_NAME "Exporter"
 
-cmbNucPreferencesDialog::cmbNucPreferencesDialog(cmbNucMainWindow *mainWindow)
+cmbNucPreferencesDialog::cmbNucPreferencesDialog(QMainWindow *mainWindow)
 : QDialog(mainWindow)
 {
   EmitValuesSet = false;
@@ -186,9 +186,9 @@ bool cmbNucPreferencesDialog::getExecutable(QString & assygenExe, QString & assy
                                             QString & cubitExe,
                                             QString & coregenExe, QString & coregenLib)
 {
+  qDebug() << "Get exe";
   QSettings settings(NAME_PROJECT, EXPORTER_NAME);
-  bool useCustom = settings.value("custom_meshkit",
-                                  QVariant(cmbNucPreferencesDialog::hasPackaged())).toBool();
+  bool useCustom = settings.value("custom_meshkit", QVariant(false)).toBool();
   if(useCustom || !cmbNucPreferencesDialog::hasPackaged())
   {
     assygenExe = settings.value("assygen_exe").toString();
@@ -198,9 +198,12 @@ bool cmbNucPreferencesDialog::getExecutable(QString & assygenExe, QString & assy
   }
   else
   {
-    getPackaged(assygenExe, coregenExe);
+    qDebug() << "use packaged exe";
+    cmbNucPreferencesDialog::getPackaged(assygenExe, coregenExe);
+    qDebug() << "====> Got:" << assygenExe << coregenExe;
   }
   cubitExe = settings.value("cubit_exe").toString();
+  qDebug() << assygenExe << cubitExe << coregenExe;
   return cmbNucPreferencesDialog::isOk();
 }
 
@@ -213,7 +216,19 @@ bool cmbNucPreferencesDialog::getPackaged(QString & assygenExe, QString & corege
   return (!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
          (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists());
 #elif __linux__
-  return false; //for now
+  QDir appDir(QCoreApplication::applicationDirPath());
+  assygenExe = QDir::cleanPath(appDir.absoluteFilePath("assygen"));
+  coregenExe = QDir::cleanPath(appDir.absoluteFilePath("coregen"));
+  if ((!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+      (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists()))
+  {
+    return true;
+  }
+  assygenExe = QDir::cleanPath(appDir.absoluteFilePath("../bin/assygen"));
+  coregenExe = QDir::cleanPath(appDir.absoluteFilePath("../bin/coregen"));
+  qDebug() << assygenExe << coregenExe;
+  return (!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+         (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists());
 #else
   return false;
 #endif

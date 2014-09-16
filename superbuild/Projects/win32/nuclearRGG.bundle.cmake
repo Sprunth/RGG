@@ -60,12 +60,12 @@ if(BUILD_DOCUMENTATION)
           COMPONENT superbuild)
 endif()
 
-install(DIRECTORY 
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/simple_hexflatcore-Modified
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexflatcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexvertexcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/twelfth_hexflatcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/doc_rect_example
+install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/simple_hexflatcore-Modified
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/sixth_hexflatcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/sixth_hexvertexcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/twelfth_hexflatcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/doc_rect_example
         DESTINATION ExampleModels)
 
 # install system runtimes.

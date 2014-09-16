@@ -131,6 +131,10 @@ void cmbNucExportDialog::sendSignalToProcess()
     qDebug() << outputMesh;
   }
 
+  qDebug() << assygenExe << cubitExe << coregenExe;
+
+  coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
+
   emit process(assygenExe, assyGenLibs, this->AssygenFileList,
                cubitExe, coregenExe, coreGenLibs, CoregenFile, outputMesh);
 }
@@ -203,6 +207,8 @@ void cmbNucExportDialog::runCoregen()
     outputMesh = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
     qDebug() << outputMesh;
   }
+
+  coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
 
   emit process( coregenExe, coreGenLibs, CoregenFile, outputMesh);
 }

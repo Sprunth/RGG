@@ -9,13 +9,13 @@
 #include "ui_Preferences.h"
 
 // Forward Qt class declarations
-class cmbNucMainWindow;
+class QMainWindow;
 
 class cmbNucPreferencesDialog : public QDialog
 {
   Q_OBJECT
 public:
-  cmbNucPreferencesDialog(cmbNucMainWindow* mainWindow);
+  cmbNucPreferencesDialog(QMainWindow* mainWindow);
   ~cmbNucPreferencesDialog();
 
   static bool isOk();

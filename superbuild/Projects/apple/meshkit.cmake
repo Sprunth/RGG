@@ -1,9 +1,6 @@
 #apple meshkit
 #build 64 bit version
 
-#"CFLAGS=${cflags}" "CXXFLAGS=${cxxflags}"
-#set(ldflags "-bind_at_load ${ldflags}")
-
 add_external_project(meshkit
   DEPENDS moab cgm lasso
   BUILD_IN_SOURCE 1
@@ -24,7 +21,7 @@ add_external_project_step(meshkit-autoconf
     DEPENDEES update
     DEPENDERS configure
   )
-  
+
 if(ENABLE_meshkit)
   option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
 endif()

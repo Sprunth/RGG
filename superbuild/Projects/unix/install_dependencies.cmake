@@ -4,17 +4,20 @@
 # pv_dependencies_root == directory where paraview dependencies are installed.
 # target_root == root directory where files are to be installed.
 
+#message("Cubit path: ${CUBIT_PATH}")
 
 function(gp_resolve_item_override context item exepath  dirs resolved_item resolved)
   #it seems in some version of cmake GetPrerequisites doesn't properly search all directories we pass
   #in, so instead we use override hooks to find libraries.
   #we will search where we installed the paraview libraries and in the bin directory
   #of install, since that is where some libs are placed
-  find_file(ri "${item}" PATHS ${pv_dependencies_root} NO_DEFAULT_PATH)
+  #message("Searching ${item} ${CUBIT_PATH}")
+  find_file(ri "${item}" PATHS ${pv_dependencies_root} ${CUBIT_PATH}/bin NO_DEFAULT_PATH)
   if(ri)
-    set(${resolved} 1 PARENT_SCOPE)
-    set(${resolved_item} "${ri}" PARENT_SCOPE)
+      set(${resolved} 1 PARENT_SCOPE)
+      set(${resolved_item} "${ri}" PARENT_SCOPE)
   endif()
+  #message("Done searching ${item}")
 endfunction(gp_resolve_item_override)
 
 include(GetPrerequisites)
@@ -34,11 +37,20 @@ get_prerequisites(
 
 message(STATUS "Installing dependencies for '${exename}'")
 
+#remove cubit dependencies
+set(clean_prerequisites)
+foreach( link ${prerequisites} )
+   if (NOT link MATCHES ".*libcubit.*" AND NOT link MATCHES ".*Cubit.*")
+     message("ADDING: ${link}")
+     list(APPEND clean_prerequisites ${link})
+   endif()
+endforeach()
+
 
 #we are getting a problem that prerequisites that we solve in gp_resolve_item_override
 #aren't storing the full system path, so lets fix-up the prerequisites
 set(resolved_prerequisites)
-foreach(link ${prerequisites})
+foreach(link ${clean_prerequisites})
   set(full_path full_path-NOTFOUND)
   get_filename_component(linkname "${link}" NAME)
   find_file(full_path "${linkname}" PATHS ${pv_dependencies_root} NO_DEFAULT_PATH)

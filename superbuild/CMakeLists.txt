@@ -228,13 +228,12 @@ include(lasso)
 include(meshkit)
 
 if(APPLE AND BUILD_WITH_CUBIT)
-
-  option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
-  
   include(meshkit32bit)
   set(ENABLE_meshkit32bit ON)
   mark_as_advanced(ENABLE_meshkit32bit)
   #mark_as_advanced(ENABLE_meshkit32bit ON)
+elseif(UNIX AND BUILD_WITH_CUBIT)
+  set (ld_library_path "${install_location}/lib:${CUBIT_PATH}/bin:$ENV{LD_LIBRARY_PATH}")
 endif()
 
 

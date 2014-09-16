@@ -145,27 +145,42 @@ if(APPLE)
                                Resources )
 endif()
 
-if(WIN32 OR APPLE)
-ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
-else()
+set(TARGET_NAME)
 
-message ("Forwarding")
+if(WIN32 OR APPLE)
+  ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+  TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+else()
   include(vtkForwardingExecutable)
   set(VTK_INSTALL_LIBRARY_DIR "lib")
   set(BUILD_SHARED_LIBS TRUE)
-  vtk_add_executable_with_forwarding(rgg_exe_suffix
-                 RGGNuclear
-                 ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE}
-                 )
-  TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
 
+  if(CUBIT_BUILD)
+    set(TARGET_NAME RGGNuclear RGGNuclear-GUI)
+    configure_file("${CMAKE_SOURCE_DIR}/CMake/RGGNuclear-cubit-checker.cxx.in"
+                   "${CMAKE_CURRENT_BINARY_DIR}/RGGNuclear-cubit-checker.cxx"
+                   @ONLY)
+    set(CUBIT_BUILD_SRC "${CMAKE_CURRENT_BINARY_DIR}/RGGNuclear-cubit-checker.cxx"
+                        cmbNucPreferencesDialog.cxx
+                       "${CMAKE_CURRENT_BINARY_DIR}/moc_cmbNucPreferencesDialog.cxx")
+    vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear ${CUBIT_BUILD_SRC})
+    TARGET_LINK_LIBRARIES(RGGNuclear ${QT_LIBRARIES} ${VTK_LIBRARIES})
+
+    ADD_EXECUTABLE( RGGNuclear-GUI MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+    TARGET_LINK_LIBRARIES( RGGNuclear-GUI RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+
+  else()
+    set(TARGET_NAME RGGNuclear)
+    vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear ${RGGNuclear_Srcs} ${RGGNuclear_other_headers}
+                                                      ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+    TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+  endif()
   IF (rgg_exe_suffix)
      # Shared forwarding enabled.
      INSTALL(TARGETS RGGNuclear${rgg_exe_suffix}
              DESTINATION "bin"
              COMPONENT Runtime)
-  ENDIF ()
+  ENDIF()
 endif()
 
 
@@ -201,5 +216,5 @@ else()
              ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
              @ONLY)
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION lib)
-  install(TARGETS RGGNuclear DESTINATION lib)
+  install(TARGETS ${TARGET_NAME} DESTINATION lib)
 endif()
