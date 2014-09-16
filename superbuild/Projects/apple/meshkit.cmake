@@ -16,19 +16,34 @@ add_external_project(meshkit
   --enable-shared
 )
 
-add_external_project_step(meshkit-autoconf
-    COMMAND autoreconf -i <SOURCE_DIR>
+if(ENABLE_meshkit)
+  find_package(Autotools REQUIRED)
+  add_external_project_step(meshkit-autoconf
+    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
     DEPENDEES update
     DEPENDERS configure
   )
 
-if(ENABLE_meshkit)
   option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
-endif()
-
-if(BUILD_WITH_CUBIT)
+  
+  if(BUILD_WITH_CUBIT)
+    find_path( CUBIT_PATH_ROOT Cubit.app HINTS /Applications/Cubit-13.1 PATH_SUFFIXES "Contents/MacOS/" DOC "The cubit bundle name")
     set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
-    if(NOT IS_DIRECTORY ${CUBIT_PATH})
-        message(FATAL_ERROR "CUBIT_PATH needs to be set to a valid path")
+    if(CUBIT_PATH_ROOT)
+      message("${CUBIT_PATH_ROOT}/Cubit.app/Contents/MacOS/")
+      set(CUBIT_PATH "${CUBIT_PATH_ROOT}/Cubit.app/Contents/MacOS/")
+      mark_as_advanced(CUBIT_PATH)
     endif()
+
+    if(NOT IS_DIRECTORY ${CUBIT_PATH})
+        message(SEND_ERROR "CUBIT_PATH needs to be set to a valid path")
+    endif()
+  endif()
+else()
+  set(ENABLE_OCE OFF FORCE)
+  mark_as_advanced(ENABLE_OCE)
+  set(ENABLE_cgm OFF FORCE)
+  mark_as_advanced(ENABLE_cgm)
+  set(ENABLE_lasso OFF FORCE)
+  mark_as_advanced(ENABLE_lasso)
 endif()

@@ -33,6 +33,7 @@ set (CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
+
 set (MeshKitSuperBuild_CMAKE_DIR
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
@@ -45,6 +46,8 @@ set (patch_location "${CMAKE_CURRENT_SOURCE_DIR}/patches")
 set (prefix_path "${install_location}")
 
 option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
+
+find_package(Autotools REQUIRED)
 
 if(BUILD_WITH_CUBIT)
   set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")

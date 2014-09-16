@@ -189,11 +189,6 @@ include(CTest)
 #-----------------------------------------------------------------------------
 set (CM_PROJECTS_ALL)
 
-#setup the options to choose the paraview tag we use
-
-#setup if we build with meshing support, we just pass this down to cmb proper
-option(USE_MESHING_SUPPORT "build rgg programs that require meshing" ON)
-
 option(BUILD_DOCUMENTATION "Build the RGG Documentation" OFF)
 
 #must before any including of projects

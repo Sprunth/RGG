@@ -9,8 +9,10 @@ add_external_project(lasso
     --prefix=<INSTALL_DIR>
 )
 
-add_external_project_step(lasso-autoconf
-    COMMAND autoreconf -i <SOURCE_DIR>
+if(ENABLE_meshkit)
+  add_external_project_step(lasso-autoconf
+    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
     DEPENDEES update
     DEPENDERS configure
   )
+endif()

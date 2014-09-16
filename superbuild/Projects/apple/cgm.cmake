@@ -8,9 +8,11 @@ add_external_project(cgm
     --enable-shared
 )
 
-add_external_project_step(oce-autoconf
-  COMMENT "Running autoreconf for oce"
-    COMMAND autoreconf -i <SOURCE_DIR>
-    DEPENDEES update
-    DEPENDERS configure
+if(ENABLE_meshkit)
+  add_external_project_step(oce-autoconf
+    COMMENT "Running autoreconf for oce"
+      COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
+      DEPENDEES update
+      DEPENDERS configure
   )
+endif()

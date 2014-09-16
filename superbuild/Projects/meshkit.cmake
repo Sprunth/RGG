@@ -13,19 +13,19 @@ add_external_project(meshkit
   --enable-shared
 )
 
-add_external_project_step(meshkit-autoconf
-    COMMAND autoreconf -i <SOURCE_DIR>
+if(ENABLE_meshkit)
+  find_package(Autotools REQUIRED)
+  add_external_project_step(meshkit-autoconf
+    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
     DEPENDEES update
     DEPENDERS configure
   )
 
-if(ENABLE_meshkit)
   option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
-endif()
-
-if(BUILD_WITH_CUBIT)
+  if(BUILD_WITH_CUBIT)
     set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
     if(NOT IS_DIRECTORY ${CUBIT_PATH})
-        message(FATAL_ERROR "CUBIT_PATH needs to be set to a valid path")
+        message(SEND_ERROR "CUBIT_PATH needs to be set to a valid path")
     endif()
+  endif()
 endif()
