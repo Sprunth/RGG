@@ -40,8 +40,8 @@ add_revision(netcdf
   URL_MD5 40c0e53433fc5dc59296ee257ff4a813)
 
 add_revision(hdf5
-  URL "http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.8/src/hdf5-1.8.8.tar.gz"
-  URL_MD5 1196e668f5592bfb50d1de162eb16cff)
+  URL "http://paraview.org/files/dependencies/hdf5-1.8.9.tar.gz"
+  URL_MD5 d1266bb7416ef089400a15cc7c963218)
 
 add_revision(moab
   GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
