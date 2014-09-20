@@ -25,6 +25,9 @@ public:
       valid = false;
     }
 
+    bool isBlank() const
+    { return label.empty() || label == "xx" || label == "XX"; }
+
     std::string label;
     QColor color;
     bool valid;
@@ -97,6 +100,8 @@ public:
   virtual void fillList(QStringList & l) = 0;
   virtual AssyPartObj * getFromLabel(const std::string &) = 0;
   virtual bool IsHexType() = 0;
+  virtual void calculateRectPt(unsigned int i, unsigned int j, double pt[2]) = 0;
+  virtual void calculateRectTranslation(double lastPt[2], double & transX, double & transY) = 0;
 protected:
   Lattice lattice;
 };

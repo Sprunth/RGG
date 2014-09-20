@@ -13,6 +13,7 @@
 #include "cmbNucLattice.h"
 #include "cmbNucPinCell.h"
 #include "cmbNucDuctCell.h"
+
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
 
@@ -145,6 +146,7 @@ public:
     virtual std::string getLabel() const = 0;
     virtual bool reverse() const = 0;
     virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const = 0;
+    virtual void apply(double const* i, double * o) const = 0;
     virtual std::ostream& write(std::ostream& os) const = 0;
     virtual int getControls() const = 0;
     void setAxis(std::string a);
@@ -158,6 +160,7 @@ public:
     Rotate(): angle(0) {}
     Rotate(std::string a, double delta);
     virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
+    virtual void apply(double const* i, double * o) const;
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const {return angle;}
     virtual bool reverse() const {return false;}
@@ -171,6 +174,8 @@ public:
   public:
     Section(): value(0), dir(1){}
     Section(std::string a, double v, std::string dir);
+    virtual void apply(double const* i, double * o) const //do nothing for now
+    {}
     virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const { return value; }
@@ -192,7 +197,7 @@ public:
   cmbNucAssembly();
 
   // Destroys the assembly.
-  ~cmbNucAssembly();
+  virtual ~cmbNucAssembly();
 
   const static double CosSinAngles[6][2];
 
@@ -315,6 +320,14 @@ public:
     return this->GetPinCell(s);
   }
 
+  virtual void calculateRectPt(unsigned int i, unsigned int j, double pt[2]);
+
+  virtual void calculateRectTranslation(double lastPt[2], double & transX, double & transY)
+  {
+    transX = -lastPt[0]*0.5;
+    transY = -lastPt[1]*0.5;
+  }
+
 protected:
   std::vector<PinCell*> PinCells;
 
@@ -327,8 +340,6 @@ protected:
   friend class cmbNucMainWindow;
 
   vtkSmartPointer<vtkMultiBlockDataSet> CreateData();
-
-  void computeRecOffset(unsigned int i, unsigned int j, double &tx, double &ty);
 
   std::string GeometryType;
 

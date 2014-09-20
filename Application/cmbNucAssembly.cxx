@@ -14,6 +14,8 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
 #include "vtkCmbLayeredConeSource.h"
+#include "cmbNucRender.h"
+
 #include <vtkClipClosedSurface.h>
 #include <vtkPlaneCollection.h>
 
@@ -38,18 +40,19 @@ std::string TO_AXIS_STRING[] = {"X", "Y", "Z"};
 
 //transformation helper classes
 
-const double cmbNucAssembly::CosSinAngles[6][2] = { { cos( 2*(vtkMath::Pi() / 6.0) * (0 + 3.5) ),
-                                                      sin( 2*(vtkMath::Pi() / 6.0) * (0 + 3.5) ) },
-                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (1 + 3.5) ),
-                                                      sin( 2*(vtkMath::Pi() / 6.0) * (1 + 3.5) ) },
-                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (2 + 3.5) ),
-                                                      sin( 2*(vtkMath::Pi() / 6.0) * (2 + 3.5) ) },
-                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (3 + 3.5) ),
-                                                      sin( 2*(vtkMath::Pi() / 6.0) * (3 + 3.5) ) },
-                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (4 + 3.5) ),
-                                                      sin( 2*(vtkMath::Pi() / 6.0) * (4 + 3.5) ) },
-                                                    { cos( 2*(vtkMath::Pi() / 6.0) * (5 + 3.5) ),
-                                                      sin( 2*(vtkMath::Pi() / 6.0) * (5 + 3.5) ) } };
+const double cmbNucAssembly::CosSinAngles[6][2] =
+{ { cos( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (4 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (4 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ) } };
 
 void cmbNucAssembly::Transform::setAxis(std::string a)
 {
@@ -84,6 +87,24 @@ cmbNucAssembly::Rotate::apply( vtkMultiBlockDataSet * input,
       break;
   }
   cmbNucCore::transformData(input, output, xform);
+}
+
+void cmbNucAssembly::Rotate::apply(double const* i, double * o) const
+{
+  vtkSmartPointer<vtkTransform> xform = vtkSmartPointer<vtkTransform>::New();
+  switch(this->axis)
+  {
+    case X:
+      xform->RotateX(this->angle);
+      break;
+    case Y:
+      xform->RotateY(this->angle);
+      break;
+    case Z:
+      xform->RotateZ(this->angle);
+      break;
+  }
+  xform->TransformVector(i,o);
 }
 
 std::ostream&
@@ -426,8 +447,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::GetData()
   return this->CreateData();
 }
 
-void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
-                                      double &tx, double &ty)
+void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,
+                                     double pt[2])
 {
   std::string const& l = this->lattice.Grid[i][j].label;
   double pitch_ij[2] = {0,0};
@@ -452,35 +473,35 @@ void cmbNucAssembly::computeRecOffset(unsigned int i, unsigned j,
 
   if(i==0)
   {
-    ty = 0;
+    pt[1] = 0;
   }
   else if(j == 0)
   {
     std::string const& l2 = this->lattice.Grid[i-1][j].label;
     if(!l2.empty() && l2 != "xx" && l2 != "XX" && (pincell = this->GetPinCell(l2)) != NULL)
     {
-      ty += (pitch_ij[1] + pincell->pitchY) * 0.5;
+      pt[1] += (pitch_ij[1] + pincell->pitchY) * 0.5;
     }
     else
     {
-      ty += pitch_ij[1];
+      pt[1] += pitch_ij[1];
     }
   }
 
   if(j==0)
   {
-    tx = 0;
+    pt[0] = 0;
   }
   else
   {
     std::string const& l2 = this->lattice.Grid[i][j-1].label;
     if(!l2.empty() && l2 != "xx" && l2 != "XX" && (pincell = this->GetPinCell(l2)) != NULL)
     {
-      tx += (pitch_ij[0] + pincell->pitchX) * 0.5;
+      pt[0] += (pitch_ij[0] + pincell->pitchX) * 0.5;
     }
     else
     {
-      tx += pitch_ij[0];
+      pt[0] += pitch_ij[0];
     }
   }
 }
@@ -517,7 +538,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucAssembly::CreateData()
       const std::vector<Lattice::LatticeCell> &row = this->lattice.Grid[i];
       for(size_t j = 0; j < row.size(); j++)
         {
-        this->computeRecOffset(i, j, currentLaticePoint[0], currentLaticePoint[1]);
+        this->calculateRectPt(i, j, currentLaticePoint);
         offX[i][j] = currentLaticePoint[0];
         offY[i][j] = currentLaticePoint[1];
         }
@@ -758,42 +779,10 @@ vtkMultiBlockDataSet* cmbNucAssembly::CreatePinCellMultiBlock(PinCell* pincell, 
   dataSet->SetNumberOfBlocks(pincell->GetNumberOfParts());
 
   // build all cylinders and frustums
-  const int PinCellResolution = 18;
   size_t numParts = pincell->GetNumberOfParts();
   for(size_t j = 0; j < numParts; ++j)
     {
-    PinSubPart* part = pincell->GetPart(j);
-
-    vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
-      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
-    coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
-    coneSource->SetBaseCenter(0, 0, part->z1);
-    coneSource->SetHeight(part->z2 - part->z1);
-    double lastR[2];
-
-    for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
-      {
-      lastR[0] = part->getRadius(k,Frustum::BOTTOM);
-      lastR[1] = part->getRadius(k,Frustum::TOP);
-      coneSource->SetBaseRadius(k, part->getRadius(k,Frustum::BOTTOM));
-      coneSource->SetTopRadius(k, part->getRadius(k,Frustum::TOP));
-      coneSource->SetResolution(k, PinCellResolution);
-      }
-    if(pincell->cellMaterialSet())
-      {
-      double r[] = {pincell->pitchX*0.5, pincell->pitchY*0.5};
-      int res = 4;
-      if(isHex)
-        {
-        res = 6;
-        r[0] = r[1] = r[0]/0.86602540378443864676372317075294;
-        }
-      coneSource->SetBaseRadius(pincell->GetNumberOfLayers(), r[0], r[1]);
-      coneSource->SetTopRadius(pincell->GetNumberOfLayers(), r[0], r[1]);
-      coneSource->SetResolution(pincell->GetNumberOfLayers(), res);
-      }
-    double direction[] = { 0, 0, 1 };
-    coneSource->SetDirection(direction);
+    vtkSmartPointer<vtkCmbLayeredConeSource> coneSource = cmbNucRender::CreateLayerManager(pincell, isHex, j);
     coneSource->Update();
 
     if(cutaway)

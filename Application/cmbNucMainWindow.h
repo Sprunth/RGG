@@ -34,6 +34,7 @@ class cmbNucPreferencesDialog;
 class NucMainInternal;
 class cmbNucLatticeWidget;
 class cmbNucGenerateOuterCylinder;
+class cmbNucRender;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -133,6 +134,7 @@ private:
 
   void doClearAll(bool needSave = false);
 
+  cmbNucRender * NucMappers;
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkRenderer> MeshRenderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;

@@ -201,6 +201,22 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
   return this->Data;
 }
 
+void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
+{
+  double outerDuctWidth;
+  double outerDuctHeight;
+  Defaults->getDuctThickness(outerDuctWidth, outerDuctHeight);
+  pt[0] = i * (outerDuctWidth);
+  pt[1] = j * (outerDuctHeight)-outerDuctWidth*(this->lattice.Grid.size()-1);
+}
+
+void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY)
+{
+  cmbNucAssembly * assy = this->GetAssembly(0);
+  transX = assy->AssyDuct.getDuct(0)->x;
+  transY = assy->AssyDuct.getDuct(0)->y;
+}
+
 void cmbNucCore::generateData()
 {
   if(this->Assemblies.size()==0 || this->lattice.Grid.size()==0

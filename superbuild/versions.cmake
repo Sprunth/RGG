@@ -87,7 +87,7 @@ add_revision( nuclearRGG SOURCE_DIR ${CMAKE_SOURCE_DIR}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY git://vtk.org/VTK.git
-  GIT_TAG v6.1.0)
+  GIT_TAG origin/master)
 
 if (UNIX)
   add_revision(mpi
@@ -115,30 +115,10 @@ add_revision(osmesa
     URL "http://paraview.org/files/dependencies/MesaLib-7.11.2.tar.gz"
     URL_MD5 b9e84efee3931c0acbccd1bb5a860554)
 
-if(USE_PARAVIEW_next)
-  add_revision(paraview
-    GIT_REPOSITORY http://paraview.org/ParaView.git
-    GIT_TAG next)
-elseif(USE_PARAVIEW_master)
-  add_revision(paraview
-    GIT_REPOSITORY http://paraview.org/ParaView.git
-    GIT_TAG master)
-else()
-  add_revision(paraview
-    # updating to a version of ParaView that fixes issue loading a
-    # plugin multiple times which destroyed our dashboard
-    GIT_REPOSITORY http://paraview.org/ParaView.git
-    GIT_TAG e90304c0053a68ab316790748e097d810cb17ed1)
-endif()
-
 #------------------------------------------------------------------------------
 # Optional Plugins. Doesn't affect ParaView binaries at all even if missing
 # or disabled.
 #------------------------------------------------------------------------------
-
-add_revision(cosmologytools
-    GIT_REPOSITORY http://public.kitware.com/cosmotools.git
-    GIT_TAG v0.11)
 
 add_revision(qhull
     GIT_REPOSITORY http://github.com/gzagaris/gxzagas-qhull.git

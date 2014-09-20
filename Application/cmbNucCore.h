@@ -268,6 +268,10 @@ public:
 
   void computePitch();
 
+  virtual void calculateRectPt(unsigned int i, unsigned int j, double pt[2]);
+
+  virtual void calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY);
+
   //Set the different from file and tests the h5m file;
   void setAndTestDiffFromFiles(bool diffFromFile);
   bool changeSinceLastSave() const;

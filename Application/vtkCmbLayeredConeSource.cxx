@@ -96,9 +96,69 @@ void vtkCmbLayeredConeSource::SetResolution(int layer, int res)
   this->LayerRadii[layer].Resolution = res;
 }
 
+int vtkCmbLayeredConeSource::GetResolution(int layer)
+{
+  return this->LayerRadii[layer].Resolution;
+}
+
 double vtkCmbLayeredConeSource::GetBaseRadius(int layer)
 {
   return this->LayerRadii[layer].BaseRadii[0];
+}
+
+double vtkCmbLayeredConeSource::GetTopThickness(int layer)
+{
+  if(layer == 0) return this->LayerRadii[layer].TopRadii[0];
+  return this->LayerRadii[layer].TopRadii[layer] - this->LayerRadii[layer].TopRadii[layer-1];
+}
+
+double vtkCmbLayeredConeSource::GetBaseThickness(int layer)
+{
+  if(layer == 0) return this->LayerRadii[layer].BaseRadii[0];
+  return this->LayerRadii[layer].BaseRadii[layer] - this->LayerRadii[layer].BaseRadii[layer-1];
+}
+
+vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
+{
+  if(l < 0) return NULL;
+  if(l >= this->GetNumberOfLayers()) return NULL;
+
+  int innerRes = 0;
+  int outerRes = 0;
+  double one[] = {1,1};
+  double * innerBottomR = NULL;
+  double * innerTopR = NULL;
+  double * outerBottomR = NULL;
+  double * outerTopR = NULL;
+
+  outerBottomR = this->LayerRadii[l].BaseRadii;
+  outerTopR = this->LayerRadii[l].TopRadii;
+  outerRes = this->LayerRadii[l].Resolution;
+
+  if(l != 0)
+  {
+    innerBottomR = this->LayerRadii[l-1].BaseRadii;
+    innerTopR = this->LayerRadii[l-1].TopRadii;
+    innerRes = this->LayerRadii[l-1].Resolution;
+  }
+  else if(l == 0 && *outerBottomR == *outerTopR)
+  {
+    outerBottomR = outerTopR = one;
+  }
+
+  vtkSmartPointer<vtkPolyData> tmpLayer = CreateLayer( 1.0,
+                                                       innerBottomR, outerBottomR,
+                                                       innerTopR,    outerTopR,
+                                                       innerRes,     outerRes );
+  if (this->GenerateNormals)
+  {
+    vtkNew<vtkPolyDataNormals> normals;
+    normals->SetInputDataObject(tmpLayer);
+    normals->ComputePointNormalsOn();
+    normals->Update();
+    return normals->GetOutput();
+  }
+  return tmpLayer;
 }
 
 int vtkCmbLayeredConeSource::RequestData(

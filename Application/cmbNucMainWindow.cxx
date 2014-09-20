@@ -49,6 +49,7 @@
 #include "cmbNucGenerateOuterCylinder.h"
 #include "cmbNucMaterial.h"
 #include "inpFileIO.h"
+#include "cmbNucRender.h"
 
 #include "vtkCmbLayeredConeSource.h"
 #include "cmbNucLatticeWidget.h"
@@ -199,6 +200,9 @@ cmbNucMainWindow::cmbNucMainWindow()
   renderWindow->AddRenderer(this->Renderer);
   meshRenderWindow->AddRenderer(this->MeshRenderer);
   this->VTKToQt = vtkSmartPointer<vtkEventQtSlotConnect>::New();
+
+  NucMappers = new cmbNucRender();
+  NucMappers->addToRender(this->Renderer);
 
   // setup depth peeling
   renderWindow->SetAlphaBitPlanes(1);
@@ -406,6 +410,7 @@ cmbNucMainWindow::~cmbNucMainWindow()
   this->InputsWidget->setCore(NULL);
   delete this->NuclearCore;
   delete this->MaterialColors;
+  delete this->NucMappers;
 #ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
 #endif
@@ -1178,6 +1183,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   setScaledBounds();
 
   this->Mapper->SetInputDataObject(NULL);
+  this->NucMappers->clearMappers();
 
   this->LatticeDraw->clear();
 
@@ -1254,6 +1260,7 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
     return;
     }
   this->Internal->CurrentDataset = pin->CachedData;
+  this->NucMappers->clearMappers();
   vtkBoundingBox box;
   computeBounds(this->Internal->CurrentDataset, &box);
   box.GetBounds(this->Internal->BoundsModel);
@@ -1296,6 +1303,7 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
     return;
   }
   this->Internal->CurrentDataset = dc->CachedData;
+  this->NucMappers->clearMappers();
   vtkBoundingBox box;
   computeBounds(this->Internal->CurrentDataset, &box);
   box.GetBounds(this->Internal->BoundsModel);
@@ -1331,7 +1339,16 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
     {
     return;
     }
-
+  cmbNucMaterialColors::instance()->clearDisplayed();
+  this->Mapper->SetInputDataObject(NULL);
+  this->NucMappers->render(assy);
+  vtkBoundingBox box;
+  this->NucMappers->computeBounds(box);
+  box.GetBounds(this->Internal->BoundsModel);
+  setScaledBounds();
+  return;
+#if 0
+  //TODO Need to fix this up
   // regenerate core and assembly view
   cmbAssyParameters* params = assy->GetParameters();
   vtkNew<vtkTransform> transform;
@@ -1356,6 +1373,7 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
   cmbNucMaterialColors::instance()->clearDisplayed();
   assy->updateMaterialColors(realflatidx, attributes);
   cmbNucMaterialColors::instance()->testShow();
+#endif
 }
 
 void cmbNucMainWindow::exportVTKFile(const QString &fileName)
@@ -1407,6 +1425,16 @@ void cmbNucMainWindow::clearOuter()
 void cmbNucMainWindow::updateCoreMaterialColors()
 {
   // regenerate core and assembly view
+  cmbNucMaterialColors::instance()->clearDisplayed();
+  this->NucMappers->render(this->NuclearCore);
+  this->Mapper->SetInputDataObject(NULL);
+  vtkBoundingBox box;
+  this->NucMappers->computeBounds(box);
+  box.GetBounds(this->Internal->BoundsModel);
+  setScaledBounds();
+  return;
+  //todo Fix this up
+#if 0
   this->Internal->CurrentDataset = this->NuclearCore->GetData();
   this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
   vtkBoundingBox box;
@@ -1459,6 +1487,7 @@ void cmbNucMainWindow::updateCoreMaterialColors()
     matColorMap->getUnknownMaterial()->setDisplayed();
     }
   cmbNucMaterialColors::instance()->testShow();
+#endif
 }
 
 void cmbNucMainWindow::exportRGG()
@@ -1471,6 +1500,7 @@ void cmbNucMainWindow::zScaleChanged(int value)
   this->ZScale = 1.0 / value;
   this->Actor->SetScale(1, 1, this->ZScale);
   this->MeshActor->SetScale(1, 1, this->ZScale);
+  this->NucMappers->setZScale( this->ZScale );
   this->setScaledBounds();
   this->CubeAxesActor->Modified();
   this->Renderer->Modified();
