@@ -20,6 +20,7 @@ class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
 class cmbNucDefaults;
+class vtkPolyData;
 
 #define EXTRA_VARABLE_MACRO() \
    FUN_SIMPLE(std::string, QString, ProblemType, problemtype, "", "") \
@@ -253,10 +254,6 @@ public:
   // Rebuild the grid (which for now just updates the colors at each cell)
   void RebuildGrid();
 
-  // Returns a multi-block data set containing the geometry for
-  // the core with assemblies. This is used to render the core in 3D.
-  vtkSmartPointer<vtkMultiBlockDataSet> GetData();
-
   void SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3]);
 
   // Check if GeometryType is Hexagonal
@@ -302,7 +299,6 @@ public:
   void sendDefaults();
   void initDefaults();
 
-  void drawCylinder();
   void drawCylinder(double r, int i);
   void clearCylinder();
 
@@ -335,12 +331,9 @@ public:
   }
 
 private:
-  vtkSmartPointer<vtkMultiBlockDataSet> Data;
   bool hasCylinder;
   double cylinderRadius;
   int cylinderOuterSpacing;
-
-  void generateData();
 
   std::vector<cmbNucAssembly*> Assemblies;
   cmbNucCoreConnection * Connection;

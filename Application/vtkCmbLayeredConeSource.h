@@ -25,11 +25,12 @@ public:
 
   void SetTopRadius(int layer, double radius);
   void SetTopRadius(int layer, double r1, double r2);
-  double GetTopRadius(int layer);
+  double GetTopRadius(int layer, int s = 0);
+
 
   void SetBaseRadius(int layer, double radius);
   void SetBaseRadius(int layer, double r1, double r2);
-  double GetBaseRadius(int layer);
+  double GetBaseRadius(int layer, int s = 0);
 
   double GetTopThickness(int layer);
   double GetBaseThickness(int layer);

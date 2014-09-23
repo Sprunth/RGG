@@ -11,11 +11,18 @@
 #include <vtkPointData.h>
 #include <vtkBoundingBox.h>
 #include <vtkDoubleArray.h>
+#include <vtkPlane.h>
+#include <vtkNew.h>
+#include <vtkMath.h>
+#include <vtkClipClosedSurface.h>
+#include <vtkPlaneCollection.h>
+#include <vtkPolyDataNormals.h>
 #include <QDebug>
 #include <cmath>
 
 #include "cmbNucDefaults.h"
 #include "vtkCmbLayeredConeSource.h"
+#include "cmbNucMaterialColors.h"
 
 typedef cmbNucRender::point point;
 typedef cmbNucRender::GeoToPoints GeoToPoints;
@@ -23,6 +30,70 @@ typedef cmbNucRender::key key;
 
 int INITIAL_KEY_TEST=1;
 const int PinCellResolution = 18;
+
+cmbNucRender::key::key()
+{
+  type = Jacket;
+  sides = -1;
+  for(int r = 0; r < 8; ++r) radius[r] = -1;
+}
+
+cmbNucRender::key::key( int s, double rTop, double rBottom )
+{
+  type = Frustum;
+  sides = s;
+  radius[0] = rTop;
+  radius[1] = rBottom;
+  for(int r = 2; r < 8; ++r) radius[r] = -1;
+}
+
+cmbNucRender::key::key( int s )
+{
+  type = Cylinder;
+  sides = s;
+  for(int r = 0; r < 8; ++r) radius[r] = -1;
+}
+
+cmbNucRender::key::key( int s,
+    double rTop1, double rTop2, double rTop3, double rTop4,
+    double rBottom1, double rBottom2, double rBottom3, double rBottom4)
+{
+  type = Annulus;
+  sides = s;
+  radius[0] = rTop1;
+  radius[1] = rBottom1;
+  radius[2] = rTop2;
+  radius[3] = rBottom2;
+  radius[4] = rTop3;
+  radius[5] = rBottom3;
+  radius[6] = rTop4;
+  radius[7] = rBottom4;
+}
+
+bool cmbNucRender::key::operator<(key const& other) const
+{
+  if(type != other.type) return type < other.type;
+  switch(type)
+  {
+    case Annulus:
+    case Frustum:
+      if(sides == other.sides)
+      {
+        for(unsigned int i = 0; i < 8; ++i)
+        {
+          if(radius[i] != other.radius[i])
+          {
+            return radius[i] < other.radius[i];
+          }
+        }
+      }
+    case Cylinder:
+      return sides < other.sides;
+    case Jacket:
+      return false;
+  }
+  return false;
+}
 
 class cmbNucRenderHelper
 {
@@ -221,6 +292,51 @@ public:
     }
   }
 
+  static void createGeo(DuctCell* ductcell, bool isHex, std::map<key,GeoToPoints> & geometry)
+  {
+    if(ductcell == NULL) return;
+    size_t numParts = ductcell->numberOfDucts();
+    for(unsigned int j = 0; j < numParts; ++j)
+    {
+      Duct *duct = ductcell->getDuct(j);
+      vtkSmartPointer<vtkCmbLayeredConeSource> manager = cmbNucRender::CreateLayerManager(ductcell, isHex, j);
+      //inner cylinder
+      {
+        double thickness[] = {manager->GetTopRadius(0,0), manager->GetTopRadius(0,1)};
+        key k (manager->GetResolution(0));
+        point loc;
+        manager->GetBaseCenter(loc.xyz);
+        double h = manager->GetHeight();
+        cmbNucRender::scale scale(thickness[0],thickness[1],h);
+        if(geometry.find(k) == geometry.end())
+        {
+          geometry[k].geo = manager->CreateUnitLayer(0);
+        }
+        GeoToPoints & geo = geometry[k];
+        geo.points.push_back(GeoToPoints::data(loc, point(), duct->getMaterial(0), scale));
+      }
+      for( int i = manager->GetNumberOfLayers()-1; i > 0; --i)
+      {
+        cmbNucMaterial * mat = duct->getMaterial(i);
+        key k(manager->GetResolution(i),
+              manager->GetTopRadius(i, 0), manager->GetTopRadius(i, 1),
+              manager->GetTopRadius(i-1, 0), manager->GetTopRadius(i-1, 1),
+              manager->GetBaseRadius(i,0), manager->GetBaseRadius(i,1),
+              manager->GetBaseRadius(i-1,0), manager->GetBaseRadius(i-1,1));
+        if(geometry.find(k) == geometry.end())
+        {
+          geometry[k].geo = manager->CreateUnitLayer(i);
+        }
+        GeoToPoints & geo = geometry[k];
+        point loc;
+        manager->GetBaseCenter(loc.xyz);
+        double h = manager->GetHeight();
+        cmbNucRender::scale scale(1,1,h);
+        geo.points.push_back(GeoToPoints::data(loc, point(), mat, scale));
+      }
+    }
+  }
+
   static void createGeo(PinCell* pincell, bool isHex,
                         std::map<key,GeoToPoints> & geometry)
   {
@@ -233,32 +349,51 @@ public:
       vtkSmartPointer<vtkCmbLayeredConeSource> manager = cmbNucRender::CreateLayerManager(pincell, isHex, j);
       if(manager == NULL) continue;
       //inner cylinder/frustum
-      double thickness[] = {manager->GetTopThickness(0), manager->GetBaseThickness(0)};
-      if(thickness[0] == thickness[1])
       {
-        key k;
-        k.type = key::Cylinder;
-        k.sides = manager->GetResolution(0);
+        double thickness[] = {manager->GetTopRadius(0), manager->GetBaseRadius(0)};
+        key k (manager->GetResolution(0));
+        point loc;
+        manager->GetBaseCenter(loc.xyz);
+        double h = manager->GetHeight();
+        cmbNucRender::scale scale(thickness[0],thickness[0],h);
+        if(thickness[0] != thickness[1])
+        {
+          k = key(manager->GetResolution(0), thickness[0], thickness[1]);
+          scale = cmbNucRender::scale(1,1,h);
+        }
         if(geometry.find(k) == geometry.end())
         {
           geometry[k].geo = manager->CreateUnitLayer(0);
         }
         GeoToPoints & geo = geometry[k];
+        geo.points.push_back(GeoToPoints::data(loc, point(), part->GetMaterial(0), scale));
+      }
+
+      bool addCellMat = pincell->cellMaterialSet();
+      for( int i = manager->GetNumberOfLayers()-1; i > 0; --i)
+      {
+        cmbNucMaterial * mat = part->GetMaterial(i);
+        if(addCellMat)
+        {
+          addCellMat = false;
+          mat = pincell->getCellMaterial();
+        }
+        key k(manager->GetResolution(i),
+              manager->GetTopRadius(i, 0), manager->GetTopRadius(i, 1),
+              manager->GetTopRadius(i-1, 0), manager->GetTopRadius(i-1, 1),
+              manager->GetBaseRadius(i,0), manager->GetBaseRadius(i,1),
+              manager->GetBaseRadius(i-1,0), manager->GetBaseRadius(i-1,1));
+        if(geometry.find(k) == geometry.end())
+        {
+          geometry[k].geo = manager->CreateUnitLayer(i);
+        }
+        GeoToPoints & geo = geometry[k];
         point loc;
         manager->GetBaseCenter(loc.xyz);
         double h = manager->GetHeight();
-        cmbNucRender::scale scale(thickness[0],thickness[0],h);
-        geo.points.push_back(GeoToPoints::data(loc, point(), part->GetMaterial(0), scale));
+        cmbNucRender::scale scale(1,1,h);
+        geo.points.push_back(GeoToPoints::data(loc, point(), mat, scale));
       }
-      else
-      {
-        //todo frustum
-      }
-      for(int i = 0; i < manager->GetNumberOfLayers(); ++i)
-      {
-        //todo annuluses
-      }
-      
     }
   }
 
@@ -285,35 +420,16 @@ public:
       xformR.xyz[xform->getAxis()] = xform->getValue();
     }
     //Duct
-    vtkMultiBlockDataSet* dataSet = cmbNucAssembly::CreateDuctCellMultiBlock(&(input->AssyDuct), input->IsHexType());
-    for(int block=0; block<dataSet->GetNumberOfBlocks(); block++)
     {
-      vtkMultiBlockDataSet* sectionBlock = vtkMultiBlockDataSet::SafeDownCast(dataSet->GetBlock(block));
-      Duct* duct = input->AssyDuct.getDuct(block);
-      if(!sectionBlock)
+      std::map<key, GeoToPoints> tmpGeo;
+      //prepopulate the keys
+      for(std::map<key, GeoToPoints>::const_iterator i = geometry.begin(); i != geometry.end(); ++i)
       {
-        continue;
+        tmpGeo[i->first] = GeoToPoints();
       }
-      for(int layer=0; layer<sectionBlock->GetNumberOfBlocks(); layer++)
-      {
-
-        vtkPolyData* polyBlock = vtkPolyData::SafeDownCast(sectionBlock->GetBlock(layer));
-        if(!polyBlock)
-        {
-          continue;
-        }
-        cmbNucMaterial * mat = duct->getMaterial(layer);
-        GeoToPoints geo;
-        geo.geo = vtkSmartPointer<vtkPolyData>::New();
-        geo.geo->DeepCopy(polyBlock);
-        geo.points.resize(1, GeoToPoints::data(point(), xformR, mat));
-
-        key k;
-        k.type = key::AnnulusCylinder;
-        k.sides = INITIAL_KEY_TEST++;
-
-        geometry[k] = geo;
-      }
+      createGeo(&(input->AssyDuct), input->IsHexType(), tmpGeo);
+      std::vector<point> points(1);
+      mergeGeometry(tmpGeo, points, 0, 0, geometry, xform, xformR);
     }
     if(input->IsHexType())
     {
@@ -335,56 +451,6 @@ public:
       std::vector<point> const& points = iter->second;
       mergeGeometry(tmpGeo, points, extraXTrans, extraYTrans, geometry, xform, xformR);
       //start of delete
-#if 0
-      if(!pincell) continue;
-      vtkMultiBlockDataSet* pincellDataBlock = cmbNucAssembly::CreatePinCellMultiBlock(pincell, input->IsHexType());
-
-      for(int block=0; block<pincellDataBlock->GetNumberOfBlocks(); block++)
-      {
-        vtkMultiBlockDataSet* sectionBlock = vtkMultiBlockDataSet::SafeDownCast(pincellDataBlock->GetBlock(block));
-        if(!sectionBlock)
-        {
-          continue;
-        }
-        for(int layer=0; layer<sectionBlock->GetNumberOfBlocks(); layer++)
-        {
-          vtkPolyData* polyBlock = vtkPolyData::SafeDownCast(sectionBlock->GetBlock(layer));
-          if(!polyBlock)
-          {
-            continue;
-          }
-          cmbNucMaterial * mat = pincell->GetPart(block)->GetMaterial(layer);
-          if(mat == NULL && pincell->cellMaterialSet())
-          {
-            mat = pincell->getCellMaterial();
-          }
-          if(mat == NULL) continue;
-          GeoToPoints geo;
-          geo.geo = vtkSmartPointer<vtkPolyData>::New();
-          geo.geo->DeepCopy(polyBlock);
-          for(unsigned int i = 0; i < points.size(); ++i)
-          {
-            point pt = points[i];
-            pt.xyz[0] += extraXTrans;
-            pt.xyz[1] += extraYTrans;
-            if(xform != NULL)
-            {
-              double tp[3];
-              xform->apply(pt.xyz, tp);
-              pt.xyz[0] = tp[0];
-              pt.xyz[1] = tp[1];
-              pt.xyz[2] = tp[2];
-            }
-            geo.points.push_back(GeoToPoints::data(pt, xformR, mat));
-          }
-          key k;
-          k.type = key::AnnulusCylinder;
-          k.sides = INITIAL_KEY_TEST++;
-
-          geometry[k] = geo;
-        }
-      }
-#endif
     }
   }
 
@@ -463,6 +529,151 @@ public:
       }
     }
   }
+
+  static void clip(vtkSmartPointer<vtkPolyData> in,
+                   vtkSmartPointer<vtkPolyData> &out,
+                   double *normal, int offset = 0)
+  {
+    vtkSmartPointer<vtkPolyData> tmpIn = in;
+    out = vtkSmartPointer<vtkPolyData>::New();
+    vtkNew<vtkPlane> plane;
+    plane->SetOrigin(-normal[0]*0.005*offset, -normal[1]*0.005*offset, -normal[2]*0.005*offset);
+    plane->SetNormal(normal[0], normal[1], normal[2]);
+
+    vtkNew<vtkClipClosedSurface> clipper;
+    vtkNew<vtkPlaneCollection> clipPlanes;
+    vtkNew<vtkPolyDataNormals> normals;
+    clipPlanes->AddItem(plane.GetPointer());
+    clipper->SetClippingPlanes(clipPlanes.GetPointer());
+    clipper->SetActivePlaneId(0);
+    clipper->SetClipColor(1.0,1.0,1.0);
+    clipper->SetActivePlaneColor(1.0,1.0,0.8);
+    clipper->GenerateOutlineOff();
+    clipper->SetInputData(tmpIn);
+    clipper->GenerateFacesOn();
+    normals->SetInputConnection(clipper->GetOutputPort());
+    normals->Update();
+    out->DeepCopy(normals->GetOutput());
+  }
+
+  static void addOuterJacket(cmbNucCore * core, std::map<key, GeoToPoints> & geometry)
+  {
+    if(!core->getHasCylinder())
+    {
+      return;
+    }
+
+    double r = core->getCylinderRadius();
+
+    int s = core->getCylinderOuterSpacing();
+
+    vtkSmartPointer<vtkCmbLayeredConeSource> cylinder = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
+
+    cmbNucAssembly * assy = core->GetAssembly(0);
+    double outerDuctWidth = assy->AssyDuct.getDuct(0)->thickness[1];
+    double outerDuctHeight = assy->AssyDuct.getDuct(0)->thickness[0];
+    double extraXTrans = 0, extraYTrans = 0;
+
+    if(core->IsHexType())
+    {
+      double odc = outerDuctHeight*core->getLattice().Grid.size();
+      double tmp = odc - outerDuctHeight;
+      double t2 = tmp*0.5;
+      double ty = std::sqrt(tmp*tmp-t2*t2);
+      extraYTrans = -ty;
+      extraXTrans = odc;
+    }
+    else
+    {
+      double tx = outerDuctWidth*(core->getLattice().Grid.size()-1)*0.5;
+      double ty = outerDuctHeight*(core->getLattice().Grid[0].size()-1)*0.5;
+      extraXTrans = ty,
+      extraYTrans = tx-outerDuctWidth*(core->getLattice().Grid.size()-1);
+    }
+
+    cylinder->SetHeight(1);
+    cylinder->SetNumberOfLayers(1);
+    cylinder->SetTopRadius(0, r);
+    cylinder->SetBaseRadius(0, r);
+    cylinder->SetResolution(0, s);
+    double odc = outerDuctHeight*(core->getLattice().Grid.size()-1);
+    double tmp = (outerDuctHeight*0.5) / (cos(30.0 * vtkMath::Pi() / 180.0));
+    double pt1[] = {odc * cmbNucCore::CosSinAngles[0][0], odc * cmbNucCore::CosSinAngles[0][1]};
+    double pt2[2];
+
+    static const double AssyCosSinAngles[6][2] =
+    { { cos( (vtkMath::Pi() / 3.0) * (0 + 3.5) ),
+        sin( (vtkMath::Pi() / 3.0) * (0 + 3.5) ) },
+      { cos( (vtkMath::Pi() / 3.0) * (1 + 3.5) ),
+        sin( (vtkMath::Pi() / 3.0) * (1 + 3.5) ) },
+      { cos( (vtkMath::Pi() / 3.0) * (2 + 3.5) ),
+        sin( (vtkMath::Pi() / 3.0) * (2 + 3.5) ) },
+      { cos( (vtkMath::Pi() / 3.0) * (3 + 3.5) ),
+        sin( (vtkMath::Pi() / 3.0) * (3 + 3.5) ) },
+      { cos( (vtkMath::Pi() / 3.0) * (4 + 3.5) ),
+        sin( (vtkMath::Pi() / 3.0) * (4 + 3.5) ) },
+      { cos( (vtkMath::Pi() / 3.0) * (5 + 3.5) ),
+        sin( (vtkMath::Pi() / 3.0) * (5 + 3.5) ) } };
+    if(core->IsHexType())
+    {
+      for(int i = 0; i < 6; ++i)
+      {
+        pt2[0] = odc * cmbNucCore::CosSinAngles[(i+1)%6][0];
+        pt2[1] = odc * cmbNucCore::CosSinAngles[(i+1)%6][1];
+        int sp1 = (i + 0)%6;
+        int sp2 = (i + 1)%6;
+        if(core->getLattice().Grid.size() == 1)
+        {
+          cylinder->addInnerPoint(pt1[0]+tmp * AssyCosSinAngles[sp1][0],
+                                  pt1[1]+tmp * AssyCosSinAngles[sp1][1]);
+        }
+        else for(int j = 0; j < core->getLattice().Grid.size(); ++j)
+        {
+          double s = j/(core->getLattice().Grid.size()-1.0);
+          double pt[] = {pt1[0]*(1.0-s)+pt2[0]*(s), pt1[1]*(1.0-s)+pt2[1]*(s)};
+
+          {
+            cylinder->addInnerPoint(pt[0]+tmp * AssyCosSinAngles[sp1][0],
+                                    pt[1]+tmp * AssyCosSinAngles[sp1][1]);
+          }
+          if(j != core->getLattice().Grid.size()-1 )
+          {
+            cylinder->addInnerPoint(pt[0]+tmp * AssyCosSinAngles[sp2][0],
+                                    pt[1]+tmp * AssyCosSinAngles[sp2][1]);
+          }
+        }
+
+        pt1[0] = pt2[0];
+        pt1[1] = pt2[1];
+      }
+    }
+    else
+    {
+      double height = outerDuctWidth*(core->getLattice().Grid.size())*0.5;
+      double width = outerDuctHeight*(core->getLattice().Grid[0].size())*0.5;
+
+      cylinder->addInnerPoint( width,-height);
+      cylinder->addInnerPoint( width, height);
+      cylinder->addInnerPoint(-width, height);
+      cylinder->addInnerPoint(-width,-height);
+      
+    }
+    double bc[] = {extraXTrans, extraYTrans, 0};
+    cylinder->SetBaseCenter(bc);
+
+    point loc;
+    cylinder->GetBaseCenter(loc.xyz);
+
+    key k;
+    GeoToPoints & geo = geometry[k];
+    geo.geo = cylinder->CreateUnitLayer(0);
+    double h;
+    core->GetDefaults()->getHeight(h);
+    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+    geo.points.push_back(GeoToPoints::data( loc, point(),matColorMap->getUnknownMaterial(),
+                                            cmbNucRender::scale(1,1,h)));
+
+  }
 };
 
 cmbNucRender::cmbNucRender()
@@ -510,6 +721,7 @@ void cmbNucRender::render(cmbNucCore * core)
 {
   std::map<key, GeoToPoints> geometry;
   cmbNucRenderHelper::createGeo(core, geometry);
+  cmbNucRenderHelper::addOuterJacket(core, geometry);
   sendToGlyphMappers(geometry);
   QPointer<cmbNucDefaults> defaults = core->GetDefaults();
   double dw = 0, dh = 0;
@@ -554,7 +766,36 @@ void cmbNucRender::render(cmbNucAssembly * assy)
   xyz[1] += dh;
   xyz[2] = h;
   BoundingBox.AddPoint(xyz);
+}
 
+void cmbNucRender::render(DuctCell* ductCell, bool isHex, bool cutaway)
+{
+  std::map<key, GeoToPoints> geometry;
+  cmbNucRenderHelper::createGeo(ductCell, isHex, geometry);
+  if(cutaway)
+  {
+    double normal[] = {0, 1, 0};
+    for(std::map<key, GeoToPoints>::iterator iter = geometry.begin(); iter != geometry.end(); ++iter)
+    {
+      cmbNucRenderHelper::clip(iter->second.geo,iter->second.geo,normal);
+    }
+  }
+  sendToGlyphMappers(geometry);
+}
+
+void cmbNucRender::render(PinCell* pinCell, bool isHex, bool cutaway)
+{
+  std::map<key, GeoToPoints> geometry;
+  cmbNucRenderHelper::createGeo(pinCell, isHex, geometry);
+  if(cutaway)
+  {
+    double normal[] = {0, 1, 0};
+    for(std::map<key, GeoToPoints>::iterator iter = geometry.begin(); iter != geometry.end(); ++iter)
+    {
+      cmbNucRenderHelper::clip(iter->second.geo,iter->second.geo,normal);
+    }
+  }
+  sendToGlyphMappers(geometry);
 }
 
 void cmbNucRender::computeBounds(vtkBoundingBox & in)
@@ -738,5 +979,55 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
   }
   double direction[] = { 0, 0, 1 };
   coneSource->SetDirection(direction);
+  return coneSource;
+}
+
+vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
+{
+  Duct *duct = ductCell->getDuct(i);
+  double z = duct->z1;
+  double height = duct->z2 - duct->z1;
+  double deltaZ = height * 0.0005;
+  if(i == 0) // first duct
+  {
+    z = duct->z1 + deltaZ;
+    // if more than one duct, first duct height need to be reduced by deltaZ
+    height = ductCell->numberOfDucts() > 1 ? height - deltaZ : height - 2*deltaZ;
+  }
+  else if (i == ductCell->numberOfDucts() - 1) // last duct
+  {
+    height -= 2*deltaZ;
+  }
+  else
+  {
+    z = duct->z1 + deltaZ;
+  }
+
+  int numLayers = duct->NumberOfLayers();
+  vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
+     vtkSmartPointer<vtkCmbLayeredConeSource>::New();
+  coneSource->SetNumberOfLayers(numLayers);
+  coneSource->SetBaseCenter(duct->x, duct->y, z);
+  double direction[] = { 0, 0, 1 };
+  coneSource->SetDirection(direction);
+  coneSource->SetHeight(height);
+
+  int res = 4;
+  double mult = 0.5;
+
+  if(isHex)
+  {
+    res = 6;
+    mult = 0.5/0.86602540378443864676372317075294;
+  }
+
+  for(int k = 0; k < numLayers; k++)
+  {
+    double tx = duct->GetLayerThick(k,0) - duct->GetLayerThick(k,0)*0.0005;
+    double ty = duct->GetLayerThick(k,1) - duct->GetLayerThick(k,0)*0.0005;
+    coneSource->SetBaseRadius(k, tx * mult, ty*mult);
+    coneSource->SetTopRadius(k, tx * mult, ty*mult);
+    coneSource->SetResolution(k, res);
+  }
   return coneSource;
 }

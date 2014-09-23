@@ -28,23 +28,16 @@ public:
 
   struct key
   {
-    enum {Cylinder, Frustum, AnnulusCylinder, AnnulusFrustum} type;
+    enum {Cylinder, Frustum, Annulus, Jacket} type;
     int sides;
-    double widthTop, widthBottom;
-    bool operator<(key const& other) const
-    {
-      if(type != other.type) return type < other.type;
-      switch(type)
-      {
-        case AnnulusFrustum:
-        case Frustum:
-          if( sides == other.sides && widthTop == other.widthTop ) return widthBottom < other.widthBottom;
-        case AnnulusCylinder:
-          if(sides == other.sides) return widthTop < other.widthTop;
-        case Cylinder:
-          return sides < other.sides;
-      }
-    }
+    double radius[8];
+    key();
+    key( int s, double rTop, double rBottom );
+    key( int s );
+    key( int s,
+         double rTop1, double rTop2, double rTop3, double rTop4,
+         double rBottom1, double rBottom2, double rBottom3, double rBottom4);
+    bool operator<(key const& other) const;
   };
 
   struct point
@@ -95,10 +88,13 @@ public:
 
   void render(cmbNucCore *);
   void render(cmbNucAssembly *);
+  void render(DuctCell* ductCell, bool isHex, bool cutaway);
+  void render(PinCell* pinCell, bool isHex, bool cutaway);
 
   void setZScale(double v);
 
   static vtkSmartPointer<vtkCmbLayeredConeSource> CreateLayerManager(PinCell* pincell, bool isHex, size_t j);
+  static vtkSmartPointer<vtkCmbLayeredConeSource> CreateLayerManager(DuctCell* ductCell, bool isHex, size_t j);
 
 protected:
   //vtkSmartPointer<vtkCompositePolyDataMapper2> PolyMapper;

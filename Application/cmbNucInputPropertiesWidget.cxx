@@ -106,6 +106,18 @@ void cmbNucInputPropertiesWidget::initUI()
 }
 
 //-----------------------------------------------------------------------------
+bool cmbNucInputPropertiesWidget::ductCellIsCrossSectioned()
+{
+  return this->Internal->DuctCellEditor->isCrossSectioned();
+}
+
+//-----------------------------------------------------------------------------
+bool cmbNucInputPropertiesWidget::pinCellIsCrossSectioned()
+{
+  return this->Internal->PinCellEditor->isCrossSectioned();
+}
+
+//-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::setObject(AssyPartObj* selObj, const char* name)
 {
   if(this->CurrentObject == selObj)

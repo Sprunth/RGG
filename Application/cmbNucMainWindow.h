@@ -69,7 +69,6 @@ public slots:
   void saveFile(cmbNucCore*);
   void saveFile(const QString &fileName);
   void saveCoreFile(const QString &fileName);
-  void exportVTKFile(const QString &fileName);
   void ResetView();
   void Render();
   void onInteractionTransition(vtkObject *, unsigned long event);

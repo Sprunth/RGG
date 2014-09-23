@@ -1259,6 +1259,17 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
     {
     return;
     }
+  cmbNucMaterialColors::instance()->clearDisplayed();
+  this->Mapper->SetInputDataObject(NULL);
+  this->NucMappers->render(pin, NuclearCore->IsHexType(),
+                           PropertyWidget->pinCellIsCrossSectioned());
+  vtkBoundingBox box;
+  this->NucMappers->computeBounds(box);
+  box.GetBounds(this->Internal->BoundsModel);
+  setScaledBounds();
+  cmbNucMaterialColors::instance()->testShow();
+#if 0
+  pinCellIsCrossSectioned()
   this->Internal->CurrentDataset = pin->CachedData;
   this->NucMappers->clearMappers();
   vtkBoundingBox box;
@@ -1294,6 +1305,7 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
       }
     }
   cmbNucMaterialColors::instance()->testShow();
+#endif
 }
 
 void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
@@ -1302,6 +1314,17 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
   {
     return;
   }
+  cmbNucMaterialColors::instance()->clearDisplayed();
+  this->Mapper->SetInputDataObject(NULL);
+  this->NucMappers->render(dc, NuclearCore->IsHexType(),
+                           PropertyWidget->ductCellIsCrossSectioned());
+  vtkBoundingBox box;
+  this->NucMappers->computeBounds(box);
+  box.GetBounds(this->Internal->BoundsModel);
+  setScaledBounds();
+  cmbNucMaterialColors::instance()->testShow();
+#if 0
+  NuclearCore
   this->Internal->CurrentDataset = dc->CachedData;
   this->NucMappers->clearMappers();
   vtkBoundingBox box;
@@ -1331,6 +1354,7 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
     }
   }
   cmbNucMaterialColors::instance()->testShow();
+#endif
 }
 
 void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
@@ -1346,80 +1370,17 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
   this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
-  return;
-#if 0
-  //TODO Need to fix this up
-  // regenerate core and assembly view
-  cmbAssyParameters* params = assy->GetParameters();
-  vtkNew<vtkTransform> transform;
-  if(assy->IsHexType()) transform->RotateZ(-60);
-  this->Internal->CurrentDataset = assy->GetData()->New();
-  cmbNucCore::transformData(assy->GetData(),this->Internal->CurrentDataset, transform.GetPointer());
-  vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->BoundsModel);
-  setScaledBounds();
-
-  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
-  if(!this->Internal->CurrentDataset)
-    {
-    return;
-    }
-  setScaledBounds();
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-
-  unsigned int realflatidx = 0;
-  cmbNucMaterialColors::instance()->clearDisplayed();
-  assy->updateMaterialColors(realflatidx, attributes);
   cmbNucMaterialColors::instance()->testShow();
-#endif
-}
-
-void cmbNucMainWindow::exportVTKFile(const QString &fileName)
-{
-  if(!this->InputsWidget->getCurrentAssembly())
-    {
-    qDebug() << "no assembly to save";
-    return;
-    }
-
-  vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
-  vtkSmartPointer<vtkXMLMultiBlockDataWriter> writer =
-    vtkSmartPointer<vtkXMLMultiBlockDataWriter>::New();
-  writer->SetInputData(coredata);
-  writer->SetFileName(fileName.toLocal8Bit().data());
-  writer->Write();
 }
 
 void cmbNucMainWindow::outerLayer(double r, int i)
 {
   NuclearCore->drawCylinder(r,i);
-  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
-  if(cp == NULL) return;
-  switch(cp->GetType())
-  {
-    case CMBNUC_CORE:
-      updateCoreMaterialColors();
-      this->Render();
-    default:
-      break;
-  }
 }
 
 void cmbNucMainWindow::clearOuter()
 {
   NuclearCore->clearCylinder();
-  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
-  if(cp == NULL) return;
-  switch(cp->GetType())
-  {
-    case CMBNUC_CORE:
-      updateCoreMaterialColors();
-      this->Render();
-    default:
-      break;
-  }
 }
 
 void cmbNucMainWindow::updateCoreMaterialColors()
@@ -1432,62 +1393,7 @@ void cmbNucMainWindow::updateCoreMaterialColors()
   this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
-  return;
-  //todo Fix this up
-#if 0
-  this->Internal->CurrentDataset = this->NuclearCore->GetData();
-  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
-  vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->BoundsModel);
-  setScaledBounds();
-  if(!this->Internal->CurrentDataset)
-    {
-    return;
-    }
-  unsigned int numCoreBlocks = this->Internal->CurrentDataset->GetNumberOfBlocks();
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-
-  cmbNucMaterialColors::instance()->clearDisplayed();
-
-  unsigned int realflatidx = 0;
-  for(unsigned int block = 0; block < numCoreBlocks; block++)
-    {
-    realflatidx++; // for assembly block
-    if(!this->Internal->CurrentDataset->GetBlock(block))
-      {
-      continue;
-      }
-    vtkMultiBlockDataSet* data = vtkMultiBlockDataSet::SafeDownCast(this->Internal->CurrentDataset->GetBlock(block));
-    if(!data)
-      {
-      continue;
-      }
-    // for each assembly
-    if(this->Internal->CurrentDataset->GetMetaData(block)->Has(vtkCompositeDataSet::NAME()))
-      {
-      std::string assyLabel = this->Internal->CurrentDataset->GetMetaData(block)->Get(
-        vtkCompositeDataSet::NAME());
-      cmbNucAssembly* assy = this->NuclearCore->GetAssembly(assyLabel);
-      if(!assy)
-        {
-        qCritical() << "no specified assembly to found in core: " << assyLabel.c_str();
-        return;
-        }
-
-      assy->updateMaterialColors(realflatidx, attributes);
-      }
-    }
-  if(NuclearCore->getHasCylinder())
-    {
-    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-    matColorMap->SetBlockMaterialColor(attributes, realflatidx,
-                                       matColorMap->getUnknownMaterial());
-    matColorMap->getUnknownMaterial()->setDisplayed();
-    }
   cmbNucMaterialColors::instance()->testShow();
-#endif
 }
 
 void cmbNucMainWindow::exportRGG()

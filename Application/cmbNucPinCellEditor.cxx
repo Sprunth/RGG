@@ -249,6 +249,11 @@ cmbNucPinCellEditor::~cmbNucPinCellEditor()
   delete this->Ui;
 }
 
+bool cmbNucPinCellEditor::isCrossSectioned()
+{
+  return this->Ui->cutAwayViewCheckBox->isChecked();
+}
+
 void cmbNucPinCellEditor::setButtons()
 {
   int rc = this->Ui->piecesTable->rowCount();

@@ -80,9 +80,9 @@ void vtkCmbLayeredConeSource::SetTopRadius(int layer, double radius)
   this->Modified();
 }
 
-double vtkCmbLayeredConeSource::GetTopRadius(int layer)
+double vtkCmbLayeredConeSource::GetTopRadius(int layer, int s)
 {
-  return this->LayerRadii[layer].TopRadii[0];
+  return this->LayerRadii[layer].TopRadii[s];
 }
 
 void vtkCmbLayeredConeSource::SetBaseRadius(int layer, double radius)
@@ -101,9 +101,9 @@ int vtkCmbLayeredConeSource::GetResolution(int layer)
   return this->LayerRadii[layer].Resolution;
 }
 
-double vtkCmbLayeredConeSource::GetBaseRadius(int layer)
+double vtkCmbLayeredConeSource::GetBaseRadius(int layer, int s)
 {
-  return this->LayerRadii[layer].BaseRadii[0];
+  return this->LayerRadii[layer].BaseRadii[s];
 }
 
 double vtkCmbLayeredConeSource::GetTopThickness(int layer)
@@ -141,7 +141,7 @@ vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
     innerTopR = this->LayerRadii[l-1].TopRadii;
     innerRes = this->LayerRadii[l-1].Resolution;
   }
-  else if(l == 0 && *outerBottomR == *outerTopR)
+  else if(l == 0 && *outerBottomR == *outerTopR && InnerPoints.empty())
   {
     outerBottomR = outerTopR = one;
   }
