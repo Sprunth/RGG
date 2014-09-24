@@ -289,71 +289,6 @@ void cmbNucAssembly::WriteFile(const std::string &fname)
   inpFileWriter::write(fname, *this, true);
 }
 
-void cmbNucAssembly::updateMaterialColors(
-  unsigned int& realflatidx,
-  vtkCompositeDataDisplayAttributes *attributes)
-{
-
-  // count number of pin blocks in the data set
-  int pins = this->lattice.GetNumberOfCells();
-  int pin_count = 0;
-  int ducts_count = 0;
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-
-  int numAssyBlocks = this->lattice.GetNumberOfCells() +
-                      this->AssyDuct.numberOfDucts();
-  for(unsigned int idx = 0; idx < this->lattice.GetNumberOfCells(); ++idx)
-  {
-    realflatidx++;
-    std::string label = this->lattice.GetCell(idx).label;
-    PinCell* pinCell = this->GetPinCell(label);
-
-    if(pinCell)
-    {
-      for(unsigned int cidx = 0; cidx < pinCell->GetNumberOfParts(); cidx++)
-      {
-        realflatidx++; // increase one for this Part
-        for(int k = 0; k < pinCell->GetNumberOfLayers(); k++)
-        {
-          QPointer<cmbNucMaterial> mat = pinCell->GetPart(cidx)->GetMaterial(k);
-          mat->setDisplayed();
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx, mat);
-        }
-        if(pinCell->cellMaterialSet())
-        {
-          QPointer<cmbNucMaterial> mat = pinCell->getCellMaterial();
-          mat->setDisplayed();
-          matColorMap->SetBlockMaterialColor(attributes, ++realflatidx,mat);
-        }
-      }
-    }
-  }
-  /*if(this->AssyLattice.GetNumberOfCells() != 0)*/ //realflatidx++;
-  realflatidx++;
-  for(unsigned int idx = 0; idx < this->AssyDuct.numberOfDucts(); ++idx)
-  {
-    realflatidx++;
-    Duct* duct = this->AssyDuct.getDuct(idx);
-    if(duct)
-    {
-      unsigned int numBlocks = duct->NumberOfLayers();
-      for(unsigned int b = 0; b < numBlocks; b++)
-      {
-        realflatidx++;
-        QPointer<cmbNucMaterial> mat = duct->getMaterial(b);
-        mat->setDisplayed();
-        matColorMap->SetBlockMaterialColor(attributes, realflatidx,mat);
-      }
-    }
-    //realflatidx++;
-  }
-  if(this->AssyDuct.numberOfDucts() != 0)
-  {
-    realflatidx += this->AssyDuct.numberOfDucts()-1;
-  }
-  //realflatidx++;
-}
-
 void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,
                                      double pt[2])
 {
@@ -503,58 +438,6 @@ void cmbNucAssembly::calculateRadius(double & r)
 void cmbNucAssembly::removeDuct(Duct* d)
 {
   AssyDuct.RemoveDuct(d);
-}
-
-void cmbNucAssembly::clip(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output,
-                          double * normal, int offset)
-{
-  vtkNew<vtkPlane> plane;
-  plane->SetOrigin(-normal[0]*0.005*offset, -normal[1]*0.005*offset, -normal[2]*0.005*offset);
-  plane->SetNormal(normal[0], normal[1], normal[2]);
-  for(int block = 0; block < input->GetNumberOfBlocks(); block++)
-  {
-    if(vtkDataObject* objBlock = input->GetBlock(block))
-    {
-      if(vtkMultiBlockDataSet* part =
-         vtkMultiBlockDataSet::SafeDownCast(objBlock))
-      {
-        vtkSmartPointer<vtkMultiBlockDataSet> clipPart = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-        clipPart->SetNumberOfBlocks(part->GetNumberOfBlocks());
-        clip(part, clipPart, normal, offset+1);
-        output->SetBlock(block, clipPart);
-      }
-      else if(vtkPolyData *pd =
-              vtkPolyData::SafeDownCast(objBlock))
-      {
-        vtkNew<vtkClipClosedSurface> clipper;
-        vtkNew<vtkPlaneCollection> clipPlanes;
-        vtkNew<vtkPolyDataNormals> normals;
-        clipPlanes->AddItem(plane.GetPointer());
-        clipper->SetClippingPlanes(clipPlanes.GetPointer());
-        clipper->SetActivePlaneId(0);
-        clipper->SetClipColor(1.0,1.0,1.0);
-        clipper->SetActivePlaneColor(1.0,1.0,0.8);
-        clipper->GenerateOutlineOff();
-        clipper->SetInputData(pd);
-        clipper->GenerateFacesOn();
-        normals->SetInputConnection(clipper->GetOutputPort());
-        normals->Update();
-        vtkPolyData * result = normals->GetOutput();
-        if(result->GetNumberOfPolys()!=0)
-          output->SetBlock(block, result);
-        else
-          output->SetBlock(block, NULL);
-      }
-      else
-      {
-        output->SetBlock(block, NULL);
-      }
-    }
-    else
-    {
-      output->SetBlock(block, NULL);
-    }
-  }
 }
 
 void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)

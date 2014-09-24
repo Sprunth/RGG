@@ -226,14 +226,7 @@ public:
   QColor GetLegendColor() const;
   void SetLegendColor(const QColor& color);
 
-  // updates the block colors based on their materials
-  void updateMaterialColors(unsigned int& realflatidx,
-    vtkCompositeDataDisplayAttributes *attributes);
-
   void removeDuct(Duct* d);
-
-  static void clip(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output,
-                   double * normal, int offset = 0);
 
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
