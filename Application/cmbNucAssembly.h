@@ -145,8 +145,6 @@ public:
     virtual AXIS getAxis() const {return axis;}
     virtual std::string getLabel() const = 0;
     virtual bool reverse() const = 0;
-    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const = 0;
-    virtual void apply(double const* i, double * o) const = 0;
     virtual std::ostream& write(std::ostream& os) const = 0;
     virtual int getControls() const = 0;
     void setAxis(std::string a);
@@ -159,8 +157,6 @@ public:
   public:
     Rotate(): angle(0) {}
     Rotate(std::string a, double delta);
-    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
-    virtual void apply(double const* i, double * o) const;
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const {return angle;}
     virtual bool reverse() const {return false;}
@@ -174,9 +170,6 @@ public:
   public:
     Section(): value(0), dir(1){}
     Section(std::string a, double v, std::string dir);
-    virtual void apply(double const* i, double * o) const //do nothing for now
-    {}
-    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const { return value; }
     virtual bool reverse() const {return dir == -1;}

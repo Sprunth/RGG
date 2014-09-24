@@ -68,44 +68,6 @@ cmbNucAssembly::Rotate::Rotate( std::string a, double delta )
   this->angle = delta;
 }
 
-void
-cmbNucAssembly::Rotate::apply( vtkMultiBlockDataSet * input,
-                               vtkMultiBlockDataSet * output ) const
-{
-  vtkSmartPointer<vtkTransform> xform = vtkSmartPointer<vtkTransform>::New();
-  switch(this->axis)
-  {
-    case X:
-      xform->RotateX(this->angle);
-      break;
-    case Y:
-      xform->RotateY(this->angle);
-      break;
-    case Z:
-      xform->RotateZ(this->angle);
-      break;
-  }
-  cmbNucCore::transformData(input, output, xform);
-}
-
-void cmbNucAssembly::Rotate::apply(double const* i, double * o) const
-{
-  vtkSmartPointer<vtkTransform> xform = vtkSmartPointer<vtkTransform>::New();
-  switch(this->axis)
-  {
-    case X:
-      xform->RotateX(this->angle);
-      break;
-    case Y:
-      xform->RotateY(this->angle);
-      break;
-    case Z:
-      xform->RotateZ(this->angle);
-      break;
-  }
-  xform->TransformVector(i,o);
-}
-
 std::ostream&
 cmbNucAssembly::Rotate::write(std::ostream& os) const
 {
@@ -121,48 +83,6 @@ cmbNucAssembly::Section::Section( std::string a, double v, std::string d )
   d.erase(d.begin(), std::find_if(d.begin(), d.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
   d.erase(std::find_if(d.rbegin(), d.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), d.end());
   if(d == "reverse") dir = -1;
-}
-
-void
-cmbNucAssembly::Section::apply( vtkMultiBlockDataSet * input,
-                                vtkMultiBlockDataSet * output ) const
-{
-  double normal[3];
-  double tmp[] ={0,0,0};
-  tmp[this->axis] = dir;
-  vtkSmartPointer<vtkTransform> xform = vtkSmartPointer<vtkTransform>::New();
-  xform->RotateZ(60);
-  xform->TransformPoint(tmp,normal);
-  double sum = std::sqrt(normal[0]*normal[0]+ normal[1]*normal[1] + normal[2]*normal[2]);
-  normal[0] /= sum;
-  normal[1] /= sum;
-  normal[2] /= sum;
-  int block = 0;
-  for(; block < input->GetNumberOfBlocks()-1; block++)
-  {
-    if(vtkDataObject* objBlock = input->GetBlock(block))
-    {
-      if(vtkMultiBlockDataSet* pin =
-         vtkMultiBlockDataSet::SafeDownCast(objBlock))
-      {
-        vtkSmartPointer<vtkMultiBlockDataSet> clipPart = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-        clipPart->SetNumberOfBlocks(pin->GetNumberOfBlocks());
-        clip(pin, clipPart, normal, 1);
-        output->SetBlock(block, clipPart);
-      }
-    }
-  }
-  if(vtkDataObject* objBlock = input->GetBlock(block))
-  {
-    if(vtkMultiBlockDataSet* duct =
-       vtkMultiBlockDataSet::SafeDownCast(objBlock))
-    {
-      vtkSmartPointer<vtkMultiBlockDataSet> clipPart = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-      clipPart->SetNumberOfBlocks(duct->GetNumberOfBlocks());
-      clip(duct, clipPart, normal, 0);
-      output->SetBlock(block, clipPart);
-    }
-  }
 }
 
 std::ostream&
