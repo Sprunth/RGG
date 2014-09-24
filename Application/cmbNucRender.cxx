@@ -28,7 +28,6 @@ typedef cmbNucRender::point point;
 typedef cmbNucRender::GeoToPoints GeoToPoints;
 typedef cmbNucRender::key key;
 
-int INITIAL_KEY_TEST=1;
 const int PinCellResolution = 18;
 
 cmbNucRender::key::key()
@@ -886,50 +885,16 @@ void cmbNucRender::render(cmbNucCore * core)
   std::map<key, GeoToPoints> geometry;
   cmbNucRenderHelper::createGeo(core, geometry);
   cmbNucRenderHelper::addOuterJacket(core, geometry);
+  BoundingBox = core->computeBounds();
   sendToGlyphMappers(geometry);
-  QPointer<cmbNucDefaults> defaults = core->GetDefaults();
-  double dw = 0, dh = 0;
-  defaults->getDuctThickness(dw,dh);
-  dw *= 0.5;
-  dh *= 0.5;
-  double h;
-  defaults->getHeight(h);
-  double xyz[3];
-  BoundingBox.GetMinPoint(xyz[0],xyz[1],xyz[2]);
-  xyz[0] -= dw;
-  xyz[1] -= dh;
-  xyz[2] = h;
-  BoundingBox.AddPoint(xyz);
-  BoundingBox.GetMaxPoint(xyz[0],xyz[1],xyz[2]);
-  xyz[0] += dw;
-  xyz[1] += dh;
-  xyz[2] = h;
-  BoundingBox.AddPoint(xyz);
 }
 
 void cmbNucRender::render(cmbNucAssembly * assy)
 {
   std::map<key, GeoToPoints> geometry;
   cmbNucRenderHelper::createGeo(assy, geometry);
+  BoundingBox = assy->computeBounds();
   sendToGlyphMappers(geometry);
-  QPointer<cmbNucDefaults> defaults = assy->getDefaults();
-  double dw = 0, dh = 0;
-  defaults->getDuctThickness(dw,dh);
-  dw *= 0.5;
-  dh *= 0.5;
-  double h;
-  defaults->getHeight(h);
-  double xyz[3];
-  BoundingBox.GetMinPoint(xyz[0],xyz[1],xyz[2]);
-  xyz[0] -= dw;
-  xyz[1] -= dh;
-  xyz[2] = h;
-  BoundingBox.AddPoint(xyz);
-  BoundingBox.GetMaxPoint(xyz[0],xyz[1],xyz[2]);
-  xyz[0] += dw;
-  xyz[1] += dh;
-  xyz[2] = h;
-  BoundingBox.AddPoint(xyz);
 }
 
 void cmbNucRender::render(DuctCell* ductCell, bool isHex, bool cutaway)
@@ -944,6 +909,7 @@ void cmbNucRender::render(DuctCell* ductCell, bool isHex, bool cutaway)
       cmbNucRenderHelper::clip(iter->second.geo,iter->second.geo,normal);
     }
   }
+  BoundingBox = ductCell->computeBounds(isHex);
   sendToGlyphMappers(geometry);
 }
 
@@ -959,6 +925,7 @@ void cmbNucRender::render(PinCell* pinCell, bool isHex, bool cutaway)
       cmbNucRenderHelper::clip(iter->second.geo,iter->second.geo,normal);
     }
   }
+  BoundingBox = pinCell->computeBounds(isHex);
   sendToGlyphMappers(geometry);
 }
 
@@ -976,7 +943,6 @@ void cmbNucRender::setZScale(double v)
 void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
 {
   clearMappers();
-  BoundingBox.Reset();
   vtkSmartPointer<vtkPoints> polyPoints = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkPoints> polyPointsTrans = vtkSmartPointer<vtkPoints>::New();
 

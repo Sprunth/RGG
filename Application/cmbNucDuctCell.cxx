@@ -1,6 +1,8 @@
 #include "cmbNucDuctCell.h"
 #include "cmbNucMaterialColors.h"
 
+#include <cmath>
+
 void DuctConnection::sendChange()
 {
   emit Changed();
@@ -323,6 +325,27 @@ void DuctCell::setLength(double l)
     if(duct->z2 == z2) duct->z2 = l;
     else duct->z2 = (duct->z2 - z1) / prevL * l;
   }
+}
+
+void DuctCell::getZRange(double & z1, double & z2)
+{
+  Duct * d = *(this->Ducts.begin());
+  z1 = d->z1;
+  z2 = z1 + getLength();
+}
+
+vtkBoundingBox DuctCell::computeBounds(bool hex)
+{
+  Duct * d = *(this->Ducts.begin());
+  double z1 = d->z1;
+  double * thickness = d->thickness;
+  if(!hex)
+  {
+    double t[] = { -thickness[0]*0.5 , -thickness[1]*0.5};
+    return vtkBoundingBox(-t[0], t[0], -t[1], t[1], z1, z1 + getLength());
+  }
+  double t = thickness[0]*0.5 / 0.86602540378443864676372317075294;
+  return vtkBoundingBox(-t, t, -t, t, z1, z1 + getLength());
 }
 
 bool ductComp(Duct* i,Duct* j) { return (i->z1<j->z1); }

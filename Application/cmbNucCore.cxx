@@ -7,6 +7,7 @@
 #include <fstream>
 #include <limits>
 #include <set>
+#include <cmath>
 
 #include "cmbNucAssembly.h"
 
@@ -18,6 +19,7 @@
 #include "vtkPolyData.h"
 #include "cmbNucDefaults.h"
 #include "cmbNucMaterialColors.h"
+#include "vtkBoundingBox.h"
 
 #include "vtkCmbLayeredConeSource.h"
 
@@ -89,6 +91,72 @@ cmbNucCore::~cmbNucCore()
 
 void cmbNucCore::clearOldGeometry()
 {
+}
+
+vtkBoundingBox cmbNucCore::computeBounds()
+{
+  if(this->Assemblies.size()==0) return vtkBoundingBox();
+  double z1, z2;
+  this->Assemblies[0]->getZRange(z1,z2);
+  double wh[2];
+  this->Assemblies[0]->GetDuctWidthHeight(wh);
+  double diameter = wh[0]*(this->lattice.Grid.size()*2-1);
+  double radius = diameter*0.5;
+  double pointDist = wh[0]*0.5/0.86602540378443864676372317075294;
+  double tmpH = (this->lattice.Grid.size() + std::floor((this->lattice.Grid.size()-1)*0.5))*pointDist;
+  if(IsHexType())
+  {
+    int subType = lattice.GetGeometrySubType();
+    double tx = 0, ty = 0;
+    double min[2], max[2];
+    if((subType & ANGLE_360) && this->lattice.Grid.size()>=1)
+    {
+      tx = wh[0]*this->lattice.Grid.size();
+      double tmp = tx - wh[0];
+      double t2 = tmp*0.5;
+      ty = -std::sqrt(tmp*tmp-t2*t2);
+      min[0] = -radius;
+      min[1] = -tmpH;
+      max[0] = radius;
+      max[1] = tmpH;
+    }
+    else if((subType & ANGLE_60) && (subType & VERTEX))
+    {
+      min[0] = 0;
+      min[1] = 0;
+      max[0] = tmpH;
+      max[1] = 0.86602540378443864676372317075294*tmpH;
+    }
+    else if((subType & ANGLE_60))
+    {
+      min[0] = 0;
+      min[1] = 0;
+      max[0] = radius;
+      max[1] = 0.86602540378443864676372317075294*radius;
+    }
+    else
+    {
+      min[0] = 0;
+      min[1] = 0;
+      max[0] = radius;
+      max[1] = radius;
+    }
+    return vtkBoundingBox(tx+min[0], tx+max[0],
+                          ty+min[1], ty+max[1],
+                          z1, z2);
+  }
+  else
+  {
+    vtkBoundingBox b;
+    double transX = this->Assemblies[0]->AssyDuct.getDuct(0)->x;
+    double transY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
+    double pt[2];
+    calculateRectPt( 0, 0, pt );
+    b.AddPoint((transX+pt[0]-wh[0]*0.5), (transY+pt[1]-wh[1]*0.5), (z1));
+    calculateRectPt(this->lattice.Grid.size()-1,this->lattice.Grid[0].size()-1, pt);
+    b.AddPoint((transX+pt[0]+wh[0]*0.5), (transY+pt[1]+wh[1]*0.5), (z2));
+    return b;
+  }
 }
 
 void cmbNucCore::SetDimensions(int i, int j)

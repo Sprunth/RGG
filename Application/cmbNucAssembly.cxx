@@ -163,6 +163,16 @@ void cmbNucAssembly::SetLegendColor(const QColor& color)
   this->LegendColor = color;
 }
 
+vtkBoundingBox cmbNucAssembly::computeBounds()
+{
+  return this->AssyDuct.computeBounds(this->IsHexType());
+}
+
+void cmbNucAssembly::getZRange(double & z1, double & z2)
+{
+  this->AssyDuct.getZRange(z1, z2);
+}
+
 void cmbNucAssembly::UpdateGrid()
 {
   std::pair<int, int> dim = this->lattice.GetDimensions();

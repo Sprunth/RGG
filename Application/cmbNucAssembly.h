@@ -16,6 +16,7 @@
 
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
+#include "vtkBoundingBox.h"
 
 class vtkCompositeDataDisplayAttributes;
 class inpFileReader;
@@ -198,6 +199,8 @@ public:
 
   virtual enumNucPartsType GetType() const {return CMBNUC_ASSEMBLY;}
 
+  vtkBoundingBox computeBounds();
+
   // Adds a new pincell to the assebly. After adding the pincell it
   // can be placed in the assembly with the SetCell() method.
   void AddPinCell(PinCell *pincell);
@@ -236,6 +239,8 @@ public:
   bool changeSinceLastGenerate() const;
 
   void GetDuctWidthHeight(double r[2]);
+
+  void getZRange(double & z1, double & z2);
 
   void clear();
 

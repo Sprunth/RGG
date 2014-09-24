@@ -6,6 +6,7 @@
 
 #include "cmbNucPartDefinition.h"
 #include "cmbNucMaterial.h"
+#include "vtkBoundingBox.h"
 
 class PinSubPart;
 class PinCell;
@@ -214,6 +215,8 @@ public:
   QPointer<cmbNucMaterial> getCellMaterial();
   void setCellMaterial(QPointer<cmbNucMaterial> material);
   bool cellMaterialSet() const;
+
+  vtkBoundingBox computeBounds(bool isHex );
 
   std::string name;
   std::string label;

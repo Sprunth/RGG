@@ -2,6 +2,8 @@
 #include "cmbNucMaterialColors.h"
 
 #include <cassert>
+#include <cmath>
+#include <algorithm>
 
 #include <QDebug>
 
@@ -593,4 +595,34 @@ bool PinCell::cellMaterialSet() const
 {
   return this->CellMaterial.getMaterial() !=
   cmbNucMaterialColors::instance()->getUnknownMaterial();
+}
+
+vtkBoundingBox PinCell::computeBounds(bool isHex)
+{
+  double minZ = this->GetPart(0)->z1, maxZ = this->GetPart(0)->z2;
+  double maxRadius = std::max(this->GetPart(0)->getRadius(PinSubPart::BOTTOM),
+                              this->GetPart(0)->getRadius(PinSubPart::TOP));
+  for(int i = 1; i < this->GetNumberOfParts(); i++)
+  {
+    PinSubPart * part = this->GetPart(i);
+    if(part->z1 < minZ) minZ = part->z1;
+    if(part->z2 > maxZ) maxZ = part->z2;
+    double tmp = std::max(this->GetPart(0)->getRadius(PinSubPart::BOTTOM),
+                          this->GetPart(0)->getRadius(PinSubPart::TOP));
+    if(tmp > maxRadius) maxRadius = tmp;
+  }
+  double x = maxRadius, y = maxRadius;
+  if(cellMaterialSet())
+  {
+    if(isHex)
+    {
+      x = y = std::max(maxRadius, pitchX*0.5/0.86602540378443864676372317075294);
+    }
+    else
+    {
+      x = std::max(maxRadius, pitchX*0.5);
+      y = std::max(maxRadius, pitchY*0.5);
+    }
+  }
+  return vtkBoundingBox(-x,x,-y,y,minZ,maxZ);
 }

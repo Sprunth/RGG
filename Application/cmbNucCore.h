@@ -14,6 +14,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkTransform.h"
+#include "vtkBoundingBox.h"
 
 class cmbNucAssembly;
 class inpFileReader;
@@ -196,6 +197,8 @@ public:
   ~cmbNucCore();
 
   void clearOldGeometry();
+
+  vtkBoundingBox computeBounds();
 
   cmbNucCoreConnection* GetConnection(){return this->Connection;}
 
