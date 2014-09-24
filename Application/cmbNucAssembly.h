@@ -237,23 +237,10 @@ public:
   void updateMaterialColors(unsigned int& realflatidx,
     vtkCompositeDataDisplayAttributes *attributes);
 
-  // Returns a multi-block data set containing the geometry for
-  // the assembly. This is used to render the assembly in 3D.
-  vtkSmartPointer<vtkMultiBlockDataSet> GetData();
   void removeDuct(Duct* d);
 
   static void clip(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output,
                    double * normal, int offset = 0);
-
-  // creates the multiblock used to render the pincell. if cutaway is true the
-  // pincell will be cut in half length-wise to show the interior layers.
-  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell,
-                                                       bool isHex,
-                                                       bool cutaway = false);
-
-  static vtkMultiBlockDataSet* CreateDuctCellMultiBlock(DuctCell *ductcell,
-                                                        bool isHex,
-                                                        bool cutaway = false);
 
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
@@ -339,12 +326,9 @@ protected:
 
   friend class cmbNucMainWindow;
 
-  vtkSmartPointer<vtkMultiBlockDataSet> CreateData();
-
   std::string GeometryType;
 
 private:
-  vtkSmartPointer<vtkMultiBlockDataSet> Data;
   QColor LegendColor;
 
 

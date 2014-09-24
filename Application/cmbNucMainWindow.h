@@ -140,7 +140,6 @@ private:
   vtkSmartPointer<vtkCompositePolyDataMapper2> MeshMapper;
   vtkSmartPointer<vtkCubeAxesActor> CubeAxesActor;
   vtkSmartPointer<vtkCubeAxesActor> MeshCubeAxesActor;
-  vtkSmartPointer<vtkActor> Actor;
   vtkSmartPointer<vtkActor> MeshActor;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
 
