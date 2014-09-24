@@ -10,7 +10,6 @@
 #include <limits>
 #include <cctype>
 
-#include "vtkCmbDuctSource.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
 #include "vtkCmbLayeredConeSource.h"

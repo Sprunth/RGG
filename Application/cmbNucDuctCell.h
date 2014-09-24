@@ -76,7 +76,6 @@ public:
   virtual std::string getTitle(){ return "Duct"; }
   bool operator==(const DuctCell& obj);
   void sort();
-  vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;
