@@ -28,7 +28,7 @@ public:
 
   struct key
   {
-    enum {Cylinder, Frustum, Annulus, Jacket} type;
+    enum {Cylinder, Frustum, Annulus, Jacket, Sectioned} type;
     int sides;
     double radius[8];
     key();

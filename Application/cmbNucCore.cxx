@@ -45,18 +45,18 @@ void cmbNucCoreConnection::assemblyChanged()
 }
 
 const double cmbNucCore::CosSinAngles[6][2] =
-{ { cos( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ),
-    sin( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ) },
-  { cos( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ),
-    sin( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ) },
-  { cos( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ),
-    sin( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ) },
-  { cos( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ),
-    sin( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ) },
+{ { cos( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ) },
   { cos( 2*(vtkMath::Pi() / 6.0) * (4 + 3) ),
     sin( 2*(vtkMath::Pi() / 6.0) * (4 + 3) ) },
-  { cos( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ),
-    sin( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ) } };
+  { cos( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ) } };
 
 cmbNucCore::cmbNucCore(bool needSaved)
 {

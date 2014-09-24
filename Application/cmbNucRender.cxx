@@ -88,6 +88,7 @@ bool cmbNucRender::key::operator<(key const& other) const
         }
       }
     case Cylinder:
+    case Sectioned:
       return sides < other.sides;
     case Jacket:
       return false;
@@ -113,6 +114,15 @@ public:
     double outerDuctHeight = assy->AssyDuct.getDuct(0)->thickness[0];
 
     int subType = lat.GetGeometrySubType();
+    double LocalCosSinAngles[6][2] =
+    { {cmbNucCore::CosSinAngles[0][0],cmbNucCore::CosSinAngles[0][1]},
+      {cmbNucCore::CosSinAngles[1][0],cmbNucCore::CosSinAngles[1][1]},
+      {cmbNucCore::CosSinAngles[2][0],cmbNucCore::CosSinAngles[2][1]},
+      {cmbNucCore::CosSinAngles[3][0],cmbNucCore::CosSinAngles[3][1]},
+      {cmbNucCore::CosSinAngles[4][0],cmbNucCore::CosSinAngles[4][1]},
+      {cmbNucCore::CosSinAngles[5][0],cmbNucCore::CosSinAngles[5][1]}
+    };
+
     if( (subType & ANGLE_360) && lat.Grid.size()>=1 )
     {
       double odc = outerDuctHeight*lat.Grid.size();
@@ -122,10 +132,32 @@ public:
       extraYTrans = -ty;
       extraXTrans = odc;
     }
+    else if( (subType & ANGLE_60) && (subType & VERTEX) )
+    {
+      for(unsigned int i = 0; i < 6; ++i)
+      {
+        int at = ((5-i) + 3)%6;
+        LocalCosSinAngles[i][0] = cmbNucCore::CosSinAngles[at][1];
+        LocalCosSinAngles[i][1] = cmbNucCore::CosSinAngles[at][0];
+      }
+    }
+    double hexDiameter, junkDK;
+    input->GetDefaults()->getDuctThickness(hexDiameter, junkDK);
 
     for(size_t i = 0; i < lat.Grid.size(); i++)
     {
       const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
+      double layerCorners[6][2], layerRadius;
+      if(i>0)
+      {
+        layerRadius = hexDiameter * i;
+        for(int c = 0; c < 6; c++)
+        {
+          // Needs a little more thinking on math here?
+          layerCorners[c][0] = layerRadius * LocalCosSinAngles[c][0];
+          layerCorners[c][1] = layerRadius * LocalCosSinAngles[c][1];
+        }
+      }
 
       for(size_t j = 0; j < row.size(); j++)
       {
@@ -135,21 +167,7 @@ public:
           cmbNucAssembly* assembly = input->GetAssembly(type);
           if(assembly == NULL) continue;
 
-          Duct *hexDuct = assembly->AssyDuct.getDuct(0);
-          double layerCorners[6][2], hexDiameter, layerRadius;
-          hexDiameter = hexDuct->thickness[0];
-
           // For hex geometry type, figure out the six corners first
-          if(i>0)
-          {
-            layerRadius = hexDiameter * i;
-            for(int c = 0; c < 6; c++)
-            {
-              // Needs a little more thinking on math here?
-              layerCorners[c][0] = layerRadius * cmbNucCore::CosSinAngles[c][0];
-              layerCorners[c][1] = layerRadius * cmbNucCore::CosSinAngles[c][1];
-            }
-          }
 
           double tX=startX, tY=startY;
           int cornerIdx;
@@ -161,7 +179,7 @@ public:
           }
           else if( i > 1)
           {
-            cornerIdx = j / i;
+            cornerIdx = j/i;
             int idxOnEdge = j%i;
             if(idxOnEdge == 0) // one of the corners
             {
@@ -373,10 +391,12 @@ public:
       for( int i = manager->GetNumberOfLayers()-1; i > 0; --i)
       {
         cmbNucMaterial * mat = part->GetMaterial(i);
+        point rotate;
         if(addCellMat)
         {
           addCellMat = false;
           mat = pincell->getCellMaterial();
+          rotate.xyz[2] = 30;
         }
         key k(manager->GetResolution(i),
               manager->GetTopRadius(i, 0), manager->GetTopRadius(i, 1),
@@ -392,7 +412,7 @@ public:
         manager->GetBaseCenter(loc.xyz);
         double h = manager->GetHeight();
         cmbNucRender::scale scale(1,1,h);
-        geo.points.push_back(GeoToPoints::data(loc, point(), mat, scale));
+        geo.points.push_back(GeoToPoints::data(loc, rotate, mat, scale));
       }
     }
   }
@@ -403,21 +423,29 @@ public:
     double extraXTrans = 0;
     double extraYTrans = 0;
     calculatePoints(input, extraXTrans, extraYTrans, idToPoint);
-    //For now support only one rotation.  More work will need to be done for a full xfrom support
-    cmbNucAssembly::Transform * xform = NULL;
+    point xformR;
+    point xformS;
+    bool hasSectioning = false;
+    std::vector<point> sectioningPlanes;
+    static int sectionedCount = 0;
     for(unsigned int i = 0; i < input->getNumberOfTransforms(); ++i)
     {
       cmbNucAssembly::Transform* tmpxf = input->getTransform(i);
-      if(tmpxf != NULL && tmpxf->getLabel() == "Rotate")
+      if( tmpxf == NULL ) continue;
+      if(tmpxf->getLabel() == "Rotate")
       {
-        xform = tmpxf;
-        break;
+        xformR.xyz[tmpxf->getAxis()] += tmpxf->getValue();
+        xformS.xyz[tmpxf->getAxis()] -= tmpxf->getValue();
       }
-    }
-    point xformR;
-    if(xform != NULL)
-    {
-      xformR.xyz[xform->getAxis()] = xform->getValue();
+      else
+      {
+        hasSectioning = true;
+        point plane;
+        plane.xyz[tmpxf->getAxis()] = (tmpxf->reverse())?-1:1;
+        transformNormal(plane.xyz, xformS.xyz);
+        sectioningPlanes.push_back(plane);
+      }
+
     }
     //Duct
     {
@@ -425,15 +453,37 @@ public:
       //prepopulate the keys
       for(std::map<key, GeoToPoints>::const_iterator i = geometry.begin(); i != geometry.end(); ++i)
       {
-        tmpGeo[i->first] = GeoToPoints();
+        tmpGeo[i->first].geo = i->second.geo;
       }
       createGeo(&(input->AssyDuct), input->IsHexType(), tmpGeo);
       std::vector<point> points(1);
-      mergeGeometry(tmpGeo, points, 0, 0, geometry, xform, xformR);
-    }
-    if(input->IsHexType())
-    {
-      xformR.xyz[2] +=30; //for cell material
+
+      if(hasSectioning)
+      {
+        for(std::map<key, GeoToPoints>::iterator i = tmpGeo.begin(); i != tmpGeo.end(); ++i)
+        {
+          //NOTE: assuming _|_ to z axis.
+          if(i->second.points.empty()) continue;
+          key k = i->first;
+          k.type = cmbNucRender::key::Sectioned;
+          k.sides = sectionedCount++;
+          GeoToPoints data = i->second;
+          for(unsigned int j = 0; j < sectioningPlanes.size(); ++j)
+          {
+            point plane = sectioningPlanes[j];
+            double tmXf[3] = {-data.points[0].rotation.xyz[0],
+                              -data.points[0].rotation.xyz[1],
+                              -data.points[0].rotation.xyz[2]};
+            transformNormal(plane.xyz, tmXf);
+            clip(data.geo, data.geo, plane.xyz, 0);
+          }
+          addGeometry( k, data, points, extraXTrans, extraYTrans, geometry, xformR );
+        }
+      }
+      else
+      {
+        mergeGeometry(tmpGeo, points, 0, 0, geometry, xformR);
+      }
     }
     //pins
     for(std::map< std::string, std::vector<point> >::const_iterator iter = idToPoint.begin();
@@ -443,13 +493,81 @@ public:
       //prepopulate the keys
       for(std::map<key, GeoToPoints>::const_iterator i = geometry.begin(); i != geometry.end(); ++i)
       {
-        tmpGeo[i->first] = GeoToPoints();
+        tmpGeo[i->first].geo = i->second.geo;
       }
 
       createGeo(input->GetPinCell(iter->first), input->IsHexType(), tmpGeo);
 
       std::vector<point> const& points = iter->second;
-      mergeGeometry(tmpGeo, points, extraXTrans, extraYTrans, geometry, xform, xformR);
+      if(hasSectioning)
+      {
+        for(std::map<key, GeoToPoints>::iterator i = tmpGeo.begin(); i != tmpGeo.end(); ++i)
+        {
+          double radius = -1;
+          for(unsigned int k = 0; k < 8; ++k)
+          {
+            radius = std::max(radius, i->first.radius[k]);
+          }
+          if(radius == -1) radius = 1;
+          GeoToPoints const& data = i->second;
+          GeoToPoints keep;
+          keep.geo = data.geo;
+          //NOTE: assuming _|_ to z axis.
+          for(unsigned int pt = 0; pt < data.points.size(); ++pt)
+          {
+            GeoToPoints::data dp = data.points[pt];
+            double currentR = radius * std::max(dp.ptScale.xyz[0],dp.ptScale.xyz[1]);
+            for(unsigned int z = 0; z < points.size(); ++z)
+            {
+              GeoToPoints::data cp = computeData( dp, points[z], extraXTrans, extraYTrans, 0);
+              enum {KEEP, CROPPED, IGNORE} mode = KEEP;
+              key k = i->first;
+              k.type = cmbNucRender::key::Sectioned;
+              k.sides = sectionedCount++;
+              GeoToPoints ndp;
+              ndp.geo = data.geo;
+              for(unsigned int j = 0; j < sectioningPlanes.size(); ++j)
+              {
+                point plane = sectioningPlanes[j];
+                double tmXf[3] = {-dp.rotation.xyz[0],
+                                  -dp.rotation.xyz[1],
+                                  -dp.rotation.xyz[2]};
+                transformNormal(plane.xyz, tmXf);
+                vtkNew<vtkPlane> testPlane;
+                testPlane->SetOrigin(0, 0, 0);
+                testPlane->SetNormal(plane.xyz[0], plane.xyz[1], plane.xyz[1]);
+                double tpdist = testPlane->EvaluateFunction(cp.pt.xyz);
+                if( tpdist < -currentR )
+                {
+                  mode = IGNORE;
+                  continue;
+                }
+                else if( std::abs(tpdist) <= currentR && mode != IGNORE )
+                {
+                  mode = CROPPED;
+                  clip(ndp.geo, ndp.geo, plane.xyz, 1);
+                }
+              }
+              switch(mode)
+              {
+                case KEEP:
+                  keep.points.push_back(cp);
+                  break;
+                case CROPPED:
+                  ndp.points.push_back(cp);
+                  addGeometry( k, ndp, std::vector<point>(1), 0, 0, geometry, xformR);
+                  break;
+                default: break;//do nothing
+              }
+            }
+          }
+          addGeometry( i->first, keep, std::vector<point>(1), 0, 0, geometry, xformR);
+        }
+      }
+      else
+      {
+        mergeGeometry(tmpGeo, points, extraXTrans, extraYTrans, geometry, xformR);
+      }
       //start of delete
     }
   }
@@ -472,7 +590,7 @@ public:
       //prepopulate the keys
       for(std::map<key, GeoToPoints>::const_iterator i = geometry.begin(); i != geometry.end(); ++i)
       {
-        tmpGeo[i->first] = GeoToPoints();
+        tmpGeo[i->first].geo = i->second.geo;
       }
 
       createGeo(assembly, tmpGeo);
@@ -481,52 +599,98 @@ public:
     }
   }
 
+  static void transform(double * xyz, point xformR)
+  {
+    if(xformR.xyz[0] != 0 || xformR.xyz[1] != 0 || xformR.xyz[2] != 0)
+    {
+      vtkSmartPointer<vtkTransform> xform = vtkSmartPointer<vtkTransform>::New();
+      xform->RotateX(xformR.xyz[0]);
+      xform->RotateY(xformR.xyz[1]);
+      xform->RotateZ(xformR.xyz[2]);
+      double tp[3];
+      xform->TransformVector(xyz,tp);
+      xyz[0] = tp[0];
+      xyz[1] = tp[1];
+      xyz[2] = tp[2];
+    }
+  }
+
+  static void transformNormal(double * xyz, double * xformR)
+  {
+    if(xformR[0] != 0 || xformR[1] != 0 || xformR[2] != 0)
+    {
+      vtkSmartPointer<vtkTransform> xform = vtkSmartPointer<vtkTransform>::New();
+      xform->RotateX(xformR[0]);
+      xform->RotateY(xformR[1]);
+      xform->RotateZ(xformR[2]);
+      double tp[3];
+      xform->TransformNormal(xyz,tp);
+      xyz[0] = tp[0];
+      xyz[1] = tp[1];
+      xyz[2] = tp[2];
+      normalize(xyz);
+    }
+  }
+
+  static void normalize(double *xyz)
+  {
+    double sum = std::sqrt(xyz[0]*xyz[0]+ xyz[1]*xyz[1] + xyz[2]*xyz[2]);
+    if(sum == 0) return;
+    xyz[0] /= sum;
+    xyz[1] /= sum;
+    xyz[2] /= sum;
+  }
+
+  static GeoToPoints::data computeData( GeoToPoints::data const& pt, point const& apt,
+                                        double extraXTrans, double extraYTrans,
+                                        point xformR = point())
+  {
+    point tranpt = pt.pt;
+    tranpt.xyz[0] += apt.xyz[0] + extraXTrans;
+    tranpt.xyz[1] += apt.xyz[1] + extraYTrans;
+    transform(tranpt.xyz, xformR);
+    point rotation = pt.rotation;
+    rotation.xyz[0] += xformR.xyz[0];
+    rotation.xyz[1] += xformR.xyz[1];
+    rotation.xyz[2] += xformR.xyz[2];
+    return GeoToPoints::data(tranpt,rotation, pt.material, pt.ptScale);
+  }
+
+  static void addGeometry( key k, GeoToPoints const& tmpGeoI,
+                           std::vector<point> const& points,
+                           double extraXTrans, double extraYTrans,
+                           std::map<key, GeoToPoints> & geometry,
+                           point xformR = point())
+  {
+    GeoToPoints &newGeo = geometry[k];
+    if(newGeo.geo == NULL)
+    {
+      newGeo.geo = tmpGeoI.geo;
+    }
+
+    unsigned int at = newGeo.points.size();
+    newGeo.points.resize(newGeo.points.size() + points.size()*tmpGeoI.points.size());
+    for(unsigned int j = 0; j<points.size(); ++j)
+    {
+      point const& apt = points[j];
+      for(unsigned int k = 0; k < tmpGeoI.points.size(); ++k)
+      {
+        newGeo.points[at] = computeData( tmpGeoI.points[k], apt,
+                                         extraXTrans, extraYTrans,xformR);
+        ++at;
+      }
+    }
+  }
+
   static void mergeGeometry(std::map<key, GeoToPoints> const& in,
                             std::vector<point> const& points,
                             double extraXTrans, double extraYTrans,
                             std::map<key, GeoToPoints> & geometry,
-                            cmbNucAssembly::Transform* xform = NULL,
                             point xformR = point())
   {
     for(std::map<key, GeoToPoints>::const_iterator i = in.begin(); i != in.end(); ++i)
     {
-      GeoToPoints const& tmpGeoI = i->second;
-      if(geometry.find(i->first) == geometry.end())
-      {
-        GeoToPoints newGeo;
-        newGeo.geo = tmpGeoI.geo;
-        geometry[i->first] = newGeo;
-      }
-      GeoToPoints &newGeo = geometry[i->first];
-
-      unsigned int at = newGeo.points.size();
-      newGeo.points.resize(newGeo.points.size() + points.size()*tmpGeoI.points.size());
-      for(unsigned int j = 0; j<points.size(); ++j)
-      {
-        point const& apt = points[j];
-        for(unsigned int k = 0; k < tmpGeoI.points.size(); ++k)
-        {
-          GeoToPoints::data const& pt = tmpGeoI.points[k];
-          point tranpt = pt.pt;
-          tranpt.xyz[0] += apt.xyz[0] + extraXTrans;
-          tranpt.xyz[1] += apt.xyz[1] + extraYTrans;
-          if(xform != NULL)
-          {
-            double tp[3];
-            xform->apply(tranpt.xyz, tp);
-            tranpt.xyz[0] = tp[0];
-            tranpt.xyz[1] = tp[1];
-            tranpt.xyz[2] = tp[2];
-          }
-          point rotation = pt.rotation;
-          rotation.xyz[0] += xformR.xyz[0];
-          rotation.xyz[1] += xformR.xyz[1];
-          rotation.xyz[2] += xformR.xyz[2];
-
-          newGeo.points[at] = GeoToPoints::data(tranpt,rotation, pt.material, pt.ptScale);
-          ++at;
-        }
-      }
+      addGeometry( i->first, i->second, points, extraXTrans, extraYTrans, geometry, xformR);
     }
   }
 
