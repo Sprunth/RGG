@@ -204,10 +204,6 @@ public:
 
   virtual enumNucPartsType GetType() const {return CMBNUC_CORE;}
 
-  static void transformData(vtkMultiBlockDataSet * input,
-                            vtkMultiBlockDataSet * output,
-                            vtkTransform * xmform);
-
   void clearExceptAssembliesAndGeom();
 
   // Adds a new Assembly to the core. After adding the Assembly it

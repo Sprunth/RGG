@@ -294,42 +294,6 @@ void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX,
   transY = assy->AssyDuct.getDuct(0)->y;
 }
 
-void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
-                               vtkMultiBlockDataSet * output,
-                               vtkTransform * xmform)
-{
-  if(input == NULL) return;
-  output->SetNumberOfBlocks(input->GetNumberOfBlocks());
-  // move the assembly to the correct position
-  for(int idx=0; idx<input->GetNumberOfBlocks(); idx++)
-  {
-    // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
-    if(vtkDataObject* objBlock = input->GetBlock(idx))
-    {
-      if(vtkMultiBlockDataSet* assyPartBlock =
-         vtkMultiBlockDataSet::SafeDownCast(objBlock))
-      {
-        vtkSmartPointer<vtkMultiBlockDataSet> assyPartObjs = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-        assyPartObjs->SetNumberOfBlocks(assyPartBlock->GetNumberOfBlocks());
-        transformData(assyPartBlock, assyPartObjs, xmform);
-        output->SetBlock(idx, assyPartObjs.GetPointer());
-      }
-      else
-      {
-        vtkNew<vtkTransformFilter> filter;
-        filter->SetTransform(xmform);
-        filter->SetInputDataObject(input->GetBlock(idx));
-        filter->Update();
-        output->SetBlock(idx, filter->GetOutput());
-      }
-    }
-    else
-    {
-      output->SetBlock(idx, NULL);
-    }
-  }
-}
-
 void cmbNucCore::setGeometryLabel(std::string geomType)
 {
   enumGeometryType type = lattice.GetGeometryType();
