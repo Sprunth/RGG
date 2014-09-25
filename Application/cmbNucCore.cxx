@@ -284,7 +284,7 @@ void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
   double outerDuctHeight;
   Defaults->getDuctThickness(outerDuctWidth, outerDuctHeight);
   pt[1] = i * (outerDuctHeight)-outerDuctHeight*(this->lattice.Grid.size()-1);
-  pt[0] = j * (outerDuctWidth);//-outerDuctWidth*(this->lattice.Grid.size()-1);
+  pt[0] = j * (outerDuctWidth);
 }
 
 void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY)
