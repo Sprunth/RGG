@@ -141,6 +141,13 @@ vtkBoundingBox cmbNucCore::computeBounds()
       max[0] = radius;
       max[1] = radius;
     }
+    if(getHasCylinder())
+    {
+      min[0] = std::min(min[0], -this->cylinderRadius);
+      min[1] = std::min(min[1], -this->cylinderRadius);
+      max[0] = std::max(max[0], this->cylinderRadius);
+      max[1] = std::max(max[1], this->cylinderRadius);
+    }
     return vtkBoundingBox(tx+min[0], tx+max[0],
                           ty+min[1], ty+max[1],
                           z1, z2);
@@ -150,12 +157,23 @@ vtkBoundingBox cmbNucCore::computeBounds()
     vtkBoundingBox b;
     double transX = this->Assemblies[0]->AssyDuct.getDuct(0)->x;
     double transY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
-    double pt[2];
+    double pt[4];
     calculateRectPt( 0, 0, pt );
-    b.AddPoint((transX+pt[0]-wh[0]*0.5), (transY+pt[1]-wh[1]*0.5), (z1));
-    calculateRectPt(this->lattice.Grid.size()-1,this->lattice.Grid[0].size()-1, pt);
-    b.AddPoint((transX+pt[0]+wh[0]*0.5), (transY+pt[1]+wh[1]*0.5), (z2));
-    return b;
+    calculateRectPt(this->lattice.Grid.size()-1,this->lattice.Grid[0].size()-1, pt+2);
+    pt[0] -= wh[0]*0.5;
+    pt[1] -= wh[1]*0.5;
+    pt[2] += wh[0]*0.5;
+    pt[3] += wh[1]*0.5;
+    double w = pt[2] - pt[0];
+    double h = pt[3] - pt[1];
+    if(getHasCylinder())
+    {
+      w = std::max(w, 2*this->cylinderRadius);
+      h = std::max(h, 2*this->cylinderRadius);
+    }
+    return vtkBoundingBox(transX+pt[0], transX+pt[0]+w,
+                          transY+pt[1], transY+pt[1]+h,
+                          z1, z2);
   }
 }
 
@@ -265,8 +283,8 @@ void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
   double outerDuctWidth;
   double outerDuctHeight;
   Defaults->getDuctThickness(outerDuctWidth, outerDuctHeight);
-  pt[0] = i * (outerDuctWidth);
-  pt[1] = j * (outerDuctHeight)-outerDuctWidth*(this->lattice.Grid.size()-1);
+  pt[1] = i * (outerDuctHeight)-outerDuctHeight*(this->lattice.Grid.size()-1);
+  pt[0] = j * (outerDuctWidth);//-outerDuctWidth*(this->lattice.Grid.size()-1);
 }
 
 void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY)

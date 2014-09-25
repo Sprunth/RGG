@@ -341,7 +341,7 @@ vtkBoundingBox DuctCell::computeBounds(bool hex)
   double * thickness = d->thickness;
   if(!hex)
   {
-    double t[] = { -thickness[0]*0.5 , -thickness[1]*0.5};
+    double t[] = { thickness[0]*0.5 , thickness[1]*0.5};
     return vtkBoundingBox(-t[0], t[0], -t[1], t[1], z1, z1 + getLength());
   }
   double t = thickness[0]*0.5 / 0.86602540378443864676372317075294;

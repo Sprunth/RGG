@@ -282,9 +282,9 @@ public:
       const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
       for(size_t j = 0; j < row.size(); j++)
       {
+        input->calculateRectPt(i, j, currentLaticePoint);
         if(!row[j].isBlank())
         {
-          input->calculateRectPt(i, j, currentLaticePoint);
           idToPoint[row[j].label].push_back(point( currentLaticePoint[0],
                                                    currentLaticePoint[1]));
         }
@@ -761,7 +761,7 @@ public:
     cylinder->SetResolution(0, s);
     double odc = outerDuctHeight*(core->getLattice().Grid.size()-1);
     double tmp = (outerDuctHeight*0.5) / (cos(30.0 * vtkMath::Pi() / 180.0));
-    double pt1[] = {odc * cmbNucCore::CosSinAngles[0][0], odc * cmbNucCore::CosSinAngles[0][1]};
+    double pt1[] = {odc * cmbNucCore::CosSinAngles[5][0], odc * cmbNucCore::CosSinAngles[5][1]};
     double pt2[2];
 
     static const double AssyCosSinAngles[6][2] =
@@ -781,8 +781,10 @@ public:
     {
       for(int i = 0; i < 6; ++i)
       {
-        pt2[0] = odc * cmbNucCore::CosSinAngles[(i+1)%6][0];
-        pt2[1] = odc * cmbNucCore::CosSinAngles[(i+1)%6][1];
+        int at = 5-i-1;
+        if(at<0) at = 5;
+        pt2[0] = odc * cmbNucCore::CosSinAngles[at][0];
+        pt2[1] = odc * cmbNucCore::CosSinAngles[at][1];
         int sp1 = (i + 0)%6;
         int sp2 = (i + 1)%6;
         if(core->getLattice().Grid.size() == 1)
@@ -1069,8 +1071,6 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
   TransparentMapper->OrientOn();
   TransparentMapper->SetOrientationModeToRotation();
   TransparentMapper->SetOrientationArray("Rotation");
-
-  //GlyphMapper->PrintSelf(std::cout, vtkIndent());
 
   BoundingBox.AddBounds(polydataTrans->GetBounds());
   BoundingBox.AddBounds(polydata->GetBounds());

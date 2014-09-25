@@ -11,7 +11,7 @@
 
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
-#include<vtkBoundingBox.h>
+#include <vtkBoundingBox.h>
 #include <vector>
 
 class vtkCompositePolyDataMapper2;
