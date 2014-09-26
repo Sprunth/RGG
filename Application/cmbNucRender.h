@@ -96,6 +96,8 @@ public:
   static vtkSmartPointer<vtkCmbLayeredConeSource> CreateLayerManager(PinCell* pincell, bool isHex, size_t j);
   static vtkSmartPointer<vtkCmbLayeredConeSource> CreateLayerManager(DuctCell* ductCell, bool isHex, size_t j);
 
+  void debug();
+
 protected:
   //vtkSmartPointer<vtkCompositePolyDataMapper2> PolyMapper;
   //vtkSmartPointer<vtkActor> PolyActor;

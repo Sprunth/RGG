@@ -94,7 +94,6 @@ public:
   cmbNucCoregen *MoabSource;
 #endif
 
-  vtkSmartPointer<vtkMultiBlockDataSet> CurrentDataset;
   DuctCell* CurrentDuctCell;
   PinCell* CurrentPinCell;
   bool CamerasLinked;
@@ -281,17 +280,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   //this->Internal->UnlinkCamera = Renderer->MakeCamera();
   this->Renderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerMesh);
   this->MeshRenderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerModel);
-
-  vtkCmbLayeredConeSource *cone = vtkCmbLayeredConeSource::New();
-  cone->SetNumberOfLayers(3);
-  cone->SetHeight(20.0);
-  cone->Update();
-  this->Internal->CurrentDataset = cone->GetOutput();
-  vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->BoundsModel);
-  setScaledBounds();
-  cone->Delete();
 
   vtkCompositeDataDisplayAttributes * attributes = vtkCompositeDataDisplayAttributes::New();
   this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
@@ -620,7 +608,7 @@ void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
 
   if(obj && obj->GetType() == CMBNUC_CORE)
     {
-    this->Renderer->ResetCamera();
+    this->resetCamera();
     }
   // render
   this->ui->qvtkWidget->update();
@@ -699,7 +687,7 @@ void cmbNucMainWindow::onNewCore()
     this->ui->actionNew_Assembly->setEnabled(true);
     this->ui->actionExport->setEnabled(true);
     this->ui->actionGenerate_Cylinder->setEnabled(true);
-    this->Renderer->ResetCamera();
+    this->resetCamera();
     this->Renderer->Render();
   }
   else
@@ -826,7 +814,7 @@ void cmbNucMainWindow::onFileOpen()
 
   // update render view
   emit checkSave();
-  this->Renderer->ResetCamera();
+  this->resetCamera();
   this->Renderer->Render();
 }
 
@@ -859,7 +847,7 @@ void cmbNucMainWindow::onReloadSelected()
       return;
   }
   emit checkSave();
-  this->Renderer->ResetCamera();
+  this->resetCamera();
   this->Renderer->Render();
 }
 
@@ -1161,10 +1149,10 @@ void cmbNucMainWindow::clearAll()
 
 void cmbNucMainWindow::doClearAll(bool needSave)
 {
-  this->Internal->CurrentDataset = NULL;
-  vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->BoundsModel);
+  for(unsigned int i = 0; i < 6; ++i)
+  {
+    this->Internal->BoundsModel[i] = 0;
+  }
   setScaledBounds();
 
   this->NucMappers->clearMappers();
@@ -1194,7 +1182,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   onChangeMeshEdgeMode(false);
 
   this->ui->qvtkWidget->update();
-  this->Renderer->ResetCamera();
+  this->resetCamera();
   this->Renderer->Render();
 }
 
@@ -1208,7 +1196,7 @@ void cmbNucMainWindow::clearCore()
     this->InputsWidget->updateUI(true);
     emit checkSave();
     this->ui->qvtkWidget->update();
-    this->Renderer->ResetCamera();
+    this->resetCamera();
     this->Renderer->Render();
     setTitle();
   }
@@ -1319,7 +1307,7 @@ void cmbNucMainWindow::zScaleChanged(int value)
   this->setScaledBounds();
   this->CubeAxesActor->Modified();
   this->Renderer->Modified();
-  this->Renderer->ResetCamera();
+  this->resetCamera();
   this->ui->qvtkWidget->update();
 
   if((!this->Internal->CamerasLinked && this->isMeshTabVisible()) ||
@@ -1335,7 +1323,7 @@ void cmbNucMainWindow::zScaleChanged(int value)
 
 void cmbNucMainWindow::ResetView()
 {
-  this->Renderer->ResetCamera();
+  this->resetCamera();
 
   this->ui->qvtkWidget->update();
 }
@@ -1659,6 +1647,33 @@ bool cmbNucMainWindow::checkFilesBeforePreceeding()
       break;
   }
   return true;
+}
+
+void cmbNucMainWindow::resetCamera()
+{
+  if( this->Internal->BoundsModel[0] == 0 &&
+      this->Internal->BoundsModel[1] == 0 &&
+      this->Internal->BoundsModel[2] == 0 &&
+      this->Internal->BoundsModel[3] == 0 &&
+      this->Internal->BoundsModel[4] == 0 &&
+      this->Internal->BoundsModel[4] == 0 )
+  {
+    this->Renderer->ResetCamera();
+    return;
+  }
+  double z[2] = {this->Internal->BoundsModel[4]*ZScale,
+                 this->Internal->BoundsModel[5]*ZScale};
+  double max = std::max( this->Internal->BoundsModel[1] - this->Internal->BoundsModel[0],
+                         std::max(this->Internal->BoundsModel[3]-this->Internal->BoundsModel[2],
+                                  z[1]-z[0]));
+  double trans = max*0.05;
+
+  //this->Renderer->ResetCamera(this->Internal->BoundsModel);
+  this->Renderer->ResetCamera(this->Internal->BoundsModel[0]-trans,
+                              this->Internal->BoundsModel[1]+trans,
+                              this->Internal->BoundsModel[2]-trans,
+                              this->Internal->BoundsModel[3]+trans,
+                              z[0]-trans, z[1]+trans );
 }
 
 void cmbNucMainWindow::setTitle()

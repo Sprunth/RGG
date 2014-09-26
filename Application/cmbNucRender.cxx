@@ -1161,3 +1161,13 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCe
   }
   return coneSource;
 }
+
+void cmbNucRender::debug()
+{
+  double * bounds = GlyphActor->GetBounds();
+  qDebug() << "Solid glyphs bounds:" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+  bounds = TransparentActor->GetBounds();
+  qDebug() << "Transparent glyphs bounds:" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+
+}
+

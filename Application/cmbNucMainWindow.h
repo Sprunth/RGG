@@ -127,6 +127,8 @@ protected slots:
   void outerLayer(double r, int i);
   void clearOuter();
 
+  void resetCamera();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
