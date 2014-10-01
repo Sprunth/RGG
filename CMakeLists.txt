@@ -140,6 +140,11 @@ include_directories(${Remus_INCLUDE_DIR})
 #-----------------------------------------------------------------------------
 # Application
 #
+OPTION( BUILD_TESTING "Enable testing"  OFF )
+if(BUILD_TESTING)
+  enable_testing()
+endif()
+
 add_subdirectory(Application)
 
 if(APPLE OR UNIX)

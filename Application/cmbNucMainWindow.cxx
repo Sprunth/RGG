@@ -42,6 +42,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QXmlStreamWriter>
+//#include <QTest>
 
 #include <pqTestUtility.h>
 #include <pqEventObserver.h>
@@ -70,16 +71,36 @@
 
 #include "pqXMLEventObserver.h"
 
+#include <qthread.h>
+
+class Sleeper : public QThread
+{
+public:
+	static void sleep(unsigned long secs) {
+		QThread::sleep(secs);
+	}
+	static void msleep(unsigned long msecs) {
+		QThread::msleep(msecs);
+	}
+	static void usleep(unsigned long usecs) {
+		QThread::usleep(usecs);
+	}
+};
+
 class XMLEventSource : public pqEventSource
 {
   typedef pqEventSource Superclass;
   QXmlStreamReader *XMLStream;
 
 public:
-  XMLEventSource(QObject* p): Superclass(p) { this->XMLStream = NULL;}
+  XMLEventSource(QString testDir, QString outdir, QObject* p)
+    : TestDir(testDir), OutputDir(outdir), Superclass(p)
+  { this->XMLStream = NULL;}
   ~XMLEventSource() { delete this->XMLStream; }
 
 protected:
+  QString TestDir;
+  QString OutputDir;
   virtual void setContent(const QString& xmlfilename)
   {
     delete this->XMLStream;
@@ -126,6 +147,8 @@ protected:
     widget = this->XMLStream->attributes().value("object").toString();
     command = this->XMLStream->attributes().value("command").toString();
     arguments = this->XMLStream->attributes().value("arguments").toString();
+    arguments.replace("${TEST_DIRECTORY}", TestDir);
+    arguments.replace("${OUTPUT_DIRECTORY}", OutputDir);
     return SUCCESS;
   }
 };
@@ -214,12 +237,6 @@ namespace
       return true;
     }
     return false;
-    /*vtkNew<vtkPNGWriter> testWriter;
-    testWriter->SetFileName("junk.png");
-    testWriter->SetInputData(reader->GetOutput());
-    testWriter->Write();
-    return CompareImage(reader->GetOutput(),
-                        referenceImage, threshold, tempDirectory);*/
   }
 }
 
@@ -2011,7 +2028,8 @@ void cmbNucMainWindow::onStartRecordTest()
   this->TestUtility = new pqTestUtility(this);
   this->Internal->observer = new pqXMLEventObserver(this);
   this->TestUtility->addEventObserver("xml", this->Internal->observer);
-  this->TestUtility->addEventSource("xml", new XMLEventSource(this));
+  this->TestUtility->addEventSource("xml", new XMLEventSource(this->Internal->TestDirectory,
+                                                              this->Internal->TestOutputDirectory, this));
   QString filename = QFileDialog::getSaveFileName (this, "Test File Name",
                                                    QString(), "XML Files (*.xml)");
   if (!filename.isEmpty())
@@ -2039,7 +2057,8 @@ bool cmbNucMainWindow::playTest(QString filename)
     this->TestUtility = new pqTestUtility(this);
     this->Internal->observer = new pqXMLEventObserver(this);
     this->TestUtility->addEventObserver("xml", this->Internal->observer);
-    this->TestUtility->addEventSource("xml", new XMLEventSource(this));
+    this->TestUtility->addEventSource("xml", new XMLEventSource(this->Internal->TestDirectory,
+                                                                this->Internal->TestOutputDirectory, this));
     bool result = this->TestUtility->playTests(filename);
     delete this->TestUtility;
     this->TestUtility = NULL;
@@ -2080,7 +2099,7 @@ void cmbNucMainWindow::playTest()
     }
     succeded = tmp;
   }
-  if(/*succeded &&*/ !this->Internal->Test2DCorrectImages.isEmpty())
+  if(succeded && !this->Internal->Test2DCorrectImages.isEmpty())
   {
     bool tmp = false;
     QDir tmpDir(this->Internal->TestOutputDirectory);
@@ -2102,4 +2121,9 @@ void cmbNucMainWindow::playTest()
   {
     qApp->exit(succeded ? 0 : 1);
   }
+}
+
+void cmbNucMainWindow::pause(int v)
+{
+  Sleeper::msleep(v);
 }

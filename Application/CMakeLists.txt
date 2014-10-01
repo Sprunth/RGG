@@ -213,5 +213,70 @@ else()
              ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
              @ONLY)
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION lib)
-  install(TARGETS RGGNuclear DESTINATION lib)
+  install(TARGETS RGGNuclear DESTI NATION lib)
+endif()
+
+if(BUILD_TESTING)
+  if(Q_WS_MAC)
+    set(TEST_BINARY
+      "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear.app/Contents/MacOS/RGGNuclear"
+      --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
+  else(Q_WS_MAC)
+    set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear"
+      --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
+  endif(Q_WS_MAC)
+
+  set (TESTS_WITH_MODEL_BASELINES  simple_rect_test
+                                   simple_rect_assy_test
+                                   simple_hex_test
+                                   simple_hex_assy_test
+                                   test_open_12th_hex
+                                   test_open_6th_flat
+                                   test_open_6th_vertex
+                                   test_open_assy_hex
+                                   test_open_assy_rect
+                                   test_new_rect
+                                   test_new_hex
+    )
+
+  set (TESTS_WITH_2D_BASELINES  simple_rect_test
+                                simple_rect_assy_test
+                                simple_hex_test
+                                simple_hex_assy_test
+                                test_open_12th_hex
+                                test_open_6th_flat
+                                test_open_6th_vertex
+                                test_open_assy_hex
+                                test_open_assy_rect
+                                test_new_rect
+                                test_new_hex
+    )
+
+  set (TESTS_WITHOUT_BASELINES exit
+    )
+    
+  foreach(test ${TESTS_WITHOUT_BASELINES})
+    add_test(NAME ${test}_baseline COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test} --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR})
+    set_tests_properties(${test}_baseline PROPERTIES TIMEOUT 10000)
+    if(APPLE)
+      set_tests_properties(${test}_baseline PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+    endif()
+  endforeach()
+  
+  foreach(test ${TESTS_WITH_2D_BASELINES})
+    add_test(NAME ${test}_2D COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_2D.png)
+    set_tests_properties(${test}_2D PROPERTIES TIMEOUT 10000)
+    if(APPLE)
+      set_tests_properties(${test}_2D PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+    endif()
+  endforeach()
+  
+  foreach(test ${TESTS_WITH_MODEL_BASELINES})
+    add_test(NAME ${test}_model COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_model.png)
+    set_tests_properties(${test}_model PROPERTIES TIMEOUT 10000)
+    if(APPLE)
+      set_tests_properties(${test}_model PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+    endif()
+  endforeach()
+
 endif()

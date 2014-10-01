@@ -86,6 +86,7 @@ public slots:
   void setAxis(bool ison);
   void onClearMesh();
   void playTest();
+  void pause(int v);
 
 signals:
   void updateGlobalZScale(double scale);
