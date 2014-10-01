@@ -10,6 +10,7 @@
 #include "cmbNucPartDefinition.h"
 
 // Forward Qt class declarations
+class pqTestUtility;
 class Ui_qNucMainWindow;
 class vtkActor;
 class vtkAxesActor;
@@ -51,6 +52,13 @@ public:
 
   void setScaledBounds();
 
+  bool playTest(QString fname);
+  void setUpTests(QString,
+                  QStringList testModelCorrectImages,
+                  QStringList test2DCorrectImages,
+                  QString testDirectory,
+                  QString testOutputDirectory, bool exit);
+
 public slots:
   void onExit();
   void onNewCore();
@@ -77,6 +85,7 @@ public slots:
   void checkForNewCUBH5MFiles();
   void setAxis(bool ison);
   void onClearMesh();
+  void playTest();
 
 signals:
   void updateGlobalZScale(double scale);
@@ -97,6 +106,10 @@ protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
   void onObjectModified(AssyPartObj* obj=NULL);
   void onObjectGeometryChanged(AssyPartObj* obj);
+
+  void onStartRecordTest();
+  void onStopRecordingTest();
+  void onPlayTest();
 
   void onChangeToModelTab();
 
@@ -160,6 +173,8 @@ private:
   bool is3DTabVisible();
   void setCameras(bool coreModel, bool fullMesh);
   bool isCameraIsMoving;
+
+  pqTestUtility * TestUtility;
 };
 
 #endif // cmbNucMainWindow_H

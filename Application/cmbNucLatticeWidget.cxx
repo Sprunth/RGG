@@ -94,3 +94,8 @@ cmbNucLatticeWidget::redraw()
   if(lattice == NULL) return;
   this->draw_control->rebuild();
 }
+
+void cmbNucLatticeWidget::createImage(QString fname)
+{
+  draw_control->createImage(fname);
+}

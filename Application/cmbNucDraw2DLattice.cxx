@@ -10,6 +10,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QStyleOptionGraphicsItem>
+#include <QPixmap>
 
 #include "vtkMath.h"
 #include "cmbNucAssembly.h"
@@ -492,4 +493,15 @@ void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* event)
 
     imagePainter.end();
     }
+}
+
+void cmbNucDraw2DLattice::createImage(QString fname)
+{
+  QGraphicsView* view = new QGraphicsView(&Canvas,this);
+  view->setSceneRect(Canvas.itemsBoundingRect());
+  view->setMinimumHeight(view->sizeHint().height());
+  view->setMinimumWidth(view->sizeHint().width());
+  QPixmap pixMap = QPixmap::grabWidget(view);
+  pixMap.toImage().convertToFormat(QImage::Format_RGB32).save(fname);
+  delete view;
 }

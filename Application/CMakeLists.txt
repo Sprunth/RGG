@@ -3,6 +3,9 @@ PROJECT(RGGNuclear)
 FIND_PACKAGE(VTK)
 INCLUDE(${VTK_USE_FILE}) # include UseVTK.cmake
 
+find_package(QtTesting REQUIRED)
+INCLUDE_DIRECTORIES(${QtTesting_INCLUDE_DIRS})
+
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})  # include UseQt4.cmake
 INCLUDE_DIRECTORIES(${QT_INCLUDE_DIR})
@@ -49,6 +52,7 @@ SET(RGGNuclear_Srcs
   cmbAssyParametersWidget.cxx
   inpFileIO.cxx
   cmbCoreParametersWidget.cxx
+  pqXMLEventObserver.cxx
 )
 
 SET(RGGNuclear_UI
@@ -91,6 +95,7 @@ SET(RGGNuclear_Headers
   cmbNucPreferencesDialog.h
   cmbAssyParametersWidget.h
   cmbCoreParametersWidget.h
+  pqXMLEventObserver.h
 )
 
 SET(RGGNuclear_other_headers )
@@ -154,7 +159,7 @@ endif()
 
 if(WIN32 OR APPLE)
 ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
 else()
 
 message ("Forwarding")
@@ -165,7 +170,7 @@ message ("Forwarding")
                  RGGNuclear
                  ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE}
                  )
-  TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+  TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
 
   IF (rgg_exe_suffix)
      # Shared forwarding enabled.

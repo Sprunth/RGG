@@ -87,7 +87,7 @@ add_revision( nuclearRGG SOURCE_DIR ${CMAKE_SOURCE_DIR}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY git://vtk.org/VTK.git
-  GIT_TAG v6.1.0)
+  GIT_TAG master)
 
 if (UNIX)
   add_revision(mpi
@@ -191,6 +191,10 @@ add_revision(gdal
   URL http://vtk.org/files/support/gdal_5b8309b.tar.gz
   URL_MD5 8d77df722a01cc86b292300a007a3282
   )
+  
+add_revision(QtTesting
+  GIT_REPOSITORY "http://paraview.org/QtTesting.git"
+  GIT_TAG master)
 
 #------------------------------------------------------------------------------
 # moab versions

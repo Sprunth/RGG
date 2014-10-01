@@ -20,7 +20,7 @@ endif()
 
 if(BUILD_WITH_MOAB)
 add_external_project_or_just_build_dependencies(nuclearRGG
-  DEPENDS remus qt vtk moab
+  DEPENDS remus qt vtk moab QtTesting
   CMAKE_ARGS
     ${extra_cmake_args}
     ${MESH_ARGS}
