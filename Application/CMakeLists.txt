@@ -237,6 +237,7 @@ if(BUILD_TESTING)
                                    test_open_assy_rect
                                    test_new_rect
                                    test_new_hex
+                                   test_multi_layer_rect_duct
     )
 
   set (TESTS_WITH_2D_BASELINES  simple_rect_test
