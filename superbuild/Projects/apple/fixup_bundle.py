@@ -340,6 +340,7 @@ if __name__ == "__main__":
   for dep in binaries_to_fix:
     commands.getoutput('chmod u+w "%s"' % dep)
     logging.info('install_name_tool %s "%s"' % (install_name_tool_command, dep))
-    commands.getoutput('install_name_tool %s "%s"' % (install_name_tool_command, dep))
+    output = commands.getoutput('install_name_tool %s "%s"' % (install_name_tool_command, dep))
+    logging.info(output)
 
     commands.getoutput('chmod a-w "%s"' % dep)
