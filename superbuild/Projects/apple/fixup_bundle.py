@@ -245,7 +245,7 @@ def _removeSymlink(ref):
 SearchLocations = []
 if __name__ == "__main__":
   App = _makeSymlink(sys.argv[1])
-  SearchLocations = [sys.argv[2]]
+  SearchLocations = sys.argv[2].split(";")
   if len(sys.argv) > 3:
     QtPluginsDir = sys.argv[3]
   else:
