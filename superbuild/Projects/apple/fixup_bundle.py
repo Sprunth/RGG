@@ -119,7 +119,10 @@ class Library(object):
           os.makedirs(d)
         logging.info("Copying %s ==> %s" % (self.RealPath, ".../Contents/Libraries/%s" % os.path.basename(self.RealPath)))
         if not os.path.exists("../Contents/Libraries/%s"%os.path.basename(self.RealPath)):
-          shutil.copy(self.RealPath, d )
+          try:
+            shutil.copy(self.RealPath, d )
+          except IOError as detail:
+            print 'Handling run-time error:', detail
       self.Id = "@executable_path/../Libraries/%s" % os.path.basename(self.RealPath)
       if not fakeCopy:
         filedest = os.path.join(app, "Contents/Libraries/%s" % os.path.basename(self.RealPath))
