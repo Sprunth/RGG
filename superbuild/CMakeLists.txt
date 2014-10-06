@@ -217,9 +217,11 @@ include(zeroMQ)
 include(remus)
 include(vtk)
 
-include(OCE)
-include(cgm)
-include(lasso)
+if(ENABLE_meshkit)
+  include(OCE)
+  include(cgm)
+  include(lasso)
+endif()
 
 include(meshkit)
 
