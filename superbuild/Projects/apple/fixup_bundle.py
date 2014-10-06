@@ -118,7 +118,8 @@ class Library(object):
         if not os.path.exists(d):
           os.makedirs(d)
         logging.info("Copying %s ==> %s" % (self.RealPath, ".../Contents/Libraries/%s" % os.path.basename(self.RealPath)))
-        shutil.copy(self.RealPath, d )
+        if not os.path.exists("../Contents/Libraries/%s"%os.path.basename(self.RealPath)):
+          shutil.copy(self.RealPath, d )
       self.Id = "@executable_path/../Libraries/%s" % os.path.basename(self.RealPath)
       if not fakeCopy:
         filedest = os.path.join(app, "Contents/Libraries/%s" % os.path.basename(self.RealPath))
