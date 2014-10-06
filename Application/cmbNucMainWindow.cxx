@@ -42,7 +42,6 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QXmlStreamWriter>
-//#include <QTest>
 
 #include <pqTestUtility.h>
 #include <pqEventObserver.h>

@@ -529,17 +529,25 @@ cmbNucDuctCellEditor
 ::setDuctMaterialRow(int row, Duct * duct)
 {
   QTableWidget * tmpTable = this->Ui->MaterialLayerTable;
-  QComboBox* comboBox = new QComboBox;
+  {//drop box
+    QWidget * tmpWidget = tmpTable->cellWidget(row, 0);
+    QComboBox* comboBox = dynamic_cast<QComboBox*>(tmpWidget);
+    if(comboBox == NULL)
+    {
+      comboBox = new QComboBox;
+      comboBox->setObjectName("DuctMaterialBox_" + QString::number(row));
+      tmpTable->setCellWidget(row, 0, comboBox);
+      QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
+                       this, SLOT(onUpdateLayerMaterial()));
+    }
+    comboBox->blockSignals(true);
+    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+    matColorMap->setUp(comboBox);
+    matColorMap->selectIndex(comboBox, duct->getMaterial(row));
+    comboBox->blockSignals(false);
+  }
+
   double* thick = duct->getNormThick(row);
-
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->setUp(comboBox);
-  matColorMap->selectIndex(comboBox, duct->getMaterial(row));
-
-  tmpTable->setCellWidget(row, 0, comboBox);
-
-  QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
-                   this, SLOT(onUpdateLayerMaterial()));
 
   DuctLayerThicknessEditor* thick1Item = new DuctLayerThicknessEditor(duct, this, thick[0]);
   DuctLayerThicknessEditor* thick2Item = new DuctLayerThicknessEditor(duct, this, thick[1]);
@@ -559,6 +567,7 @@ void cmbNucDuctCellEditor::onUpdateLayerMaterial()
     comboBox = qobject_cast<QComboBox *>(this->Ui->MaterialLayerTable->cellWidget(i, 0));
     if(comboBox)
     {
+      qDebug() << "Current Name: " <<  comboBox->objectName();
       QPointer<cmbNucMaterial> mat =
       cmbNucMaterialColors::instance()->getMaterial(comboBox);
       selItem->duct->setMaterial(i, mat);
