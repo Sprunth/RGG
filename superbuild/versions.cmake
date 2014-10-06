@@ -191,6 +191,30 @@ add_revision(gdal
   URL http://vtk.org/files/support/gdal_5b8309b.tar.gz
   URL_MD5 8d77df722a01cc86b292300a007a3282
   )
+  
+#Meshkit
+add_revision(OCE
+  GIT_REPOSITORY "https://github.com/robertmaynard/oce.git"
+  GIT_TAG "cgm_support"
+  )
+add_revision(cgm
+  GIT_REPOSITORY "https://bitbucket.org/fathomteam/cgm.git"
+  GIT_TAG 13.1.1
+  )
+
+add_revision(lasso
+  GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
+  GIT_TAG Version3.1
+  )
+
+add_revision(meshkit
+  GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
+  GIT_TAG MeshKitv1.2
+  )
+
+add_revision(meshkit32bit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
+
+
 
 #------------------------------------------------------------------------------
 # moab versions
@@ -198,11 +222,6 @@ add_revision(gdal
 add_revision(ftgl
   GIT_REPOSITORY "https://github.com/ulrichard/ftgl.git"
   GIT_TAG cf4d9957930e41c3b82a57b20207242c7ef69f18
-  )
-
-add_revision(oce
-  GIT_REPOSITORY "https://github.com/robertmaynard/oce.git"
-  GIT_TAG "cgm_support"
   )
 
 add_revision(netcdf
@@ -215,11 +234,13 @@ add_revision(netcdfcpp
   URL_MD5 d32b20c00f144ae6565d9e98d9f6204c
 )
 
-add_revision(cgm
-  GIT_REPOSITORY https://bitbucket.org/fathomteam/cgm.git
-  GIT_TAG 13.1.1
-  )
-
+if(WIN32)
 add_revision(moab
   GIT_REPOSITORY https://judajake@bitbucket.org/judajake/moab.git
   GIT_TAG 4.6.3_cmake)
+else()
+add_revision(moab
+  GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
+  GIT_TAG Version4.7.0
+  )
+endif()

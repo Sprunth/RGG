@@ -30,7 +30,7 @@
        <number>3</number>
       </property>
       <item>
-       <widget class="QGroupBox" name="AssygneGroup">
+       <widget class="QGroupBox" name="AssygenGroup">
         <property name="title">
          <string>AssyGen</string>
         </property>
@@ -156,7 +156,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="CoregenGroup">
         <property name="title">
          <string>CoreGen</string>
         </property>
@@ -243,6 +243,13 @@
          <widget class="QCheckBox" name="parallel_Projection">
           <property name="text">
            <string>Parallel Projection</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="customMeshkit">
+          <property name="text">
+           <string>Use Custom Meshkit</string>
           </property>
          </widget>
         </item>

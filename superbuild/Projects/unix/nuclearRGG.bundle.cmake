@@ -19,12 +19,12 @@ endif()
 
 install(FILES ${CPACK_RESOURCE_FILE_LICENSE} DESTINATION bin)
 
-install(DIRECTORY 
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/simple_hexflatcore-Modified
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexflatcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexvertexcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/twelfth_hexflatcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/doc_rect_example
+install(DIRECTORY
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/simple_hexflatcore-Modified
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/sixth_hexflatcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/sixth_hexvertexcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/twelfth_hexflatcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/doc_rect_example
         DESTINATION ExampleModels)
 
 install(PROGRAMS ${install_location}/lib/RGGNuclear DESTINATION "lib")
@@ -39,10 +39,51 @@ install(CODE
         -Dpv_libraries_root:PATH=${install_location}/lib
         -Dcmb_libraries_root:PATH=${install_location}/lib
         -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/lib
+        -DCUBIT_PATH:PATH=${CUBIT_PATH}
         -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
     COMPONENT superbuild)
 
 install(PROGRAMS ${install_location}/bin/RGGNuclear DESTINATION "bin")
+if(BUILD_WITH_CUBIT)
+  install(PROGRAMS ${install_location}/lib/RGGNuclear-GUI DESTINATION "lib")
+  install(CODE
+      "execute_process(COMMAND
+      ${CMAKE_COMMAND}
+        -Dexecutable:PATH=${install_location}/lib/RGGNuclear-GUI
+        -Ddependencies_root:PATH=${install_location}
+        -Dpv_libraries_root:PATH=${install_location}/lib
+        -Dcmb_libraries_root:PATH=${install_location}/lib
+        -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/lib
+        -DCUBIT_PATH:PATH=${CUBIT_PATH}
+        -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
+    COMPONENT superbuild)
+endif()
+install(PROGRAMS ${install_location}/bin/coregen DESTINATION "lib")
+install(PROGRAMS ${install_location}/bin/assygen DESTINATION "lib")
+
+install(CODE
+      "execute_process(COMMAND
+      ${CMAKE_COMMAND}
+        -Dexecutable:PATH=${install_location}/bin/coregen
+        -Ddependencies_root:PATH=${install_location}
+        -Dpv_libraries_root:PATH=${install_location}/lib
+        -Dcmb_libraries_root:PATH=${install_location}/lib
+        -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/lib
+        -DCUBIT_PATH:PATH=${CUBIT_PATH}
+        -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
+    COMPONENT superbuild)
+
+install(CODE
+      "execute_process(COMMAND
+      ${CMAKE_COMMAND}
+        -Dexecutable:PATH=${install_location}/bin/assygen
+        -Ddependencies_root:PATH=${install_location}
+        -Dpv_libraries_root:PATH=${install_location}/lib
+        -Dcmb_libraries_root:PATH=${install_location}/lib
+        -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/lib
+        -DCUBIT_PATH:PATH=${CUBIT_PATH}
+        -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
+    COMPONENT superbuild)
 
 #we have to install everything in bin that also wasn't in lib. The reason for this is that
 # all the paraview application in bin are just forward shells

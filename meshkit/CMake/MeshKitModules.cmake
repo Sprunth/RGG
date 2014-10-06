@@ -5,7 +5,7 @@ include(CMakeParseArguments)
 #Add ability to use autoconf
 function(ExternalProject_AutoConf_Step name)
   ExternalProject_Add_Step(${name} ${name}-autoconf
-    COMMAND autoreconf -i <SOURCE_DIR>
+    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
     DEPENDEES update
     DEPENDERS configure
   )

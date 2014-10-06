@@ -1,11 +1,19 @@
 #include "cmbNucPreferencesDialog.h"
-#include "cmbNucMainWindow.h"
 #include <QSettings>
 #include <QFileDialog>
+#include <QFileInfo>
+#include <QDebug>
+#include <QDir>
+#include <QCoreApplication>
+#include <QMainWindow>
 
-cmbNucPreferencesDialog::cmbNucPreferencesDialog(cmbNucMainWindow *mainWindow)
+#define NAME_PROJECT "RGGNuclear"
+#define EXPORTER_NAME "Exporter"
+
+cmbNucPreferencesDialog::cmbNucPreferencesDialog(QMainWindow *mainWindow)
 : QDialog(mainWindow)
 {
+  EmitValuesSet = false;
   this->ui = new Ui_Preferences;
   this->ui->setupUi(this);
 
@@ -19,6 +27,16 @@ cmbNucPreferencesDialog::cmbNucPreferencesDialog(cmbNucMainWindow *mainWindow)
           this, SLOT(setValues() ));
   connect(this->ui->parallel_Projection, SIGNAL(clicked(bool)),
           this, SIGNAL(actionParallelProjection(bool)));
+  connect(this->ui->customMeshkit, SIGNAL(clicked(bool)),
+          this->ui->AssygenGroup, SLOT(setVisible(bool)));
+  connect(this->ui->customMeshkit, SIGNAL(clicked(bool)),
+          this->ui->CoregenGroup, SLOT(setVisible(bool)));
+  connect(this->ui->assygenExecutable, SIGNAL(editingFinished()),
+          this, SLOT(checkValues()));
+  connect(this->ui->coregenExecutable, SIGNAL(editingFinished()),
+          this, SLOT(checkValues()));
+  connect(this->ui->cubitExecutable, SIGNAL(editingFinished()),
+          this, SLOT(checkValues()));
 }
 
 cmbNucPreferencesDialog::~cmbNucPreferencesDialog()
@@ -26,20 +44,30 @@ cmbNucPreferencesDialog::~cmbNucPreferencesDialog()
   delete this->ui;
 }
 
-void cmbNucPreferencesDialog::setPreferences()
+void cmbNucPreferencesDialog::setPreferences(bool e)
 {
+  EmitValuesSet = e;
   this->hide();
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QString assygenexe = settings.value("EXPORTER/assygen_exe").toString();
+  //Keeping this because static methods could pull unsaved values
+  QSettings settings( NAME_PROJECT, EXPORTER_NAME );
+  qDebug() << settings.fileName();
+  QString assygenexe = settings.value("assygen_exe").toString();
   this->ui->assygenExecutable->setText(assygenexe);
-  QString libs = settings.value("EXPORTER/assygen_libs").toString();
+  QString libs = settings.value("assygen_libs").toString();
   this->ui->AssyGenLib->setText(libs);
-  QString coregenexe = settings.value("EXPORTER/coregen_exe").toString();
+  QString coregenexe = settings.value("coregen_exe").toString();
   this->ui->coregenExecutable->setText(coregenexe);
-  QString cubitexe = settings.value("EXPORTER/cubit_exe").toString();
+  QString cubitexe = settings.value("cubit_exe").toString();
   this->ui->cubitExecutable->setText(cubitexe);
-  libs = settings.value("EXPORTER/coregen_libs").toString();
+  libs = settings.value("coregen_libs").toString();
   this->ui->CoreGenLib->setText(libs);
+  bool useCustom = settings.value("custom_meshkit",
+                                  QVariant(!cmbNucPreferencesDialog::hasPackaged())).toBool();
+  this->ui->customMeshkit->setChecked(useCustom);
+  this->ui->customMeshkit->setVisible(cmbNucPreferencesDialog::hasPackaged());
+  this->ui->AssygenGroup->setVisible(useCustom || !cmbNucPreferencesDialog::hasPackaged());
+  this->ui->CoregenGroup->setVisible(useCustom || !cmbNucPreferencesDialog::hasPackaged());
+  this->checkValues();
   this->show();
 }
 
@@ -51,6 +79,8 @@ void cmbNucPreferencesDialog::browserAssygenExecutable()
   QStringList fileNames;
   QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
                    this->ui->assygenExecutable, SLOT(setText(const QString&)));
+  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
+                   this, SLOT(checkValues()));
   dialog.exec();
 }
 
@@ -61,6 +91,8 @@ void cmbNucPreferencesDialog::browserCubitExecutable()
   dialog.setAcceptMode(QFileDialog::AcceptOpen);
   QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
                    this->ui->cubitExecutable, SLOT(setText(const QString&)));
+  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
+                   this, SLOT(checkValues()));
   dialog.exec();
 }
 
@@ -71,6 +103,8 @@ void cmbNucPreferencesDialog::browserCoregenExecutable()
   dialog.setAcceptMode(QFileDialog::AcceptOpen);
   QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
                    this->ui->coregenExecutable, SLOT(setText(const QString&)));
+  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
+                   this, SLOT(checkValues()));
   dialog.exec();
 }
 
@@ -81,10 +115,121 @@ void cmbNucPreferencesDialog::setValues()
   QString cubitExe = ui->cubitExecutable->text();
   QString coregenExe = ui->coregenExecutable->text();
   QString coregenLibs = ui->CoreGenLib->toPlainText();
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  settings.setValue("EXPORTER/assygen_exe", assygenExe);
-  settings.setValue("EXPORTER/assygen_libs", assygenLibs);
-  settings.setValue("EXPORTER/coregen_exe", coregenExe);
-  settings.setValue("EXPORTER/cubit_exe", cubitExe);
-  settings.setValue("EXPORTER/coregen_libs", coregenLibs);
+  QSettings settings(NAME_PROJECT, EXPORTER_NAME);
+  settings.setValue("assygen_exe", assygenExe);
+  settings.setValue("assygen_libs", assygenLibs);
+  settings.setValue("coregen_exe", coregenExe);
+  settings.setValue("cubit_exe", cubitExe);
+  settings.setValue("coregen_libs", coregenLibs);
+  settings.setValue("custom_meshkit", this->ui->customMeshkit->isChecked());
+  if(EmitValuesSet) emit valuesSet();
+}
+
+void cmbNucPreferencesDialog::checkValues()
+{
+  bool isEnabled = true;
+  if(this->ui->customMeshkit->isChecked() || !cmbNucPreferencesDialog::hasPackaged())
+  {
+    QString assygenExe = ui->assygenExecutable->text();
+    QString coregenExe = ui->coregenExecutable->text();
+    QFileInfo ainfo(assygenExe);
+    QFileInfo cinfo(coregenExe);
+    isEnabled &= (!assygenExe.isEmpty() && ainfo.exists() &&
+                  ainfo.isExecutable() && !ainfo.isDir()) &&
+                 (!coregenExe.isEmpty() && cinfo.exists() &&
+                  cinfo.isExecutable() && !cinfo.isDir());
+  }
+  QString cubitExe = ui->cubitExecutable->text();
+#if __APPLE__
+  if(QFileInfo(cubitExe).isBundle())
+  {
+    cubitExe = QFileInfo(cubitExe).dir().absoluteFilePath("Cubit.app/Contents/MacOS/Cubit");
+    this->ui->cubitExecutable->setText(cubitExe);
+  }
+#endif
+
+  isEnabled &= (!cubitExe.isEmpty() && QFileInfo(cubitExe).exists() &&
+                !QFileInfo(cubitExe).isDir() && QFileInfo(cubitExe).isExecutable());
+
+  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(isEnabled);
+}
+
+bool cmbNucPreferencesDialog::isOk()
+{
+  QSettings settings(NAME_PROJECT, EXPORTER_NAME);
+  QString assygenexe = settings.value("assygen_exe").toString();
+  QString coregenexe = settings.value("coregen_exe").toString();
+  QString cubitexe = settings.value("cubit_exe").toString();
+  bool useCustom = settings.value("custom_meshkit", QVariant(false)).toBool();
+  bool hasCubit = !cubitexe.isEmpty() && QFileInfo(cubitexe).exists();
+  bool hasAssygen = !assygenexe.isEmpty() && QFileInfo(assygenexe).exists();
+  bool hasCoregen = !coregenexe.isEmpty() && QFileInfo(coregenexe).exists();
+  bool hasPack = cmbNucPreferencesDialog::hasPackaged();
+  bool hasRgg = (!useCustom && hasPack) || (useCustom && hasAssygen && hasCoregen);
+  return hasRgg && hasCubit;
+}
+
+bool cmbNucPreferencesDialog::hasPackaged()
+{
+  QString assygenExe, coregenExe;
+  return getPackaged(assygenExe,coregenExe);
+}
+
+bool cmbNucPreferencesDialog::usePackaged()
+{
+  QSettings settings(NAME_PROJECT, EXPORTER_NAME);
+  bool useCustom = settings.value("custom_meshkit", QVariant(false)).toBool();
+  return cmbNucPreferencesDialog::hasPackaged() && !useCustom;
+}
+
+bool cmbNucPreferencesDialog::getExecutable(QString & assygenExe, QString & assygenLib,
+                                            QString & cubitExe,
+                                            QString & coregenExe, QString & coregenLib)
+{
+  qDebug() << "Get exe";
+  QSettings settings(NAME_PROJECT, EXPORTER_NAME);
+  bool useCustom = settings.value("custom_meshkit", QVariant(false)).toBool();
+  if(useCustom || !cmbNucPreferencesDialog::hasPackaged())
+  {
+    assygenExe = settings.value("assygen_exe").toString();
+    assygenLib = settings.value("assygen_libs").toString();
+    coregenExe = settings.value("coregen_exe").toString();
+    coregenLib = settings.value("coregen_libs").toString();
+  }
+  else
+  {
+    qDebug() << "use packaged exe";
+    cmbNucPreferencesDialog::getPackaged(assygenExe, coregenExe);
+    qDebug() << "====> Got:" << assygenExe << coregenExe;
+  }
+  cubitExe = settings.value("cubit_exe").toString();
+  qDebug() << assygenExe << cubitExe << coregenExe;
+  return cmbNucPreferencesDialog::isOk();
+}
+
+bool cmbNucPreferencesDialog::getPackaged(QString & assygenExe, QString & coregenExe)
+{
+#if __APPLE__
+  QDir appDir(QCoreApplication::applicationDirPath());
+  assygenExe = QDir::cleanPath(appDir.absoluteFilePath("../../meshkit/assygen/Contents/bin/assygen"));
+  coregenExe = QDir::cleanPath(appDir.absoluteFilePath("../../meshkit/coregen/Contents/bin/coregen"));
+  return (!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+         (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists());
+#elif __linux__
+  QDir appDir(QCoreApplication::applicationDirPath());
+  assygenExe = QDir::cleanPath(appDir.absoluteFilePath("assygen"));
+  coregenExe = QDir::cleanPath(appDir.absoluteFilePath("coregen"));
+  if ((!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+      (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists()))
+  {
+    return true;
+  }
+  assygenExe = QDir::cleanPath(appDir.absoluteFilePath("../bin/assygen"));
+  coregenExe = QDir::cleanPath(appDir.absoluteFilePath("../bin/coregen"));
+  qDebug() << assygenExe << coregenExe;
+  return (!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+         (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists());
+#else
+  return false;
+#endif
 }

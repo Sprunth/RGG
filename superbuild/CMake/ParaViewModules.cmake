@@ -278,7 +278,17 @@ endfunction()
 function(add_external_project_internal name)
   #args needs to be quoted so that empty list items aren't removed
   #if that happens options like INSTALL_COMMAND "" won't work
-  set(project_args "${ARGN}")
+  set( pass_along )
+  set( replace_flags FALSE )
+  set (project_arguments "${ARGN}") #need quotes to keep empty list items
+  foreach(arg IN LISTS project_arguments)
+      if ("${arg}" MATCHES "^APPLE_32Bit$")
+        set (replace_flags TRUE)
+      else()
+        list(APPEND pass_along "${arg}")
+      endif()
+  endforeach()
+  set(project_args "${pass_along}")
   set (cmake_params)
   foreach (flag CMAKE_BUILD_TYPE
                 CMAKE_C_FLAGS_DEBUG
@@ -300,11 +310,17 @@ function(add_external_project_internal name)
   endforeach()
 
   if (APPLE)
-    list (APPEND cmake_params
-      -DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
-      -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
-      -DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT})
+    foreach (flag CMAKE_OSX_ARCHITECTURES
+                  CMAKE_OSX_DEPLOYMENT_TARGET
+                  CMAKE_OSX_SYSROOT )
+      string(FIND "${project_args}" "${flag}:" has_override)
+      if (flag AND has_override EQUAL -1)
+        list (APPEND cmake_params -D${flag}:STRING=${${flag}})
+      endif()
+    endforeach()
   endif()
+  #message(${cmake_params})
+  #message(${project_args})
 
   #get extra-cmake args from every dependent project, if any.
   set(arg_DEPENDS)
@@ -324,13 +340,23 @@ function(add_external_project_internal name)
     set (extra_cxx_flags ${extra_cxx_flags} ${_tmp})
   endforeach()
 
+  if(replace_flags)
+    string(REPLACE x86_64 i386 cppflags ${cppflags})
+    string(REPLACE x86_64 i386 cflags ${cflags})
+    string(REPLACE x86_64 i386 cxxflags ${cxxflags})
+    message(${CMAKE_CURRENT_BINARY_DIR})
+    set( ldflags "-L${CMAKE_CURRENT_BINARY_DIR}/meshkit32bit/src/meshkit32bit-build/install/lib ${ldflags}")
+    set( prefix_path ${prefix_path}/32bit )
+  endif()
+  set (project_ld_flags "${ldflags}" )
+  set (project_cpp_flags "${cppflags}" )
   set (project_c_flags "${cflags}")
   if (extra_c_flags)
-    set (project_c_flags "${cflags} ${extra_c_flags}")
+      set (project_c_flags "${cflags} ${extra_c_flags}")
   endif()
   set (project_cxx_flags "${cxxflags}")
   if (extra_cxx_flags)
-    set (project_cxx_flags "${cxxflags} ${extra_cxx_flags}")
+      set (project_cxx_flags "${cxxflags} ${extra_cxx_flags}")
   endif()
 
 
@@ -353,8 +379,8 @@ function(add_external_project_internal name)
     ${${name}_revision}
 
     PROCESS_ENVIRONMENT
-      LDFLAGS "${ldflags}"
-      CPPFLAGS "${cppflags}"
+      LDFLAGS "${project_ld_flags}"
+      CPPFLAGS "${project_cpp_flags}"
       CXXFLAGS "${project_cxx_flags}"
       CFLAGS "${project_c_flags}"
 # disabling this since it fails when building numpy.
@@ -368,7 +394,7 @@ function(add_external_project_internal name)
       -DCMAKE_PREFIX_PATH:PATH=${prefix_path}
       -DCMAKE_C_FLAGS:STRING=${project_c_flags}
       -DCMAKE_CXX_FLAGS:STRING=${project_cxx_flags}
-      -DCMAKE_SHARED_LINKER_FLAGS:STRING=${ldflags}
+      -DCMAKE_SHARED_LINKER_FLAGS:STRING=${project_ld_flags}
       ${cmake_params}
     )
 

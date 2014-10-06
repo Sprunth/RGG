@@ -5,6 +5,7 @@ if(BUILD_WITH_CUBIT)
   else()
     set(ldFlags "LDFLAGS=-L${CUBIT_PATH}")
   endif()
+  message("CGM: CFLAGS=${cflags} CXXFLAGS=${cxxflags}")
   add_external_project(cgm
     USE_AUTOCONF
     BUILD_IN_SOURCE 1

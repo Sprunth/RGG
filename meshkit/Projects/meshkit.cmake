@@ -6,7 +6,7 @@ add_external_project(meshkit
   --with-itaps=<INSTALL_DIR>
   --enable-algs
   --enable-optimize
-  --enable-src
+  --disable-src
   --enable-utils
   --enable-rgg
   --enable-shared

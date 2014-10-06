@@ -9,7 +9,11 @@ set(boost_with_args --with-date_time --with-filesystem --with-system --with-thre
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(boost_toolset toolset=clang-osx)
-  set(boost_lib cxxflags=\"-stdlib=libc++\" linkflags=\"-stdlib=libc++\")
+  if(CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "10.9")
+    set(boost_lib cxxflags=\"-stdlib=libc++\" linkflags=\"-stdlib=libc++\")
+  else()
+    set(boost_lib cxxflags=\"-stdlib=libstdc++\" linkflags=\"-stdlib=libstdc++\")
+  endif()
 endif()
 
 #since we don't specify a prefix for the superbuild,

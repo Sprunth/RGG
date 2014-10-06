@@ -121,6 +121,7 @@ protected slots:
   void zScaleChanged(int value);
 
   void setTitle();
+  //void retryExport();
 
   void colorChange();
 

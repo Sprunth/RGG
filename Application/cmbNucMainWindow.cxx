@@ -338,6 +338,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
   connect(this->Preferences, SIGNAL(actionParallelProjection(bool)),
           this, SLOT(useParallelProjection(bool)));
+  connect(this->Preferences, SIGNAL(valuesSet()),
+          this, SLOT(exportRGG()));
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
   connect(this->ui->actionClear_Mesh, SIGNAL(triggered()), this, SLOT(onClearMesh()));
 
@@ -1463,8 +1465,19 @@ void cmbNucMainWindow::updateCoreMaterialColors()
 
 void cmbNucMainWindow::exportRGG()
 {
-  this->ExportDialog->exportFile(NuclearCore);
+  //check to make sure it is valid to export
+  bool isOk = cmbNucPreferencesDialog::isOk();
+  if(isOk)
+  {
+    this->ExportDialog->exportFile(NuclearCore);
+  }
+  else
+  {
+    this->Preferences->setPreferences();
+  }
 }
+
+//void cmbNucMainWindow::retryExport();
 
 void cmbNucMainWindow::zScaleChanged(int value)
 {
