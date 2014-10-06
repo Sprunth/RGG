@@ -620,6 +620,7 @@ void cmbNucPinCellEditor::setupMaterialComboBox(QComboBox *comboBox)
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
   matColorMap->setUp(comboBox);
+  comboBox->setItemText(0, "No Cell Material");
 }
 
 void cmbNucPinCellEditor::onUpdateLayerMaterial()

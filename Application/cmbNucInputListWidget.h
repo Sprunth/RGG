@@ -33,14 +33,6 @@ public:
   AssyPartObj* getSelectedCoreOrAssembly();
   cmbNucPartsTreeItem* getSelectedPartNode();
 
-  QTreeWidget * getModelTree();
-
-  void setMeshColorState(bool b);
-  void setMeshEdgeState(bool b);
-
-  bool getMeshColorState();
-  bool getMeshEdgeState();
-
   bool onlyMeshLoaded();
 
   void clear();
@@ -63,13 +55,8 @@ signals:
 
   void pinsModified(cmbNucAssembly*);
   void assembliesModified(cmbNucCore*);
-  void switchToModelTab();
-  void switchToNonModelTab(int);
 
   void deleteCore();
-
-  void meshEdgeChange(bool);
-  void meshColorChange(bool);
 
   void checkSavedAndGenerate();
 
@@ -86,7 +73,6 @@ protected:
   void setActionsEnabled(bool val);
   void updateWithAssembly(cmbNucAssembly* assy, bool select=true);
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
-  cmbNucPartsTreeItem* getDuctCellNode(cmbNucPartsTreeItem* assyNode);
   void initCoreRootNode();
   void createMaterialItem( const QString& name, const QString& label,
                            const QColor& color );
@@ -104,13 +90,13 @@ private slots:
 
   // Description:
   // Tree widget context menu related slots
-  void onNewDuct();
   void onNewPin();
   void onRemoveSelectedPart();
   void onImportMaterial();
   void onSaveMaterial();
 
   void repaintList();
+  void hideLabels(bool);
 
 signals:
   void deleteAssembly(QTreeWidgetItem*);

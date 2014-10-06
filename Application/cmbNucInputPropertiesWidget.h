@@ -3,11 +3,12 @@
 
 #include <QWidget>
 #include "cmbNucPartDefinition.h"
+#include "cmbNucLattice.h"
+#include "cmbNucDraw2DLattice.h"
 #include <QStringList>
 #include <QPointer>
 
 class cmbNucInputPropertiesWidgetInternal;
-class cmbNucAssemblyEditor;
 class cmbNucMainWindow;
 class cmbNucAssembly;
 class cmbNucCore;
@@ -51,6 +52,16 @@ signals:
   void badPinName(QString prev);
   void valuesChanged();
   void resetView();
+  void sendLattice(LatticeContainer *);
+  void sendLatticeFullMode(cmbNucDraw2DLattice::CellDrawMode);
+  void apply();
+  void reset();
+  void sendXSize(int i);
+  void sendYSize(int i);
+  void select3DModelView();
+  void checkSaveAndGenerate();
+  void drawCylinder(double r, int i);
+  void clearCylinder();
 
 public slots:
   void colorChanged();
@@ -67,54 +78,34 @@ protected slots:
   void onReset();
   // reset property panel with given object
   void resetPinCell(PinCell* pincell);
-  void resetDuct(Duct* duct);
   void resetLattice(Lattice* lattice);
   void resetAssemblyLattice();
   void resetAssembly(cmbNucAssembly* assy);
 
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
-  void applyToDuct(Duct* duct);
   void applyToLattice(Lattice* lattice);
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToCore(cmbNucCore* nucCore);
 
-  // Slot for Lattice dimensions
-  void onLatticeDimensionChanged();
-  void onCoreDimensionChanged();
-
   void showPinCellEditor();
+  void showDuctCellEditor();
 
-  void onCoreLayersChanged();
-  void onAssyLayersChanged();
   void choosePinLegendColor();
   void chooseAssyLegendColor();
 
-  void addDuctLayerBefore();
-  void addDuctLayerAfter();
-  void deleteDuctLayer();
-
 private:
-  void setUpDuctTable(bool isHex, Duct* duct);
-  bool setDuctValuesFromTable(Duct* duct);
-  void addDuctLayerSetRowValue(int row);
   bool RebuildCoreGrid;
   cmbNucInputPropertiesWidgetInternal* Internal;
 
   void initUI();
   AssyPartObj* CurrentObject;
-  cmbNucAssemblyEditor *AssemblyEditor;
-  cmbNucAssemblyEditor *CoreEditor;
   cmbNucAssembly *Assembly;
   cmbNucCore *Core;
   cmbNucMainWindow *MainWindow;
-  cmbNucHexLattice* HexCore;
-  cmbNucHexLattice* HexAssy;
-  cmbCoreParametersWidget* HexCoreProperties;
-  cmbCoreParametersWidget* RectCoreProperties;
+  cmbCoreParametersWidget* CoreProperties;
   cmbAssyParametersWidget* assyConf;
-  QPointer<cmbNucDefaultWidget> hexCoreDefaults;
-  QPointer<cmbNucDefaultWidget> rectCoreDefaults;
+  QPointer<cmbNucDefaultWidget> CoreDefaults;
   QPointer<cmbNucDefaultWidget> assyDefaults;
 };
 #endif

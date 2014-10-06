@@ -16,6 +16,9 @@
 #include "vtkTransformFilter.h"
 #include "vtkMath.h"
 #include "cmbNucDefaults.h"
+#include "cmbNucMaterialColors.h"
+
+#include "vtkCmbLayeredConeSource.h"
 
 #include <QFileInfo>
 #include <QDateTime>
@@ -25,7 +28,13 @@
 void cmbNucCoreConnection::dataChanged()
 {
   v->setAndTestDiffFromFiles(true);
+  v->clearOldGeometry();
   emit dataChangedSig();
+}
+
+void cmbNucCoreConnection::clearData()
+{
+  v->clearOldGeometry();
 }
 
 void cmbNucCoreConnection::assemblyChanged()
@@ -34,15 +43,32 @@ void cmbNucCoreConnection::assemblyChanged()
   emit dataChangedSig();
 }
 
+const double cmbNucCore::CosSinAngles[6][2] =
+{ { cos( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (0 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (1 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (2 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (3 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (4 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (4 + 3) ) },
+  { cos( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ),
+    sin( 2*(vtkMath::Pi() / 6.0) * (5 + 3) ) } };
+
 cmbNucCore::cmbNucCore(bool needSaved)
 {
-  this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+  clearOldGeometry();
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
   DifferentFromH5M = true;
   this->Connection = new cmbNucCoreConnection();
   this->Connection->v = this;
+  hasCylinder = false;
+  cylinderRadius = 0;
+  cylinderOuterSpacing = 0;
 }
 
 cmbNucCore::~cmbNucCore()
@@ -60,15 +86,20 @@ cmbNucCore::~cmbNucCore()
   delete this->Connection;
 }
 
+void cmbNucCore::clearOldGeometry()
+{
+  this->Data = NULL;
+}
+
 void cmbNucCore::SetDimensions(int i, int j)
 {
-  this->CoreLattice.SetDimensions(i, j);
+  this->lattice.SetDimensions(i, j);
 }
 
 void cmbNucCore::clearExceptAssembliesAndGeom()
 {
-  this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
-  this->CoreLattice.SetDimensions(1, 1, true);
+  clearOldGeometry();
+  this->lattice.SetDimensions(1, 1, true);
   this->setAndTestDiffFromFiles(true);
   FileName = "";
   h5mFile = "";
@@ -81,8 +112,8 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
     {
     if(assembly)
       {
-      this->CoreLattice.SetGeometryType(
-        assembly->AssyLattice.GetGeometryType());
+      this->lattice.SetGeometryType(
+        assembly->getLattice().GetGeometryType());
       }
     this->SetDimensions(1, 1);
     }
@@ -93,6 +124,8 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
                    this->Connection, SIGNAL(colorChanged()));
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SLOT(assemblyChanged()));
+  QObject::connect(this->Connection, SIGNAL(dataChangedSig()),
+                   this->Connection, SLOT(clearData()));
   if(this->Assemblies.size() == 1)
     {
     this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
@@ -112,7 +145,11 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
       }
     }
   // update the Grid
-  if(this->CoreLattice.ClearCell(label)) this->setAndTestDiffFromFiles(true);
+  if(this->lattice.ClearCell(label))
+  {
+    this->setAndTestDiffFromFiles(true);
+    clearOldGeometry();
+  }
 }
 
 cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
@@ -136,11 +173,11 @@ cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
 std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
 {
   std::set<std::string> usedDict;
-  for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
+  for(size_t i = 0; i < this->lattice.Grid.size(); i++)
     {
-    for(size_t j = 0; j < this->CoreLattice.Grid[i].size(); j++)
+    for(size_t j = 0; j < this->lattice.Grid[i].size(); j++)
       {
-      usedDict.insert(this->CoreLattice.GetCell(i, j).label);
+      usedDict.insert(this->lattice.GetCell(i, j).label);
       }
     }
   std::vector< cmbNucAssembly* > result;
@@ -157,17 +194,27 @@ std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
 
 vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
 {
-  if(this->Assemblies.size()==0 || this->CoreLattice.Grid.size()==0
-    || this->CoreLattice.Grid[0].size()==0)
+  if(this->Data == NULL)
+  {
+    generateData();
+  }
+  return this->Data;
+}
+
+void cmbNucCore::generateData()
+{
+  if(this->Assemblies.size()==0 || this->lattice.Grid.size()==0
+    || this->lattice.Grid[0].size()==0)
     {
-    return NULL;
+    clearOldGeometry(); return;
     }
   // we need at least one duct
   if(Assemblies[0]->AssyDuct.numberOfDucts()==0)
     {
-    return NULL;
+    clearOldGeometry(); return;
     }
-  int subType = this->CoreLattice.GetGeometrySubType();
+  this->Data = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+  int subType = this->lattice.GetGeometrySubType();
 
   double startX = this->Assemblies[0]->AssyDuct.getDuct(0)->x;
   double startY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
@@ -176,19 +223,19 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
   double extraXTrans = 0, extraYTrans = 0;
 
   // Is this Hex type?
-  bool isHex = Assemblies[0]->AssyLattice.GetGeometryType() == HEXAGONAL;
+  bool isHex = Assemblies[0]->getLattice().GetGeometryType() == HEXAGONAL;
 
 
   // setup data
   size_t numBlocks = isHex ?
-    (1 + 3*(int)this->CoreLattice.Grid.size()*((int)this->CoreLattice.Grid.size() - 1)) :
-    this->CoreLattice.Grid.size()*this->CoreLattice.Grid[0].size();
+    (1 + 3*(int)this->lattice.Grid.size()*((int)this->lattice.Grid.size() - 1)) :
+    this->lattice.Grid.size()*this->lattice.Grid[0].size();
 
   this->Data->SetNumberOfBlocks(numBlocks);
 
-  if( isHex && subType & ANGLE_360 && this->CoreLattice.Grid.size()>1 )
+  if( isHex && (subType & ANGLE_360) && this->lattice.Grid.size()>=1 )
   {
-    double odc = outerDuctHeight*this->CoreLattice.Grid.size();
+    double odc = outerDuctHeight*this->lattice.Grid.size();
     double tmp = odc - outerDuctHeight;
     double t2 = tmp*0.5;
     double ty = std::sqrt(tmp*tmp-t2*t2);
@@ -196,12 +243,12 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
     extraXTrans = odc;
   }
 
-  for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
+  for(size_t i = 0; i < this->lattice.Grid.size(); i++)
     {
     size_t startBlock = isHex ?
-      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->CoreLattice.Grid[0].size());
+      (i==0 ? 0 : (1 + 3*i*(i-1))) : (i*this->lattice.Grid[0].size());
 
-    const std::vector<LatticeCell> &row = this->CoreLattice.Grid[i];
+    const std::vector<Lattice::LatticeCell> &row = this->lattice.Grid[i];
 
     for(size_t j = 0; j < row.size(); j++)
       {
@@ -241,9 +288,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
             for(int c = 0; c < 6; c++)
               {
               // Needs a little more thinking on math here?
-              double angle = 2 * (vtkMath::Pi() / 6.0) * (c+3);
-              layerCorners[c][0] = layerRadius * cos(angle);
-              layerCorners[c][1] = layerRadius * sin(angle);
+              layerCorners[c][0] = layerRadius * CosSinAngles[c][0];
+              layerCorners[c][1] = layerRadius * CosSinAngles[c][1];
               }
             }
 
@@ -292,7 +338,7 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
           {
           double tX = startX + i * (outerDuctWidth);
           double tY = startY + j * (outerDuctHeight);
-          transform->Translate(tY, tX-outerDuctWidth*(CoreLattice.Grid.size()-1), 0);
+          transform->Translate(tY, tX-outerDuctWidth*(this->lattice.Grid.size()-1), 0);
           }
         // transform block by block --- got to have better ways
         vtkSmartPointer<vtkMultiBlockDataSet> blockData = vtkSmartPointer<vtkMultiBlockDataSet>::New();
@@ -323,8 +369,8 @@ vtkSmartPointer<vtkMultiBlockDataSet> cmbNucCore::GetData()
         }
       }
     }
-
-  return this->Data;
+  this->Data->SetBlock(this->Data->GetNumberOfBlocks()+1, NULL);
+  this->drawCylinder();
 }
 
 void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
@@ -365,8 +411,8 @@ void cmbNucCore::transformData(vtkMultiBlockDataSet * input,
 
 void cmbNucCore::setGeometryLabel(std::string geomType)
 {
-  enumGeometryType type = CoreLattice.GetGeometryType();
-  int subType = CoreLattice.GetGeometrySubType() & JUST_ANGLE;
+  enumGeometryType type = lattice.GetGeometryType();
+  int subType = lattice.GetGeometrySubType() & JUST_ANGLE;
   std::transform(geomType.begin(), geomType.end(), geomType.begin(), ::tolower);
   type = HEXAGONAL;
   if( geomType == "hexflat" )
@@ -382,13 +428,13 @@ void cmbNucCore::setGeometryLabel(std::string geomType)
     type = RECTILINEAR;
     subType = ANGLE_360;
   }
-  CoreLattice.SetGeometryType(type);
-  CoreLattice.SetGeometrySubType(subType);
+  lattice.SetGeometryType(type);
+  lattice.SetGeometrySubType(subType);
 }
 
 void cmbNucCore::setHexSymmetry(int sym)
 {
-  int type = CoreLattice.GetGeometrySubType() & ~JUST_ANGLE; // clear angle
+  int type = lattice.GetGeometrySubType() & ~JUST_ANGLE; // clear angle
   if(sym == 6)
   {
     type |= ANGLE_60;
@@ -401,12 +447,12 @@ void cmbNucCore::setHexSymmetry(int sym)
   {
     type |= ANGLE_360;
   }
-  CoreLattice.SetGeometrySubType(type);
+  lattice.SetGeometrySubType(type);
 }
 
 bool cmbNucCore::IsHexType()
 {
-  return HEXAGONAL == CoreLattice.GetGeometryType();
+  return HEXAGONAL == lattice.GetGeometryType();
 }
 
 void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3])
@@ -439,20 +485,20 @@ cmbNucAssembly* cmbNucCore::loadAssemblyFromFile(
 
 void cmbNucCore::RebuildGrid()
 {
-  for(size_t i = 0; i < this->CoreLattice.Grid.size(); i++)
+  for(size_t i = 0; i < this->lattice.Grid.size(); i++)
     {
-    for(size_t j = 0; j < this->CoreLattice.Grid[i].size(); j++)
+    for(size_t j = 0; j < this->lattice.Grid[i].size(); j++)
       {
-      std::string type = this->CoreLattice.Grid[i][j].label;
+      std::string type = this->lattice.Grid[i][j].label;
       cmbNucAssembly* assembly = NULL;
       if(!(type.empty() || type == "xx" || type == "XX" ||
           (assembly = this->GetAssembly(type)) == NULL))
         {
-        this->CoreLattice.Grid[i][j].color = assembly->GetLegendColor();
+        this->lattice.Grid[i][j].color = assembly->GetLegendColor();
         }
       else
         {
-        this->CoreLattice.Grid[i][j].color = Qt::white;
+        this->lattice.Grid[i][j].color = Qt::white;
         }
       }
     }
@@ -607,5 +653,155 @@ void cmbNucCore::sendDefaults()
   for(unsigned int i = 0; i < assys.size(); ++i)
   {
     assys[i]->setFromDefaults(this->Defaults);
+  }
+}
+
+bool cmbNucCore::label_unique(std::string & n)
+{
+  std::vector< cmbNucAssembly* > assys = this->Assemblies;
+  for(unsigned int i = 0; i < assys.size(); ++i)
+  {
+    if(assys[i]->getLabel() == n) return false;
+  }
+  return true;
+}
+
+void cmbNucCore::fillList(QStringList & l)
+{
+  for(int i = 0; i < this->GetNumberOfAssemblies(); i++)
+  {
+    cmbNucAssembly *t = this->GetAssembly(i);
+    l.append(t->label.c_str());
+  }
+}
+
+AssyPartObj * cmbNucCore::getFromLabel(const std::string & s)
+{
+  return this->GetAssembly(s);
+}
+
+int start = 0;
+
+void cmbNucCore::drawCylinder()
+{
+  if(cylinderRadius <= 0 || cylinderOuterSpacing <= 0)
+  {
+    return;
+  }
+  if(!hasCylinder) return;
+
+  vtkSmartPointer<vtkCmbLayeredConeSource> cylinder = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
+  //cylinder->SetGenerateEnds(0);
+
+  double outerDuctWidth = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[1];
+  double outerDuctHeight = this->Assemblies[0]->AssyDuct.getDuct(0)->thickness[0];
+  double extraXTrans = 0, extraYTrans = 0;
+
+  // setup data
+  if(IsHexType())
+  {
+    double odc = outerDuctHeight*this->lattice.Grid.size();
+    double tmp = odc - outerDuctHeight;
+    double t2 = tmp*0.5;
+    double ty = std::sqrt(tmp*tmp-t2*t2);
+    extraYTrans = -ty;
+    extraXTrans = odc;
+  }
+  else
+  {
+    double tx = outerDuctWidth*(this->lattice.Grid.size()-1)*0.5;
+    double ty = outerDuctHeight*(this->lattice.Grid[0].size()-1)*0.5;
+    extraXTrans = ty,
+    extraYTrans = tx-outerDuctWidth*(this->lattice.Grid.size()-1);
+  }
+
+  double h;
+  Defaults->getHeight(h);
+  cylinder->SetHeight(h);
+  cylinder->SetNumberOfLayers(1);
+  cylinder->SetTopRadius(0, cylinderRadius);
+  cylinder->SetBaseRadius(0, cylinderRadius);
+  cylinder->SetResolution(0, cylinderOuterSpacing);
+  double odc = outerDuctHeight*(this->lattice.Grid.size()-1);
+  double tmp = (outerDuctHeight*0.5) / (cos(30.0 * vtkMath::Pi() / 180.0));
+  double pt1[] = {odc * CosSinAngles[0][0], odc * CosSinAngles[0][1]};
+  double pt2[2];
+  if(IsHexType())
+  {
+    for(int i = 0; i < 6; ++i)
+    {
+      pt2[0] = odc * CosSinAngles[(i+1)%6][0];
+      pt2[1] = odc * CosSinAngles[(i+1)%6][1];
+      int sp1 = (i + 0)%6;
+      int sp2 = (i + 1)%6;
+      if(this->lattice.Grid.size() == 1)
+      {
+        cylinder->addInnerPoint(pt1[0]+tmp * cmbNucAssembly::CosSinAngles[sp1][0],
+                                pt1[1]+tmp * cmbNucAssembly::CosSinAngles[sp1][1]);
+      }
+      else for(int j = 0; j < this->lattice.Grid.size(); ++j)
+      {
+        double s = j/(this->lattice.Grid.size()-1.0);
+        double pt[] = {pt1[0]*(1.0-s)+pt2[0]*(s), pt1[1]*(1.0-s)+pt2[1]*(s)};
+
+        {
+          cylinder->addInnerPoint(pt[0]+tmp * cmbNucAssembly::CosSinAngles[sp1][0],
+                                  pt[1]+tmp * cmbNucAssembly::CosSinAngles[sp1][1]);
+        }
+        if(j != this->lattice.Grid.size()-1 )
+        {
+          cylinder->addInnerPoint(pt[0]+tmp * cmbNucAssembly::CosSinAngles[sp2][0],
+                                pt[1]+tmp * cmbNucAssembly::CosSinAngles[sp2][1]);
+        }
+      }
+
+      pt1[0] = pt2[0];
+      pt1[1] = pt2[1];
+    }
+  }
+  else
+  {
+    double height = outerDuctWidth*(this->lattice.Grid.size())*0.5;
+    double width = outerDuctHeight*(this->lattice.Grid[0].size())*0.5;
+
+    cylinder->addInnerPoint( width,-height);
+    cylinder->addInnerPoint( width, height);
+    cylinder->addInnerPoint(-width, height);
+    cylinder->addInnerPoint(-width,-height);
+
+  }
+  double bc[] = {extraXTrans, extraYTrans, 0};
+  cylinder->SetBaseCenter(bc);
+  cylinder->Update();
+
+  Data->SetBlock(Data->GetNumberOfBlocks()-1, cylinder->GetOutput());
+}
+
+void cmbNucCore::drawCylinder(double r, int i)
+{
+  if(r <= 0 || i <= 0)
+  {
+    return;
+  }
+  if(!hasCylinder)
+  {
+    cmbNucMaterialColors::instance()->getUnknownMaterial()->inc();
+  }
+  hasCylinder = true;
+  cylinderRadius = r;
+  cylinderOuterSpacing = i;
+  drawCylinder();
+}
+
+void cmbNucCore::clearCylinder()
+{
+  if(hasCylinder)
+  {
+    cmbNucMaterialColors::instance()->getUnknownMaterial()->dec();
+  }
+  hasCylinder = false;
+  if(Data != NULL)
+  {
+    Data->SetBlock(Data->GetNumberOfBlocks()-1, NULL);
   }
 }

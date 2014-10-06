@@ -6,6 +6,7 @@
 #include <QThread>
 #include "cmbNucPartDefinition.h"
 #include "cmbNucExport.h"
+#include "cmbNucGenerateOuterCylinder.h"
 #include "cmbNucCore.h"
 #include "ui_qProgress.h"
 
@@ -52,22 +53,13 @@ protected slots:
   void GetRunnableCoreFile(bool);
 
 signals:
-  void process( const QString,
-                const QString assygenLib,
-                const QStringList &,
-                const QString,
-                const QString,
-                const QString coregenLib,
-                const QString,
-                const QString );
-  void process( const QString assygenExe,
-                const QString assygenLib,
-                const QStringList &assygenFile,
-                const QString cubitExe );
-  void process( const QString coregenExe,
-                const QString coregenLib,
-                const QString coregenFile,
-                const QString CoreGenOutputFile );
+  void process( const QStringList &, const QString, const QString);
+  void process( const QStringList &, const QString, const QString,
+                const QString, const QString, const QString, const QString, const QString );
+  void process( const QStringList &assygenFile );
+  void process( const QString coregenFile, const QString CoreGenOutputFile );
+  void process( const QString coregenFile, const QString CoreGenOutputFile,
+                const QString, const QString, const QString, const QString, const QString );
 public:
 signals:
   void error(QString);
@@ -84,6 +76,7 @@ private:
   QStringList AssygenFileList;
   QString CoregenFile;
   cmbNucExport * Exporter;
+  cmbNucGenerateOuterCylinder * OuterCylinder;
   QThread Thread;
 };
 
