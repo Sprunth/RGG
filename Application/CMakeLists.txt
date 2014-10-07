@@ -249,7 +249,10 @@ if(BUILD_TESTING)
                                    test_open_assy_rect
                                    test_new_rect
                                    test_new_hex
-                                   test_multi_layer_rect_duct )
+                                   test_multi_layer_rect_duct
+                                   test_multi_layer_hex_duct
+                                   test_multi_duct_rect
+                                   test_multi_duct_hex )
 
   set (TESTS_WITH_2D_BASELINES  simple_rect_test
                                 simple_rect_assy_test

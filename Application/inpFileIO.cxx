@@ -904,7 +904,7 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
     int nl = duct->NumberOfLayers();
 
     output << "duct " << (limited?1:nl) << " ";
-    output << std::showpoint << duct->x << " " << duct->y << " " << duct->z1 << " " << duct->z2;
+    output << std::showpoint << duct->x << " " << duct->y << " " << duct->getZ1() << " " << duct->getZ2();
     for(int i = limited?nl-1:0; i <  nl; i++)
       {
       output << " " << duct->GetLayerThick(i, 0);
@@ -926,12 +926,11 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
   Duct* duct = new Duct(0,0,0);
   int materials;
   std::string mlabel;
+  double z1, z2;
 
-  input >> materials
-        >> duct->x
-        >> duct->y
-        >> duct->z1
-        >> duct->z2;
+  input >> materials >> duct->x >> duct->y >> z1 >> z2;
+  duct->setZ1(z1);
+  duct->setZ2(z2);
 
   duct->SetNumberOfLayers(materials);
   double maxV[] = {0,0};

@@ -1956,14 +1956,15 @@ void cmbNucMainWindow::playTest()
   bool succeded = this->playTest(this->Internal->TestFileName);
   if(succeded && !this->Internal->TestModelCorrectImages.isEmpty())
   {
-    vtkRenderWindow* const render_window = this->ui->qvtkWidget->GetRenderWindow();
+    this->ui->Dock3D->resize(600, 600);
+    vtkRenderWindow* render_window = this->ui->qvtkWidget->GetRenderWindow();
     bool tmp = false;
     QStringList::const_iterator iter;
     for( iter = this->Internal->TestModelCorrectImages.constBegin();
          iter != this->Internal->TestModelCorrectImages.constEnd();
          ++iter )
     {
-      tmp |= CompareImage( render_window, *iter, 0.005,
+      tmp |= CompareImage( render_window, *iter, 3000,
                            this->Internal->TestOutputDirectory );
       if(tmp) break;
     }

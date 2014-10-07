@@ -207,14 +207,15 @@ DuctConnection * DuctCell::GetConnection()
 enumNucPartsType DuctCell::GetType() const
 { return CMBNUC_ASSY_DUCTCELL;}
 
-void DuctCell::RemoveDuct(Duct* duct)
+void DuctCell::RemoveDuct(Duct* duct, bool merge_prev)
 {
   if(duct != NULL && this->Ducts.size() > 1)
   {
     unsigned int at = this->Ducts.size();
     for(unsigned int i = 0; i < this->Ducts.size(); ++i)
     {
-      if(this->Ducts[i] == duct) at = i;
+      if(this->Ducts[i] == duct)
+      { at = i; break; }
     }
     if( at == 0 )
     {
@@ -222,7 +223,14 @@ void DuctCell::RemoveDuct(Duct* duct)
     }
     else if(at < this->Ducts.size())
     {
-      this->Ducts[at-1]->z2 = duct->z2;
+      if(merge_prev || at+1 == this->Ducts.size())
+      {
+        this->Ducts[at-1]->z2 = duct->z2;
+      }
+      else
+      {
+        this->Ducts[at+1]->z1 = duct->z1;
+      }
     }
   }
   this->removeObj(duct, this->Ducts);
@@ -348,7 +356,7 @@ vtkBoundingBox DuctCell::computeBounds(bool hex)
   return vtkBoundingBox(-t, t, -t, t, z1, z1 + getLength());
 }
 
-bool ductComp(Duct* i,Duct* j) { return (i->z1<j->z1); }
+bool ductComp(Duct* i,Duct* j) { return (i->getZ1() < j->getZ1()); }
 
 void DuctCell::sort()
 {

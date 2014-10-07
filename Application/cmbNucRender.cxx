@@ -1118,12 +1118,12 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
 vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
 {
   Duct *duct = ductCell->getDuct(i);
-  double z = duct->z1;
-  double height = duct->z2 - duct->z1;
+  double z = duct->getZ1();
+  double height = duct->getZ2() - duct->getZ1();
   double deltaZ = height * 0.0005;
   if(i == 0) // first duct
   {
-    z = duct->z1 + deltaZ;
+    z = duct->getZ1() + deltaZ;
     // if more than one duct, first duct height need to be reduced by deltaZ
     height = ductCell->numberOfDucts() > 1 ? height - deltaZ : height - 2*deltaZ;
   }
@@ -1133,7 +1133,7 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCe
   }
   else
   {
-    z = duct->z1 + deltaZ;
+    z = duct->getZ1() + deltaZ;
   }
 
   int numLayers = duct->NumberOfLayers();

@@ -182,4 +182,3 @@ private:
 };
 
 #endif // cmbNucMainWindow_H
-

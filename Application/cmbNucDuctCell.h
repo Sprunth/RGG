@@ -16,9 +16,12 @@ signals:
   void Changed();
 };
 
+class DuctCell;
+
 class Duct : public AssyPartObj
 {
 public:
+  friend class DuctCell;
   Duct(double height, double thickX, double thickY);
   Duct(Duct * previous, bool resize = true);
   ~Duct();
@@ -45,15 +48,35 @@ public:
   std::string getLabel(){return label;}
   virtual std::string getTitle(){ return "Duct: " + label; }
 
+  void setZ1(double z)
+  {
+    this->z1 = z;
+  }
+
+  void setZ2(double z)
+  {
+    this->z2 = z;
+  }
+
+  double getZ1() const
+  {
+    return this->z1;
+  }
+
+  double getZ2() const
+  {
+    return this->z2;
+  }
+
   double x;
   double y;
-  double z1;
-  double z2;
   double thickness[2];
   std::string label;
 protected:
   std::vector<cmbNucMaterialLayer> Materials;
   DuctConnection * Connection;
+  double z1;
+  double z2;
 };
 
 class DuctCell : public AssyPartObj
@@ -64,7 +87,7 @@ public:
   void fill(DuctCell* other);
   DuctConnection * GetConnection();
   enumNucPartsType GetType() const;
-  void RemoveDuct(Duct* duct);
+  void RemoveDuct(Duct* duct, bool merge_prev = true);
   //Takes ownership
   void AddDuct(Duct* duct);
   size_t numberOfDucts() const;
