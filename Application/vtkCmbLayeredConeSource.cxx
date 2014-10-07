@@ -264,29 +264,29 @@ namespace
       multY.resize(res);
       if(rect)
       {
-        multX[0] = -1;
-        multY[0] = 0;
+        multX[7] = -1;
+        multY[7] = 0;
 
-        multX[1] = -1;
-        multY[1] = 1;
+        multX[6] = -1;
+        multY[6] = 1;
 
-        multX[2] = 0;
-        multY[2] = 1;
-
-        multX[3] = 1;
-        multY[3] = 1;
+        multX[5] = 0;
+        multY[5] = 1;
 
         multX[4] = 1;
-        multY[4] = 0;
+        multY[4] = 1;
 
-        multX[5] = 1;
-        multY[5] = -1;
+        multX[3] = 1;
+        multY[3] = 0;
 
-        multX[6] = 0;
-        multY[6] = -1;
+        multX[2] = 1;
+        multY[2] = -1;
 
-        multX[7] = -1;
-        multY[7] = -1;
+        multX[1] = 0;
+        multY[1] = -1;
+
+        multX[0] = -1;
+        multY[0] = -1;
       }
       else
       {

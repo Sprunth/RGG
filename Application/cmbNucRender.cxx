@@ -395,7 +395,10 @@ public:
         {
           addCellMat = false;
           mat = pincell->getCellMaterial();
-          rotate.xyz[2] = 30;
+          if(isHex)
+          {
+            rotate.xyz[2] = 30;
+          }
         }
         key k(manager->GetResolution(i),
               manager->GetTopRadius(i, 0), manager->GetTopRadius(i, 1),
