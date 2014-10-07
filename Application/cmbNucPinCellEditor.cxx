@@ -249,6 +249,11 @@ cmbNucPinCellEditor::~cmbNucPinCellEditor()
   delete this->Ui;
 }
 
+bool cmbNucPinCellEditor::isCrossSectioned()
+{
+  return this->Ui->cutAwayViewCheckBox->isChecked();
+}
+
 void cmbNucPinCellEditor::setButtons()
 {
   int rc = this->Ui->piecesTable->rowCount();
@@ -377,8 +382,6 @@ void cmbNucPinCellEditor::Apply()
   this->ExternalPinCell->pitchZ = 0;
 
   this->Reset();
-  this->ExternalPinCell->CachedData.TakeReference(
-        cmbNucAssembly::CreatePinCellMultiBlock(this->ExternalPinCell, this->isHex, false));
   if(change) emit valueChange();
 }
 
@@ -475,8 +478,6 @@ void cmbNucPinCellEditor::UpdateData()
 {
   bool cutaway = this->Ui->cutAwayViewCheckBox->isChecked();
   this->InternalPinCell->cutaway = cutaway;
-  this->InternalPinCell->CachedData.TakeReference(
-    cmbNucAssembly::CreatePinCellMultiBlock(this->InternalPinCell, this->isHex, cutaway));
   emit this->pincellModified(this->InternalPinCell);
   emit resetView();
 }

@@ -40,6 +40,9 @@ public:
   void setAssembly(cmbNucAssembly*);
   cmbNucAssembly* getAssembly(){return this->Assembly;}
 
+  bool ductCellIsCrossSectioned();
+  bool pinCellIsCrossSectioned();
+
   void clear();
 
 signals:

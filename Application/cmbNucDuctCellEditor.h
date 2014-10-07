@@ -14,6 +14,7 @@ class DuctCell;
 class Duct;
 class cmbNucAssembly;
 class AssyPartObj;
+class cmbNucRender;
 
 class DuctTabelCellConnection : public QObject
 {
@@ -51,6 +52,8 @@ public:
   void SetAssembly(cmbNucAssembly *assembly);
 
   void clear();
+
+  bool isCrossSectioned();
 
 signals:
   void ductcellModified(AssyPartObj*);

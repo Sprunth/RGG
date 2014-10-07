@@ -32,7 +32,6 @@ SET(RGGNuclear_Srcs
   cmbNucMaterial.cxx
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
-  vtkCmbDuctSource.cxx
   cmbNucLattice.cxx
   cmbNucLatticeWidget.cxx
   vtkCmbLayeredConeSource.cxx
@@ -49,6 +48,7 @@ SET(RGGNuclear_Srcs
   cmbAssyParametersWidget.cxx
   inpFileIO.cxx
   cmbCoreParametersWidget.cxx
+  cmbNucRender.cxx
 )
 
 SET(RGGNuclear_UI
@@ -91,6 +91,7 @@ SET(RGGNuclear_Headers
   cmbNucPreferencesDialog.h
   cmbAssyParametersWidget.h
   cmbCoreParametersWidget.h
+  cmbNucRender.h
 )
 
 SET(RGGNuclear_other_headers )

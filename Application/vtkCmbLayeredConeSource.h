@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <vtkMultiBlockDataSetAlgorithm.h>
+#include <vtkSmartPointer.h>
 
 class vtkPolyData;
 class vtkPoints;
@@ -24,16 +25,21 @@ public:
 
   void SetTopRadius(int layer, double radius);
   void SetTopRadius(int layer, double r1, double r2);
-  double GetTopRadius(int layer);
+  double GetTopRadius(int layer, int s = 0);
+
 
   void SetBaseRadius(int layer, double radius);
   void SetBaseRadius(int layer, double r1, double r2);
-  double GetBaseRadius(int layer);
+  double GetBaseRadius(int layer, int s = 0);
+
+  double GetTopThickness(int layer);
+  double GetBaseThickness(int layer);
 
   void addInnerPoint(double x, double y);
   void clearInnerPoints();
 
   void SetResolution(int layer, int res);
+  int GetResolution(int layer);
 
   vtkSetMacro(Height, double);
   vtkGetMacro(Height, double);
@@ -53,6 +59,8 @@ public:
   vtkSetMacro(GenerateEnds,int);
   vtkGetMacro(GenerateEnds,int);
   vtkBooleanMacro(GenerateEnds,int);
+
+  vtkSmartPointer<vtkPolyData> CreateUnitLayer(int l);
 
 
 protected:

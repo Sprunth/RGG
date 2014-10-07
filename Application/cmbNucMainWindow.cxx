@@ -49,6 +49,7 @@
 #include "cmbNucGenerateOuterCylinder.h"
 #include "cmbNucMaterial.h"
 #include "inpFileIO.h"
+#include "cmbNucRender.h"
 
 #include "vtkCmbLayeredConeSource.h"
 #include "cmbNucLatticeWidget.h"
@@ -93,7 +94,6 @@ public:
   cmbNucCoregen *MoabSource;
 #endif
 
-  vtkSmartPointer<vtkMultiBlockDataSet> CurrentDataset;
   DuctCell* CurrentDuctCell;
   PinCell* CurrentPinCell;
   bool CamerasLinked;
@@ -200,6 +200,9 @@ cmbNucMainWindow::cmbNucMainWindow()
   meshRenderWindow->AddRenderer(this->MeshRenderer);
   this->VTKToQt = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
+  NucMappers = new cmbNucRender();
+  NucMappers->addToRender(this->Renderer);
+
   // setup depth peeling
   renderWindow->SetAlphaBitPlanes(1);
   renderWindow->SetMultiSamples(0);
@@ -210,19 +213,12 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->MeshRenderer->SetUseDepthPeeling(1);
   this->MeshRenderer->SetMaximumNumberOfPeels(5);
 
-  this->Mapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
-  this->Mapper->SetScalarVisibility(0);
   this->MeshMapper = vtkSmartPointer<vtkCompositePolyDataMapper2>::New();
   this->MeshMapper->SetScalarVisibility(0);
-  this->Actor = vtkSmartPointer<vtkActor>::New();
-  this->Actor->SetMapper(this->Mapper.GetPointer());
-  this->Actor->GetProperty()->SetShading(1);
-  this->Actor->GetProperty()->SetInterpolationToPhong();
   this->MeshActor = vtkSmartPointer<vtkActor>::New();
   this->MeshActor->SetMapper(this->MeshMapper.GetPointer());
   this->MeshActor->GetProperty()->SetShading(1);
   this->MeshActor->GetProperty()->SetInterpolationToPhong();
-  this->Renderer->AddActor(this->Actor);
   this->MeshRenderer->AddActor(this->MeshActor);
 
   CubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
@@ -285,22 +281,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Renderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerMesh);
   this->MeshRenderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerModel);
 
-  vtkCmbLayeredConeSource *cone = vtkCmbLayeredConeSource::New();
-  cone->SetNumberOfLayers(3);
-  cone->SetHeight(20.0);
-  cone->Update();
-  this->Internal->CurrentDataset = cone->GetOutput();
-  vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->BoundsModel);
-  setScaledBounds();
-  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
-  cone->Delete();
-
-  vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
-  this->Mapper->SetCompositeDataDisplayAttributes(attributes);
-  attributes->Delete();
-  attributes = vtkCompositeDataDisplayAttributes::New();
+  vtkCompositeDataDisplayAttributes * attributes = vtkCompositeDataDisplayAttributes::New();
   this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
 
   // Set up action signals and slots
@@ -408,6 +389,7 @@ cmbNucMainWindow::~cmbNucMainWindow()
   this->InputsWidget->setCore(NULL);
   delete this->NuclearCore;
   delete this->MaterialColors;
+  delete this->NucMappers;
 #ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
 #endif
@@ -592,10 +574,6 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
     {
     // recreate Assembly geometry.
     cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
-    if(assy)
-      {
-      assy->CreateData();
-      }
     if( obj->GetType() == CMBNUC_ASSY_PINCELL )
       {
       PinCell* selPin = dynamic_cast<PinCell*>(obj);
@@ -632,7 +610,7 @@ void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
 
   if(obj && obj->GetType() == CMBNUC_CORE)
     {
-    this->Renderer->ResetCamera();
+    this->resetCamera();
     }
   // render
   this->ui->qvtkWidget->update();
@@ -711,7 +689,7 @@ void cmbNucMainWindow::onNewCore()
     this->ui->actionNew_Assembly->setEnabled(true);
     this->ui->actionExport->setEnabled(true);
     this->ui->actionGenerate_Cylinder->setEnabled(true);
-    this->Renderer->ResetCamera();
+    this->resetCamera();
     this->Renderer->Render();
   }
   else
@@ -838,7 +816,7 @@ void cmbNucMainWindow::onFileOpen()
 
   // update render view
   emit checkSave();
-  this->Renderer->ResetCamera();
+  this->resetCamera();
   this->Renderer->Render();
 }
 
@@ -871,7 +849,7 @@ void cmbNucMainWindow::onReloadSelected()
       return;
   }
   emit checkSave();
-  this->Renderer->ResetCamera();
+  this->resetCamera();
   this->Renderer->Render();
 }
 
@@ -1173,13 +1151,13 @@ void cmbNucMainWindow::clearAll()
 
 void cmbNucMainWindow::doClearAll(bool needSave)
 {
-  this->Internal->CurrentDataset = NULL;
-  vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
-  box.GetBounds(this->Internal->BoundsModel);
+  for(unsigned int i = 0; i < 6; ++i)
+  {
+    this->Internal->BoundsModel[i] = 0;
+  }
   setScaledBounds();
 
-  this->Mapper->SetInputDataObject(NULL);
+  this->NucMappers->clearMappers();
 
   this->LatticeDraw->clear();
 
@@ -1206,7 +1184,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   onChangeMeshEdgeMode(false);
 
   this->ui->qvtkWidget->update();
-  this->Renderer->ResetCamera();
+  this->resetCamera();
   this->Renderer->Render();
 }
 
@@ -1220,7 +1198,7 @@ void cmbNucMainWindow::clearCore()
     this->InputsWidget->updateUI(true);
     emit checkSave();
     this->ui->qvtkWidget->update();
-    this->Renderer->ResetCamera();
+    this->resetCamera();
     this->Renderer->Render();
     setTitle();
   }
@@ -1255,39 +1233,13 @@ void cmbNucMainWindow::updatePinCellMaterialColors(PinCell* pin)
     {
     return;
     }
-  this->Internal->CurrentDataset = pin->CachedData;
+  cmbNucMaterialColors::instance()->clearDisplayed();
+  this->NucMappers->render(pin, NuclearCore->IsHexType(),
+                           PropertyWidget->pinCellIsCrossSectioned());
   vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
+  this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
-
-  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->clearDisplayed();
-  unsigned int flat_index = 1; // start from first child
-  for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
-    {
-    vtkMultiBlockDataSet* aSection = vtkMultiBlockDataSet::SafeDownCast(
-      this->Internal->CurrentDataset->GetBlock(idx));
-      {
-      flat_index++;
-      for(int k = 0; k < pin->GetNumberOfLayers(); k++)
-        {
-        QPointer<cmbNucMaterial> mat = pin->GetPart(idx)->GetMaterial(k);
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
-        mat->setDisplayed();
-        }
-      }
-      if(pin->cellMaterialSet())
-      {
-        QPointer<cmbNucMaterial> mat = pin->getCellMaterial();
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
-        mat->setDisplayed();
-      }
-    }
   cmbNucMaterialColors::instance()->testShow();
 }
 
@@ -1297,33 +1249,13 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
   {
     return;
   }
-  this->Internal->CurrentDataset = dc->CachedData;
+  cmbNucMaterialColors::instance()->clearDisplayed();
+  this->NucMappers->render(dc, NuclearCore->IsHexType(),
+                           PropertyWidget->ductCellIsCrossSectioned());
   vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
+  this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
-
-  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->clearDisplayed();
-  unsigned int flat_index = 1; // start from first child
-  for(unsigned int idx=0; idx<this->Internal->CurrentDataset->GetNumberOfBlocks(); idx++)
-  {
-    vtkMultiBlockDataSet* aSection = vtkMultiBlockDataSet::SafeDownCast(this->Internal->CurrentDataset->GetBlock(idx));
-    Duct* d = dc->getDuct(idx);
-    {
-      flat_index++;
-      for(int k = 0; k < d->NumberOfLayers(); k++)
-      {
-        QPointer<cmbNucMaterial> mat = d->getMaterial(k);
-        matColorMap->SetBlockMaterialColor(attributes, flat_index++,mat);
-        mat->setDisplayed();
-      }
-    }
-  }
   cmbNucMaterialColors::instance()->testShow();
 }
 
@@ -1333,133 +1265,34 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
     {
     return;
     }
-
-  // regenerate core and assembly view
-  cmbAssyParameters* params = assy->GetParameters();
-  vtkNew<vtkTransform> transform;
-  if(assy->IsHexType()) transform->RotateZ(-60);
-  this->Internal->CurrentDataset = assy->GetData()->New();
-  cmbNucCore::transformData(assy->GetData(),this->Internal->CurrentDataset, transform.GetPointer());
+  cmbNucMaterialColors::instance()->clearDisplayed();
+  this->NucMappers->render(assy);
   vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
+  this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
-
-  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
-  if(!this->Internal->CurrentDataset)
-    {
-    return;
-    }
-  setScaledBounds();
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-
-  unsigned int realflatidx = 0;
-  cmbNucMaterialColors::instance()->clearDisplayed();
-  assy->updateMaterialColors(realflatidx, attributes);
   cmbNucMaterialColors::instance()->testShow();
-}
-
-void cmbNucMainWindow::exportVTKFile(const QString &fileName)
-{
-  if(!this->InputsWidget->getCurrentAssembly())
-    {
-    qDebug() << "no assembly to save";
-    return;
-    }
-
-  vtkSmartPointer<vtkMultiBlockDataSet> coredata = this->NuclearCore->GetData();
-  vtkSmartPointer<vtkXMLMultiBlockDataWriter> writer =
-    vtkSmartPointer<vtkXMLMultiBlockDataWriter>::New();
-  writer->SetInputData(coredata);
-  writer->SetFileName(fileName.toLocal8Bit().data());
-  writer->Write();
 }
 
 void cmbNucMainWindow::outerLayer(double r, int i)
 {
   NuclearCore->drawCylinder(r,i);
-  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
-  if(cp == NULL) return;
-  switch(cp->GetType())
-  {
-    case CMBNUC_CORE:
-      updateCoreMaterialColors();
-      this->Render();
-    default:
-      break;
-  }
 }
 
 void cmbNucMainWindow::clearOuter()
 {
   NuclearCore->clearCylinder();
-  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
-  if(cp == NULL) return;
-  switch(cp->GetType())
-  {
-    case CMBNUC_CORE:
-      updateCoreMaterialColors();
-      this->Render();
-    default:
-      break;
-  }
 }
 
 void cmbNucMainWindow::updateCoreMaterialColors()
 {
   // regenerate core and assembly view
-  this->Internal->CurrentDataset = this->NuclearCore->GetData();
-  this->Mapper->SetInputDataObject(this->Internal->CurrentDataset);
+  cmbNucMaterialColors::instance()->clearDisplayed();
+  this->NucMappers->render(this->NuclearCore);
   vtkBoundingBox box;
-  computeBounds(this->Internal->CurrentDataset, &box);
+  this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
   setScaledBounds();
-  if(!this->Internal->CurrentDataset)
-    {
-    return;
-    }
-  unsigned int numCoreBlocks = this->Internal->CurrentDataset->GetNumberOfBlocks();
-  vtkCompositeDataDisplayAttributes *attributes =
-    this->Mapper->GetCompositeDataDisplayAttributes();
-
-  cmbNucMaterialColors::instance()->clearDisplayed();
-
-  unsigned int realflatidx = 0;
-  for(unsigned int block = 0; block < numCoreBlocks; block++)
-    {
-    realflatidx++; // for assembly block
-    if(!this->Internal->CurrentDataset->GetBlock(block))
-      {
-      continue;
-      }
-    vtkMultiBlockDataSet* data = vtkMultiBlockDataSet::SafeDownCast(this->Internal->CurrentDataset->GetBlock(block));
-    if(!data)
-      {
-      continue;
-      }
-    // for each assembly
-    if(this->Internal->CurrentDataset->GetMetaData(block)->Has(vtkCompositeDataSet::NAME()))
-      {
-      std::string assyLabel = this->Internal->CurrentDataset->GetMetaData(block)->Get(
-        vtkCompositeDataSet::NAME());
-      cmbNucAssembly* assy = this->NuclearCore->GetAssembly(assyLabel);
-      if(!assy)
-        {
-        qCritical() << "no specified assembly to found in core: " << assyLabel.c_str();
-        return;
-        }
-
-      assy->updateMaterialColors(realflatidx, attributes);
-      }
-    }
-  if(NuclearCore->getHasCylinder())
-    {
-    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-    matColorMap->SetBlockMaterialColor(attributes, realflatidx,
-                                       matColorMap->getUnknownMaterial());
-    matColorMap->getUnknownMaterial()->setDisplayed();
-    }
   cmbNucMaterialColors::instance()->testShow();
 }
 
@@ -1482,12 +1315,12 @@ void cmbNucMainWindow::exportRGG()
 void cmbNucMainWindow::zScaleChanged(int value)
 {
   this->ZScale = 1.0 / value;
-  this->Actor->SetScale(1, 1, this->ZScale);
   this->MeshActor->SetScale(1, 1, this->ZScale);
+  this->NucMappers->setZScale( this->ZScale );
   this->setScaledBounds();
   this->CubeAxesActor->Modified();
   this->Renderer->Modified();
-  this->Renderer->ResetCamera();
+  this->resetCamera();
   this->ui->qvtkWidget->update();
 
   if((!this->Internal->CamerasLinked && this->isMeshTabVisible()) ||
@@ -1503,7 +1336,7 @@ void cmbNucMainWindow::zScaleChanged(int value)
 
 void cmbNucMainWindow::ResetView()
 {
-  this->Renderer->ResetCamera();
+  this->resetCamera();
 
   this->ui->qvtkWidget->update();
 }
@@ -1529,7 +1362,6 @@ void cmbNucMainWindow::colorChange()
     default:
       return; //nothing is changed
   }
-  this->Mapper->Modified();
   this->ui->qvtkWidget->update();
 }
 
@@ -1539,7 +1371,6 @@ void cmbNucMainWindow::Render()
 
   //this->updateCoreMaterialColors();
   this->PropertyWidget->colorChanged();
-  this->Mapper->Modified();
   this->Renderer->Render();
   this->ui->qvtkWidget->update();
 }
@@ -1829,6 +1660,33 @@ bool cmbNucMainWindow::checkFilesBeforePreceeding()
       break;
   }
   return true;
+}
+
+void cmbNucMainWindow::resetCamera()
+{
+  if( this->Internal->BoundsModel[0] == 0 &&
+      this->Internal->BoundsModel[1] == 0 &&
+      this->Internal->BoundsModel[2] == 0 &&
+      this->Internal->BoundsModel[3] == 0 &&
+      this->Internal->BoundsModel[4] == 0 &&
+      this->Internal->BoundsModel[4] == 0 )
+  {
+    this->Renderer->ResetCamera();
+    return;
+  }
+  double z[2] = {this->Internal->BoundsModel[4]*ZScale,
+                 this->Internal->BoundsModel[5]*ZScale};
+  double max = std::max( this->Internal->BoundsModel[1] - this->Internal->BoundsModel[0],
+                         std::max(this->Internal->BoundsModel[3]-this->Internal->BoundsModel[2],
+                                  z[1]-z[0]));
+  double trans = max*0.05;
+
+  //this->Renderer->ResetCamera(this->Internal->BoundsModel);
+  this->Renderer->ResetCamera(this->Internal->BoundsModel[0]-trans,
+                              this->Internal->BoundsModel[1]+trans,
+                              this->Internal->BoundsModel[2]-trans,
+                              this->Internal->BoundsModel[3]+trans,
+                              z[0]-trans, z[1]+trans );
 }
 
 void cmbNucMainWindow::setTitle()
