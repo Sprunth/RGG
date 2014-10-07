@@ -14,12 +14,14 @@
 #include "vtkSmartPointer.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkTransform.h"
+#include "vtkBoundingBox.h"
 
 class cmbNucAssembly;
 class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
 class cmbNucDefaults;
+class vtkPolyData;
 
 #define EXTRA_VARABLE_MACRO() \
    FUN_SIMPLE(std::string, QString, ProblemType, problemtype, "", "") \
@@ -196,13 +198,11 @@ public:
 
   void clearOldGeometry();
 
+  vtkBoundingBox computeBounds();
+
   cmbNucCoreConnection* GetConnection(){return this->Connection;}
 
   virtual enumNucPartsType GetType() const {return CMBNUC_CORE;}
-
-  static void transformData(vtkMultiBlockDataSet * input,
-                            vtkMultiBlockDataSet * output,
-                            vtkTransform * xmform);
 
   void clearExceptAssembliesAndGeom();
 
@@ -253,10 +253,6 @@ public:
   // Rebuild the grid (which for now just updates the colors at each cell)
   void RebuildGrid();
 
-  // Returns a multi-block data set containing the geometry for
-  // the core with assemblies. This is used to render the core in 3D.
-  vtkSmartPointer<vtkMultiBlockDataSet> GetData();
-
   void SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3]);
 
   // Check if GeometryType is Hexagonal
@@ -267,6 +263,10 @@ public:
      const std::string &fileName, const std::string &assyLabel);
 
   void computePitch();
+
+  virtual void calculateRectPt(unsigned int i, unsigned int j, double pt[2]);
+
+  virtual void calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY);
 
   //Set the different from file and tests the h5m file;
   void setAndTestDiffFromFiles(bool diffFromFile);
@@ -298,7 +298,6 @@ public:
   void sendDefaults();
   void initDefaults();
 
-  void drawCylinder();
   void drawCylinder(double r, int i);
   void clearCylinder();
 
@@ -331,12 +330,9 @@ public:
   }
 
 private:
-  vtkSmartPointer<vtkMultiBlockDataSet> Data;
   bool hasCylinder;
   double cylinderRadius;
   int cylinderOuterSpacing;
-
-  void generateData();
 
   std::vector<cmbNucAssembly*> Assemblies;
   cmbNucCoreConnection * Connection;

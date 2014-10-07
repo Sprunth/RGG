@@ -33,6 +33,7 @@ set (CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
+
 set (MeshKitSuperBuild_CMAKE_DIR
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
@@ -45,6 +46,8 @@ set (patch_location "${CMAKE_CURRENT_SOURCE_DIR}/patches")
 set (prefix_path "${install_location}")
 
 option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
+
+find_package(Autotools REQUIRED)
 
 if(BUILD_WITH_CUBIT)
   set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
@@ -70,12 +73,12 @@ endif()
 
 
 add_project(zlib SYSTEM REQUIRED)
-add_project(freetype SYSTEM REQUIRED)
-add_project(ftgl SYSTEM REQUIRED)
 add_project(szip SYSTEM REQUIRED)
 add_project(hdf5 SYSTEM REQUIRED)
 include(netcdf)
 if(NOT BUILD_WITH_CUBIT)
+  add_project(freetype SYSTEM REQUIRED)
+  add_project(ftgl SYSTEM REQUIRED)
   add_project(OCE SYSTEM REQUIRED)
 endif()
 add_project(cgm REQUIRED)
@@ -84,5 +87,5 @@ add_project(lasso REQUIRED)
 add_project(meshkit REQUIRED)
 
 
-INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/bin DESTINATION meshkit )
-INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/lib DESTINATION meshkit )
+INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/bin USE_SOURCE_PERMISSIONS DESTINATION meshkit )
+INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/lib USE_SOURCE_PERMISSIONS DESTINATION meshkit )

@@ -2,10 +2,10 @@
 #include "cmbNucAssembly.h"
 #include "ui_qExporterDialog.h"
 #include "ui_qProgress.h"
+#include "cmbNucPreferencesDialog.h"
 
 #include <QFileDialog>
 #include <QDebug>
-#include <QSettings>
 #include <QFileInfo>
 #include <QMessageBox>
 
@@ -97,34 +97,19 @@ void cmbNucExportDialog::exportFile(cmbNucCore * core)
 void cmbNucExportDialog::sendSignalToProcess()
 {
   qDebug() << "SENDING TO THREAD";
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QString assygenExe = settings.value("EXPORTER/assygen_exe").toString();
-  QString assyGenLibs = settings.value("EXPORTER/assygen_libs").toString();
-  QString coregenExe = settings.value("EXPORTER/coregen_exe").toString();
-  QString cubitExe = settings.value("EXPORTER/cubit_exe").toString();
-  QString coreGenLibs = settings.value("EXPORTER/coregen_libs").toString();
-  if(assygenExe.isEmpty())
+  QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
+                                             coregenExe, coreGenLibs))
   {
-    qDebug() << "Failed assygen is empty";
-    emit error("Failed assygen is empty");
+    qDebug() << "One of the export exe is missing";
+    emit error("One of the export exe is missing");
     return;
   }
-  Exporter->setAssygen(assygenExe,assyGenLibs);
 
-  if(cubitExe.isEmpty())
-  {
-    qDebug() << "Failed cubit is empty";
-    emit error("Failed cubit is empty");
-    return;
-  }
+
+  Exporter->setAssygen(assygenExe,assyGenLibs);
   Exporter->setCubit(cubitExe);
-  
-  if(coregenExe.isEmpty())
-  {
-    qDebug() << "Failed coregen is empty";
-    emit error("Failed coregen is empty");
-    return;
-  }
+  coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe, coreGenLibs);
 
   if(this->AssygenFileList.empty())
@@ -138,6 +123,7 @@ void cmbNucExportDialog::sendSignalToProcess()
     this->runAssygen();
     return;
   }
+
   this->Progress->show();
   QString outputMesh;
   if(Core == NULL || Core->h5mFile.empty())
@@ -174,26 +160,16 @@ void cmbNucExportDialog::sendSignalToProcess()
 
 void cmbNucExportDialog::runAssygen()
 {
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QString assygenExe = settings.value("EXPORTER/assygen_exe").toString();
-  QString assyGenLibs = settings.value("EXPORTER/assygen_libs").toString();
+  QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
+                                             coregenExe, coreGenLibs))
+  {
+    qDebug() << "One of the export exe is missing";
+    emit error("One of the export exe is missing");
+    return;
+  }
   this->hide();
-
-  if(assygenExe.isEmpty())
-  {
-    qDebug() << "Failed assygen is empty";
-    emit error("Failed assygen is empty");
-    return;
-  }
   Exporter->setAssygen(assygenExe,assyGenLibs);
-
-  QString cubitExe = settings.value("EXPORTER/cubit_exe").toString();
-  if(cubitExe.isEmpty())
-  {
-    qDebug() << "Failed cubit is empty";
-    emit error("Failed cubit is empty");
-    return;
-  }
   Exporter->setCubit(cubitExe);
 
   if(this->AssygenFileList.empty())
@@ -220,9 +196,15 @@ void cmbNucExportDialog::runSelectedAssygen()
 void cmbNucExportDialog::runCoregen()
 {
   qDebug() << "SENDING TO THREAD";
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QString coregenExe = settings.value("EXPORTER/coregen_exe").toString();
-  QString coreGenLibs = settings.value("EXPORTER/coregen_libs").toString();
+  QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
+                                             coregenExe, coreGenLibs))
+  {
+    qDebug() << "One of the export exe is missing";
+    emit error("One of the export exe is missing");
+    return;
+  }
+  coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe,coreGenLibs);
   this->hide();
   if(CoregenFile.isEmpty())

@@ -51,6 +51,8 @@ public:
 
   void clear();
 
+  bool isCrossSectioned(); 
+
 signals:
   void pincellModified(AssyPartObj*);
   void labelChanged(PinCell*, QString prev, QString current);

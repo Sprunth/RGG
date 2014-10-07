@@ -35,7 +35,6 @@ SET(RGGNuclear_Srcs
   cmbNucMaterial.cxx
   cmbNucMaterialColors.cxx
   cmbNucPartDefinition.h
-  vtkCmbDuctSource.cxx
   cmbNucLattice.cxx
   cmbNucLatticeWidget.cxx
   vtkCmbLayeredConeSource.cxx
@@ -53,6 +52,7 @@ SET(RGGNuclear_Srcs
   inpFileIO.cxx
   cmbCoreParametersWidget.cxx
   pqXMLEventObserver.cxx
+  cmbNucRender.cxx
 )
 
 SET(RGGNuclear_UI
@@ -96,39 +96,37 @@ SET(RGGNuclear_Headers
   cmbAssyParametersWidget.h
   cmbCoreParametersWidget.h
   pqXMLEventObserver.h
+  cmbNucRender.h
 )
 
 SET(RGGNuclear_other_headers )
 
-OPTION( VTK_MOAB_SUPPORT "Build with VTK MOAB support"  OFF )
-IF(VTK_MOAB_SUPPORT)
-  FIND_PACKAGE(MOAB)
-  message(${MOAB_INCLUDE_DIR})
-  INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
-  INCLUDE_DIRECTORIES(vtk_moab_reader)
-  SET(RGGNuclear_Headers ${RGGNuclear_Headers} cmbNucCoregen.h)
-  SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
-                               vtk_moab_reader/CellSets.h
-                               vtk_moab_reader/DataSetConverter.h
-                               vtk_moab_reader/detail/CellTypeToType.h
-                               vtk_moab_reader/detail/ContinousCellInfo.h
-                               vtk_moab_reader/detail/LoadGeometry.h
-                               vtk_moab_reader/detail/MixedCellConnectivity.h
-                               vtk_moab_reader/detail/ReadSparseTag.h
-                               vtk_moab_reader/detail/ReduceSpectralMesh.h
-                               vtk_moab_reader/detail/UsageTable.h
-                               vtk_moab_reader/ExtractShell.h
-                               vtk_moab_reader/FaceSets.h
-                               vtk_moab_reader/SimpleMoab.h
-                               vtk_moab_reader/vtkMoabReader.h)
-  SET(RGGNuclear_Srcs ${RGGNuclear_Srcs}
-                      vtk_moab_reader/vtkMoabReader.cxx
-                      cmbNucCoregen.cxx )
-  SET(MOAB_LIB MOAB)
-  SET_SOURCE_FILES_PROPERTIES(cmbNucMainWindow.cxx cmbNucMainWindow.h
-                              PROPERTIES
-                              COMPILE_FLAGS "-DBUILD_WITH_MOAB")
-ENDIF()
+FIND_PACKAGE(MOAB)
+message(${MOAB_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(vtk_moab_reader)
+SET(RGGNuclear_Headers ${RGGNuclear_Headers} cmbNucCoregen.h)
+SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
+                             vtk_moab_reader/CellSets.h
+                             vtk_moab_reader/DataSetConverter.h
+                             vtk_moab_reader/detail/CellTypeToType.h
+                             vtk_moab_reader/detail/ContinousCellInfo.h
+                             vtk_moab_reader/detail/LoadGeometry.h
+                             vtk_moab_reader/detail/MixedCellConnectivity.h
+                             vtk_moab_reader/detail/ReadSparseTag.h
+                             vtk_moab_reader/detail/ReduceSpectralMesh.h
+                             vtk_moab_reader/detail/UsageTable.h
+                             vtk_moab_reader/ExtractShell.h
+                             vtk_moab_reader/FaceSets.h
+                             vtk_moab_reader/SimpleMoab.h
+                             vtk_moab_reader/vtkMoabReader.h)
+SET(RGGNuclear_Srcs ${RGGNuclear_Srcs}
+                    vtk_moab_reader/vtkMoabReader.cxx
+                    cmbNucCoregen.cxx )
+SET(MOAB_LIB MOAB)
+SET_SOURCE_FILES_PROPERTIES(cmbNucMainWindow.cxx cmbNucMainWindow.h
+                            PROPERTIES
+                            COMPILE_FLAGS "-DBUILD_WITH_MOAB")
 
 QT4_WRAP_UI(UISrcs ${RGGNuclear_UI})
 QT4_WRAP_CPP(MOCSrcs ${RGGNuclear_Headers} )
@@ -157,27 +155,42 @@ if(APPLE)
                                Resources )
 endif()
 
-if(WIN32 OR APPLE)
-ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
-else()
+set(TARGET_NAME)
 
-message ("Forwarding")
+if(WIN32 OR APPLE)
+  ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+  TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
+else()
   include(vtkForwardingExecutable)
   set(VTK_INSTALL_LIBRARY_DIR "lib")
   set(BUILD_SHARED_LIBS TRUE)
-  vtk_add_executable_with_forwarding(rgg_exe_suffix
-                 RGGNuclear
-                 ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE}
-                 )
-  TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
 
+  if(CUBIT_BUILD)
+    set(TARGET_NAME RGGNuclear RGGNuclear-GUI)
+    configure_file("${CMAKE_SOURCE_DIR}/CMake/RGGNuclear-cubit-checker.cxx.in"
+                   "${CMAKE_CURRENT_BINARY_DIR}/RGGNuclear-cubit-checker.cxx"
+                   @ONLY)
+    set(CUBIT_BUILD_SRC "${CMAKE_CURRENT_BINARY_DIR}/RGGNuclear-cubit-checker.cxx"
+                        cmbNucPreferencesDialog.cxx
+                       "${CMAKE_CURRENT_BINARY_DIR}/moc_cmbNucPreferencesDialog.cxx")
+    vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear ${CUBIT_BUILD_SRC})
+    TARGET_LINK_LIBRARIES(RGGNuclear ${QT_LIBRARIES} ${VTK_LIBRARIES})
+
+    ADD_EXECUTABLE( RGGNuclear-GUI MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+    TARGET_LINK_LIBRARIES( RGGNuclear-GUI RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
+
+  else()
+    set(TARGET_NAME RGGNuclear)
+    vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear ${RGGNuclear_Srcs} ${RGGNuclear_other_headers}
+                                                      ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+    TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
+  endif()
   IF (rgg_exe_suffix)
      # Shared forwarding enabled.
      INSTALL(TARGETS RGGNuclear${rgg_exe_suffix}
              DESTINATION "bin"
              COMPONENT Runtime)
-  ENDIF ()
+  ENDIF()
 endif()
 
 
@@ -213,17 +226,16 @@ else()
              ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini
              @ONLY)
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION lib)
-  install(TARGETS RGGNuclear DESTI NATION lib)
+  install(TARGETS ${TARGET_NAME} DESTINATION lib)
 endif()
 
 if(BUILD_TESTING)
   if(Q_WS_MAC)
-    set(TEST_BINARY
-      "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear.app/Contents/MacOS/RGGNuclear"
-      --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
+    set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear.app/Contents/MacOS/RGGNuclear"
+                    --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
   else(Q_WS_MAC)
     set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear"
-      --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
+                    --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
   endif(Q_WS_MAC)
 
   set (TESTS_WITH_MODEL_BASELINES  simple_rect_test
@@ -237,8 +249,7 @@ if(BUILD_TESTING)
                                    test_open_assy_rect
                                    test_new_rect
                                    test_new_hex
-                                   test_multi_layer_rect_duct
-    )
+                                   test_multi_layer_rect_duct )
 
   set (TESTS_WITH_2D_BASELINES  simple_rect_test
                                 simple_rect_assy_test
@@ -250,12 +261,10 @@ if(BUILD_TESTING)
                                 test_open_assy_hex
                                 test_open_assy_rect
                                 test_new_rect
-                                test_new_hex
-    )
+                                test_new_hex)
 
-  set (TESTS_WITHOUT_BASELINES exit
-    )
-    
+  set (TESTS_WITHOUT_BASELINES exit )
+
   foreach(test ${TESTS_WITHOUT_BASELINES})
     add_test(NAME ${test}_baseline COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test} --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR})
     set_tests_properties(${test}_baseline PROPERTIES TIMEOUT 10000)
@@ -263,7 +272,7 @@ if(BUILD_TESTING)
       set_tests_properties(${test}_baseline PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
     endif()
   endforeach()
-  
+
   foreach(test ${TESTS_WITH_2D_BASELINES})
     add_test(NAME ${test}_2D COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_2D.png)
     set_tests_properties(${test}_2D PROPERTIES TIMEOUT 10000)
@@ -271,7 +280,7 @@ if(BUILD_TESTING)
       set_tests_properties(${test}_2D PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
     endif()
   endforeach()
-  
+
   foreach(test ${TESTS_WITH_MODEL_BASELINES})
     add_test(NAME ${test}_model COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_model.png)
     set_tests_properties(${test}_model PROPERTIES TIMEOUT 10000)
@@ -279,5 +288,4 @@ if(BUILD_TESTING)
       set_tests_properties(${test}_model PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
     endif()
   endforeach()
-
 endif()

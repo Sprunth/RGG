@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QSet>
 
+#include <vtkBoundingBox.h>
+
 class DuctConnection : public QObject
 {
   Q_OBJECT
@@ -68,15 +70,16 @@ public:
   size_t numberOfDucts() const;
   Duct * getDuct(int i);
   Duct * getPrevious();
+  void getZRange(double & z1, double & z2);
   QSet< cmbNucMaterial* > getMaterials();
   bool GetInnerDuctSize(double & x, double & y);
+  vtkBoundingBox computeBounds(bool hex);
   double getLength();
   void setLength(double l);
   std::string getLabel(){return "Duct";}
   virtual std::string getTitle(){ return "Duct"; }
   bool operator==(const DuctCell& obj);
   void sort();
-  vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

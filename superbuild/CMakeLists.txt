@@ -130,6 +130,7 @@ if (APPLE)
   set (cflags "${cflags} -arch x86_64 -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} --sysroot=${CMAKE_OSX_SYSROOT} ")
   set (cppflags "${cppflags} -arch x86_64 -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} --sysroot=${CMAKE_OSX_SYSROOT} ")
   set (cxxflags "${cxxflags} -arch x86_64 -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} --sysroot=${CMAKE_OSX_SYSROOT} ")
+  set (ldflags "${ldflags} -Wl,-headerpad,4000")
 endif()
 set (prefix_path "${install_location}")
 
@@ -189,15 +190,6 @@ include(CTest)
 #-----------------------------------------------------------------------------
 set (CM_PROJECTS_ALL)
 
-#setup the options to choose the paraview tag we use
-option(USE_PARAVIEW_next "set paraview to use next instead of cmb tag")
-option(USE_PARAVIEW_master "set paraview to use master instead of cmb tag")
-
-#setup if we build with meshing support, we just pass this down to cmb proper
-option(USE_MESHING_SUPPORT "build rgg programs that require meshing" ON)
-
-option(BUILD_MESHKIT "Build meshkit tools (Assygen and Coregen)" OFF)
-
 option(BUILD_DOCUMENTATION "Build the RGG Documentation" OFF)
 
 #must before any including of projects
@@ -224,6 +216,24 @@ include(zlib)
 include(zeroMQ)
 include(remus)
 include(vtk)
+
+if(ENABLE_meshkit)
+  include(OCE)
+  include(cgm)
+  include(lasso)
+endif()
+
+include(meshkit)
+
+if(APPLE AND BUILD_WITH_CUBIT)
+  include(meshkit32bit)
+  set(ENABLE_meshkit32bit ON)
+  mark_as_advanced(ENABLE_meshkit32bit)
+  #mark_as_advanced(ENABLE_meshkit32bit ON)
+elseif(UNIX AND BUILD_WITH_CUBIT)
+  set (ld_library_path "${install_location}/lib:${CUBIT_PATH}/bin:$ENV{LD_LIBRARY_PATH}")
+endif()
+
 
 include(netcdf)
 include(ftgl)

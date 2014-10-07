@@ -1,0 +1,147 @@
+#define vtksys_SHARED_FORWARD_DIR_BUILD "@CMAKE_BINARY_DIR@"
+#define vtksys_SHARED_FORWARD_PATH_BUILD "@CMAKE_BINARY_DIR@"
+#define vtksys_SHARED_FORWARD_PATH_INSTALL "../lib"
+#define vtksys_SHARED_FORWARD_EXE_BUILD "@CMAKE_BINARY_DIR@/RGGNuclear-GUI"
+#define vtksys_SHARED_FORWARD_EXE_INSTALL "../lib/RGGNuclear-GUI"
+#define vtksys_SHARED_FORWARD_OPTION_PRINT "--print"
+#define vtksys_SHARED_FORWARD_OPTION_LDD "--ldd"
+
+extern "C" {
+#include <vtksys/SharedForward.h>
+}
+
+//for now I am assuming linux layout
+
+#include <QtGlobal>
+#include <QSettings>
+#include <QDir>
+#include <QFileInfo>
+#include <QDebug>
+#include <QProcess>
+#include <QApplication>
+#include <QMessageBox>
+
+#define NAME_PROJECT "RGGNuclear"
+#define EXPORTER_NAME "Exporter"
+
+#include "cmbNucPreferencesDialog.h"
+
+int G_ARGC;
+char** G_ARGV;
+
+bool test_cubit( QString dir )
+{
+  /*QProcess myProcess;
+  QStringList arguments;
+  arguments << "-version";
+  myProcess.start(exe_name, arguments);
+  QByteArray output = myProcess.readAllStandardOutput();*/
+  QDir directory(dir);
+  return directory.exists("libcubiti19.so");
+}
+
+bool run()
+{
+  int r = 0;
+  r = vtksys_shared_forward_to_real(G_ARGC, G_ARGV);
+  //qDebug() << "done running app " << r;
+  return r == 0;
+}
+
+bool get_set_cubit(QString & cubitexe)
+{
+  cubitexe.clear();
+  QSettings settings(NAME_PROJECT, EXPORTER_NAME);
+  cubitexe = settings.value("cubit_exe").toString();
+  return !cubitexe.isEmpty() && test_cubit(QFileInfo(cubitexe).dir().absolutePath());
+}
+
+int main(int argc, char** argv)
+{
+  G_ARGC = argc;
+  G_ARGV = argv;
+  //Do we have a cubit already set, if so, point LD_LIBRARY_PATH to it
+  QString cubitexe;
+  bool is_in_ld = false;
+  bool dir_is_good = false;
+  QDir cubitdir;
+  qDebug() << "Looking for cubit";
+  QByteArray backup_paths = qgetenv( "LD_LIBRARY_PATH" );
+  if(get_set_cubit(cubitexe))
+  {
+    //qDebug() << "cubit exe is already set";
+    cubitdir = QFileInfo(cubitexe).dir();
+    dir_is_good = true;
+  }
+  else //check environment variables for cubitdir
+  {
+    //qDebug() << "cubit is not already set, going to check the LD_LIBRARY_PATH";
+    QByteArray paths = qgetenv( "LD_LIBRARY_PATH" );
+    QList<QByteArray> array = paths.split(':');
+    for(QList<QByteArray>::const_iterator i = array.begin(); i != array.end(); ++i)
+    {
+      QString tmp(*i);
+      tmp = tmp.remove('"');
+      if(!tmp.isEmpty() && test_cubit(tmp))
+      {
+        is_in_ld = true;
+        cubitdir = QDir(tmp);
+        dir_is_good = true;
+      }
+    }
+  }
+
+  if(is_in_ld)
+  {
+    QStringList name("cubit");
+    if(cubitdir.exists("cubit"))
+    {
+      QSettings settings(NAME_PROJECT, EXPORTER_NAME);
+      settings.setValue( "cubit_exe", cubitdir.absoluteFilePath("cubit") );
+    }
+    //test running, if fail, need a different version of cubit
+    if(run())
+    {
+      return 0;
+    }
+  }
+  else if(dir_is_good)
+  {
+    //has been preset, using that one. Try to run incase it is not valid
+    QByteArray newLd(cubitdir.absolutePath().append(":").toLatin1());
+    newLd.append(backup_paths);
+    qputenv( "LD_LIBRARY_PATH", newLd );
+    if(run())
+    {
+      return 0;
+    }
+  }
+  {
+    QApplication app( argc, argv );
+
+    cmbNucPreferencesDialog pref(NULL);
+    pref.setPreferences();
+    int result = pref.exec();
+    if(result == 1 && get_set_cubit(cubitexe))
+    {
+      cubitdir = QFileInfo(cubitexe).dir();
+      QByteArray newLd(cubitdir.absolutePath().append(":").toLatin1());
+      newLd.append(backup_paths);
+      qputenv( "LD_LIBRARY_PATH", newLd );
+      run();
+    }
+    else
+    {
+      QMessageBox messageBox;
+      messageBox.critical(0,"Error","Requires cubit to run.  Chould not find cubit.  Exiting.");
+      messageBox.setFixedSize(500,200);
+      //messageBox.exec();
+    }
+  }
+
+  //test for cubit
+  //test cubit version
+  //return vtksys_shared_forward_to_real(argc, argv);
+  qputenv( "LD_LIBRARY_PATH", backup_paths );
+  return 0;
+}

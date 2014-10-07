@@ -270,13 +270,16 @@ cmbNucDuctCellEditor
   }
 }
 
+bool cmbNucDuctCellEditor
+::isCrossSectioned()
+{
+  return this->Ui->CrossSection->isChecked();
+}
+
 void
 cmbNucDuctCellEditor
 ::update()
 {
-  this->InternalDuctCell->CachedData.TakeReference(cmbNucAssembly::CreateDuctCellMultiBlock(this->InternalDuctCell,
-                                                                                            this->isHex,
-                                                                                            this->Ui->CrossSection->isChecked()));
   emit ductcellModified(InternalDuctCell);
 }
 

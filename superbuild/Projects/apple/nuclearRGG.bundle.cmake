@@ -9,6 +9,11 @@ set(Package_Folder "RGG_Suite_${rgg_version_major}.${rgg_version_minor}.${rgg_ve
 
 include(CPack)
 
+set(SEARCH_LOC ${install_location}/lib)
+if(${USE_SYSTEM_OCE})
+  set(SEARCH_LOC "${install_location}/lib;${OCE_DIR}/lib")
+endif()
+
 foreach(program ${rgg_programs_to_install})
   install(CODE
   "
@@ -23,7 +28,7 @@ foreach(program ${rgg_programs_to_install})
               execute_process(
                 COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
                         \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/${program}.app\"
-                        \"${install_location}/lib\"
+                        \"${SEARCH_LOC}\"
                         \"${install_location}/plugins\")
     "
     COMPONENT superbuild)
@@ -34,6 +39,44 @@ foreach(program ${rgg_programs_to_install})
   #-----------------------------------------------------------------------------
 endforeach()
 
+if(ENABLE_meshkit)
+  #set(rgg_programs_to_install ${rgg_programs_to_install} coregen)
+  install(CODE "
+              file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/coregen/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES
+                   \"${install_location}/bin/coregen\")
+              execute_process(
+                COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
+                        \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/coregen\"
+                        \"${install_location}/lib\"
+                        \"${install_location}/plugins\")
+    "
+    COMPONENT superbuild)
+  if(BUILD_WITH_CUBIT)
+    install(CODE "
+              file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES
+                   \"${install_location}/32bit/meshkit/bin/assygen\")
+              execute_process(
+                COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
+                        \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen\"
+                        \"${install_location}/32bit/meshkit/lib\"
+                        \"${install_location}/plugins\")
+    "
+    COMPONENT superbuild)
+  else()
+    install(CODE "
+              file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES
+                   \"${install_location}/bin/assygen\")
+              execute_process(
+                COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
+                        \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen\"
+                        \"${install_location}/lib\"
+                        \"${install_location}/plugins\")
+    "
+    COMPONENT superbuild)
+  endif()
+endif()
+
+
 if(BUILD_DOCUMENTATION)
   install(FILES ${install_location}/Docs/RGGUsersGuide.pdf
           DESTINATION "Documentation"
@@ -41,11 +84,11 @@ if(BUILD_DOCUMENTATION)
 endif()
 
 install(DIRECTORY 
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/simple_hexflatcore-Modified
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexflatcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/sixth_hexvertexcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/twelfth_hexflatcore
-        ${CMAKE_BINARY_DIR}/nuclearRGG/src/nuclearRGG/TestingData/Reactors/doc_rect_example
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/simple_hexflatcore-Modified
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/sixth_hexflatcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/sixth_hexvertexcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/twelfth_hexflatcore
+        ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/doc_rect_example
         DESTINATION ExampleModels)
 
 add_test(NAME GenerateRGGPackage

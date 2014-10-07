@@ -13,8 +13,10 @@
 #include "cmbNucLattice.h"
 #include "cmbNucPinCell.h"
 #include "cmbNucDuctCell.h"
+
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
+#include "vtkBoundingBox.h"
 
 class vtkCompositeDataDisplayAttributes;
 class inpFileReader;
@@ -144,7 +146,6 @@ public:
     virtual AXIS getAxis() const {return axis;}
     virtual std::string getLabel() const = 0;
     virtual bool reverse() const = 0;
-    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const = 0;
     virtual std::ostream& write(std::ostream& os) const = 0;
     virtual int getControls() const = 0;
     void setAxis(std::string a);
@@ -157,7 +158,6 @@ public:
   public:
     Rotate(): angle(0) {}
     Rotate(std::string a, double delta);
-    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const {return angle;}
     virtual bool reverse() const {return false;}
@@ -171,7 +171,6 @@ public:
   public:
     Section(): value(0), dir(1){}
     Section(std::string a, double v, std::string dir);
-    virtual void apply(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output) const;
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const { return value; }
     virtual bool reverse() const {return dir == -1;}
@@ -192,13 +191,15 @@ public:
   cmbNucAssembly();
 
   // Destroys the assembly.
-  ~cmbNucAssembly();
+  virtual ~cmbNucAssembly();
 
   const static double CosSinAngles[6][2];
 
   cmbNucAssemblyConnection * GetConnection() {return this->Connection; }
 
   virtual enumNucPartsType GetType() const {return CMBNUC_ASSEMBLY;}
+
+  vtkBoundingBox computeBounds();
 
   // Adds a new pincell to the assebly. After adding the pincell it
   // can be placed in the assembly with the SetCell() method.
@@ -228,27 +229,7 @@ public:
   QColor GetLegendColor() const;
   void SetLegendColor(const QColor& color);
 
-  // updates the block colors based on their materials
-  void updateMaterialColors(unsigned int& realflatidx,
-    vtkCompositeDataDisplayAttributes *attributes);
-
-  // Returns a multi-block data set containing the geometry for
-  // the assembly. This is used to render the assembly in 3D.
-  vtkSmartPointer<vtkMultiBlockDataSet> GetData();
   void removeDuct(Duct* d);
-
-  static void clip(vtkMultiBlockDataSet * input, vtkMultiBlockDataSet * output,
-                   double * normal, int offset = 0);
-
-  // creates the multiblock used to render the pincell. if cutaway is true the
-  // pincell will be cut in half length-wise to show the interior layers.
-  static vtkMultiBlockDataSet* CreatePinCellMultiBlock(PinCell *pincell,
-                                                       bool isHex,
-                                                       bool cutaway = false);
-
-  static vtkMultiBlockDataSet* CreateDuctCellMultiBlock(DuctCell *ductcell,
-                                                        bool isHex,
-                                                        bool cutaway = false);
 
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
@@ -258,6 +239,8 @@ public:
   bool changeSinceLastGenerate() const;
 
   void GetDuctWidthHeight(double r[2]);
+
+  void getZRange(double & z1, double & z2);
 
   void clear();
 
@@ -315,6 +298,14 @@ public:
     return this->GetPinCell(s);
   }
 
+  virtual void calculateRectPt(unsigned int i, unsigned int j, double pt[2]);
+
+  virtual void calculateRectTranslation(double lastPt[2], double & transX, double & transY)
+  {
+    transX = -lastPt[0]*0.5;
+    transY = -lastPt[1]*0.5;
+  }
+
 protected:
   std::vector<PinCell*> PinCells;
 
@@ -326,14 +317,9 @@ protected:
 
   friend class cmbNucMainWindow;
 
-  vtkSmartPointer<vtkMultiBlockDataSet> CreateData();
-
-  void computeRecOffset(unsigned int i, unsigned int j, double &tx, double &ty);
-
   std::string GeometryType;
 
 private:
-  vtkSmartPointer<vtkMultiBlockDataSet> Data;
   QColor LegendColor;
 
 

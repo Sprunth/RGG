@@ -35,6 +35,7 @@ class cmbNucPreferencesDialog;
 class NucMainInternal;
 class cmbNucLatticeWidget;
 class cmbNucGenerateOuterCylinder;
+class cmbNucRender;
 
 class cmbNucMainWindow : public QMainWindow
 {
@@ -76,7 +77,6 @@ public slots:
   void saveFile(cmbNucCore*);
   void saveFile(const QString &fileName);
   void saveCoreFile(const QString &fileName);
-  void exportVTKFile(const QString &fileName);
   void ResetView();
   void Render();
   void onInteractionTransition(vtkObject *, unsigned long event);
@@ -135,11 +135,14 @@ protected slots:
   void zScaleChanged(int value);
 
   void setTitle();
+  //void retryExport();
 
   void colorChange();
 
   void outerLayer(double r, int i);
   void clearOuter();
+
+  void resetCamera();
 
 private:
   // Designer form
@@ -147,13 +150,13 @@ private:
 
   void doClearAll(bool needSave = false);
 
+  cmbNucRender * NucMappers;
   vtkSmartPointer<vtkRenderer> Renderer;
   vtkSmartPointer<vtkRenderer> MeshRenderer;
   vtkSmartPointer<vtkCompositePolyDataMapper2> Mapper;
   vtkSmartPointer<vtkCompositePolyDataMapper2> MeshMapper;
   vtkSmartPointer<vtkCubeAxesActor> CubeAxesActor;
   vtkSmartPointer<vtkCubeAxesActor> MeshCubeAxesActor;
-  vtkSmartPointer<vtkActor> Actor;
   vtkSmartPointer<vtkActor> MeshActor;
   vtkSmartPointer<vtkEventQtSlotConnect> VTKToQt;
 
