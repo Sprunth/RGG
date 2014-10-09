@@ -511,54 +511,66 @@ void cmbNucPinCellEditor::addComponent()
 
 void cmbNucPinCellEditor::createComponentItem( int row, PinSubPart* obj)
 {
-  this->Ui->piecesTable->blockSignals(true);
+  QTableWidget * tmpTable = this->Ui->piecesTable;
+  tmpTable->blockSignals(true);
+  QTableWidgetItem *item = NULL;
   // type
-
-  QComboBox *comboBox = new QComboBox;
-  comboBox->addItem("Cylinder");
-  comboBox->addItem("Frustum");
-  QVariant vdata;
-  vdata.setValue((void*)(obj));
-  comboBox->setItemData(0, vdata);
-  vdata.setValue(row);
-  comboBox->setItemData(1, vdata);
-  if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
-  {
+  {//drop box
+    QWidget * tmpWidget = tmpTable->cellWidget(row, 0);
+    QComboBox* comboBox = dynamic_cast<QComboBox*>(tmpWidget);
+    if(comboBox == NULL)
+    {
+      comboBox = new QComboBox;
+      comboBox->addItem("Cylinder");
+      comboBox->addItem("Frustum");
+      comboBox->setObjectName("PincellPartBox_" + QString::number(row));
+      tmpTable->setCellWidget(row, 0, comboBox);
+      item = new QTableWidgetItem;
+      tmpTable->setItem(row, 0, item);
+      connect(comboBox, SIGNAL(currentIndexChanged(QString)),
+              this, SLOT(sectionTypeComboBoxChanged(QString)));
+      QVariant vdata;
+      vdata.setValue((void*)(obj));
+      comboBox->setItemData(0, vdata);
+      vdata.setValue(row);
+      comboBox->setItemData(1, vdata);
+    }
     comboBox->blockSignals(true);
-    comboBox->setCurrentIndex(1);
+    if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
+    {
+      comboBox->setCurrentIndex(1);
+    }
+    else
+    {
+      comboBox->setCurrentIndex(0);
+    }
     comboBox->blockSignals(false);
   }
-
-  connect(comboBox, SIGNAL(currentIndexChanged(QString)),
-          this, SLOT(sectionTypeComboBoxChanged(QString)));
-  this->Ui->piecesTable->setCellWidget(row, 0, comboBox);
-  QTableWidgetItem *item = new QTableWidgetItem;
-  this->Ui->piecesTable->setItem(row, 0, item);
 
   // length
   item = new SegmentOtherValuesItem(obj);
   item->setText(QString::number(obj->length()));
-  this->Ui->piecesTable->setItem(row, 1, item);
+  tmpTable->setItem(row, 1, item);
 
   // radius (base)
   item = new SegmentRadiusItem(obj, PinSubPart::BOTTOM);
-  this->Ui->piecesTable->setItem(row, 2, item);
+  tmpTable->setItem(row, 2, item);
 
   // radius (top)
   item = new SegmentRadiusItem(obj, PinSubPart::TOP);
-  this->Ui->piecesTable->setItem(row, 3, item);
+  tmpTable->setItem(row, 3, item);
 
   // Origin X
   item = new SegmentOtherValuesItem(obj);
   item->setText(QString::number(obj->x));
-  this->Ui->piecesTable->setItem(row, 4, item);
+  tmpTable->setItem(row, 4, item);
 
   // Origin Y
   item = new SegmentOtherValuesItem(obj);
   item->setText(QString::number(obj->y));
-  this->Ui->piecesTable->setItem(row, 5, item);
+  tmpTable->setItem(row, 5, item);
 
-  this->Ui->piecesTable->blockSignals(false);
+  tmpTable->blockSignals(false);
 }
 
 void cmbNucPinCellEditor::deleteComponent()
@@ -676,7 +688,7 @@ void cmbNucPinCellEditor::onPieceSelected()
     {
     this->createMaterialRow(i, obj);
     }
-    this->Ui->layersTable->blockSignals(false);
+  this->Ui->layersTable->blockSignals(false);
 }
 //-----------------------------------------------------------------------------
 PinSubPart *cmbNucPinCellEditor::getSelectedPiece()
@@ -699,6 +711,7 @@ void cmbNucPinCellEditor::addLayerBefore()
 {
   int row;
   double radius;
+  this->Ui->layersTable->blockSignals(true);
   if((this->Ui->layersTable->selectedItems().count() == 0) ||
      (this->Ui->layersTable->selectedItems().value(0)->row() == 0))
     {
@@ -709,12 +722,14 @@ void cmbNucPinCellEditor::addLayerBefore()
     QTableWidgetItem* selItem = this->Ui->layersTable->selectedItems().value(0);
     row = selItem->row();
     }
-  this->Ui->layersTable->insertRow(row);
   this->InternalPinCell->InsertLayer(row);
 
-  this->Ui->layersTable->blockSignals(true);
+  this->Ui->layersTable->setRowCount(this->InternalPinCell->GetNumberOfLayers());
 
-  this->createMaterialRow(row, InternalPinCell->GetPart(0));
+  for(int i = 0; i < this->InternalPinCell->GetNumberOfLayers(); i++)
+  {
+    this->createMaterialRow(i, InternalPinCell->GetPart(0));
+  }
 
   this->Ui->layersTable->blockSignals(false);
   this->UpdateData();
@@ -725,21 +740,31 @@ void cmbNucPinCellEditor::addLayerBefore()
 
 void cmbNucPinCellEditor::createMaterialRow(int row, PinSubPart * obj)
 {
-  QComboBox *comboBox = new QComboBox;
-  this->setupMaterialComboBox(comboBox);
-  this->Ui->layersTable->setCellWidget(row, 0, comboBox);
-  this->Ui->layersTable->setItem(row, 0, new QTableWidgetItem());
+  QTableWidget * tmpTable = this->Ui->layersTable;
+  {//drop box
+    QWidget * tmpWidget = tmpTable->cellWidget(row, 0);
+    QComboBox* comboBox = dynamic_cast<QComboBox*>(tmpWidget);
+    if(comboBox == NULL)
+    {
+      comboBox = new QComboBox;
+      comboBox->setObjectName("PinMaterialBox_" + QString::number(row));
+      tmpTable->setCellWidget(row, 0, comboBox);
+      this->setupMaterialComboBox(comboBox);
+      QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
+                       this, SLOT(onUpdateLayerMaterial()));
+    }
+    comboBox->blockSignals(true);
+    QPointer<cmbNucMaterial> selMat;
+    selMat = obj->GetMaterial(row);
+    cmbNucMaterialColors::instance()->selectIndex(comboBox, selMat);
+    comboBox->blockSignals(false);
+  }
 
-  QPointer<cmbNucMaterial> selMat;
-  selMat = obj->GetMaterial(row);
-  cmbNucMaterialColors::instance()->selectIndex(comboBox, selMat);
+  tmpTable->setItem(row, 0, new QTableWidgetItem());
 
   QTableWidgetItem *item = new LayerRadiusEditor(this->InternalPinCell);
   item->setText(QString::number(this->InternalPinCell->Radius(row)));
-  this->Ui->layersTable->setItem(row, 1, item);
-
-  QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
-                   this, SLOT(onUpdateLayerMaterial()));
+  tmpTable->setItem(row, 1, item);
 }
 
 //-----------------------------------------------------------------------------
@@ -762,11 +787,14 @@ void cmbNucPinCellEditor::addLayerAfter()
     QTableWidgetItem* selItem = this->Ui->layersTable->selectedItems().value(0);
     row = selItem->row() + 1;
     }
-  this->Ui->layersTable->insertRow(row);
   this->InternalPinCell->InsertLayer(row);
+  this->Ui->layersTable->setRowCount(this->InternalPinCell->GetNumberOfLayers());
   dynamic_cast<LayerRadiusEditor*>(this->Ui->layersTable->item(row-1,1))->refresh();
 
-  this->createMaterialRow(row, InternalPinCell->GetPart(0));
+  for(int i = 0; i < this->InternalPinCell->GetNumberOfLayers(); i++)
+  {
+    this->createMaterialRow(i, InternalPinCell->GetPart(0));
+  }
 
   this->Ui->layersTable->blockSignals(false);
   this->UpdateData();

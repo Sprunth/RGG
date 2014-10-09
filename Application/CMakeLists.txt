@@ -252,7 +252,11 @@ if(BUILD_TESTING)
                                    test_multi_layer_rect_duct
                                    test_multi_layer_hex_duct
                                    test_multi_duct_rect
-                                   test_multi_duct_hex )
+                                   test_multi_duct_hex
+                                   test_pin_material_layers
+                                   test_pin_sections
+                                   test_pin_cellmaterial_rect
+                                   test_pin_cellmaterial_hex )
 
   set (TESTS_WITH_2D_BASELINES  simple_rect_test
                                 simple_rect_assy_test

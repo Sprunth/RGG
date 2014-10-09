@@ -607,8 +607,8 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
     PinSubPart * part = this->GetPart(i);
     if(part->z1 < minZ) minZ = part->z1;
     if(part->z2 > maxZ) maxZ = part->z2;
-    double tmp = std::max(this->GetPart(0)->getRadius(PinSubPart::BOTTOM),
-                          this->GetPart(0)->getRadius(PinSubPart::TOP));
+    double tmp = std::max(this->GetPart(i)->getRadius(PinSubPart::BOTTOM),
+                          this->GetPart(i)->getRadius(PinSubPart::TOP));
     if(tmp > maxRadius) maxRadius = tmp;
   }
   double x = maxRadius, y = maxRadius;

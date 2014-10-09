@@ -245,8 +245,6 @@ namespace
       tmpPt[1] = pt0[1] + r*d[1];
       id = points->InsertNextPoint(tmpPt);
     }
-    pt0[0] = pt1[0];
-    pt0[1] = pt1[1];
   }
 
   class GeneratePoints
@@ -311,22 +309,21 @@ namespace
     }
     void AddPointsUpsampled(vtkPoints *points, double h, double * r, int maxRes, double shift)
     {
-      double start[] = {0,0,h};
       double point[] = {0,0,h};
       double prevPoint[] = {0,0,h};
       int res = usedResolution();
       if(res == 0) return;
       int ptsPerSide = maxRes/res + 1;
       assert(maxRes%res == 0); //right now only handle res that are multiples of each other
-      assert(multX[0] == 1 && multY[0] == 0);
-      start[0] = prevPoint[0] = (r[0] + shift);
-      start[1] = prevPoint[1] = 0;
       for(int j = 1; j < res; j++)
       {
+        compPt(j-1, prevPoint, r, shift);
         compPt(j, point, r, shift);
         Upsample(points, prevPoint, point, ptsPerSide);
       }
-      Upsample(points, prevPoint, start, ptsPerSide);
+      compPt(res-1, prevPoint, r, shift);
+      compPt(0, point, r, shift);
+      Upsample(points, prevPoint, point, ptsPerSide);
     }
   protected:
     std::vector<double> multX;
@@ -411,6 +408,7 @@ void vtkCmbLayeredConeSource
     boundary->SetPolys(aCellArray);
     vtkSmartPointer<vtkDelaunay2D> delaunay =
       vtkSmartPointer<vtkDelaunay2D>::New();
+    delaunay->SetTolerance(0.0);
 
     delaunay->SetInputData(aPolyData);
     delaunay->SetSourceData(boundary);
@@ -500,17 +498,31 @@ vtkCmbLayeredConeSource
     gp.AddPoints(points, h, outerTopR,    0);
     gp.AddPoints(points, h, innerTopR,    0.0005);
   }
+  else if(outerRes < innerRes)
+  {
+    double mult = 2.0;//std::floor(innerRes/outerRes);
+    GeneratePoints gpO(outerRes);
+    outerRes = gpO.usedResolution()*mult;
+    GeneratePoints gpI(innerRes);
+    innerRes = gpI.usedResolution();
+    points->Allocate(((outerRes*mult)+innerRes)*2);
+    gpO.AddPointsUpsampled(points, 0, outerBottomR, outerRes, 0);
+    gpI.AddPoints(points, 0, innerBottomR, 0.0005);
+    gpO.AddPointsUpsampled(points, h, outerTopR, outerRes, 0);
+    gpI.AddPoints(points, h, innerTopR,    0.0005);
+  }
   else
   {
+    double mult = std::floor(outerRes/innerRes);
     GeneratePoints gpO(outerRes);
     outerRes = gpO.usedResolution();
     GeneratePoints gpI(innerRes);
-    innerRes = gpI.usedResolution();
-    points->Allocate((outerRes+innerRes)*2);
+    innerRes = gpI.usedResolution()*mult;
+    points->Allocate((outerRes+(innerRes*mult))*2);
     gpO.AddPoints(points, 0, outerBottomR, 0);
-    gpI.AddPoints(points, 0, innerBottomR, 0.0005);
+    gpI.AddPointsUpsampled(points, 0, innerBottomR, innerRes, 0.0005);
     gpO.AddPoints(points, h, outerTopR, 0);
-    gpI.AddPoints(points, h, innerTopR,    0.0005);
+    gpI.AddPointsUpsampled(points, h, innerTopR, innerRes,  0.0005);
   }
 
   //Add bottom calls
