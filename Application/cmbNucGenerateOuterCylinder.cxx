@@ -58,7 +58,7 @@ cmbNucGenerateOuterCylinder
   //Generate temp inp file of outer cores of an assembly
   QFileInfo fi(FileName);
   cmbNucAssembly * temp = this->Core->GetUsedAssemblies()[0];
-  QString fname = QString(temp->getLabel().c_str()) + random + ".inp";
+  QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
   fname = fname.toLower();
   QString fullPath =fi.dir().absoluteFilePath(fname);
   inpFileWriter::write(fullPath.toStdString(), *temp, false, true);
@@ -101,7 +101,7 @@ QString cmbNucGenerateOuterCylinder
 {
   QFileInfo fi(FileName);
   cmbNucAssembly * temp = this->Core->GetUsedAssemblies()[0];
-  QString fname = QString(temp->getLabel().c_str()) + random + ".inp";
+  QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
   return fi.dir().absoluteFilePath(fname);
 }
 
