@@ -179,7 +179,9 @@ public:
         {
         return;
         }
-      Pin->SetRadius(this->row(), dval);
+      if(this->row() < Pin->GetNumberOfLayers())
+        Pin->SetRadius(this->row(), dval);
+      else return;
       }
     QTableWidgetItem::setData(role, value);
     }
@@ -529,12 +531,12 @@ void cmbNucPinCellEditor::createComponentItem( int row, PinSubPart* obj)
       tmpTable->setItem(row, 0, item);
       connect(comboBox, SIGNAL(currentIndexChanged(QString)),
               this, SLOT(sectionTypeComboBoxChanged(QString)));
-      QVariant vdata;
-      vdata.setValue((void*)(obj));
-      comboBox->setItemData(0, vdata);
-      vdata.setValue(row);
-      comboBox->setItemData(1, vdata);
     }
+    QVariant vdata;
+    vdata.setValue((void*)(obj));
+    comboBox->setItemData(0, vdata);
+    vdata.setValue(row);
+    comboBox->setItemData(1, vdata);
     comboBox->blockSignals(true);
     if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
     {
@@ -663,6 +665,7 @@ void cmbNucPinCellEditor::onUpdateCellMaterial( const QString & material )
 
 void cmbNucPinCellEditor::onPieceSelected()
 {
+   this->Ui->layersTable->blockSignals(true);
   PinSubPart* obj = this->getSelectedPiece();
   bool pieceSelected = (obj != NULL);
   this->Ui->layersTable->setEnabled(pieceSelected);
@@ -682,7 +685,6 @@ void cmbNucPinCellEditor::onPieceSelected()
     pincell->SetNumberOfLayers(1);
     layers = 1;
     }
-  this->Ui->layersTable->blockSignals(true);
   this->Ui->layersTable->setRowCount(layers);
   for(int i = 0; i < layers; i++)
     {
@@ -746,6 +748,14 @@ void cmbNucPinCellEditor::createMaterialRow(int row, PinSubPart * obj)
     QComboBox* comboBox = dynamic_cast<QComboBox*>(tmpWidget);
     if(comboBox == NULL)
     {
+      {
+        //NOTE: This garbage is needed for testing.  It appears that resize does not delete old comboboxes for rows
+        //thus testing gets confused by the name.  We are testing to see if the name exists.  If it does
+        //we will rename it a more appropriate name.
+        QComboBox* garbage = tmpTable->findChild<QComboBox*>( "PinMaterialBox_" + QString::number(row) );
+        if(garbage)
+          garbage->setObjectName("Garbage");
+      }
       comboBox = new QComboBox;
       comboBox->setObjectName("PinMaterialBox_" + QString::number(row));
       tmpTable->setCellWidget(row, 0, comboBox);

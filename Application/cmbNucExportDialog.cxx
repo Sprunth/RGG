@@ -112,6 +112,7 @@ void cmbNucExportDialog::sendSignalToProcess()
   coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe, coreGenLibs);
 
+  send_core_mesh = true;
   if(this->AssygenFileList.empty())
   {
     this->runCoregen();
@@ -121,8 +122,10 @@ void cmbNucExportDialog::sendSignalToProcess()
   if(CoregenFile.isEmpty())
   {
     this->runAssygen();
+    send_core_mesh = true;
     return;
   }
+  send_core_mesh = true;
 
   this->Progress->show();
   QString outputMesh;
@@ -178,6 +181,7 @@ void cmbNucExportDialog::runAssygen()
   }
 
   this->Progress->show();
+  send_core_mesh = false;
   emit process(this->AssygenFileList);
 }
 
@@ -189,13 +193,14 @@ void cmbNucExportDialog::runSelectedAssygen()
   {
     this->AssygenFileList.append(selectedItems[i]->text());
   }
-
+  send_core_mesh = false;
   this->runAssygen();
 }
 
 void cmbNucExportDialog::runCoregen()
 {
   qDebug() << "SENDING TO THREAD";
+  send_core_mesh = true;
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
                                              coregenExe, coreGenLibs))
@@ -210,6 +215,7 @@ void cmbNucExportDialog::runCoregen()
   if(CoregenFile.isEmpty())
   {
     this->runAssygen();
+    send_core_mesh = true;
     return;
   }
   this->Progress->show();
@@ -332,5 +338,6 @@ void cmbNucExportDialog::done()
   QString path = fi.absolutePath();
   qDebug() << Core->h5mFile.c_str();
   QString outputMesh = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
-  emit(finished(outputMesh));
+  if(send_core_mesh)
+    emit(finished(outputMesh));
 }

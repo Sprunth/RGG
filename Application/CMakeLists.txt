@@ -258,6 +258,8 @@ if(BUILD_TESTING)
                                    test_pin_cellmaterial_rect
                                    test_pin_cellmaterial_hex )
 
+  set (LONG_TEST create_and_save_rect)
+
   set (TESTS_WITH_2D_BASELINES  simple_rect_test
                                 simple_rect_assy_test
                                 simple_hex_test
@@ -293,6 +295,14 @@ if(BUILD_TESTING)
     set_tests_properties(${test}_model PROPERTIES TIMEOUT 10000)
     if(APPLE)
       set_tests_properties(${test}_model PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+    endif()
+  endforeach()
+
+  foreach(test ${LONG_TEST})
+    add_test(NAME ${test}_long COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_long_3D.png --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_long_2D.png)
+    set_tests_properties(${test}_long PROPERTIES TIMEOUT 15000)
+    if(APPLE)
+      set_tests_properties(${test}_long PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
     endif()
   endforeach()
 endif()

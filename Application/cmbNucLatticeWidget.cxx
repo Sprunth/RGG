@@ -11,6 +11,7 @@ cmbNucLatticeWidget::cmbNucLatticeWidget(QWidget * parent)
 {
   QVBoxLayout * box = new  QVBoxLayout();
   draw_control = new cmbNucDraw2DLattice(DrawLatticeItem::Polygon, NULL);
+  draw_control->setObjectName("Drawing_2D_Widget");
   box->addWidget(draw_control);
   this->setLayout(box);
 }

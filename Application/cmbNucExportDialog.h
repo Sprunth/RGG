@@ -72,6 +72,8 @@ private:
   cmbNucCore * Core;
   cmbNucMainWindow *MainWindow;
 
+  bool send_core_mesh;
+
   cmbProgressDialog *Progress;
   QStringList AssygenFileList;
   QString CoregenFile;

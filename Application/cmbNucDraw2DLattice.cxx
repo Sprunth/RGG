@@ -454,8 +454,7 @@ void cmbNucDraw2DLattice::resizeEvent( QResizeEvent * event )
 
 void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* event)
 {
-  DrawLatticeItem* hitem = dynamic_cast<DrawLatticeItem*>(this->itemAt(
-    this->mapFromGlobal(event->globalPos())));
+  DrawLatticeItem* hitem = dynamic_cast<DrawLatticeItem*>(this->itemAt(event->pos()));
   if(!hitem || !hitem->is_available())
     {
     return;

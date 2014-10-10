@@ -165,7 +165,7 @@ bool cmbNucPreferencesDialog::isOk()
   bool hasAssygen = !assygenexe.isEmpty() && QFileInfo(assygenexe).exists();
   bool hasCoregen = !coregenexe.isEmpty() && QFileInfo(coregenexe).exists();
   bool hasPack = cmbNucPreferencesDialog::hasPackaged();
-  bool hasRgg = (!useCustom && hasPack) || (useCustom && hasAssygen && hasCoregen);
+  bool hasRgg = (!useCustom && hasPack) || ((!hasPack || useCustom) && hasAssygen && hasCoregen);
   return hasRgg && hasCubit;
 }
 

@@ -40,6 +40,7 @@
 #include <QTemporaryFile>
 #include <QSettings>
 #include <QTimer>
+#include <QTime>
 #include <QMessageBox>
 #include <QXmlStreamWriter>
 
@@ -95,12 +96,15 @@ class XMLEventSource : public pqEventSource
 public:
   XMLEventSource(QString testDir, QString outdir, QObject* p)
     : TestDir(testDir), OutputDir(outdir), Superclass(p)
-  { this->XMLStream = NULL;}
+  { this->XMLStream = NULL; isWaiting = false;}
   ~XMLEventSource() { delete this->XMLStream; }
 
 protected:
   QString TestDir;
   QString OutputDir;
+  bool isWaiting;
+  QTime Time;
+  int WaitingTime;
   virtual void setContent(const QString& xmlfilename)
   {
     delete this->XMLStream;
@@ -124,6 +128,20 @@ protected:
   int getNextEvent(QString& widget, QString& command, QString&
                    arguments)
   {
+    if(isWaiting)
+    {
+      if(Time.elapsed() < WaitingTime)
+      {
+        widget = "qNucMainWindow";
+        command = "pause";
+        arguments = "1";
+        return SUCCESS;
+      }
+      else
+      {
+        isWaiting = false;
+      }
+    }
     if (this->XMLStream->atEnd())
     {
       return DONE;
@@ -149,6 +167,15 @@ protected:
     arguments = this->XMLStream->attributes().value("arguments").toString();
     arguments.replace("${TEST_DIRECTORY}", TestDir);
     arguments.replace("${OUTPUT_DIRECTORY}", OutputDir);
+    if(widget == "TESTER" && command == "pause")
+    {
+      WaitingTime = arguments.toInt()*1000;
+      isWaiting = true;
+      widget = "qNucMainWindow";
+      command = "pause";
+      arguments = "1";
+      Time.start();
+    }
     return SUCCESS;
   }
 };
@@ -341,6 +368,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   //this->ui->meshControls->setVisible(false);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
+  LatticeDraw->setObjectName("LatticeDrawWidget");
   this->ui->Dock2D->setWidget(LatticeDraw);
 
   this->ExportDialog = new cmbNucExportDialog(this);
@@ -1996,5 +2024,7 @@ void cmbNucMainWindow::playTest()
 
 void cmbNucMainWindow::pause(int v)
 {
-  Sleeper::msleep(v);
+  qDebug() << "Going to sleep";
+  Sleeper::sleep(v);
+  qDebug() << "Done sleeping";
 }

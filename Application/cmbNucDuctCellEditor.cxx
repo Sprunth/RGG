@@ -551,6 +551,13 @@ cmbNucDuctCellEditor
     QComboBox* comboBox = dynamic_cast<QComboBox*>(tmpWidget);
     if(comboBox == NULL)
     {
+      {
+        //NOTE: This garbage is needed for testing.  It appears that resize does not delete old comboboxes for rows
+        //thus testing gets confused by the name.  We are testing to see if the name exists.  If it does
+        //we will rename it a more appropriate name.
+        QComboBox* garbage = tmpTable->findChild<QComboBox*>( "DuctMaterialBox_" + QString::number(row) );
+        if(garbage) garbage->setObjectName("Garbage");
+      }
       comboBox = new QComboBox;
       comboBox->setObjectName("DuctMaterialBox_" + QString::number(row));
       tmpTable->setCellWidget(row, 0, comboBox);

@@ -45,6 +45,7 @@ cmbNucCoregen::getData()
 
 void cmbNucCoregen::openFile(QString file)
 {
+  if(file.isEmpty()) return;
   this->MoabReader->SetFileName(file.toStdString().c_str());
   this->MoabReader->Modified();
   this->MoabReader->Update();
