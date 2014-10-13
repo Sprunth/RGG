@@ -10,6 +10,7 @@
 
 #include <QFileDialog>
 #include <QSettings>
+#include <QMessageBox>
 
 QString GetRandomString(int length)
 {
@@ -41,13 +42,23 @@ void
 cmbNucGenerateOuterCylinder
 ::exportFiles(cmbNucCore * core)
 {
-  Core = core;
+  this->Core = core;
+  if(this->Core == NULL) return;
   deleteTempFiles();
-  if(this->generateCylinder())
+  if(this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate)
   {
-    random = GetRandomString(8);
     FileName = this->Core->Params.BackgroundFullPath.c_str();
-    Generate();
+    if(FileName.isEmpty())
+    {
+      QMessageBox msgBox;
+      msgBox.setText(QString("Could not generate a file outer jacket file, skipping"));
+      msgBox.exec();
+    }
+    else
+    {
+      random = GetRandomString(8);
+      Generate();
+    }
   }
 }
 
@@ -109,7 +120,7 @@ bool
 cmbNucGenerateOuterCylinder
 ::generateCylinder()
 {
-  return this->Core != NULL && this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate;
+  return this->Core != NULL && this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate && !FileName.isEmpty();
 }
 
 QString cmbNucGenerateOuterCylinder

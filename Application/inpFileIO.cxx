@@ -714,9 +714,9 @@ bool inpFileWriter::write(std::string fname,
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", true, core.getLattice() );
-  if( core.Params.BackgroundMode != cmbNucCoreParams::None &&
-     !core.Params.Background.empty() &&
-      QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() )
+  if( ( ( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
+          QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() ) ||
+          core.Params.BackgroundMode == cmbNucCoreParams::Generate ) && !core.Params.Background.empty() )
     {
     QFile src(core.Params.BackgroundFullPath.c_str());
     QFile dest( QFileInfo(info.dir(), core.Params.Background.c_str()).absoluteFilePath() );
@@ -726,11 +726,17 @@ bool inpFileWriter::write(std::string fname,
       }
     output << "Background " << core.Params.Background << "\n";
     }
-  else if( core.Params.BackgroundMode != cmbNucCoreParams::None && !core.Params.Background.empty() )
+  else if( core.Params.BackgroundMode == cmbNucCoreParams::External && !core.Params.Background.empty() )
     {
     QMessageBox msgBox;
     msgBox.setText( QString(core.Params.Background.c_str()) +
                    QString(" was not found.  We are not writing Background to output inp file."));
+    msgBox.exec();
+    }
+  else if( core.Params.BackgroundMode == cmbNucCoreParams::Generate && core.Params.Background.empty() )
+    {
+    QMessageBox msgBox;
+    msgBox.setText(QString("Could not generate a outer jacket because no output file name given"));
     msgBox.exec();
     }
 
@@ -822,10 +828,10 @@ bool inpFileWriter::writeGSH(std::string fname, cmbNucCore & core, std::string a
     output << " " << core.AssyemblyPitchY;
   }
   output << "\n";
-  output << QFileInfo(assyName.c_str()).completeBaseName().toStdString() << ".sat aa" << "\n";
+  output << QFileInfo(assyName.c_str()).completeBaseName().toLower().toStdString() << ".sat aa" << "\n";
   helper.writeLattice( output, "Lattice", true, core.getLattice(), "aa" );
 
-  output << "outputfilename " + QFileInfo(fname.c_str()).completeBaseName().toStdString() + ".sat\n";
+  output << "outputfilename " + QFileInfo(fname.c_str()).completeBaseName().toLower().toStdString() + ".sat\n";
   output << "End\n";
 
   return true;

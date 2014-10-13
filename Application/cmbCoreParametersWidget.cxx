@@ -136,7 +136,9 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
                                                               QDir::homePath()).toString();
       defaultLoc = tdir.path();
     }
-    QFileDialog saveQD( this, "Save Outer Cylinder File...", defaultLoc, "cub Files (*.cub)");
+
+    fileName = QFileDialog::getSaveFileName( this, "Save Outer Cylinder File...",  defaultLoc, "cub Files (*.cub)" );
+    /*QFileDialog saveQD( this, "Save Outer Cylinder File...", defaultLoc, "cub Files (*.cub)");
     saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
     saveQD.setAcceptMode(QFileDialog::AcceptSave);
     saveQD.selectFile("outer_cylinder.cub");
@@ -144,7 +146,7 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
     if(saveQD.exec()== QDialog::Accepted)
     {
       fileName = saveQD.selectedFiles().first();
-    }
+    }*/
   }
   else
   {

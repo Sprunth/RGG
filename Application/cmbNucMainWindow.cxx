@@ -33,6 +33,7 @@
 
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFile>
 #include <QStringList>
 #include <QDebug>
 #include <QDockWidget>
@@ -73,20 +74,6 @@
 #include "pqXMLEventObserver.h"
 
 #include <qthread.h>
-
-class Sleeper : public QThread
-{
-public:
-	static void sleep(unsigned long secs) {
-		QThread::sleep(secs);
-	}
-	static void msleep(unsigned long msecs) {
-		QThread::msleep(msecs);
-	}
-	static void usleep(unsigned long usecs) {
-		QThread::usleep(usecs);
-	}
-};
 
 class XMLEventSource : public pqEventSource
 {
@@ -132,9 +119,9 @@ protected:
     {
       if(Time.elapsed() < WaitingTime)
       {
-        widget = "qNucMainWindow";
+        widget = "RGGNuclear-app";
         command = "pause";
-        arguments = "1";
+        arguments = "10";
         return SUCCESS;
       }
       else
@@ -171,10 +158,15 @@ protected:
     {
       WaitingTime = arguments.toInt()*1000;
       isWaiting = true;
-      widget = "qNucMainWindow";
+      widget = "RGGNuclear-app";
       command = "pause";
       arguments = "1";
       Time.start();
+    }
+    if(widget == "TESTER" && command == "delete")
+    {
+      QFile::remove(arguments);
+      return getNextEvent(widget, command, arguments);
     }
     return SUCCESS;
   }
@@ -2020,11 +2012,4 @@ void cmbNucMainWindow::playTest()
   {
     qApp->exit(succeded ? 0 : 1);
   }
-}
-
-void cmbNucMainWindow::pause(int v)
-{
-  qDebug() << "Going to sleep";
-  Sleeper::sleep(v);
-  qDebug() << "Done sleeping";
 }
