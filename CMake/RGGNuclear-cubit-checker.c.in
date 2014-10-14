@@ -1,0 +1,42 @@
+#define vtksys_SHARED_FORWARD_DIR_BUILD "@CMAKE_BINARY_DIR@"
+#define vtksys_SHARED_FORWARD_PATH_BUILD "@CMAKE_BINARY_DIR@"
+#define vtksys_SHARED_FORWARD_PATH_INSTALL "../lib"
+#define vtksys_SHARED_FORWARD_EXE_BUILD "@CMAKE_BINARY_DIR@/RGGNuclear-GUI"
+#define vtksys_SHARED_FORWARD_EXE_INSTALL "../lib/RGGNuclear-GUI"
+#define vtksys_SHARED_FORWARD_OPTION_PRINT "--print"
+#define vtksys_SHARED_FORWARD_OPTION_LDD "--ldd"
+
+#include <vtksys/SharedForward.h>
+
+//for now I am assuming linux layout
+
+#include <QtGlobal>
+#include <QSettings>
+#include <QDir>
+#include <QFileInfo>
+
+#define NAME_PROJECT "RGGNuclear"
+#define EXPORTER_NAME "Exporter"
+
+bool test_cubit_exe( QString exe_name )
+{
+  return true;
+}
+
+int main(int argc, char** argv)
+{
+  //Do we have a cubit already set, if so, point LD_LIBRARY_PATH to it
+  QSettings settings(NAME_PROJECT, EXPORTER_NAME);
+  QString cubitexe = settings.value("cubit_exe").toString();
+  QDir cubitdir;
+  if(!cubitexe.isEmpty())
+  {
+    cubitdir = QFileInfo(cubitexe).dir();
+
+  }
+  //get the environment variable
+  //test for cubit
+  //test cubit version
+  //return vtksys_shared_forward_to_real(argc, argv);
+  return 0;
+}

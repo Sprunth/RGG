@@ -2,6 +2,7 @@ add_external_project(meshkit
   DEPENDS moab cgm lasso
   BUILD_IN_SOURCE 1
   PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_moab_linking_linux.txt
+  BUILD_COMMAND "make -j5 install"
   CONFIGURE_COMMAND  <SOURCE_DIR>/configure
   --prefix=<INSTALL_DIR>
   --with-itaps=<INSTALL_DIR>
@@ -11,12 +12,13 @@ add_external_project(meshkit
   --enable-utils
   --enable-rgg
   --enable-shared
+  INSTALL_COMMAND ""
 )
 
-if(ENABLE_meshkit)
+if(ENABLE_meshkit )
   find_package(Autotools REQUIRED)
   add_external_project_step(meshkit-autoconf
-    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
+    COMMAND     ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
     DEPENDEES update
     DEPENDERS configure
   )
