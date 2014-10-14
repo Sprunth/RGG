@@ -256,6 +256,8 @@ PinCell::PinCell(double px, double py)
   Connection->pc = this;
   QObject::connect(CellMaterial.GetConnection(), SIGNAL(materialChanged()),
                    this->Connection, SLOT(clearOldData()));
+  //When cellmaterial is unkown, it is not used, so dec unknown by one
+  this->CellMaterial.getMaterial()->dec();
 }
 
 PinCell::~PinCell()
@@ -580,6 +582,11 @@ QPointer<cmbNucMaterial> PinCell::getCellMaterial()
 void PinCell::setCellMaterial(QPointer<cmbNucMaterial> material)
 {
   CellMaterial.changeMaterial(material);
+  if(material == cmbNucMaterialColors::instance()->getUnknownMaterial())
+  {
+    //Unknown is not really used or visiable for cell material, so decrease by one
+    material->dec();
+  }
 }
 
 bool PinCell::cellMaterialSet() const

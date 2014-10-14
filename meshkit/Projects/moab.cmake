@@ -36,5 +36,6 @@ add_external_project(moab
     --without-ccmio
     --enable-dagmc
     --enable-shared
+    --enable-dagmc
     "CFLAGS=${cflags}" "CXXFLAGS=${cxxflags}"
 )

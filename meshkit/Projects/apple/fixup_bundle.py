@@ -88,10 +88,7 @@ class Library(object):
       return self.__dependencies
     collection = set()
     for dep in getdependencies(self.RealPath):
-      if not re.match(r".*libcubit.*\.dylib", dep): #(dep):
-        collection.add(Library.createFromReference(dep, exepath))
-      else:
-        logging.info("SKIPPING THIS DEP: %s"%dep)
+      collection.add(Library.createFromReference(dep, exepath))
     self.__dependencies = collection
     return self.__dependencies
 
@@ -100,11 +97,10 @@ class Library(object):
       m = re.match(r'(.*)/(\w+\.framework)/(.*)', self.RealPath)
       # FIXME: this could be optimized to only copy the particular version.
       if not fakeCopy:
-        logging.info("Copying %s/%s ==> %s" % (m.group(1), m.group(2), ".../Contents/Frameworks/"))
+        logging.debug("Copying %s/%s ==> %s" % (m.group(1), m.group(2), ".../Contents/Frameworks/"))
         dirdest = os.path.join(os.path.join(app, "Contents/Frameworks/"), m.group(2))
         filedest = os.path.join(dirdest, m.group(3))
-        if not os.path.exists(dirdest):
-          shutil.copytree(os.path.join(m.group(1), m.group(2)), dirdest, symlinks=True)
+        shutil.copytree(os.path.join(m.group(1), m.group(2)), dirdest, symlinks=True)
       self.Id = "@executable_path/../Frameworks/%s" % (os.path.join(m.group(2), m.group(3)))
       if not fakeCopy:
         #frameworks can be coming for a system installed place so we need to
@@ -114,15 +110,8 @@ class Library(object):
         commands.getoutput('chmod u-w "%s"' % filedest)
     else:
       if not fakeCopy:
-        d = os.path.dirname(os.path.join(app, "Contents/Libraries/"))
-        if not os.path.exists(d):
-          os.makedirs(d)
-        logging.info("Copying %s ==> %s" % (self.RealPath, ".../Contents/Libraries/%s" % os.path.basename(self.RealPath)))
-        if not os.path.exists("../Contents/Libraries/%s"%os.path.basename(self.RealPath)):
-          try:
-            shutil.copy(self.RealPath, d )
-          except IOError as detail:
-            print 'Handling run-time error:', detail
+        logging.debug("Copying %s ==> %s" % (self.RealPath, ".../Contents/Libraries/%s" % os.path.basename(self.RealPath)))
+        shutil.copy(self.RealPath, os.path.join(app, "Contents/Libraries"))
       self.Id = "@executable_path/../Libraries/%s" % os.path.basename(self.RealPath)
       if not fakeCopy:
         filedest = os.path.join(app, "Contents/Libraries/%s" % os.path.basename(self.RealPath))
@@ -137,13 +126,14 @@ class Library(object):
       # to it itself in the app bundle.
       sourcefile = os.path.basename(self.RealPath)
       for symlink in self.SymLinks:
-        logging.info("Creating Symlink %s ==> .../Contents/Libraries/%s" % (symlink, os.path.basename(self.RealPath)))
+        logging.debug("Creating Symlink %s ==> .../Contents/Libraries/%s" % (symlink, os.path.basename(self.RealPath)))
         if not fakeCopy:
           commands.getoutput("ln -s %s %s" % (sourcefile, os.path.join(destdir, symlink)))
 
   @classmethod
   def createFromReference(cls, ref, exepath):
     path = ref.replace("@executable_path", exepath)
+
     if not os.path.exists(path):
       path = _find(ref)
     return cls.createFromPath(path)
@@ -212,8 +202,6 @@ def isexcluded(id):
     return True
   if re.match(r"^/usr/local", id):
     return True
-  #if re.match(r".*libcubit.*\.dylib", id):
-  # return True
   return False
 
 def _isframework(path):
@@ -223,8 +211,9 @@ def _isframework(path):
 def _find(ref):
   name = os.path.basename(ref)
   for loc in SearchLocations:
-    output = commands.getoutput('find "%s" -name "%s"' % (loc, name)).strip()
-    if output:
+    output = os.path.join(loc,name)
+    logging.debug("found rpath libraries full path: %s" % output)
+    if os.path.exists(output):
       return output
   return ref
 
@@ -249,11 +238,23 @@ def _removeSymlink(ref):
 SearchLocations = []
 if __name__ == "__main__":
   App = _makeSymlink(sys.argv[1])
-  SearchLocations = sys.argv[2].split(";")
+  SearchLocations += [sys.argv[2]]
   if len(sys.argv) > 3:
     QtPluginsDir = sys.argv[3]
   else:
     QtPluginsDir = None
+
+  AdditionalExternalLibraries = None
+  if len(sys.argv) > 4:
+    AdditionalExternalLibraries = sys.argv[4:]
+
+  #add all directories to SearchLocations
+  if AdditionalExternalLibraries:
+    for lib in AdditionalExternalLibraries:
+      dir,name = os.path.split(lib)
+      SearchLocations += [dir]
+    print SearchLocations
+
   LibrariesPrefix = "Contents/Libraries"
 
   logging.info( "------------------------------------------------------------" )
@@ -287,10 +288,21 @@ if __name__ == "__main__":
   mLibraries = set()
   for lib in external_libraries.split():
     if not isexcluded(lib):
-      logging.info( "Processing " + str(lib) + "" )
+      logging.debug( "Processing " + str(lib) + "" )
       mLibraries.add(Library.createFromReference(lib, "%s/Contents/MacOS/foo" % App))
 
+  #add in the additional explicit external libraries
+
+  for lib in AdditionalExternalLibraries:
+    additional_deps = commands.getoutput('find %s | xargs file | grep "Mach-O" | sed "s/:.*//" | xargs otool -l | grep " name" | sort | uniq | sed "s/name\ //" | grep -v "@" | sed "s/ (offset.*)//"' % lib)
+    for dep in additional_deps.split():
+      if not isexcluded(dep) and os.path.exists(dep):
+        logging.debug( "Processing " + str(dep) + "" )
+        mLibraries.add(Library.createFromReference(dep, "%s/Contents/MacOS/foo" % App))
+
   logging.info( "Found %d direct external dependencies." % len(mLibraries) )
+  for m in mLibraries:
+    logging.debug("Direct external dependency: %s", m)
 
   def recursive_dependency_scan(base, to_scan):
     dependencies = set()
@@ -310,8 +322,9 @@ if __name__ == "__main__":
 
   indirect_mLibraries = recursive_dependency_scan(mLibraries, mLibraries)
   logging.info( "Found %d indirect external dependencies." % (len(indirect_mLibraries)) )
-  logging.info( indirect_mLibraries )
   logging.info( "" )
+  for m in indirect_mLibraries:
+    logging.debug("Indirect external dependency: %s", m)
   mLibraries.update(indirect_mLibraries)
 
   logging.info( "------------------------------------------------------------" )
@@ -325,7 +338,7 @@ if __name__ == "__main__":
 
   # If Qt Plugins dir is specified, copies those in right now.
   # We need to fix paths on those too.
-  # Currently, we are not including plugins in the external dependency search.
+  # Currently, we are including plugins in the external dependency search.
   if QtPluginsDir:
     logging.info( "------------------------------------------------------------" )
     logging.info( "Copying Qt plugins " )
@@ -343,8 +356,6 @@ if __name__ == "__main__":
   result = ""
   for dep in binaries_to_fix:
     commands.getoutput('chmod u+w "%s"' % dep)
-    logging.info('install_name_tool %s "%s"' % (install_name_tool_command, dep))
-    output = commands.getoutput('install_name_tool %s "%s"' % (install_name_tool_command, dep))
-    logging.info(output)
+    commands.getoutput('install_name_tool %s "%s"' % (install_name_tool_command, dep))
 
     commands.getoutput('chmod a-w "%s"' % dep)

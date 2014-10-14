@@ -80,7 +80,7 @@ cmbNucMaterialColors* cmbNucMaterialColors::instance()
 cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
   : MaterialTree(NULL), Llimit(0.1), Ulimit(0.9), numNewMaterials(0), newID(0)
 {
-  justUsed = false;
+  showMode = 0;
   UnknownMaterial = new cmbNucMaterial("!!!!UnknownMaterial!!!!",
                                        "!!!!Unknown!!!!",
                                        QColor::fromRgbF(1.0,1.0,1.0));
@@ -89,6 +89,7 @@ cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
   connect(UnknownMaterial, SIGNAL(labelHasChanged(QString, QPointer<cmbNucMaterial>)),
           this, SLOT(UnknownRelabel(QString)));
   connect(UnknownMaterial, SIGNAL(colorChanged()), this, SIGNAL(materialColorChanged()));
+  connect(UnknownMaterial, SIGNAL(useChanged()), this, SLOT(testShow()));
   if (!cmbNucMaterialColors::Instance || reset_instance)
     {
     cmbNucMaterialColors::Instance = this;
@@ -258,6 +259,7 @@ cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label,
   connect(mat, SIGNAL(labelHasChanged(QString, QPointer<cmbNucMaterial>)),
           this, SLOT(testAndRelabel(QString, QPointer<cmbNucMaterial>)));
   connect(mat, SIGNAL(colorChanged()), this, SIGNAL(materialColorChanged()));
+  connect(mat, SIGNAL(useChanged()), this, SLOT(testShow()));
   return mat;
 }
 
@@ -275,18 +277,19 @@ void cmbNucMaterialColors::RemoveMaterialByName(const QString& name)
   Material_Map::iterator it = this->find(name, this->NameToMaterial);
   if(it != this->NameToMaterial.end())
     {
+      bool is_used = false;
       if(it.value())
         {
         QString label = it.value()->getLabel();
-        bool is_used = it.value()->isUsed();
+        is_used = it.value()->isUsed();
         delete it.value();
         RemoveMaterialByLabel(label);
-        if(is_used)
-          {
-          emit materialColorChanged();
-          }
         }
     this->NameToMaterial.erase(it);
+    if(is_used)
+      {
+      emit materialColorChanged();
+      }
     }
 }
 
@@ -494,8 +497,8 @@ cmbNucMaterialColors::addToTree(QPointer<cmbNucMaterial> mat)
   cmbNucMaterialTreeItem* mNode =
       new cmbNucMaterialTreeItem(MaterialTree->invisibleRootItem(),
                                  mat);
-  connect(this, SIGNAL(showJustUsedSig(bool)),
-          mNode->getConnection(), SLOT(show(bool)));
+  connect(this, SIGNAL(showModeSig(int)),
+          mNode->getConnection(), SLOT(show(int)));
   return mNode;
 }
 
@@ -541,19 +544,24 @@ void cmbNucMaterialColors::deleteSelected()
     cmbNucMaterialTreeItem * cnmti = dynamic_cast<cmbNucMaterialTreeItem *>(selitem);
     if(cnmti == NULL) continue;
     if(cnmti->getMaterial() == UnknownMaterial) continue;
-    disconnect( this, SIGNAL(showJustUsedSig(bool)),
-                cnmti->getConnection(), SLOT(show(bool)) );
+    disconnect(this, SIGNAL(showModeSig(int)),
+               cnmti->getConnection(), SLOT(show(int)));
     this->RemoveMaterialByName(cnmti->getMaterial()->getName());
-    UnknownMaterialTreeItem->getConnection()->show(this->justUsed);
+    UnknownMaterialTreeItem->getConnection()->show(showMode);
     delete cnmti;
   }
 }
 
 //------------------------------------------------------------------------------
-void cmbNucMaterialColors::showJustUsed(bool b)
+void cmbNucMaterialColors::controlShow(int sc)
 {
-  this->justUsed = b;
-  emit showJustUsedSig(b);
+  showMode = sc;
+  this->testShow();
+}
+
+void cmbNucMaterialColors::testShow()
+{
+  emit showModeSig(this->showMode);
 }
 
 //------------------------------------------------------------------------------
@@ -576,4 +584,15 @@ cmbNucMaterialColors
 ::find(QString key, Material_Map const& map) const
 {
   return map.find(key.toLower());
+}
+
+//------------------------------------------------------------------------------
+void cmbNucMaterialColors
+::clearDisplayed()
+{
+  UnknownMaterial->clearDisplayed();
+  foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
+  {
+    mat->clearDisplayed();
+  }
 }

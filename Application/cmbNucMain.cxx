@@ -12,11 +12,6 @@ int main( int argc, char** argv )
  
   cmbNucMainWindow cmbNucAppUI;
   cmbNucAppUI.show();
-
-  /*if(argc >= 2)
-    {
-    cmbNucAppUI.openAssemblyFiles(QStringList() << argv[1]);
-    }*/
  
   return app.exec();
 }

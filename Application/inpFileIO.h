@@ -36,8 +36,9 @@ private:
 class inpFileWriter
 {
 public:
-  static bool write(std::string fname, cmbNucAssembly & assembly, bool updateFname = true);
+  static bool write(std::string fname, cmbNucAssembly & assembly, bool updateFname = true, bool limited = false);
   static bool write(std::string fname, cmbNucCore & core, bool updateFname = true);
+  static bool writeGSH(std::string fname, cmbNucCore & core, std::string assyName);
 private:
 };
 

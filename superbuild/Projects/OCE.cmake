@@ -1,5 +1,5 @@
 #Open Cascade Community Edition supports CMake
-add_external_project(OCE
+add_external_project_or_use_system(OCE
   DEPENDS ftgl freetype
   CMAKE_ARGS
     -DBUILD_SHARED_LIBS:BOOL=TRUE
@@ -14,6 +14,11 @@ add_external_project(OCE
     #install/include/oce/, because than CGM can't find it.
     -DOCE_INSTALL_INCLUDE_DIR:FilePath=include
 )
+
+if(NOT ${USE_SYSTEM_OCE})
+  set(OCE_DIR ${CMAKE_BINARY_DIR}/install CACHE PATH "Path to oce install" FORCE)
+  mark_as_advanced(OCE_DIR)
+endif()
 
 # remove the installed oce-config.h from the install tree
 # so that the build doesn't use that over the configured header in the build

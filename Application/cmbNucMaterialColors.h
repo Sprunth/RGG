@@ -52,6 +52,8 @@ public:
   QPointer<cmbNucMaterial> AddMaterial(const QString& name,
                                        const QString& label);
 
+  void clearDisplayed();
+
   void RemoveMaterialByName(const QString& name);
   void RemoveMaterialByLabel(const QString& label);
 
@@ -76,7 +78,8 @@ public:
   void buildTree(QTreeWidget * tree);
 
 public slots:
-  void showJustUsed(bool);
+  void testShow();
+  void controlShow(int);
   void CreateNewMaterial();
   void deleteSelected();
 
@@ -95,7 +98,7 @@ protected slots:
   void sendMaterialFromLabel(QString const& label);
 
 signals:
-  void showJustUsedSig(bool);
+  void showModeSig(int);
 
 private:
 
@@ -122,7 +125,7 @@ private:
   double Ulimit, Llimit;  // luminance range when creating colors
   int numNewMaterials;
   int newID;
-  bool justUsed;
+  int showMode;
 };
 
 #endif

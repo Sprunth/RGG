@@ -7,6 +7,7 @@
 
 class vtkPolyData;
 class vtkPoints;
+class vtkCellArray;
 
 // Creates a cone with multiple layers. Each layer is a separate block
 // in the multi-block output data-set so that individual layers property's
@@ -29,6 +30,9 @@ public:
   void SetBaseRadius(int layer, double r1, double r2);
   double GetBaseRadius(int layer);
 
+  void addInnerPoint(double x, double y);
+  void clearInnerPoints();
+
   void SetResolution(int layer, int res);
 
   vtkSetMacro(Height, double);
@@ -46,14 +50,16 @@ public:
   vtkGetMacro(GenerateNormals,int);
   vtkBooleanMacro(GenerateNormals,int);
 
+  vtkSetMacro(GenerateEnds,int);
+  vtkGetMacro(GenerateEnds,int);
+  vtkBooleanMacro(GenerateEnds,int);
+
+
 protected:
   vtkCmbLayeredConeSource();
   ~vtkCmbLayeredConeSource();
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-
-  //vtkMultiBlockDataSet * CreateLayer(double innerRadius, double outerRadius,
-  //                                   int res1, int res2);
 
   vtkPolyData * CreateLayer(double h,
                             double * innerBottomR, double * outerBottomR,
@@ -68,14 +74,22 @@ protected:
     double TopRadii[2];
   };
   std::vector<radii> LayerRadii;
+  std::vector< std::vector<double> > InnerPoints;
   double BaseCenter[3];
   double Direction[3];
   int Resolution;
   int GenerateNormals;
+  int GenerateEnds;
 
 private:
   vtkCmbLayeredConeSource(const vtkCmbLayeredConeSource&);
   void operator=(const vtkCmbLayeredConeSource&);
+
+  void TriangulateEnd(const int innerRes,
+                      const int outerRes,
+                      bool forceDelaunay,
+                      vtkCellArray *cells,
+                      vtkPoints * fullPoints);
 };
 
 #endif

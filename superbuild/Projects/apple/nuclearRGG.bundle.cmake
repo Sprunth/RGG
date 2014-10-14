@@ -9,6 +9,11 @@ set(Package_Folder "RGG_Suite_${rgg_version_major}.${rgg_version_minor}.${rgg_ve
 
 include(CPack)
 
+set(SEARCH_LOC ${install_location}/lib)
+if(${USE_SYSTEM_OCE})
+  set(SEARCH_LOC "${install_location}/lib;${OCE_DIR}/lib")
+endif()
+
 foreach(program ${rgg_programs_to_install})
   install(CODE
   "
@@ -23,7 +28,7 @@ foreach(program ${rgg_programs_to_install})
               execute_process(
                 COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
                         \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/${program}.app\"
-                        \"${install_location}/lib\"
+                        \"${SEARCH_LOC}\"
                         \"${install_location}/plugins\")
     "
     COMPONENT superbuild)

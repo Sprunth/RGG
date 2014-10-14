@@ -10,6 +10,7 @@
 
 #include "vtkMultiBlockDataSet.h"
 #include "cmbNucPartDefinition.h"
+#include "cmbNucLattice.h"
 #include "cmbNucPinCell.h"
 #include "cmbNucDuctCell.h"
 #include "vtkSmartPointer.h"
@@ -121,7 +122,7 @@ signals:
 // and the surrounding ducting. Assemblies can be loaded and stored to files
 // with the ReadFile() and Write() file methods. Assemblies are grouped together
 // into cores (cmbNucCore).
-class cmbNucAssembly : public AssyPartObj
+class cmbNucAssembly : public LatticeContainer
 {
 public:
   class Transform
@@ -193,6 +194,8 @@ public:
   // Destroys the assembly.
   ~cmbNucAssembly();
 
+  const static double CosSinAngles[6][2];
+
   cmbNucAssemblyConnection * GetConnection() {return this->Connection; }
 
   virtual enumNucPartsType GetType() const {return CMBNUC_ASSEMBLY;}
@@ -243,6 +246,10 @@ public:
                                                        bool isHex,
                                                        bool cutaway = false);
 
+  static vtkMultiBlockDataSet* CreateDuctCellMultiBlock(DuctCell *ductcell,
+                                                        bool isHex,
+                                                        bool cutaway = false);
+
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
   //Set the different from file and tests the cub file;
@@ -273,12 +280,12 @@ public:
   }
 
   std::string getLabel(){return label;}
+  void setLabel(std::string & n);
   std::string getFileName(){return FileName;}
   virtual std::string getTitle(){ return "Assembly: " + label; }
 
   // Expose assembly parts for UI access
   DuctCell AssyDuct;
-  Lattice AssyLattice;
   std::string label;
 
   std::string FileName;
@@ -300,6 +307,13 @@ public:
   bool removeOldTransforms(int newSize);
   Transform* getTransform(int i) const; //NULL if not found
   size_t getNumberOfTransforms() const;
+
+  void fillList(QStringList & l);
+
+  virtual AssyPartObj * getFromLabel(const std::string & s)
+  {
+    return this->GetPinCell(s);
+  }
 
 protected:
   std::vector<PinCell*> PinCells;

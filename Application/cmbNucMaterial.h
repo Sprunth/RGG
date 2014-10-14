@@ -72,6 +72,9 @@ public:
   void inc();
   void dec();
   bool isUsed();
+  bool isDisplayed();
+  void clearDisplayed();
+  void setDisplayed();
 
   void emitMaterialChange();
   void emitColorChange();
@@ -88,6 +91,7 @@ signals:
   void invalidLabel();
   void materialChanged();
   void colorChanged();
+  void useChanged();
   void nameHasChanged(QString oldN, QPointer<cmbNucMaterial> mat);
   void labelHasChanged(QString oldL, QPointer<cmbNucMaterial> mat);
 
@@ -98,6 +102,8 @@ protected:
   bool Visible;
 
   unsigned int NumberReferenced;
+
+  bool IsDisplayed;
 
   cmbNucMaterial();
   cmbNucMaterial(const QString& name, const QString& label, const QColor& color);

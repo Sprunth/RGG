@@ -3,7 +3,7 @@ add_external_project(cgm
   DEPENDS OCE
   BUILD_IN_SOURCE 1
   CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --with-occ=<INSTALL_DIR>
+    --with-occ=${OCE_DIR}
     --prefix=<INSTALL_DIR>
     --enable-shared
 )
