@@ -235,6 +235,9 @@ if(BUILD_TESTING)
   if(Q_WS_MAC)
     set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear.app/Contents/MacOS/RGGNuclear"
                     --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
+  elseif(UNIX)
+    set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear-GUI"
+                    --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
   else(Q_WS_MAC)
     set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear"
                     --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
