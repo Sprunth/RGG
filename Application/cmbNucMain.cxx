@@ -1,5 +1,5 @@
 #include <QApplication>
-#include <QString.h>
+#include <QString>
 #include "cmbNucMainWindow.h"
 #include <QMetaObject>
 #include <QDebug>
