@@ -125,8 +125,10 @@ int main(int argc, char** argv)
     if(result == 1 && get_set_cubit(cubitexe))
     {
       cubitdir = QFileInfo(cubitexe).dir();
-      QByteArray newLd(cubitdir.absolutePath().append(":").toLatin1());
-      newLd.append(backup_paths);
+      QByteArray newLd = backup_paths;
+      newLd.append(QByteArray(cubitdir.absolutePath().append(":").toLatin1()));
+      //QByteArray newLd(cubitdir.absolutePath().append(":").toLatin1());
+      //newLd.append(backup_paths);
       qputenv( "LD_LIBRARY_PATH", newLd );
       run();
     }
