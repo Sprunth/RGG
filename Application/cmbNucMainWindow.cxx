@@ -349,7 +349,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
   this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
   this->ui->Dock3D->raise();
-  this->meshControls(false);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
   LatticeDraw->setObjectName("LatticeDrawWidget");
@@ -535,6 +534,8 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->ui->toolBar->addWidget(this->ui->viewScaleWidget);
   this->ui->toolBar->addWidget(this->ui->meshControls);
+
+  this->meshControls(false);
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
 }
