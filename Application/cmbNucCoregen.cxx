@@ -11,6 +11,7 @@
 #include "moab_wrapper/vtkMoabReader.h"
 #include "vtkCmbLayeredConeSource.h"
 #include "vtkGeometryFilter.h"
+#include "moab_wrapper/extract_subset.h"
 #include <iostream>
 #include <QDebug>
 
@@ -35,6 +36,7 @@ void cmbNucCoregen::clear()
   this->Data = NULL;
   this->DataSets.clear();
   List->blockSignals(false);
+  this->FileName = QString();
 }
 
 vtkSmartPointer<vtkDataObject>
@@ -45,6 +47,7 @@ cmbNucCoregen::getData()
 
 void cmbNucCoregen::openFile(QString file)
 {
+  this->FileName = file;
   this->MoabReader->SetFileName(file.toStdString().c_str());
   this->MoabReader->Modified();
   this->MoabReader->Update();
@@ -71,6 +74,12 @@ void cmbNucCoregen::openFile(QString file)
   List->blockSignals(false);
   List->setCurrentIndex(5);
   emit fileOpen(true);
+}
+
+void cmbNucCoregen::exportVisible(QString outFname, std::vector<std::string> const& remove )
+{
+  if(FileName.isEmpty()) return;
+  extract_subset::extract(FileName.toStdString(), outFname.toStdString(), remove);
 }
 
 void cmbNucCoregen::onSelectionChanged( int sel )

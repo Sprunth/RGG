@@ -168,10 +168,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
   this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
   this->ui->Dock3D->raise();
-  this->ui->DockMesh->setVisible(false);
-  this->ui->meshSubcomponent->setVisible(false);
-  this->ui->drawEdges->setVisible(false);
-  //this->ui->meshControls->setVisible(false);
+  this->meshControls(false);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
   this->ui->Dock2D->setWidget(LatticeDraw);
@@ -285,6 +282,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionSaveSelectedAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
   connect(this->ui->actionSaveProjectAs,  SIGNAL(triggered()), this, SLOT(onSaveProjectAs()));
   connect(this->ui->actionSaveAll,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
+
+  connect(this->ui->actionExport_Visible_Mesh, SIGNAL(triggered()), this, SLOT(onExportVisibleMesh()));
 
   connect(this->ui->actionView_Axis,      SIGNAL(triggered(bool)), this, SLOT(setAxis(bool)));
 
@@ -423,7 +422,7 @@ void cmbNucMainWindow::initPanels()
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
                      this, SLOT(onSelectionChange()));
     QObject::connect(this->Internal->MoabSource, SIGNAL(fileOpen(bool)),
-                     this->ui->DockMesh, SLOT(setVisible(bool)));
+                     this, SLOT(meshControls(bool)));
   }
 
   if(this->PropertyWidget == NULL)
@@ -862,11 +861,17 @@ void cmbNucMainWindow::onClearMesh()
 {
   Internal->MoabSource->clear();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
-  this->ui->DockMesh->setVisible(false);
-  this->ui->meshSubcomponent->setVisible(false);
-  this->ui->drawEdges->setVisible(false);
-  this->Internal->MeshOpen = false;
+  this->meshControls(false);
   this->setCameras(this->Internal->IsCoreView, false);
+}
+
+void  cmbNucMainWindow::meshControls(bool v)
+{
+  this->ui->DockMesh->setVisible(v);
+  this->ui->meshSubcomponent->setVisible(v);
+  this->ui->drawEdges->setVisible(v);
+  this->Internal->MeshOpen = v;
+  this->ui->actionExport_Visible_Mesh->setEnabled(v);
 }
 
 void cmbNucMainWindow::onFileOpenMoab()
@@ -878,16 +883,33 @@ void cmbNucMainWindow::onFileOpenMoab()
   QFileDialog::getOpenFileNames(this,
                                 "Open MOAB File...",
                                 dir.path(),
-                                "H5M Files (*.h5m)");
+                                "MOAB Files (*.h5m *.exo)");
   if(fileNames.count()==0)
   {
     return;
   }
   Internal->MoabSource->openFile(fileNames.first());
-  this->ui->meshControls->setVisible(true);
-  this->ui->meshSubcomponent->setVisible(true);
-  this->ui->drawEdges->setVisible(true);
-  this->Internal->MeshOpen = true;
+}
+
+void cmbNucMainWindow::onExportVisibleMesh()
+{
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+                                                  dir.path(),
+                                                  tr("Moab (*.h5m *.exo)"));
+  if(fileName.isEmpty())
+  {
+    return;
+  }
+  std::vector< QPointer<cmbNucMaterial> > remove_mat = cmbNucMaterialColors::instance()->getInvisibleMaterials();
+  std::vector< std::string > matNames;
+  for(unsigned int i = 0; i < remove_mat.size(); ++i)
+  {
+    matNames.push_back(remove_mat[i]->getName().toStdString());
+  }
+  Internal->MoabSource->exportVisible(fileName, matNames);
 }
 
 void cmbNucMainWindow::setCameras(bool coreModel, bool fullMesh)

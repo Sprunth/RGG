@@ -114,9 +114,11 @@ SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
                              moab_wrapper/ExtractShell.h
                              moab_wrapper/FaceSets.h
                              moab_wrapper/SimpleMoab.h
-                             moab_wrapper/vtkMoabReader.h)
+                             moab_wrapper/vtkMoabReader.h
+                             moab_wrapper/extract_subset.h)
 SET(RGGNuclear_Srcs ${RGGNuclear_Srcs}
                     moab_wrapper/vtkMoabReader.cxx
+                    moab_wrapper/extract_subset.cxx
                     cmbNucCoregen.cxx )
 SET(MOAB_LIB MOAB)
 SET_SOURCE_FILES_PROPERTIES(cmbNucMainWindow.cxx cmbNucMainWindow.h

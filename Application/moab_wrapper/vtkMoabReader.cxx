@@ -13,6 +13,15 @@
 
 #include "vtkPolyData.h"
 
+void smoab::RangeToVector(const smoab::Range &range,
+                          std::vector<smoab::EntityHandle>& vector )
+{
+  vector.reserve(range.size());
+  std::copy(range.begin(),
+            range.end(),
+            std::back_inserter(vector));
+}
+
 
 vtkStandardNewMacro(vtkMoabReader)
 //------------------------------------------------------------------------------

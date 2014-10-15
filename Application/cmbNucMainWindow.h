@@ -77,6 +77,8 @@ public slots:
   void checkForNewCUBH5MFiles();
   void setAxis(bool ison);
   void onClearMesh();
+  void onExportVisibleMesh();
+  void meshControls(bool);
 
 signals:
   void updateGlobalZScale(double scale);

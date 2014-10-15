@@ -596,3 +596,23 @@ void cmbNucMaterialColors
     mat->clearDisplayed();
   }
 }
+
+//------------------------------------------------------------------------------
+std::vector< QPointer<cmbNucMaterial> >
+cmbNucMaterialColors
+::getInvisibleMaterials()
+{
+  std::vector< QPointer<cmbNucMaterial> > result;
+  if(!UnknownMaterial->isVisible())
+  {
+    result.push_back(UnknownMaterial);
+  }
+  foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
+  {
+    if(!mat->isVisible())
+    {
+      result.push_back(mat);
+    }
+  }
+  return result;
+}

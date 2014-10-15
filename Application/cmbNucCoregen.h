@@ -33,6 +33,9 @@ public:
 
   void clear();
 
+  void exportVisible(QString outFname,
+                     std::vector<std::string> const& remove );
+
 public slots:
   void openFile(QString file);
 
@@ -50,6 +53,7 @@ private:
   QComboBox * List;
   bool color;
   unsigned int selectedType;
+  QString FileName;
 
 protected slots:
   void onSelectionChanged(int sel);
