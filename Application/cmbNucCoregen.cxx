@@ -8,7 +8,7 @@
 #include <vtkInteractorObserver.h>
 #include <vtkNew.h>
 #include <vtkProperty.h>
-#include "vtk_moab_reader/vtkMoabReader.h"
+#include "moab_wrapper/vtkMoabReader.h"
 #include "vtkCmbLayeredConeSource.h"
 #include "vtkGeometryFilter.h"
 #include <iostream>
