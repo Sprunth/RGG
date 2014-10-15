@@ -439,6 +439,16 @@ public:
     {
     this->Moab->delete_entities(toDelete);
     }
+  void remove(smoab::EntityHandle const& toDelete) const
+    {
+    smoab::EntityHandle tmp[] = {toDelete};
+    this->Moab->delete_entities(tmp, 1);
+    }
+
+  void save(std::string fname)
+  {
+    this->Moab->write_file( fname.c_str() );
+  }
 
   //----------------------------------------------------------------------------
   //a entityHandle with value zero means no side element was found
@@ -490,13 +500,7 @@ private:
 
 //----------------------------------------------------------------------------
 void RangeToVector(const smoab::Range &range,
-                   std::vector<smoab::EntityHandle>& vector )
-{
-  vector.reserve(range.size());
-  std::copy(range.begin(),
-            range.end(),
-            std::back_inserter(vector));
-}
+                   std::vector<smoab::EntityHandle>& vector );
 
 
 

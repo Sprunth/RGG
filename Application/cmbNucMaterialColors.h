@@ -8,6 +8,8 @@
 #include <QObject>
 #include <QPointer>
 
+#include <vector>
+
 class cmbNucAssembly;
 class cmbNucMaterial;
 class cmbNucMaterialTreeItem;
@@ -51,6 +53,8 @@ public:
                                        double b, double a);
   QPointer<cmbNucMaterial> AddMaterial(const QString& name,
                                        const QString& label);
+
+  std::vector< QPointer<cmbNucMaterial> > getInvisibleMaterials();
 
   void clearDisplayed();
 

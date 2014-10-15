@@ -99,24 +99,26 @@ SET(RGGNuclear_other_headers )
 FIND_PACKAGE(MOAB)
 message(${MOAB_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(vtk_moab_reader)
+INCLUDE_DIRECTORIES(moab_wrapper)
 SET(RGGNuclear_Headers ${RGGNuclear_Headers} cmbNucCoregen.h)
 SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
-                             vtk_moab_reader/CellSets.h
-                             vtk_moab_reader/DataSetConverter.h
-                             vtk_moab_reader/detail/CellTypeToType.h
-                             vtk_moab_reader/detail/ContinousCellInfo.h
-                             vtk_moab_reader/detail/LoadGeometry.h
-                             vtk_moab_reader/detail/MixedCellConnectivity.h
-                             vtk_moab_reader/detail/ReadSparseTag.h
-                             vtk_moab_reader/detail/ReduceSpectralMesh.h
-                             vtk_moab_reader/detail/UsageTable.h
-                             vtk_moab_reader/ExtractShell.h
-                             vtk_moab_reader/FaceSets.h
-                             vtk_moab_reader/SimpleMoab.h
-                             vtk_moab_reader/vtkMoabReader.h)
+                             moab_wrapper/CellSets.h
+                             moab_wrapper/DataSetConverter.h
+                             moab_wrapper/detail/CellTypeToType.h
+                             moab_wrapper/detail/ContinousCellInfo.h
+                             moab_wrapper/detail/LoadGeometry.h
+                             moab_wrapper/detail/MixedCellConnectivity.h
+                             moab_wrapper/detail/ReadSparseTag.h
+                             moab_wrapper/detail/ReduceSpectralMesh.h
+                             moab_wrapper/detail/UsageTable.h
+                             moab_wrapper/ExtractShell.h
+                             moab_wrapper/FaceSets.h
+                             moab_wrapper/SimpleMoab.h
+                             moab_wrapper/vtkMoabReader.h
+                             moab_wrapper/extract_subset.h)
 SET(RGGNuclear_Srcs ${RGGNuclear_Srcs}
-                    vtk_moab_reader/vtkMoabReader.cxx
+                    moab_wrapper/vtkMoabReader.cxx
+                    moab_wrapper/extract_subset.cxx
                     cmbNucCoregen.cxx )
 SET(MOAB_LIB MOAB)
 SET_SOURCE_FILES_PROPERTIES(cmbNucMainWindow.cxx cmbNucMainWindow.h
