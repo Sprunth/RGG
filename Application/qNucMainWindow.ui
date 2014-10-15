@@ -118,6 +118,8 @@
     <addaction name="actionSaveSelectedAs"/>
     <addaction name="actionSaveProjectAs"/>
     <addaction name="separator"/>
+    <addaction name="actionExport_Visible_Mesh"/>
+    <addaction name="separator"/>
     <addaction name="actionClearAll"/>
     <addaction name="actionClear_Mesh"/>
     <addaction name="separator"/>
@@ -534,6 +536,11 @@
   <action name="actionStop_Recording">
    <property name="text">
     <string>Stop Recording</string>
+   </property>
+  </action>
+  <action name="actionExport_Visible_Mesh">
+   <property name="text">
+    <string>Export Visible Mesh</string>
    </property>
   </action>
  </widget>

@@ -66,10 +66,7 @@
 #include "vtkCmbLayeredConeSource.h"
 #include "cmbNucLatticeWidget.h"
 
-#ifdef BUILD_WITH_MOAB
-#include "vtk_moab_reader/vtkMoabReader.h"
 #include "cmbNucCoregen.h"
-#endif
 
 #include "pqXMLEventObserver.h"
 
@@ -262,9 +259,7 @@ namespace
 class NucMainInternal
 {
 public:
-#ifdef BUILD_WITH_MOAB
   cmbNucCoregen *MoabSource;
-#endif
 
   DuctCell* CurrentDuctCell;
   PinCell* CurrentPinCell;
@@ -354,10 +349,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
   this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
   this->ui->Dock3D->raise();
-  this->ui->DockMesh->setVisible(false);
-  this->ui->meshSubcomponent->setVisible(false);
-  this->ui->drawEdges->setVisible(false);
-  //this->ui->meshControls->setVisible(false);
+  this->meshControls(false);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
   LatticeDraw->setObjectName("LatticeDrawWidget");
@@ -369,9 +361,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Internal->IsCoreView = false;
   this->Internal->IsFullMesh = false;
   this->Internal->CamerasLinked = false;
-#ifdef BUILD_WITH_MOAB
   this->Internal->MoabSource = NULL;
-#endif
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -469,15 +459,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
-#ifndef BUILD_WITH_MOAB
-  this->ui->actionOpenMOABFile->setVisible(false);
-#else
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
-#endif
   connect(this->ui->actionSaveSelected,   SIGNAL(triggered()), this, SLOT(onSaveSelected()));
   connect(this->ui->actionSaveSelectedAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
   connect(this->ui->actionSaveProjectAs,  SIGNAL(triggered()), this, SLOT(onSaveProjectAs()));
   connect(this->ui->actionSaveAll,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
+
+  connect(this->ui->actionExport_Visible_Mesh, SIGNAL(triggered()), this, SLOT(onExportVisibleMesh()));
 
   connect(this->ui->actionView_Axis,      SIGNAL(triggered(bool)), this, SLOT(setAxis(bool)));
 
@@ -577,9 +565,7 @@ cmbNucMainWindow::~cmbNucMainWindow()
   delete this->NuclearCore;
   delete this->MaterialColors;
   delete this->NucMappers;
-#ifdef BUILD_WITH_MOAB
   delete this->Internal->MoabSource;
-#endif
   delete this->Internal;
   delete this->ui;
 }
@@ -611,8 +597,6 @@ void cmbNucMainWindow::initPanels()
   this->ui->actionGenerate_Cylinder->setEnabled(false);
   this->InputsWidget->setCore(this->NuclearCore);
 
-#ifdef BUILD_WITH_MOAB
-  //if(this->Internal->MoabSource == NULL)
   {
     delete(this->Internal->MoabSource);
     this->Internal->MoabSource = new cmbNucCoregen(this->ui->meshSubcomponent);
@@ -625,9 +609,8 @@ void cmbNucMainWindow::initPanels()
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
                      this, SLOT(onSelectionChange()));
     QObject::connect(this->Internal->MoabSource, SIGNAL(fileOpen(bool)),
-                     this->ui->DockMesh, SLOT(setVisible(bool)));
+                     this, SLOT(meshControls(bool)));
   }
-#endif
 
   if(this->PropertyWidget == NULL)
   {
@@ -1063,20 +1046,23 @@ void cmbNucMainWindow::onReloadAll()
 
 void cmbNucMainWindow::onClearMesh()
 {
-#ifdef BUILD_WITH_MOAB
   Internal->MoabSource->clear();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
-  this->ui->DockMesh->setVisible(false);
-  this->ui->meshSubcomponent->setVisible(false);
-  this->ui->drawEdges->setVisible(false);
-  this->Internal->MeshOpen = false;
+  this->meshControls(false);
   this->setCameras(this->Internal->IsCoreView, false);
-#endif
+}
+
+void  cmbNucMainWindow::meshControls(bool v)
+{
+  this->ui->DockMesh->setVisible(v);
+  this->ui->meshSubcomponent->setVisible(v);
+  this->ui->drawEdges->setVisible(v);
+  this->Internal->MeshOpen = v;
+  this->ui->actionExport_Visible_Mesh->setEnabled(v);
 }
 
 void cmbNucMainWindow::onFileOpenMoab()
 {
-#ifdef BUILD_WITH_MOAB
   QSettings settings("CMBNuclear", "CMBNuclear");
   QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
 
@@ -1084,17 +1070,33 @@ void cmbNucMainWindow::onFileOpenMoab()
   QFileDialog::getOpenFileNames(this,
                                 "Open MOAB File...",
                                 dir.path(),
-                                "H5M Files (*.h5m)");
+                                "MOAB Files (*.h5m *.exo)");
   if(fileNames.count()==0)
   {
     return;
   }
   Internal->MoabSource->openFile(fileNames.first());
-  this->ui->meshControls->setVisible(true);
-  this->ui->meshSubcomponent->setVisible(true);
-  this->ui->drawEdges->setVisible(true);
-  this->Internal->MeshOpen = true;
-#endif
+}
+
+void cmbNucMainWindow::onExportVisibleMesh()
+{
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+                                                  dir.path(),
+                                                  tr("Moab (*.h5m *.exo)"));
+  if(fileName.isEmpty())
+  {
+    return;
+  }
+  std::vector< QPointer<cmbNucMaterial> > remove_mat = cmbNucMaterialColors::instance()->getInvisibleMaterials();
+  std::vector< std::string > matNames;
+  for(unsigned int i = 0; i < remove_mat.size(); ++i)
+  {
+    matNames.push_back(remove_mat[i]->getName().toStdString());
+  }
+  Internal->MoabSource->exportVisible(fileName, matNames);
 }
 
 void cmbNucMainWindow::setCameras(bool coreModel, bool fullMesh)
@@ -1564,16 +1566,13 @@ void cmbNucMainWindow::Render()
 
 void cmbNucMainWindow::onChangeToModelTab()
 {
-#ifdef BUILD_WITH_MOAB
   this->onSelectionChange();
   connect(this->Internal->MoabSource, SIGNAL(update()),
           this, SLOT(onSelectionChange()));
-#endif
 }
 
 void cmbNucMainWindow::onSelectionChange()
 {
-#ifdef BUILD_WITH_MOAB
   this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
   this->onChangeMeshEdgeMode(this->ui->drawEdges->isChecked());
   int sel = this->Internal->MoabSource->getSelectedType();
@@ -1583,7 +1582,6 @@ void cmbNucMainWindow::onSelectionChange()
   computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
   box.GetBounds(this->Internal->BoundsMesh);
   setScaledBounds();
-#endif
   if( isMeshTabVisible() )
   {
     this->ui->qvtkMeshWidget->update();
@@ -1645,7 +1643,6 @@ void add_color(vtkCompositeDataDisplayAttributes *att,
 
 void cmbNucMainWindow::onChangeMeshColorMode(bool b)
 {
-#ifdef BUILD_WITH_MOAB
   if(b)
   {
     vtkSmartPointer<vtkDataObject> data = this->Internal->MoabSource->getData();
@@ -1713,7 +1710,6 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
     this->ui->qvtkMeshWidget->update();
     this->ui->qvtkWidget->update();
   }
-#endif
 }
 
 void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
