@@ -584,7 +584,7 @@
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0" />
   <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionSaveProjectAs" />
-  <event object="RGGNuclear-app" command="DirOpen" arguments="${OUTPUT_DIRECTORY}" />
+  <event object="APPLICATION" command="DirOpen" arguments="${OUTPUT_DIRECTORY}" />
   <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,258,420" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="Water" />
@@ -789,7 +789,7 @@
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionClearAll" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="" />
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenFile" />
-  <event object="RGGNuclear-app" command="FilesOpen" arguments="${OUTPUT_DIRECTORY}/core.inp" />
+  <event object="APPLICATION" command="FilesOpen" arguments="${OUTPUT_DIRECTORY}/core.inp" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Configure" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/CoreConfig/qCoreParametersWidget/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/OuterJacket/JacketMode" command="set_string" arguments="Generate" />
@@ -810,16 +810,16 @@
   <event object="1QMessageBox0/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
   <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton1" command="activate" arguments="" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/CoreConfig/qCoreParametersWidget/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/OuterJacket/FileName/BackgroundSetting" command="activate" arguments="" />
-  <event object="RGGNuclear-app" command="FileSave" arguments="${OUTPUT_DIRECTORY}/outer_cylinder.cub" />
+  <event object="APPLICATION" command="FileSave" arguments="${OUTPUT_DIRECTORY}/outer_cylinder.cub" />
 
 <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/CoreConfig/qCoreParametersWidget/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/OuterJacket/FileName/BackgroundClear" command="activate" arguments="" />
 <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/CoreConfig/qCoreParametersWidget/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/OuterJacket/FileName/BackgroundSetting" command="activate" arguments="" />
-<event object="RGGNuclear-app" command="FileSave" arguments="${OUTPUT_DIRECTORY}/outer_cylinder.cub" />
+<event object="APPLICATION" command="FileSave" arguments="${OUTPUT_DIRECTORY}/outer_cylinder.cub" />
 <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
 <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
 <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
 <event object="1QMessageBox0/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
-<event object="TESTER" command="pause" arguments="200"/>
+<event object="TESTER" command="pause" arguments="250"/>
 <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
 <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
 <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
@@ -827,6 +827,6 @@
 <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
 <event object="1QMessageBox0/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
 <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
-<event object="TESTER" command="pause" arguments="470"/>
+<event object="TESTER" command="pause" arguments="700"/>
 
 </events>

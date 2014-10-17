@@ -198,10 +198,10 @@ int vtkCmbLayeredConeSource::RequestData(
     outerBottomR = this->LayerRadii[i].BaseRadii;
     outerTopR = this->LayerRadii[i].TopRadii;
     outerRes = this->LayerRadii[i].Resolution;
-    vtkPolyData * tmpLayer = CreateLayer( this->Height,
-                                          innerBottomR, outerBottomR,
-                                          innerTopR,    outerTopR,
-                                          innerRes,     outerRes );
+    vtkSmartPointer<vtkPolyData> tmpLayer = CreateLayer( this->Height,
+                                                         innerBottomR, outerBottomR,
+                                                         innerTopR,    outerTopR,
+                                                         innerRes,     outerRes );
     innerBottomR = outerBottomR;
     innerTopR    = outerTopR;
     innerRes     = outerRes;
@@ -441,7 +441,7 @@ void vtkCmbLayeredConeSource
   }
 }
 
-vtkPolyData *
+vtkSmartPointer<vtkPolyData>
 vtkCmbLayeredConeSource
 ::CreateLayer( double h,
                double * innerBottomR, double * outerBottomR,
@@ -450,10 +450,10 @@ vtkCmbLayeredConeSource
 {
   if(outerTopR == NULL || outerBottomR == NULL) return NULL;
   if(outerRes == 0) return NULL;
-  vtkPolyData *polyData = vtkPolyData::New();
+  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
   polyData->Allocate();
 
-  vtkPoints *points = vtkPoints::New();
+  vtkPoints * points = vtkPoints::New();
   vtkCellArray *cells = vtkCellArray::New();
 
   points->SetDataTypeToDouble(); //used later during transformation

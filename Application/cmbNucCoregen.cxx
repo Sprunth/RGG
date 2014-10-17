@@ -16,7 +16,7 @@
 
 cmbNucCoregen::cmbNucCoregen(QComboBox * l)
 {
-  this->MoabReader = vtkMoabReader::New();
+  this->MoabReader = vtkSmartPointer<vtkMoabReader>::New();
   this->List = l;
   QObject::connect(this->List, SIGNAL(currentIndexChanged(int)),
                    this,       SLOT(onSelectionChanged(int)), Qt::UniqueConnection);
@@ -24,14 +24,13 @@ cmbNucCoregen::cmbNucCoregen(QComboBox * l)
 
 cmbNucCoregen::~cmbNucCoregen()
 {
-  this->MoabReader->Delete();
 }
 
 void cmbNucCoregen::clear()
 {
   List->blockSignals(true);
   this->List->clear();
-  this->MoabReader = vtkMoabReader::New();
+  this->MoabReader = vtkSmartPointer<vtkMoabReader>::New();
   this->Data = NULL;
   this->DataSets.clear();
   List->blockSignals(false);

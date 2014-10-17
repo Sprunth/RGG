@@ -44,9 +44,11 @@ install(CODE
     COMPONENT superbuild)
 
 install(PROGRAMS ${install_location}/bin/RGGNuclear DESTINATION "bin")
-if(BUILD_WITH_CUBIT)
-  install(PROGRAMS ${install_location}/lib/RGGNuclear-GUI DESTINATION "lib")
-  install(CODE
+if(ENABLE_meshkit)
+  set(meskit_loc)
+  if(BUILD_WITH_CUBIT)
+    install(PROGRAMS ${install_location}/lib/RGGNuclear-GUI DESTINATION "lib")
+    install(CODE
       "execute_process(COMMAND
       ${CMAKE_COMMAND}
         -Dexecutable:PATH=${install_location}/lib/RGGNuclear-GUI
@@ -56,34 +58,41 @@ if(BUILD_WITH_CUBIT)
         -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/lib
         -DCUBIT_PATH:PATH=${CUBIT_PATH}
         -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
+      COMPONENT superbuild)
+
+    set(meskit_loc ${install_location}/meshkit)
+
+  else()
+    set(meskit_loc ${install_location})
+  endif()
+
+  install(PROGRAMS ${meskit_loc}/bin/coregen DESTINATION "meshkit")
+  install(PROGRAMS ${meskit_loc}/bin/assygen DESTINATION "meshkit")
+
+  install(CODE
+      "execute_process(COMMAND
+      ${CMAKE_COMMAND}
+        -Dexecutable:PATH=${meskit_loc}/bin/coregen
+        -Ddependencies_root:PATH=${meskit_loc}
+        -Dpv_libraries_root:PATH=${meskit_loc}/lib
+        -Dcmb_libraries_root:PATH=${meskit_loc}/lib
+        -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/meshkit
+        -DCUBIT_PATH:PATH=${CUBIT_PATH}
+        -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
+    COMPONENT superbuild)
+
+  install(CODE
+      "execute_process(COMMAND
+      ${CMAKE_COMMAND}
+        -Dexecutable:PATH=${meskit_loc}/bin/assygen
+        -Ddependencies_root:PATH=${meskit_loc}
+        -Dpv_libraries_root:PATH=${meskit_loc}/lib
+        -Dcmb_libraries_root:PATH=${meskit_loc}/lib
+        -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/meshkit
+        -DCUBIT_PATH:PATH=${CUBIT_PATH}
+        -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
     COMPONENT superbuild)
 endif()
-install(PROGRAMS ${install_location}/bin/coregen DESTINATION "lib")
-install(PROGRAMS ${install_location}/bin/assygen DESTINATION "lib")
-
-install(CODE
-      "execute_process(COMMAND
-      ${CMAKE_COMMAND}
-        -Dexecutable:PATH=${install_location}/bin/coregen
-        -Ddependencies_root:PATH=${install_location}
-        -Dpv_libraries_root:PATH=${install_location}/lib
-        -Dcmb_libraries_root:PATH=${install_location}/lib
-        -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/lib
-        -DCUBIT_PATH:PATH=${CUBIT_PATH}
-        -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
-    COMPONENT superbuild)
-
-install(CODE
-      "execute_process(COMMAND
-      ${CMAKE_COMMAND}
-        -Dexecutable:PATH=${install_location}/bin/assygen
-        -Ddependencies_root:PATH=${install_location}
-        -Dpv_libraries_root:PATH=${install_location}/lib
-        -Dcmb_libraries_root:PATH=${install_location}/lib
-        -Dtarget_root:PATH=\${CMAKE_INSTALL_PREFIX}/lib
-        -DCUBIT_PATH:PATH=${CUBIT_PATH}
-        -P ${CMAKE_CURRENT_LIST_DIR}/install_dependencies.cmake)"
-    COMPONENT superbuild)
 
 #we have to install everything in bin that also wasn't in lib. The reason for this is that
 # all the paraview application in bin are just forward shells

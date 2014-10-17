@@ -808,11 +808,11 @@
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0" />
   <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionSaveProjectAs" />
-  <event object="RGGNuclear-app" command="DirOpen" arguments="${OUTPUT_DIRECTORY}" />
+  <event object="APPLICATION" command="DirOpen" arguments="${OUTPUT_DIRECTORY}" />
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionClearAll" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="" />
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenFile" />
-  <event object="RGGNuclear-app" command="FilesOpen" arguments="${OUTPUT_DIRECTORY}/core.inp" />
+  <event object="APPLICATION" command="FilesOpen" arguments="${OUTPUT_DIRECTORY}/core.inp" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assembly Defaults" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/AxialMeshLayout/AxialMeshSize" command="set_string" arguments="3" />
@@ -995,7 +995,7 @@
   <event object="1QMessageBox0/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
   <event object="1QMessageBox0/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
   <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
-  <event object="TESTER"  command="pause" arguments="480" />
+  <event object="TESTER"  command="pause" arguments="600" />
   <event object="qNucMainWindow/qExporterDialog/qProgress/OutputPromp" command="mousePress" arguments="1,1,0,22,7" />
   <event object="qNucMainWindow/qExporterDialog/qProgress/OutputPromp" command="mouseRelease" arguments="1,0,0,22,7" />
   <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="Mesh View" />

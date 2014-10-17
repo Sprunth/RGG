@@ -1,0 +1,246 @@
+{
+   IGNORE_OPENGL
+   Memcheck:Cond
+   obj:/usr/lib64/nvidia/libGL.so.*
+   obj:*
+   obj:*
+}
+
+{
+   igopgl
+   Memcheck:Cond
+   obj:/usr/lib64/nvidia/libGL.so.331.89
+   obj:*
+   obj:*
+}
+
+
+{
+   error2
+   Memcheck:Cond
+   fun:_ZN18vtkImageDifference19ThreadedRequestDataEP14vtkInformationPP20vtkInformationVectorS3_PPP12vtkImageDataS7_Pii
+   fun:_ZL40vtkThreadedImageAlgorithmThreadedExecutePv
+   fun:start_thread
+   fun:clone
+}
+
+{
+   error3
+   Memcheck:Cond
+   fun:_ZN18vtkImageDifference19ThreadedRequestDataEP14vtkInformationPP20vtkInformationVectorS3_PPP12vtkImageDataS7_Pii
+   fun:_ZL40vtkThreadedImageAlgorithmThreadedExecutePv
+   fun:_ZN16vtkMultiThreader19SingleMethodExecuteEv
+   fun:_ZN25vtkThreadedImageAlgorithm11RequestDataEP14vtkInformationPP20vtkInformationVectorS3_
+   fun:_ZN12vtkExecutive13CallAlgorithmEP14vtkInformationiPP20vtkInformationVectorS3_
+   fun:_ZN23vtkDemandDrivenPipeline11ExecuteDataEP14vtkInformationPP20vtkInformationVectorS3_
+   fun:_ZN24vtkCompositeDataPipeline11ExecuteDataEP14vtkInformationPP20vtkInformationVectorS3_
+   fun:_ZN23vtkDemandDrivenPipeline14ProcessRequestEP14vtkInformationPP20vtkInformationVectorS3_
+   fun:_ZN32vtkStreamingDemandDrivenPipeline14ProcessRequestEP14vtkInformationPP20vtkInformationVectorS3_
+   fun:_ZN23vtkDemandDrivenPipeline10UpdateDataEi
+   fun:_ZN32vtkStreamingDemandDrivenPipeline6UpdateEi
+   fun:_ZN10vtkTesting14RegressionTestEP12vtkAlgorithmdRSo
+}
+
+{
+   error4
+   Memcheck:Cond
+   fun:_ZN10vtkTesting14RegressionTestEP12vtkAlgorithmdRSo
+   fun:_ZN10vtkTesting14RegressionTestEdRSo
+   fun:_ZN10vtkTesting30RegressionTestAndCaptureOutputEdRSo
+   fun:_ZN12_GLOBAL__N_112CompareImageEP15vtkRenderWindowRK7QStringdS4_
+   fun:_ZN16cmbNucMainWindow8playTestEv
+   fun:_ZN16cmbNucMainWindow18qt_static_metacallEP7QObjectN11QMetaObject4CallEiPPv
+   fun:_ZN7QObject5eventEP6QEvent
+   fun:_ZN7QWidget5eventEP6QEvent
+   fun:_ZN11QMainWindow5eventEP6QEvent
+   fun:_ZN19QApplicationPrivate13notify_helperEP7QObjectP6QEvent
+   fun:_ZN12QApplication6notifyEP7QObjectP6QEvent
+   fun:_ZN16QCoreApplication14notifyInternalEP7QObjectP6QEvent
+}
+
+{
+   error5
+   Memcheck:Cond
+   fun:__printf_fp
+   fun:vfprintf
+   fun:vsnprintf
+   obj:/usr/lib64/libstdc++.so.*
+}
+
+{
+   error6
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:realloc
+   fun:g_realloc
+   obj:/usr/lib64/libgobject-2.0.so.*
+   fun:g_type_register_static
+   fun:g_type_plugin_get_type
+}
+
+{
+   error7
+   Memcheck:Cond
+   fun:__mpn_extract_double
+   fun:__printf_fp
+   fun:vfprintf
+   fun:vsnprintf
+   obj:/usr/lib64/libstdc++.so.6.0.19
+   fun:_ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE15_M_insert_floatIdEES3_S3_RSt8ios_baseccT_
+   fun:_ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE6do_putES3_RSt8ios_basecd
+   fun:_ZNSo9_M_insertIdEERSoT_
+   fun:_ZN10vtkTesting14RegressionTestEP12vtkAlgorithmdRSo
+   fun:_ZN10vtkTesting14RegressionTestEdRSo
+   fun:_ZN10vtkTesting30RegressionTestAndCaptureOutputEdRSo
+   fun:_ZN12_GLOBAL__N_112CompareImageEP15vtkRenderWindowRK7QStringdS4_
+}
+
+{
+   error8
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:realloc
+   fun:g_realloc
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   fun:*
+   fun:*
+   fun:*
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   fun:*
+   fun:*
+   obj:/usr/lib64/ld-2.18.so
+}
+
+{
+   error9
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:g_malloc0
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   fun:*
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   fun:*
+   fun:*
+   obj:/usr/lib64/ld-2.18.so
+   obj:*
+   obj:*
+   obj:*
+}
+
+{
+   error10
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:g_malloc0
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   fun:*
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   fun:*
+   fun:*
+   obj:/usr/lib64/ld-2.18.so
+   obj:*
+   obj:*
+   obj:*
+}
+
+{
+   error11
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:g_malloc0
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   ...
+}
+
+{
+   error12
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   obj:*/libQtCore.so.*
+   ...
+   obj:*/libQtGui.so.*
+   obj:*/libQtGui.so.*
+   ...
+}
+
+{
+   error13
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:realloc
+   fun:g_realloc
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   ...
+}
+
+{
+   error14
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:realloc
+   fun:g_realloc
+   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   ...
+   obj:/usr/lib64/ld-2.18.so
+   obj:*
+   obj:*
+}
+
+{
+   error15
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:*
+   ...
+   obj:*/libQtCore.so.4.8.6
+   ...
+   obj:*/libQtCore.so.4.8.6
+   fun:*
+}
+
+{
+   error16
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:_XimOpenIM
+   fun:_XimRegisterIMInstantiateCallback
+   fun:XRegisterIMInstantiateCallback
+   obj:*/libQtGui.so.4.8.6
+   fun:_ZN20QInputContextFactory6createERK7QStringP7QObject
+   fun:_ZNK12QApplication12inputContextEv
+   fun:_ZN7QWidget12setAttributeEN2Qt15WidgetAttributeEb
+   fun:_ZN20QGraphicsViewPrivate28updateInputMethodSensitivityEv
+   fun:_ZN13QGraphicsView8setSceneEP14QGraphicsScene
+   fun:_ZN19cmbNucDraw2DLatticeC1EN15DrawLatticeItem10ShapeStyleEP7QWidget6QFlagsIN2Qt10WindowTypeEE
+   fun:_ZN19cmbNucLatticeWidgetC1EP7QWidget
+}
+
+{
+   error17
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:/usr/lib64/nvidia/libGL.so.331.89
+}
+
+
+
+
+
+
+
+
+
+
+

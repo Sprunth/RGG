@@ -2,7 +2,7 @@
 <events>
   <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenFile" />
-  <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/simple_hexflatcore-Modified/fuel.inp" />
+  <event object="APPLICATION" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/simple_hexflatcore-Modified/fuel.inp" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
   <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="2" />
   <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="3" />
