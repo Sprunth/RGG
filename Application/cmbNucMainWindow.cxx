@@ -116,7 +116,7 @@ protected:
     {
       if(Time.elapsed() < WaitingTime)
       {
-        widget = "RGGNuclear-GUI-app";
+        widget = QFileInfo( QCoreApplication::applicationFilePath() ).fileName()+"-app";
         command = "pause";
         arguments = "10";
         return SUCCESS;
@@ -155,7 +155,7 @@ protected:
     {
       WaitingTime = arguments.toInt()*1000;
       isWaiting = true;
-      widget = "RGGNuclear-GUI-app";
+      widget = QFileInfo( QCoreApplication::applicationFilePath() ).fileName()+"-app";
       command = "pause";
       arguments = "1";
       Time.start();
