@@ -4,10 +4,10 @@
 ## # The following are required to uses Dart and the Cdash dashboard
 ##   ENABLE_TESTING()
 ##   INCLUDE(CTest)
-set(CTEST_PROJECT_NAME "SuperBuild-ConceptualModelBuilder")
+set(CTEST_PROJECT_NAME "RGG Nuclear")
 set(CTEST_NIGHTLY_START_TIME "21:00:00 EDT")
-
+#http://open.cdash.org/index.php?project=RGG#
 set(CTEST_DROP_METHOD "http")
-set(CTEST_DROP_SITE "www.kitware.com")
-set(CTEST_DROP_LOCATION "/CDash/submit.php?project=CMB")
+set(CTEST_DROP_SITE "open.cdash.org")
+set(CTEST_DROP_LOCATION "/submit.php?project=RGG")
 set(CTEST_DROP_SITE_CDASH TRUE)

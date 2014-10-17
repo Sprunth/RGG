@@ -21,4 +21,5 @@ add_external_project_or_just_build_dependencies(nuclearRGG
     -DVTK_MOAB_SUPPORT:BOOL=ON
     ${CUBIT_ARGS}
     -DMOAB_ROOT_DIR:PATH=<INSTALL_DIR>
+    -DBUILD_TESTING:BOOL=${BUILD_TESTING}
 )
