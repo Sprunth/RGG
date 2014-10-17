@@ -116,7 +116,7 @@ protected:
     {
       if(Time.elapsed() < WaitingTime)
       {
-        widget = "RGGNuclear-app";
+        widget = "RGGNuclear-GUI-app";
         command = "pause";
         arguments = "10";
         return SUCCESS;
@@ -155,7 +155,7 @@ protected:
     {
       WaitingTime = arguments.toInt()*1000;
       isWaiting = true;
-      widget = "RGGNuclear-app";
+      widget = "RGGNuclear-GUI-app";
       command = "pause";
       arguments = "1";
       Time.start();
@@ -164,6 +164,10 @@ protected:
     {
       QFile::remove(arguments);
       return getNextEvent(widget, command, arguments);
+    }
+    if(widget == "APPLICATION")
+    {
+      widget = QFileInfo( QCoreApplication::applicationFilePath() ).fileName()+"-app";
     }
     return SUCCESS;
   }
@@ -289,37 +293,37 @@ int defaultAssemblyColors[][3] =
   {65,171,93},
   {239,59,44},
   {128,125,186},
-  {115,115,115},  
+  {115,115,115},
   {198,219,239},
   {253,208,162},
   {199,233,192},
   {252,187,161},
   {218,218,235},
-  {217,217,217}, 
+  {217,217,217},
   {8,81,156},
   {166,54,3},
   {0,109,44},
   {165,15,21},
   {84,39,143},
-  {37,37,37},  
+  {37,37,37},
   {158,202,225},
   {253,174,107},
   {161,217,155},
   {252,146,114},
   {188,189,220},
-  {189,189,189},  
+  {189,189,189},
   {33,113,181},
   {217,72,1},
   {35,139,69},
   {203,24,29},
   {106,81,163},
-  {82,82,82},  
+  {82,82,82},
   {107,174,214},
   {253,141,60},
   {116,196,118},
   {251,106,74},
   {158,154,200},
-  {150,150,150}, 
+  {150,150,150},
   {8,48,10},
   {127,39,4},
   {0,68,27},
@@ -447,12 +451,12 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->Internal->UnlinkCameraMesh = MeshRenderer->GetActiveCamera();
   this->Internal->UnlinkCameraModel = Renderer->GetActiveCamera();
-  this->Internal->LinkCamera = Renderer->MakeCamera();
-  //this->Internal->UnlinkCamera = Renderer->MakeCamera();
+  this->Internal->LinkCamera.TakeReference(Renderer->MakeCamera());
+
   this->Renderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerMesh);
   this->MeshRenderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerModel);
 
-  vtkCompositeDataDisplayAttributes * attributes = vtkCompositeDataDisplayAttributes::New();
+  vtkSmartPointer<vtkCompositeDataDisplayAttributes> attributes = vtkSmartPointer<vtkCompositeDataDisplayAttributes>::New();
   this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
 
   // Set up action signals and slots
@@ -652,7 +656,7 @@ void cmbNucMainWindow::initPanels()
                      this, SLOT(outerLayer(double,int)));
     QObject::connect(this->PropertyWidget, SIGNAL(clearCylinder()),
                      this, SLOT(clearOuter()));
-    
+
     QObject::connect(this->LatticeDraw, SIGNAL(valuesChanged()),
                      this->InputsWidget, SLOT(valueChanged()));
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
@@ -1971,39 +1975,42 @@ void cmbNucMainWindow::setUpTests(QString fname,
 void cmbNucMainWindow::playTest()
 {
   bool succeded = this->playTest(this->Internal->TestFileName);
-  if(succeded && !this->Internal->TestModelCorrectImages.isEmpty())
+  if(succeded)
   {
-    this->ui->Dock3D->resize(600, 600);
-    vtkRenderWindow* render_window = this->ui->qvtkWidget->GetRenderWindow();
-    bool tmp = false;
-    QStringList::const_iterator iter;
-    for( iter = this->Internal->TestModelCorrectImages.constBegin();
-         iter != this->Internal->TestModelCorrectImages.constEnd();
-         ++iter )
+    if(!this->Internal->TestModelCorrectImages.isEmpty())
     {
-      tmp |= CompareImage( render_window, *iter, 3000,
-                           this->Internal->TestOutputDirectory );
-      if(tmp) break;
+      this->ui->Dock3D->resize(600, 600);
+      vtkRenderWindow* render_window = this->ui->qvtkWidget->GetRenderWindow();
+      bool tmp = false;
+      QStringList::const_iterator iter;
+      for( iter = this->Internal->TestModelCorrectImages.constBegin();
+          iter != this->Internal->TestModelCorrectImages.constEnd();
+          ++iter )
+      {
+        tmp |= CompareImage( render_window, *iter, 3000,
+                            this->Internal->TestOutputDirectory );
+        if(tmp) break;
+      }
+      succeded &= tmp;
     }
-    succeded = tmp;
-  }
-  if(succeded && !this->Internal->Test2DCorrectImages.isEmpty())
-  {
-    bool tmp = false;
-    QDir tmpDir(this->Internal->TestOutputDirectory);
-    QStringList::const_iterator iter;
-    for( iter = this->Internal->Test2DCorrectImages.constBegin();
-        iter != this->Internal->Test2DCorrectImages.constEnd();
-        ++iter )
+    if(!this->Internal->Test2DCorrectImages.isEmpty())
     {
-      QFileInfo fi(*iter);
-      QString tmpStr = tmpDir.absoluteFilePath( fi.fileName() );
-      LatticeDraw->createImage(tmpStr);
-      tmp |= CompareImage( tmpStr, *iter, 0.005,
-                           this->Internal->TestOutputDirectory );
-      if(tmp) break;
+      bool tmp = false;
+      QDir tmpDir(this->Internal->TestOutputDirectory);
+      QStringList::const_iterator iter;
+      for( iter = this->Internal->Test2DCorrectImages.constBegin();
+          iter != this->Internal->Test2DCorrectImages.constEnd();
+          ++iter )
+      {
+        QFileInfo fi(*iter);
+        QString tmpStr = tmpDir.absoluteFilePath( fi.fileName() );
+        LatticeDraw->createImage(tmpStr);
+        tmp |= CompareImage( tmpStr, *iter, 0.005,
+                            this->Internal->TestOutputDirectory );
+        if(tmp) break;
+      }
+      succeded &= tmp;
     }
-    succeded = tmp;
   }
   if(this->Internal->ExitWhenTestFinshes)
   {

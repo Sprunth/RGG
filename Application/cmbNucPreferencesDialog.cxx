@@ -227,8 +227,16 @@ bool cmbNucPreferencesDialog::getPackaged(QString & assygenExe, QString & corege
   assygenExe = QDir::cleanPath(appDir.absoluteFilePath("../bin/assygen"));
   coregenExe = QDir::cleanPath(appDir.absoluteFilePath("../bin/coregen"));
   qDebug() << assygenExe << coregenExe;
-  return (!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
-         (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists());
+  if ((!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+         (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists()))
+  {
+    return true;
+  }
+  assygenExe = QDir::cleanPath(appDir.absoluteFilePath("../meshkit/assygen"));
+  coregenExe = QDir::cleanPath(appDir.absoluteFilePath("../meshkit/coregen"));
+  qDebug() << assygenExe << coregenExe;
+  return ((!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+          (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists()));
 #else
   return false;
 #endif

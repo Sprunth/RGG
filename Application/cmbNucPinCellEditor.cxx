@@ -350,7 +350,7 @@ void cmbNucPinCellEditor::clear()
 void cmbNucPinCellEditor::Apply()
 {
   this->UpdatePinCell();
-  bool change;
+  bool change = false;
   if(this->ExternalPinCell->fill(this->InternalPinCell))
   {
     change = true;

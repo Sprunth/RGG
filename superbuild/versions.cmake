@@ -171,7 +171,7 @@ add_revision(gdal
   URL http://vtk.org/files/support/gdal_5b8309b.tar.gz
   URL_MD5 8d77df722a01cc86b292300a007a3282
   )
-  
+
 add_revision(QtTesting
   GIT_REPOSITORY "http://paraview.org/QtTesting.git"
   GIT_TAG master)
@@ -191,10 +191,14 @@ add_revision(lasso
   GIT_TAG Version3.1
   )
 
+if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
+add_revision(meshkit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
+else()
 add_revision(meshkit
   GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
   GIT_TAG MeshKitv1.2
   )
+endif()
 
 add_revision(meshkit32bit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
 
