@@ -1,6 +1,6 @@
-message(${OCE_DIR})
 set(OCE_DIR CACHE PATH "Path to OCE install")
 mark_as_advanced(CLEAR OCE_DIR)
 if(NOT EXISTS ${OCE_DIR}/include/oce-config.h)
   message(SEND_ERROR "Need to set a valid install for OCE")
 endif()
+set(ld_library_path "${OCE_DIR}:${ld_library_path}")
