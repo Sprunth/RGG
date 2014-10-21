@@ -15,6 +15,8 @@ add_external_project(meshkit
   DEPENDS moab cgm lasso
   BUILD_IN_SOURCE 1
   ${suppress_build_out}
+  BUILD_COMMAND "make -j5 install"
+  INSTALL_COMMAND ""
   PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_make_watertight.txt
   CONFIGURE_COMMAND  <SOURCE_DIR>/configure
   --prefix=<INSTALL_DIR>

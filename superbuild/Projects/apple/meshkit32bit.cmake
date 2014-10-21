@@ -19,6 +19,8 @@ endif()
 
   add_external_project(meshkit32bit
     APPLE_32Bit
+    BUILD_COMMAND "make -j5 install"
+    INSTALL_COMMAND ""
     CMAKE_ARGS
       -DBUILD_WITH_CUBIT:BOOL=ON
       -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>/meshkitCubit
