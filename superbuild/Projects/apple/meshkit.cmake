@@ -8,6 +8,7 @@ mark_as_advanced(SUPPRESS_meshkit_BUILD_OUTPUT)
 
 if(SUPPRESS_meshkit_BUILD_OUTPUT)
 set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+set(junk_output "&> /dev/null")
 endif()
 
 
@@ -32,7 +33,7 @@ add_external_project(meshkit
 if(ENABLE_meshkit)
   find_package(Autotools REQUIRED)
   add_external_project_step(meshkit-autoconf
-    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
+    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR> &> <SOURCE_DIR>/AUTOTOOLS_OUTPUT.txt
     DEPENDEES update
     DEPENDERS configure
   )
