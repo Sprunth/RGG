@@ -89,7 +89,6 @@ SET(RGGNuclear_Headers
   cmbNucPinCellEditor.h
   cmbNucDuctCell.h
   cmbNucDraw2DLattice.h
-  DrawLatticeItem.h
   cmbNucExport.h
   cmbNucExportDialog.h
   cmbNucPreferencesDialog.h
