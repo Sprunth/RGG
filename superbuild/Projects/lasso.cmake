@@ -9,8 +9,8 @@ endif()
 
 add_external_project(lasso
   DEPENDS moab cgm
-  ${suppress_build_out}
   BUILD_IN_SOURCE 1
+  ${suppress_build_out}
   CONFIGURE_COMMAND <SOURCE_DIR>/configure
     --enable-encoding
     --enable-shared
