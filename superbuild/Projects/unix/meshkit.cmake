@@ -1,3 +1,12 @@
+option(SUPPRESS_meshkit_BUILD_OUTPUT
+"Suppress meshkit build output"
+ON)
+mark_as_advanced(SUPPRESS_meshkit_BUILD_OUTPUT)
+
+if(SUPPRESS_meshkit_BUILD_OUTPUT)
+set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+endif()
+
 if(BUILD_WITH_CUBIT)
 
 message("Cubit meshkit")
@@ -5,11 +14,16 @@ find_package(Autotools REQUIRED)
 add_external_project(meshkit
     BUILD_COMMAND "make -j5 install"
     INSTALL_COMMAND ""
+<<<<<<< HEAD
     CMAKE_ARGS   
       -DAUTOHEADER_EXECUTABLE:path=${AUTOHEADER_EXECUTABLE}
       -DAUTOM4TE_EXECUTABLE:path=${AUTOM4TE_EXECUTABLE}
       -DAUTORECONF_EXECUTABLE:path=${AUTORECONF_EXECUTABLE}
       -DAUTOUPDATE_EXECUTABLE:path=${AUTOUPDATE_EXECUTABLE}
+=======
+    ${suppress_build_out}
+    CMAKE_ARGS
+>>>>>>> 94deedb5f8ba2b92dafbb1f108a6549094df81ff
       -DBUILD_WITH_CUBIT:BOOL=ON
       -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>/meshkitCubit
       -DCMAKE_PREFIX_PATH:path=<INSTALL_DIR>/meshkitCubit
@@ -26,6 +40,7 @@ add_external_project(meshkit
   BUILD_IN_SOURCE 1
   PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_moab_linking_linux.txt
   BUILD_COMMAND "make -j5 install"
+  ${suppress_build_out}
   CONFIGURE_COMMAND  <SOURCE_DIR>/configure
   --prefix=<INSTALL_DIR>
   --with-itaps=<INSTALL_DIR>
