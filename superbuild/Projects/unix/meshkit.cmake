@@ -14,16 +14,12 @@ find_package(Autotools REQUIRED)
 add_external_project(meshkit
     BUILD_COMMAND "make -j5 install"
     INSTALL_COMMAND ""
-<<<<<<< HEAD
-    CMAKE_ARGS   
+    ${suppress_build_out}
+    CMAKE_ARGS
       -DAUTOHEADER_EXECUTABLE:path=${AUTOHEADER_EXECUTABLE}
       -DAUTOM4TE_EXECUTABLE:path=${AUTOM4TE_EXECUTABLE}
       -DAUTORECONF_EXECUTABLE:path=${AUTORECONF_EXECUTABLE}
       -DAUTOUPDATE_EXECUTABLE:path=${AUTOUPDATE_EXECUTABLE}
-=======
-    ${suppress_build_out}
-    CMAKE_ARGS
->>>>>>> 94deedb5f8ba2b92dafbb1f108a6549094df81ff
       -DBUILD_WITH_CUBIT:BOOL=ON
       -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>/meshkitCubit
       -DCMAKE_PREFIX_PATH:path=<INSTALL_DIR>/meshkitCubit

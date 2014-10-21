@@ -1,9 +1,20 @@
 #apple meshkit
 #build 64 bit version
 
+option(SUPPRESS_meshkit_BUILD_OUTPUT
+"Suppress meshkit build output"
+ON)
+mark_as_advanced(SUPPRESS_meshkit_BUILD_OUTPUT)
+
+if(SUPPRESS_meshkit_BUILD_OUTPUT)
+set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+endif()
+
+
 add_external_project(meshkit
   DEPENDS moab cgm lasso
   BUILD_IN_SOURCE 1
+  ${suppress_build_out}
   PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_make_watertight.txt
   CONFIGURE_COMMAND  <SOURCE_DIR>/configure
   --prefix=<INSTALL_DIR>
