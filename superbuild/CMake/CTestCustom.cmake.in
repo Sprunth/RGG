@@ -15,6 +15,9 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
   "libboost_*"
   "configure: WARNING: CGNS header not found."
   "H5pubconf.h:* warning: "VERSION" redefined"
+  "OCCCurve.hpp"
+  "OCCModifyEngine.cpp"
+  "libs/libcgm.* has no symbols"
 
   "/usr/include/x86_64-linux-gnu/bits/*"
 
