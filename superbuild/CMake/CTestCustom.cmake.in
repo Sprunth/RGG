@@ -11,6 +11,11 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
   "occ/install/include"
   "netcdf/src/netcdf"
   "Makefile.am:*: warning: source file * is in a subdirectory"
+  "/boost/"
+  "libboost_*"
+  "configure: WARNING: CGNS header not found."
+
+  "/usr/include/x86_64-linux-gnu/bits/*"
 
   # From numpy, skip configtest warnings.
   "_configtest"
