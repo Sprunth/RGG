@@ -76,7 +76,7 @@ cmbNucAssembly::Rotate::write(std::ostream& os) const
 }
 
 cmbNucAssembly::Section::Section( std::string a, double v, std::string d )
-:value(v), dir(1)
+:dir(1), value(v)
 {
   setAxis(a);
   std::transform(d.begin(), d.end(), d.begin(), ::tolower);

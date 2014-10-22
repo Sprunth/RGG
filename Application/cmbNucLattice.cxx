@@ -35,29 +35,29 @@ void Lattice::setInvalidCells()
   }
 }
 
-void Lattice::SetDimensions(int i, int j, bool reset)
+void Lattice::SetDimensions(int iin, int jin, bool reset)
 {
   if(this->enGeometryType == RECTILINEAR)
   {
-    this->Grid.resize(i);
-    for(int k = 0; k < i; k++)
+    this->Grid.resize(iin);
+    for(int k = 0; k < iin; k++)
     {
-      this->Grid[k].resize(j);
+      this->Grid[k].resize(jin);
     }
   }
   else if(this->enGeometryType == HEXAGONAL)
   {
     int current = reset ? 0 : this->Grid.size();
-    if(current == i)
+    if(current == iin)
     {
       return;
     }
 
-    this->Grid.resize(i);
+    this->Grid.resize(iin);
 
-    if(i > current)
+    if(iin > current)
     {
-      for(int k = current; k < i; k++)
+      for(int k = current; k < iin; k++)
       {
         if(k == 0)
         {
@@ -73,19 +73,19 @@ void Lattice::SetDimensions(int i, int j, bool reset)
           this->Grid[k].resize(cols);
           int start, end;
           getValidRange(k, start, end);
-          for(int j = 0; j < cols; j++)
+          for(int c = 0; c < cols; c++)
           {
-            if(start <= j && j <= end)
+            if(start <= c && c <= end)
             {
-              this->Grid[k][j].label = "xx";
-              this->Grid[k][j].color = Qt::white;
-              this->Grid[k][j].valid = true;
+              this->Grid[k][c].label = "xx";
+              this->Grid[k][c].color = Qt::white;
+              this->Grid[k][c].valid = true;
             }
             else
             {
-              this->Grid[k][j].label = "";
-              this->Grid[k][j].color = Qt::black;
-              this->Grid[k][j].valid = false;
+              this->Grid[k][c].label = "";
+              this->Grid[k][c].color = Qt::black;
+              this->Grid[k][c].valid = false;
             }
           }
         }
@@ -119,11 +119,12 @@ std::pair<int, int> Lattice::GetDimensions() const
 {
   if(this->enGeometryType == RECTILINEAR)
   {
-    return std::make_pair((int)this->Grid.size(), (int)this->Grid[0].size());
+    return std::make_pair(static_cast<int>(this->Grid.size()),
+                          static_cast<int>(this->Grid[0].size()));
   }
   else
   {
-    return std::make_pair((int)this->Grid.size(), 6);
+    return std::make_pair(static_cast<int>(this->Grid.size()), 6);
   }
 }
 
@@ -139,7 +140,6 @@ void Lattice::SetCell(int i, int j, const std::string &name)
 {
   this->Grid[i][j].label = name;
   this->Grid[i][j].color = Qt::white;
-  true;
 }
 
 void Lattice::setAsInvalid(int i, int j)
@@ -155,7 +155,7 @@ Lattice::LatticeCell Lattice::GetCell(int i, int j) const
 Lattice::LatticeCell Lattice::GetCell(int i) const
 {
   // Convert to j,k
-  int s = (int)this->Grid.size();
+  int s = static_cast<int>(this->Grid.size());
   // For Hex type, This is different
   if(this->enGeometryType == HEXAGONAL)
   {
@@ -177,11 +177,11 @@ Lattice::LatticeCell Lattice::GetCell(int i) const
   }
   else
   {
-    int s = this->Grid[0].size();
-    int j = i / s;
-    int k = i - (j*s);
-    assert(j < this->Grid.size());
-    assert(k < this->Grid[j].size());
+    int size = static_cast<int>(this->Grid[0].size());
+    int j = i / size;
+    int k = i - (j*size);
+    assert(j < static_cast<int>(this->Grid.size()));
+    assert(k < static_cast<int>(this->Grid[j].size()));
 
     return this->Grid[j][k];
   }
@@ -237,11 +237,12 @@ int Lattice::GetNumberOfCells()
   }
   if(this->enGeometryType == HEXAGONAL)
   {
-    return 1 + 3*(int)this->Grid.size()*((int)this->Grid.size() - 1);
+    int tmp = static_cast<int>(this->Grid.size());
+    return 1 + 3*tmp*(tmp - 1);
   }
   else
   {
-    return (int)(this->Grid.size()*this->Grid[0].size());
+    return static_cast<int>(this->Grid.size()*this->Grid[0].size());
   }
 }
 
