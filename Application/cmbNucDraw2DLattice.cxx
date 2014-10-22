@@ -500,7 +500,7 @@ void cmbNucDraw2DLattice::createImage(QString fname)
   view->setSceneRect(Canvas.itemsBoundingRect());
   view->setMinimumHeight(600);
   view->setMinimumWidth(600);
-  QPixmap pixMap = QPixmap::grabWidget(view);
+  QPixmap pixMap = QPixmap::grabWidget(view, 0, 0, 600, 600);
   pixMap.toImage().convertToFormat(QImage::Format_RGB32).save(fname);
   delete view;
 }

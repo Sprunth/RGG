@@ -1504,8 +1504,6 @@ void cmbNucMainWindow::exportRGG()
   }
 }
 
-//void cmbNucMainWindow::retryExport();
-
 void cmbNucMainWindow::zScaleChanged(int value)
 {
   this->ZScale = 1.0 / value;
@@ -1979,7 +1977,8 @@ void cmbNucMainWindow::playTest()
   {
     if(!this->Internal->TestModelCorrectImages.isEmpty())
     {
-      this->ui->Dock3D->resize(600, 600);
+      this->ui->qvtkWidget->setMinimumSize( 600, 600 );
+      this->ui->qvtkWidget->setMaximumSize( 600, 600 );
       vtkRenderWindow* render_window = this->ui->qvtkWidget->GetRenderWindow();
       bool tmp = false;
       QStringList::const_iterator iter;
