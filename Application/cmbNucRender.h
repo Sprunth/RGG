@@ -64,7 +64,7 @@ public:
     {
       data(point p = point(), point r = point(),
            cmbNucMaterial * m = NULL, scale s = scale())
-        : pt(p), rotation(r), material(m), ptScale(s)
+        : pt(p), rotation(r), ptScale(s), material(m)
       {}
 
       point pt;
