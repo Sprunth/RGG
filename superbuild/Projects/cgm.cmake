@@ -38,7 +38,7 @@ endif()
 if(ENABLE_meshkit)
   add_external_project_step(oce-autoconf
     COMMENT "Running autoreconf for oce"
-      COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
+      COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR> &> <SOURCE_DIR>/AUTOTOOLS_MESSAGES.txt
       DEPENDEES update
       DEPENDERS configure
   )

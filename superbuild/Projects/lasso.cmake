@@ -21,7 +21,7 @@ add_external_project(lasso
 
 if(ENABLE_meshkit)
   add_external_project_step(lasso-autoconf
-    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
+    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR> &> <SOURCE_DIR>/AUTOTOOLS_MESSAGES.txt
     DEPENDEES update
     DEPENDERS configure
   )

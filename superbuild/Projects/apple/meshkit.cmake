@@ -33,7 +33,7 @@ add_external_project(meshkit
 if(ENABLE_meshkit)
   find_package(Autotools REQUIRED)
   add_external_project_step(meshkit-autoconf
-    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR> &> <SOURCE_DIR>/AUTOTOOLS_OUTPUT.txt
+    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR> &> <SOURCE_DIR>/AUTOTOOLS_MESSAGES.txt
     DEPENDEES update
     DEPENDERS configure
   )
