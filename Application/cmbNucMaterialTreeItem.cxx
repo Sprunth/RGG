@@ -58,14 +58,12 @@ cmbNucMaterialTreeItem::~cmbNucMaterialTreeItem()
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucMaterialTreeItem::setText ( int column, const QString & text )
+void cmbNucMaterialTreeItem::setText ( int column, const QString & tin )
 {
-  //qDebug() << "1 set Text: " << column << text << this->text( column );
-  this->QTreeWidgetItem::setText(column, text);
-  //qDebug() << "2 set Text: " << column << text << this->text( column );
+  this->QTreeWidgetItem::setText(column, tin);
   if(column == 0)
     {
-    this->PreviousText = text;
+    this->PreviousText = tin;
     }
 }
 

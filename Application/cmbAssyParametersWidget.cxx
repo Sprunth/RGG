@@ -368,7 +368,7 @@ void cmbAssyParametersWidget::resetAssembly(cmbNucAssembly* assy)
   }
   Internal->Unknown->setPlainText(QString::fromStdString(unknowns));
   Internal->resizeTable(assy->getNumberOfTransforms());
-  for(int i = 0; i < assy->getNumberOfTransforms(); ++i)
+  for(size_t i = 0; i < assy->getNumberOfTransforms(); ++i)
   {
     Internal->setTransformRow(i, assy->getTransform(i));
   }

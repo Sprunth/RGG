@@ -51,11 +51,11 @@ public:
     return result;
   }
 
-  virtual bool haveSupport(const remus::proto::JobRequirements& reqs) const
+  virtual bool haveSupport(const remus::proto::JobRequirements& /*reqs*/) const
   { return true; }
 
-  virtual bool createWorker(const remus::proto::JobRequirements& type,
-                            WorkerFactory::FactoryDeletionBehavior lifespan)
+  virtual bool createWorker(const remus::proto::JobRequirements& /*type*/,
+                            WorkerFactory::FactoryDeletionBehavior /*lifespan*/)
   { return false; }
 };
 
@@ -156,9 +156,9 @@ cmbNucExporterWorker
 cmbNucExporterWorker
 ::cmbNucExporterWorker( std::string label,
                         remus::common::MeshIOType miot,
-                        remus::worker::ServerConnection const& connection,
+                        remus::worker::ServerConnection const& conn,
                         std::vector<std::string> extra_args)
-:remus::worker::Worker( remus::proto::make_JobRequirements(miot, label, ""), connection),
+:remus::worker::Worker( remus::proto::make_JobRequirements(miot, label, ""), conn),
  ExtraArgs(extra_args)
 {
   Name = label;
@@ -321,7 +321,6 @@ cmbNucExporterClient<JOB_REQUEST_IN, JOB_REQUEST_OUT>::getOutput(ExporterInput c
   remus::common::MeshIOType mesh_types(in_type,out_type);
   remus::proto::JobRequirements reqs =
     remus::proto::make_JobRequirements(mesh_types, Label,"");
-  unsigned int i = 0;
   if(Client->canMesh(reqs))
     {
     remus::proto::JobContent content =
@@ -500,15 +499,15 @@ bool cmbNucExport::runAssyHelper( const QStringList &assygenFile,
 {
   AssygenExporter ae("Assygen");
   CubitExporter ce("Cubit");
-  for (QStringList::const_iterator i = assygenFile.constBegin();
-       i != assygenFile.constEnd(); ++i)
+  for (QStringList::const_iterator iter = assygenFile.constBegin();
+       iter != assygenFile.constEnd(); ++iter)
   {
     if(!keepGoing())
     {
       cancelHelper();
       return false;
     }
-    QFileInfo fi(*i);
+    QFileInfo fi(*iter);
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
     QString pass = path + '/' + name;
@@ -684,7 +683,6 @@ bool cmbNucExport::runCoreHelper( const QString coregenFile,
     in.LibPath = "";
     std::stringstream ss(CoregenLib.toStdString().c_str());
     std::string line;
-    unsigned int i = 0;
     while( std::getline(ss, line))
     {
       in.LibPath += line + ":";
@@ -746,7 +744,6 @@ cmbNucExport::exportCylinder( const QString assygenFile,
       in.LibPath = "";
       std::stringstream ss(AssygenLib.toStdString().c_str());
       std::string line;
-      unsigned int i = 0;
       while( std::getline(ss, line))
       {
         in.LibPath += line + ":";

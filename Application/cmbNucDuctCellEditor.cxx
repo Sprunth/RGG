@@ -9,8 +9,8 @@
 class DuctTableItem : public QTableWidgetItem
 {
 public:
-  DuctTableItem(Duct * d, cmbNucDuctCellEditor * l, double init)
-  :duct(d), link(l)
+  DuctTableItem(Duct * din, cmbNucDuctCellEditor * l, double init)
+  :duct(din), link(l)
   {
     this->setText(QString::number(init));
   }
@@ -108,8 +108,8 @@ public:
 class DuctLayerThicknessEditor : public QTableWidgetItem
 {
 public:
-  DuctLayerThicknessEditor(Duct * d, bool hex, cmbNucDuctCellEditor * l, double init)
-  :duct(d), link(l), isHex(hex)
+  DuctLayerThicknessEditor(Duct * din, bool hex, cmbNucDuctCellEditor * l, double init)
+  :duct(din), link(l), isHex(hex)
   {
     this->setText(QString::number(init));
   }
@@ -175,8 +175,8 @@ public:
 
 
 cmbNucDuctCellEditor
-::cmbNucDuctCellEditor(QWidget *parent)
-: QWidget(parent),
+::cmbNucDuctCellEditor(QWidget *p)
+: QWidget(p),
   Ui(new Ui::cmbDuctCellEditor),
   AssemblyObject(NULL)
 {
@@ -425,7 +425,6 @@ cmbNucDuctCellEditor
   QTableWidgetItem* rad = this->Ui->DuctSegmentTable->selectedItems().value(0);
   DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(rad);
   int row = rad->row();
-  double z2 = selItem->duct->getZ2();
   this->InternalDuctCell->RemoveDuct(selItem->duct, true);
   selItem = dynamic_cast<DuctTableItem*>(this->Ui->DuctSegmentTable->item(row-1, 0));
   this->setDuctRow(row-1, selItem->duct);
@@ -440,7 +439,6 @@ void cmbNucDuctCellEditor
   QTableWidgetItem* rad = this->Ui->DuctSegmentTable->selectedItems().value(0);
   DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(rad);
   int row = rad->row();
-  double z1 = selItem->duct->getZ1();
   this->InternalDuctCell->RemoveDuct(selItem->duct, false);
   selItem = dynamic_cast<DuctTableItem*>(this->Ui->DuctSegmentTable->item(row+1, 0));
   this->Ui->DuctSegmentTable->removeRow(row);
@@ -603,7 +601,7 @@ void cmbNucDuctCellEditor::onUpdateLayerMaterial()
   DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(rad);
   // setup materials
   QComboBox *comboBox;
-  for(unsigned int i = 0; i < this->Ui->MaterialLayerTable->rowCount(); ++i)
+  for(int i = 0; i < this->Ui->MaterialLayerTable->rowCount(); ++i)
   {
     comboBox = qobject_cast<QComboBox *>(this->Ui->MaterialLayerTable->cellWidget(i, 0));
     if(comboBox)

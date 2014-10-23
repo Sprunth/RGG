@@ -127,14 +127,14 @@ void cmbNucPreferencesDialog::setValues()
 
 void cmbNucPreferencesDialog::checkValues()
 {
-  bool isEnabled = true;
+  bool enabled = true;
   if(this->ui->customMeshkit->isChecked() || !cmbNucPreferencesDialog::hasPackaged())
   {
     QString assygenExe = ui->assygenExecutable->text();
     QString coregenExe = ui->coregenExecutable->text();
     QFileInfo ainfo(assygenExe);
     QFileInfo cinfo(coregenExe);
-    isEnabled &= (!assygenExe.isEmpty() && ainfo.exists() &&
+    enabled &= (!assygenExe.isEmpty() && ainfo.exists() &&
                   ainfo.isExecutable() && !ainfo.isDir()) &&
                  (!coregenExe.isEmpty() && cinfo.exists() &&
                   cinfo.isExecutable() && !cinfo.isDir());
@@ -148,10 +148,10 @@ void cmbNucPreferencesDialog::checkValues()
   }
 #endif
 
-  isEnabled &= (!cubitExe.isEmpty() && QFileInfo(cubitExe).exists() &&
-                !QFileInfo(cubitExe).isDir() && QFileInfo(cubitExe).isExecutable());
+  enabled &= (!cubitExe.isEmpty() && QFileInfo(cubitExe).exists() &&
+              !QFileInfo(cubitExe).isDir() && QFileInfo(cubitExe).isExecutable());
 
-  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(isEnabled);
+  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
 }
 
 bool cmbNucPreferencesDialog::isOk()

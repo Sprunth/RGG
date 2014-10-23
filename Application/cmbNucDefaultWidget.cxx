@@ -16,8 +16,8 @@ public:
   Ui_qDefaults * ui;
 };
 
-cmbNucDefaultWidget::cmbNucDefaultWidget(QWidget *parent)
-:QWidget(parent)
+cmbNucDefaultWidget::cmbNucDefaultWidget(QWidget *p)
+:QWidget(p)
 {
   this->Internal = new cmbNucDefaultWidgetInternal();
   this->Internal->ui->setupUi(this);
@@ -127,7 +127,6 @@ namespace
 
 bool cmbNucDefaultWidget::assyPitchChanged()
 {
-  bool r = false;
   double tmpDuctThickX; double tmpDuctThickY;
   double cDuctThickX; double cDuctThickY;
   bool v = getValue(tmpDuctThickX, this->Internal->ui->DuctThickX);
@@ -232,9 +231,9 @@ void cmbNucDefaultWidget::disConnect()
                       this,          SLOT(recievePitch(double, double)));
 }
 
-void cmbNucDefaultWidget::recievePitch(double x, double y)
+void cmbNucDefaultWidget::recievePitch(double xin, double yin)
 {
-  if(x<0||y<0)
+  if(xin<0||yin<0)
   {
     double tmpX; double tmpY;
     if(Current->getPitch(tmpX, tmpY))
@@ -250,8 +249,8 @@ void cmbNucDefaultWidget::recievePitch(double x, double y)
   }
   else
   {
-    this->Internal->ui->PitchX->setText(QString::number(x));
-    this->Internal->ui->PitchY->setText(QString::number(y));
+    this->Internal->ui->PitchX->setText(QString::number(xin));
+    this->Internal->ui->PitchY->setText(QString::number(yin));
   }
 }
 

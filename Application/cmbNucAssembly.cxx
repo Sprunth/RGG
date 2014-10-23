@@ -176,17 +176,17 @@ void cmbNucAssembly::getZRange(double & z1, double & z2)
 void cmbNucAssembly::UpdateGrid()
 {
   std::pair<int, int> dim = this->lattice.GetDimensions();
-  for(size_t i = 0; i < dim.first; i++)
+  for(size_t i = 0; i < static_cast<size_t>(dim.first); i++)
     {
     size_t layerCells = this->lattice.GetGeometryType() == HEXAGONAL ?
       6*i : dim.second;
     for(size_t j = 0; j < layerCells; j++)
       {
-      std::string label = this->lattice.GetCell(i, j).label;
-      PinCell* pc = this->GetPinCell(label);
+      std::string lat_label = this->lattice.GetCell(i, j).label;
+      PinCell* pc = this->GetPinCell(lat_label);
       if(pc)
         {
-        this->lattice.SetCell(i, j, label, pc->GetLegendColor());
+        this->lattice.SetCell(i, j, lat_label, pc->GetLegendColor());
         }
       else
         {
@@ -205,11 +205,11 @@ void cmbNucAssembly::AddPinCell(PinCell *pincell)
   this->PinCells.push_back(pincell);
 }
 
-void cmbNucAssembly::RemovePinCell(const std::string label)
+void cmbNucAssembly::RemovePinCell(const std::string label_in)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
-    if(this->PinCells[i]->label == label)
+    if(this->PinCells[i]->label == label_in)
       {
       delete this->PinCells[i];
       this->PinCells.erase(this->PinCells.begin() + i);
@@ -217,7 +217,7 @@ void cmbNucAssembly::RemovePinCell(const std::string label)
       }
     }
   // update the Grid
-  if(this->lattice.ClearCell(label))
+  if(this->lattice.ClearCell(label_in))
   {
     setAndTestDiffFromFiles(true);
   }
@@ -232,11 +232,11 @@ void cmbNucAssembly::fillList(QStringList & l)
   }
 }
 
-PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
+PinCell* cmbNucAssembly::GetPinCell(const std::string &label_in)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
-    if(this->PinCells[i]->label == label)
+    if(this->PinCells[i]->label == label_in)
       {
       return this->PinCells[i];
       }
@@ -247,7 +247,7 @@ PinCell* cmbNucAssembly::GetPinCell(const std::string &label)
 
 PinCell* cmbNucAssembly::GetPinCell(int pc) const
 {
-  if(pc < this->PinCells.size())
+  if(static_cast<size_t>(pc) < this->PinCells.size())
   {
     return this->PinCells[pc];
   }
@@ -284,10 +284,10 @@ bool cmbNucAssembly::IsHexType()
   return this->lattice.GetGeometryType() == HEXAGONAL;
 }
 
-void cmbNucAssembly::ReadFile(const std::string &FileName)
+void cmbNucAssembly::ReadFile(const std::string &fname)
 {
   inpFileReader freader;
-  if(!freader.open(FileName))
+  if(!freader.open(fname))
   {
     return;
   }
@@ -312,12 +312,12 @@ void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,
   }
   else
   {
-    for(unsigned int i = 0; i < PinCells.size(); ++i)
+    for(unsigned int at = 0; at < PinCells.size(); ++at)
     {
-      if(PinCells[i] != NULL)
+      if(PinCells[at] != NULL)
       {
-        pitch_ij[0] = PinCells[i]->pitchX;
-        pitch_ij[1] = PinCells[i]->pitchY;
+        pitch_ij[0] = PinCells[at]->pitchX;
+        pitch_ij[1] = PinCells[at]->pitchY;
         break;
       }
     }
@@ -386,7 +386,7 @@ void cmbNucAssembly::GetDuctWidthHeight(double r[2])
 
 void cmbNucAssembly::computeDefaults()
 {
-  double x, y, r, l = AssyDuct.getLength();
+  double x, y, l = AssyDuct.getLength();
   if(l>0) Defaults->setHeight(l);
   this->calculatePitch(x, y);
   if(x>=0 && y >= 0) Defaults->setPitch(x,y);
@@ -611,10 +611,11 @@ void cmbNucAssembly::setLabel(std::string & n)
 
 bool cmbNucAssembly::updateTransform(int at, Transform * in)
 {
-  if(in != NULL && in->isValid() && at <= this->Transforms.size())
+  if(in != NULL && in->isValid() &&
+     static_cast<size_t>(at) <= this->Transforms.size())
   {
     Transform * tat = NULL;
-    if(at == this->Transforms.size() && addTransform(in))
+    if(static_cast<size_t>(at) == this->Transforms.size() && addTransform(in))
     {
       return true;
     }
@@ -635,7 +636,7 @@ bool cmbNucAssembly::updateTransform(int at, Transform * in)
 
 bool cmbNucAssembly::removeOldTransforms(int i)
 {
-  if(i < this->Transforms.size())
+  if(static_cast<size_t>(i) < this->Transforms.size())
   {
     this->Transforms.resize(i);
     return true;
@@ -645,7 +646,10 @@ bool cmbNucAssembly::removeOldTransforms(int i)
 
 cmbNucAssembly::Transform* cmbNucAssembly::getTransform(int i) const
 {
-  if(i < this->Transforms.size()) return this->Transforms[i];
+  if(static_cast<size_t>(i) < this->Transforms.size())
+  {
+    return this->Transforms[i];
+  }
   return NULL;
 }
 

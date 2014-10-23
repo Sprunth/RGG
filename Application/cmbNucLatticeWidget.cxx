@@ -6,8 +6,8 @@
 
 #include <QVBoxLayout>
 
-cmbNucLatticeWidget::cmbNucLatticeWidget(QWidget * parent)
-:QWidget(parent), lattice(NULL)
+cmbNucLatticeWidget::cmbNucLatticeWidget(QWidget * p)
+:QWidget(p), lattice(NULL)
 {
   QVBoxLayout * box = new  QVBoxLayout();
   draw_control = new cmbNucDraw2DLattice(DrawLatticeItem::Polygon, NULL);

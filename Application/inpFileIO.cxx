@@ -650,7 +650,7 @@ bool inpFileWriter::write(std::string fname,
   }
   output << "\n";
 
-  for( int i = 0; i < assembly.getNumberOfTransforms(); ++i)
+  for( unsigned int i = 0; i < assembly.getNumberOfTransforms(); ++i)
   {
     assembly.getTransform(i)->write(output) << "\n";
   }
@@ -861,14 +861,14 @@ void inpFileHelper::writeMaterials( std::ofstream &output,
 }
 
 void inpFileHelper::readMaterials( std::stringstream & input,
-                                   cmbNucAssembly & assembly )
+                                   cmbNucAssembly & /*assembly*/ )
 {
-  int count;
-  input >> count;
+  int countR;
+  input >> countR;
   std::string mlabel;
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  for(int i = 0; i < count; i++)
+  for(int i = 0; i < countR; i++)
     {
     std::string mname;
     input >> mname;
@@ -904,9 +904,9 @@ void inpFileHelper::readMaterials( std::stringstream & input,
 
 void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly, bool limited )
 {
-  for(size_t i = 0; i < assembly.AssyDuct.numberOfDucts(); i++)
+  for(size_t ad = 0; ad < assembly.AssyDuct.numberOfDucts(); ad++)
   {
-    Duct *duct = assembly.AssyDuct.getDuct(i);
+    Duct *duct = assembly.AssyDuct.getDuct(ad);
     int nl = duct->NumberOfLayers();
 
     output << "duct " << (limited?1:nl) << " ";
@@ -985,7 +985,6 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
 void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
 {
   output << "pincells " << assembly.PinCells.size() << "\n";
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
 
   for(size_t i = 0; i < assembly.PinCells.size(); i++)
     {
@@ -1024,11 +1023,11 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
              << cylinder->y << " "
              << cylinder->z1 << " "
              << cylinder->z2 << " ";
-      for(int material = 0; material < cylinder->GetNumberOfLayers(); material++)
+      for(unsigned int material = 0; material < cylinder->GetNumberOfLayers(); material++)
         {
         output << std::showpoint << cylinder->getRadius(material) << " ";
         }
-      for(int material = 0; material < cylinder->GetNumberOfLayers(); material++)
+      for(unsigned int material = 0; material < cylinder->GetNumberOfLayers(); material++)
         {
         output << cylinder->GetMaterial(material)->getLabel().toStdString() << " ";
         }
@@ -1046,12 +1045,12 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
              << frustum->y << " "
              << frustum->z1 << " "
              << frustum->z2 << " ";
-      for(int atr = 0; atr < frustum->GetNumberOfLayers(); atr++)
+      for(unsigned int atr = 0; atr < frustum->GetNumberOfLayers(); atr++)
         {
         output << std::showpoint << frustum->getRadius(atr, Frustum::BOTTOM) << " ";
         output << std::showpoint << frustum->getRadius(atr, Frustum::TOP) << " ";
         }
-      for(int material = 0; material < frustum->GetNumberOfLayers(); material++)
+      for(unsigned int material = 0; material < frustum->GetNumberOfLayers(); material++)
         {
         output << frustum->GetMaterial(material)->getLabel().toStdString() << " ";
         }
@@ -1088,7 +1087,6 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 
   for(int i = 0; i < count; i++)
     {
-    int lc = i % 10; // Pick a default pin color (for now!)
     PinCell* pincell = new PinCell(0,0);
     QPointer<cmbNucMaterial> firstMaterial = NULL;
     int attribute_count = 0;
@@ -1229,7 +1227,6 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           }
         }
       }
-    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
     if(firstMaterial != NULL)
       {
       pincell->SetLegendColor(firstMaterial->getColor());
@@ -1398,24 +1395,24 @@ void inpFileHelper::readLattice( std::stringstream & input,
 {
   enumGeometryType type = lattice.GetGeometryType();
   int subType = lattice.GetGeometrySubType();
-  size_t cols=0;
-  size_t rows=0;
+  size_t colsR=0;
+  size_t rowsR=0;
   if(type == HEXAGONAL)
     {
-    input >> rows;
-    cols = rows;
+    input >> rowsR;
+    colsR = rowsR;
     }
   else
     {
     // the lattice 2d grid use y as rows, x as columns
-    input >> cols >> rows;
+    input >> colsR >> rowsR;
     }
 
-  lattice.SetDimensions(rows, cols);
+  lattice.SetDimensions(rowsR, colsR);
 
   if(type == HEXAGONAL)
     {
-    size_t x = rows;
+    size_t x = rowsR;
     if(subType & ANGLE_360)
       {
       // a full hex assembly, NOT partial
@@ -1496,10 +1493,10 @@ void inpFileHelper::readLattice( std::stringstream & input,
     }
   else
     {
-    for(size_t i = 0; i < rows; i++)
+    for(size_t i = 0; i < rowsR; i++)
       {
-      size_t ati = rows-i-1;
-      for(size_t j = 0; j < cols; j++)
+      size_t ati = rowsR-i-1;
+      for(size_t j = 0; j < colsR; j++)
         {
           assert(i < lattice.Grid.size());
           assert(j < lattice.Grid[i].size());
@@ -1517,7 +1514,6 @@ void inpFileHelper::readAssemblies( std::stringstream &input,
                                     bool readAssy )
 {
   int count;
-  cmbNucAssembly *subAssembly;
   input >> count;
   input >> core.AssyemblyPitchX;
   if(core.IsHexType()) // just one pitch
@@ -1546,7 +1542,7 @@ void inpFileHelper::readAssemblies( std::stringstream &input,
       }
     if(assyInfo.exists() && readAssy)
       {
-      subAssembly = core.loadAssemblyFromFile(assyInfo.absoluteFilePath().toStdString(), assylabel);
+      core.loadAssemblyFromFile(assyInfo.absoluteFilePath().toStdString(), assylabel);
       }
     }
 }

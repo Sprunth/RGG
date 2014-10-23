@@ -236,14 +236,14 @@ namespace
   void Upsample(vtkPoints *points, double * pt0, double * pt1, int number)
   {
     double tmpPt[] = {pt0[0],pt0[1],pt0[2]};
-    int id = points->InsertNextPoint(tmpPt);
+    /*int id =*/ points->InsertNextPoint(tmpPt);
     double d[] = {pt1[0]-pt0[0],pt1[1]-pt0[1]};
     for(int i = 1; i < (number-1); ++i)
     {
       double r = static_cast<double>(i)/(number-1.0);
       tmpPt[0] = pt0[0] + r*d[0];
       tmpPt[1] = pt0[1] + r*d[1];
-      id = points->InsertNextPoint(tmpPt);
+      /*id =*/ points->InsertNextPoint(tmpPt);
     }
   }
 
@@ -387,13 +387,13 @@ void vtkCmbLayeredConeSource
       vtkSmartPointer<vtkPolygon>::New();
     for(int i = 0; i < outerRes; ++i)
     {
-      double * pts = fullPoints->GetPoint(i);
-      points->InsertNextPoint(pts[0], pts[1], 0);
+      double * tmppt = fullPoints->GetPoint(i);
+      points->InsertNextPoint(tmppt[0], tmppt[1], 0);
     }
     for(int i = outerRes; i < offset; ++i)
     {
-      double * pts = fullPoints->GetPoint(i);
-      points->InsertNextPoint(pts[0], pts[1], 0);
+      double * tmppt = fullPoints->GetPoint(i);
+      points->InsertNextPoint(tmppt[0], tmppt[1], 0);
       aPolygon->GetPointIds()->InsertNextId(offset-(i-outerRes)-1);
     }
 
@@ -459,7 +459,6 @@ vtkCmbLayeredConeSource
   points->SetDataTypeToDouble(); //used later during transformation
 
   vtkIdType pts[5];
-  double tpt[3];
   bool forceDelaunay = false;
 
   if(innerRes == 0 && InnerPoints.empty())
@@ -531,7 +530,7 @@ vtkCmbLayeredConeSource
   if(1)
   {
     int offset = outerRes+innerRes;
-    for(unsigned int i = 0; i < outerRes; ++i)
+    for(int i = 0; i < outerRes; ++i)
     {
       pts[0] = i;
       pts[1] = (i+1) % outerRes;
@@ -544,7 +543,7 @@ vtkCmbLayeredConeSource
   if(1)
   {
     int offset = outerRes+innerRes;
-    for(unsigned int i = 0; i < innerRes; ++i)
+    for(int i = 0; i < innerRes; ++i)
     {
       pts[0] = i + outerRes;
       pts[3] = (i+1) % innerRes + outerRes;

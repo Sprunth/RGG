@@ -3,11 +3,11 @@
 #include <QFont>
 #include <QPainter>
 
-DrawLatticeItem::DrawLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
-  DrawLatticeItem::ShapeStyle shape, QGraphicsItem* parent)
-    : QGraphicsPolygonItem(polygon, parent), m_color(Qt::gray),
-      m_text("xx"), m_shape(shape),
-      m_layer(layer), m_cellIndex(cellIdx), m_available(true)
+DrawLatticeItem::DrawLatticeItem(const QPolygonF& poly, int l, int cellIdx,
+  DrawLatticeItem::ShapeStyle ss, QGraphicsItem* parent)
+    : QGraphicsPolygonItem(poly, parent), m_color(Qt::gray),
+      m_text("xx"), m_shape(ss),
+      m_layer(l), m_cellIndex(cellIdx), m_available(true)
 {
   this->setAcceptDrops(true);
 }
@@ -34,13 +34,13 @@ void DrawLatticeItem::setColor(const QColor& color)
   this->m_color = color;
 }
 
-void DrawLatticeItem::setText(const QString& text)
+void DrawLatticeItem::setText(const QString& tin)
 {
-  if(this->m_text == text)
+  if(this->m_text == tin)
     {
     return;
     }
-  this->m_text = text;
+  this->m_text = tin;
   this->update();
 }
 
@@ -62,7 +62,6 @@ int DrawLatticeItem::cellIndex()
 void DrawLatticeItem::drawText(QPainter *painter)
 {
   QRectF textRect = boundingRect();
-  int flags = Qt::AlignCenter | Qt::AlignCenter | Qt::TextWordWrap;
 
   QColor textColor = (this->m_color.lightnessF() < 0.5) ? Qt::white : Qt::black;
 
@@ -70,7 +69,7 @@ void DrawLatticeItem::drawText(QPainter *painter)
   font.setPixelSize(12);
   painter->setPen(textColor);
   painter->setFont(font);
-  painter->drawText(textRect, flags, m_text);
+  painter->drawText(textRect, Qt::AlignCenter | Qt::AlignCenter | Qt::TextWordWrap, m_text);
 }
 
 void DrawLatticeItem::drawCircle(QPainter *painter)
