@@ -1,7 +1,7 @@
 {
    IGNORE_OPENGL
    Memcheck:Cond
-   obj:/usr/lib64/nvidia/libGL.so.*
+   obj:*/nvidia/libGL.so.*
    obj:*
    obj:*
 }
@@ -9,7 +9,7 @@
 {
    igopgl
    Memcheck:Cond
-   obj:/usr/lib64/nvidia/libGL.so.331.89
+   obj:*/nvidia/libGL.so.331.89
    obj:*
    obj:*
 }
@@ -64,7 +64,7 @@
    fun:__printf_fp
    fun:vfprintf
    fun:vsnprintf
-   obj:/usr/lib64/libstdc++.so.*
+   obj:*/libstdc++.so.*
 }
 
 {
@@ -74,7 +74,7 @@
    fun:malloc
    fun:realloc
    fun:g_realloc
-   obj:/usr/lib64/libgobject-2.0.so.*
+   obj:*/libgobject-2.0.so.*
    fun:g_type_register_static
    fun:g_type_plugin_get_type
 }
@@ -86,7 +86,7 @@
    fun:__printf_fp
    fun:vfprintf
    fun:vsnprintf
-   obj:/usr/lib64/libstdc++.so.6.0.19
+   obj:*/libstdc++.so.*
    fun:_ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE15_M_insert_floatIdEES3_S3_RSt8ios_baseccT_
    fun:_ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE6do_putES3_RSt8ios_basecd
    fun:_ZNSo9_M_insertIdEERSoT_
@@ -103,15 +103,15 @@
    fun:malloc
    fun:realloc
    fun:g_realloc
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
    fun:*
    fun:*
    fun:*
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
+   obj:*/libgobject-2.0.so.*
    fun:*
    fun:*
-   obj:/usr/lib64/ld-2.18.so
+   obj:*/ld-2.18.so
 }
 
 {
@@ -120,13 +120,13 @@
    match-leak-kinds: possible
    fun:calloc
    fun:g_malloc0
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
    fun:*
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
+   obj:*/libgobject-2.0.so.*
    fun:*
    fun:*
-   obj:/usr/lib64/ld-2.18.so
+   obj:*/ld-2.18.so
    obj:*
    obj:*
    obj:*
@@ -138,13 +138,13 @@
    match-leak-kinds: possible
    fun:calloc
    fun:g_malloc0
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
    fun:*
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
+   obj:*/libgobject-2.0.so.*
    fun:*
    fun:*
-   obj:/usr/lib64/ld-2.18.so
+   obj:*/ld-2.18.so
    obj:*
    obj:*
    obj:*
@@ -156,7 +156,7 @@
    match-leak-kinds: possible
    fun:calloc
    fun:g_malloc0
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
    ...
 }
 
@@ -179,7 +179,7 @@
    fun:malloc
    fun:realloc
    fun:g_realloc
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
    ...
 }
 
@@ -189,9 +189,9 @@
    match-leak-kinds: possible
    fun:realloc
    fun:g_realloc
-   obj:/usr/lib64/libgobject-2.0.so.0.3800.2
+   obj:*/libgobject-2.0.so.*
    ...
-   obj:/usr/lib64/ld-2.18.so
+   obj:*/ld-2.18.so
    obj:*
    obj:*
 }
@@ -202,9 +202,9 @@
    match-leak-kinds: definite
    fun:*
    ...
-   obj:*/libQtCore.so.4.8.6
+   obj:*/libQtCore.so.*
    ...
-   obj:*/libQtCore.so.4.8.6
+   obj:*/libQtCore.so.*
    fun:*
 }
 
@@ -216,7 +216,7 @@
    fun:_XimOpenIM
    fun:_XimRegisterIMInstantiateCallback
    fun:XRegisterIMInstantiateCallback
-   obj:*/libQtGui.so.4.8.6
+   obj:*/libQtGui.so.*
    fun:_ZN20QInputContextFactory6createERK7QStringP7QObject
    fun:_ZNK12QApplication12inputContextEv
    fun:_ZN7QWidget12setAttributeEN2Qt15WidgetAttributeEb
@@ -231,16 +231,55 @@
    Memcheck:Leak
    match-leak-kinds: definite
    fun:calloc
-   obj:/usr/lib64/nvidia/libGL.so.331.89
+   obj:*/libGL.so.*
+}
+
+{
+  e18
+   Memcheck:Cond
+   fun:*mersenne_twister_engine*
+   ...
+}
+
+{
+   e19
+   Memcheck:Value8
+   obj:*/libstdc++.so.*
+   ...
+   fun:thread_proxy
+   fun:start_thread
+   fun:clone
+}
+
+{
+   e19.1
+   Memcheck:Cond
+   obj:*/libstdc++.so.*
+   ...
+   fun:thread_proxy
+   fun:start_thread
+   fun:clone
 }
 
 
+{
+   e20
+   Memcheck:Cond
+   fun:bcmp
+   ...
+   fun:thread_proxy
+   fun:start_thread
+   fun:clone
+}
 
-
-
-
-
-
-
-
-
+{
+   e21
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   obj:*/libX11.so.*
+   ...
+   obj:*/libQtGui.so.*
+   ...
+}
