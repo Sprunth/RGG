@@ -136,7 +136,9 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
                                                               QDir::homePath()).toString();
       defaultLoc = tdir.path();
     }
-    QFileDialog saveQD( this, "Save Outer Cylinder File...", defaultLoc, "cub Files (*.cub)");
+
+    fileName = QFileDialog::getSaveFileName( this, "Save Outer Cylinder File...",  defaultLoc, "cub Files (*.cub)" );
+    /*QFileDialog saveQD( this, "Save Outer Cylinder File...", defaultLoc, "cub Files (*.cub)");
     saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
     saveQD.setAcceptMode(QFileDialog::AcceptSave);
     saveQD.selectFile("outer_cylinder.cub");
@@ -144,7 +146,7 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
     if(saveQD.exec()== QDialog::Accepted)
     {
       fileName = saveQD.selectedFiles().first();
-    }
+    }*/
   }
   else
   {
@@ -318,28 +320,28 @@ FUN_SIMPLE(bool, bool, Info, info, false, "on") \
 FUN_SIMPLE(bool, bool, MeshInfo, meshinfo, false, "on")
 
 //-----------------------------------------------------------------------------
-void cmbCoreParametersWidget::applyToCore(cmbNucCore* Core)
+void cmbCoreParametersWidget::applyToCore(cmbNucCore* corein)
 {
   bool changed = false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
-changed |= setValue(Core->Params.Var, Internal->Var);
+changed |= setValue(corein->Params.Var, Internal->Var);
 
   USED_SIMPLE_VARABLE_MACRO()
 
 #undef FUN_SIMPLE
 
-  if(Core->Params.BackgroundMode != this->Internal->JacketMode->currentIndex())
+  if(corein->Params.BackgroundMode != this->Internal->JacketMode->currentIndex())
   {
     switch(this->Internal->JacketMode->currentIndex())
     {
       case cmbNucCoreParams::None:
-        Core->Params.BackgroundMode =cmbNucCoreParams::None;
+        corein->Params.BackgroundMode =cmbNucCoreParams::None;
         break;
       case cmbNucCoreParams::External:
-        Core->Params.BackgroundMode =cmbNucCoreParams::External;
+        corein->Params.BackgroundMode =cmbNucCoreParams::External;
         break;
       case cmbNucCoreParams::Generate:
-        Core->Params.BackgroundMode =cmbNucCoreParams::Generate;
+        corein->Params.BackgroundMode =cmbNucCoreParams::Generate;
         break;
       default:
         break;
@@ -347,62 +349,62 @@ changed |= setValue(Core->Params.Var, Internal->Var);
     changed = true;
   }
 
-  if(Core->Params.BackgroundFullPath != Internal->background_full_path &&
-     Core->Params.BackgroundMode != cmbNucCoreParams::None)
+  if(corein->Params.BackgroundFullPath != Internal->background_full_path &&
+     corein->Params.BackgroundMode != cmbNucCoreParams::None)
   {
-    Core->Params.BackgroundFullPath = Internal->background_full_path;
+    corein->Params.BackgroundFullPath = Internal->background_full_path;
     changed = true;
   }
 
   std::string meshFile = Internal->OutputFile->text().toStdString();
-  if(meshFile != Core->h5mFile)
+  if(meshFile != corein->h5mFile)
   {
-    Core->h5mFile = meshFile;
+    corein->h5mFile = meshFile;
   }
 
   cmbNucCoreParams::NeumannSetStruct tmp;
-  changed |= Core->Params.NeumannSet != Internal->NeumannSetTable->rowCount();
-  Core->Params.NeumannSet.resize(Internal->NeumannSetTable->rowCount());
-  for (unsigned int i = 0; i < Internal->NeumannSetTable->rowCount(); ++i )
+  changed |= corein->Params.NeumannSet != Internal->NeumannSetTable->rowCount();
+  corein->Params.NeumannSet.resize(Internal->NeumannSetTable->rowCount());
+  for (int i = 0; i < Internal->NeumannSetTable->rowCount(); ++i )
   {
     changed |= convert(Internal->NeumannSetTable->item( i, 0 )->text(),
-                       Core->Params.NeumannSet[i].Side);
+                       corein->Params.NeumannSet[i].Side);
     changed |= convert(Internal->NeumannSetTable->item( i, 1 )->text(),
-                       Core->Params.NeumannSet[i].Id);
+                       corein->Params.NeumannSet[i].Id);
     changed |= convert(Internal->NeumannSetTable->item( i, 2 )->text(),
-                       Core->Params.NeumannSet[i].Equation);
+                       corein->Params.NeumannSet[i].Equation);
   }
-  changed |= convert(Internal->ExtrudeDivisions->text(), Core->Params.Extrude.Divisions);
-  changed |= convert(Internal->ExtrudeHeight->text(), Core->Params.Extrude.Size);
+  changed |= convert(Internal->ExtrudeDivisions->text(), corein->Params.Extrude.Divisions);
+  changed |= convert(Internal->ExtrudeHeight->text(), corein->Params.Extrude.Size);
 
   std::stringstream ss(Internal->UnknownsVars->toPlainText().toStdString().c_str());
   std::string line;
   unsigned int j = 0;
   while( std::getline(ss, line))
   {
-    if(j<Core->Params.UnknownKeyWords.size())
+    if(j<corein->Params.UnknownKeyWords.size())
     {
-      changed |= Core->Params.UnknownKeyWords[j] != line;
-      Core->Params.UnknownKeyWords[j] = line;
+      changed |= corein->Params.UnknownKeyWords[j] != line;
+      corein->Params.UnknownKeyWords[j] = line;
     }
     else
     {
       changed = true;
-      Core->Params.UnknownKeyWords.push_back(line);
+      corein->Params.UnknownKeyWords.push_back(line);
     }
     j++;
     line.clear();
   }
-  if(this->previousRadius != this->currentRadius && Core->Params.BackgroundIsSet() )
+  if(this->previousRadius != this->currentRadius && corein->Params.BackgroundIsSet() )
   {
-    Core->setCylinderRadius(this->currentRadius);
+    corein->setCylinderRadius(this->currentRadius);
     this->previousRadius = this->currentRadius;
     changed = true;
   }
 
-  if(this->previousInterval != this->currentInterval && Core->Params.BackgroundIsSet())
+  if(this->previousInterval != this->currentInterval && corein->Params.BackgroundIsSet())
   {
-    Core->setCylinderOuterSpacing(this->currentInterval);
+    corein->setCylinderOuterSpacing(this->currentInterval);
     this->previousInterval = this->currentInterval;
     changed = true;
   }
@@ -410,26 +412,26 @@ changed |= setValue(Core->Params.Var, Internal->Var);
 }
 
 //-----------------------------------------------------------------------------
-void cmbCoreParametersWidget::resetCore(cmbNucCore* Core)
+void cmbCoreParametersWidget::resetCore(cmbNucCore* corein)
 {
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
-if(Core->Params.Var##IsSet()){ setValue(Internal->Var, Core->Params.Var); }\
+if(Core->Params.Var##IsSet()){ setValue(Internal->Var, corein->Params.Var); }\
 else{ setValue(Internal->Var, DEFAULT); }
 
   USED_SIMPLE_VARABLE_MACRO()
 
 #undef FUN_SIMPLE
 
-  Internal->OutputFile->setText(Core->h5mFile.c_str());
+  Internal->OutputFile->setText(corein->h5mFile.c_str());
 
-  this->Internal->background_full_path = Core->Params.BackgroundFullPath;
+  this->Internal->background_full_path = corein->Params.BackgroundFullPath;
 
   this->Internal->OuterEdgeInterval->setValue(this->previousInterval);
   this->Internal->RadiusBox->setValue(this->previousRadius);
 
-  this->Internal->JacketMode->setCurrentIndex(Core->Params.BackgroundMode);
+  this->Internal->JacketMode->setCurrentIndex(corein->Params.BackgroundMode);
 
-  std::vector<cmbNucCoreParams::NeumannSetStruct> & ns = Core->Params.NeumannSet;
+  std::vector<cmbNucCoreParams::NeumannSetStruct> & ns = corein->Params.NeumannSet;
   while ( Internal->NeumannSetTable->rowCount() > 0)
   {
      Internal->NeumannSetTable->removeRow(0);
@@ -444,13 +446,13 @@ else{ setValue(Internal->Var, DEFAULT); }
 
   if(Core->Params.ExtrudeIsSet())
     {
-    setValue(Internal->ExtrudeDivisions, Core->Params.Extrude.Divisions);
-    setValue(Internal->ExtrudeHeight, Core->Params.Extrude.Size);
+    setValue(Internal->ExtrudeDivisions, corein->Params.Extrude.Divisions);
+    setValue(Internal->ExtrudeHeight, corein->Params.Extrude.Size);
     }
   std::string unknowns;
-  for(unsigned int i = 0; i < Core->Params.UnknownKeyWords.size(); ++i)
+  for(unsigned int i = 0; i < corein->Params.UnknownKeyWords.size(); ++i)
     {
-    unknowns += Core->Params.UnknownKeyWords[i] + "\n";
+    unknowns += corein->Params.UnknownKeyWords[i] + "\n";
     }
   Internal->UnknownsVars->setPlainText(QString::fromStdString(unknowns));
 }
@@ -509,8 +511,8 @@ void cmbCoreParametersWidget::onCalculateCylinderDefaults()
   {
     double ti = Core->getLattice().Grid[0].size() * ductsize[0];
     double tj = Core->getLattice().Grid.size() * ductsize[1];
-    double tr = std::sqrt(ti*ti+tj*tj);
-    initRadius = tr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
+    double tmpr = std::sqrt(ti*ti+tj*tj);
+    initRadius = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
     this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().Grid.size(),Core->getLattice().Grid[0].size())
                                                 *ei*4);
   }
@@ -542,8 +544,8 @@ void cmbCoreParametersWidget::controlDisplayBackgroundControls(int index)
       {
         double ti = Core->getLattice().Grid[0].size() * ductsize[0];
         double tj = Core->getLattice().Grid.size() * ductsize[1];
-        double tr = std::sqrt(ti*ti+tj*tj);
-        ir = tr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
+        double tmpr = std::sqrt(ti*ti+tj*tj);
+        ir = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
       }
       this->Internal->RadiusBox->setValue(ir);
     }

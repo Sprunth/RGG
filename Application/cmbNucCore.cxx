@@ -253,7 +253,7 @@ cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
 
 cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
 {
-  return idx<this->Assemblies.size() ? this->Assemblies[idx] : NULL;
+  return idx< static_cast<int>(this->Assemblies.size()) ? this->Assemblies[idx] : NULL;
 }
 
 std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
@@ -492,7 +492,6 @@ void cmbNucCore::calculateDefaults()
   this->Defaults = new cmbNucDefaults();
   std::vector< cmbNucAssembly* > assys = this->GetUsedAssemblies();
 
-  double RadialMeshSize = 1e23;
   double AxialMeshSize = 1e23;
   int    EdgeInterval = 2147483647;
 

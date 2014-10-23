@@ -127,14 +127,14 @@ void cmbNucPreferencesDialog::setValues()
 
 void cmbNucPreferencesDialog::checkValues()
 {
-  bool isEnabled = true;
+  bool enabled = true;
   if(this->ui->customMeshkit->isChecked() || !cmbNucPreferencesDialog::hasPackaged())
   {
     QString assygenExe = ui->assygenExecutable->text();
     QString coregenExe = ui->coregenExecutable->text();
     QFileInfo ainfo(assygenExe);
     QFileInfo cinfo(coregenExe);
-    isEnabled &= (!assygenExe.isEmpty() && ainfo.exists() &&
+    enabled &= (!assygenExe.isEmpty() && ainfo.exists() &&
                   ainfo.isExecutable() && !ainfo.isDir()) &&
                  (!coregenExe.isEmpty() && cinfo.exists() &&
                   cinfo.isExecutable() && !cinfo.isDir());
@@ -148,10 +148,10 @@ void cmbNucPreferencesDialog::checkValues()
   }
 #endif
 
-  isEnabled &= (!cubitExe.isEmpty() && QFileInfo(cubitExe).exists() &&
-                !QFileInfo(cubitExe).isDir() && QFileInfo(cubitExe).isExecutable());
+  enabled &= (!cubitExe.isEmpty() && QFileInfo(cubitExe).exists() &&
+              !QFileInfo(cubitExe).isDir() && QFileInfo(cubitExe).isExecutable());
 
-  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(isEnabled);
+  ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
 }
 
 bool cmbNucPreferencesDialog::isOk()
@@ -165,7 +165,7 @@ bool cmbNucPreferencesDialog::isOk()
   bool hasAssygen = !assygenexe.isEmpty() && QFileInfo(assygenexe).exists();
   bool hasCoregen = !coregenexe.isEmpty() && QFileInfo(coregenexe).exists();
   bool hasPack = cmbNucPreferencesDialog::hasPackaged();
-  bool hasRgg = (!useCustom && hasPack) || (useCustom && hasAssygen && hasCoregen);
+  bool hasRgg = (!useCustom && hasPack) || ((!hasPack || useCustom) && hasAssygen && hasCoregen);
   return hasRgg && hasCubit;
 }
 
@@ -227,8 +227,16 @@ bool cmbNucPreferencesDialog::getPackaged(QString & assygenExe, QString & corege
   assygenExe = QDir::cleanPath(appDir.absoluteFilePath("../bin/assygen"));
   coregenExe = QDir::cleanPath(appDir.absoluteFilePath("../bin/coregen"));
   qDebug() << assygenExe << coregenExe;
-  return (!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
-         (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists());
+  if ((!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+         (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists()))
+  {
+    return true;
+  }
+  assygenExe = QDir::cleanPath(appDir.absoluteFilePath("../meshkit/assygen"));
+  coregenExe = QDir::cleanPath(appDir.absoluteFilePath("../meshkit/coregen"));
+  qDebug() << assygenExe << coregenExe;
+  return ((!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
+          (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists()));
 #else
   return false;
 #endif

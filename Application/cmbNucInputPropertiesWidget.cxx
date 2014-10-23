@@ -165,9 +165,6 @@ void cmbNucInputPropertiesWidget::onApply()
     }
   AssyPartObj* selObj = this->CurrentObject;
   PinCell* pincell = NULL;
-  Cylinder* cylin = NULL;
-  Frustum* frust = NULL;
-  Lattice* lattice = NULL;
   cmbNucCore* nucCore = NULL;
   cmbNucAssembly* assy = NULL;
   switch(selObj->GetType())
@@ -208,9 +205,6 @@ void cmbNucInputPropertiesWidget::onReset()
     }
   AssyPartObj* selObj = this->CurrentObject;
   PinCell* pincell = NULL;
-  Cylinder* cylin = NULL;
-  Frustum* frust = NULL;
-  Lattice* lattice = NULL;
   cmbNucCore* nucCore = NULL;
   cmbNucAssembly* assy = NULL;
   switch(selObj->GetType())
@@ -348,7 +342,6 @@ void cmbNucInputPropertiesWidget::colorChanged()
     return;
   }
   AssyPartObj* selObj = this->CurrentObject;
-  PinCell* pincell = NULL;
   switch(selObj->GetType())
   {
     case CMBNUC_CORE:
@@ -406,9 +399,9 @@ void cmbNucInputPropertiesWidget::pinNameChanged(PinCell* pincell,
 void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
 {
   // Show color swatch with legendColor
-  QPalette palette = this->Internal->colorSwatch->palette();
-  palette.setColor(this->Internal->colorSwatch->backgroundRole(), pincell->GetLegendColor());
-  this->Internal->colorSwatch->setPalette(palette);
+  QPalette c_palette = this->Internal->colorSwatch->palette();
+  c_palette.setColor(this->Internal->colorSwatch->backgroundRole(), pincell->GetLegendColor());
+  this->Internal->colorSwatch->setPalette(c_palette);
   if(this->Internal->PinCellEditor)
   {
     this->Internal->PinCellEditor->Reset();
@@ -543,9 +536,9 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
   // Show color swatch with legendColor
   QLabel* swatch = this->Internal->assyColorSwatch;
 
-  QPalette palette = swatch->palette();
-  palette.setColor(swatch->backgroundRole(), assy->GetLegendColor());
-  swatch->setPalette(palette);
+  QPalette c_palette = swatch->palette();
+  c_palette.setColor(swatch->backgroundRole(), assy->GetLegendColor());
+  swatch->setPalette(c_palette);
   this->resetLattice(&assy->getLattice());
 }
 //-----------------------------------------------------------------------------
@@ -654,9 +647,9 @@ void cmbNucInputPropertiesWidget::choosePinLegendColor()
   if(selected.isValid())
     {
     pincell->SetLegendColor(selected);
-    QPalette palette = this->Internal->colorSwatch->palette();
-    palette.setColor(this->Internal->colorSwatch->backgroundRole(), selected);
-    this->Internal->colorSwatch->setPalette(palette);
+    QPalette c_palette = this->Internal->colorSwatch->palette();
+    c_palette.setColor(this->Internal->colorSwatch->backgroundRole(), selected);
+    this->Internal->colorSwatch->setPalette(c_palette);
 
     this->resetAssemblyLattice();
     }
@@ -675,9 +668,9 @@ void cmbNucInputPropertiesWidget::chooseAssyLegendColor()
   if(selected.isValid())
     {
     assy->SetLegendColor(selected);
-    QPalette palette = this->Internal->assyColorSwatch->palette();
-    palette.setColor(this->Internal->assyColorSwatch->backgroundRole(), selected);
-    this->Internal->assyColorSwatch->setPalette(palette);
+    QPalette c_palette = this->Internal->assyColorSwatch->palette();
+    c_palette.setColor(this->Internal->assyColorSwatch->backgroundRole(), selected);
+    this->Internal->assyColorSwatch->setPalette(c_palette);
 
     // We set this flag to denote that the grid should be rebuilt the
     // next time we select the core

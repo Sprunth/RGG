@@ -1,4 +1,13 @@
+option(SUPPRESS_NETCDF_BUILD_OUTPUT
+"Suppress netcdf build output"
+ON)
+mark_as_advanced(SUPPRESS_NETCDF_BUILD_OUTPUT)
 
+set(suppress_build_out)
+
+if(SUPPRESS_NETCDF_BUILD_OUTPUT)
+set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+endif()
 
 #this will only modify the cppflags for netcdf as the next project in the tree
 #moab will unset the cppflags back to the original values
@@ -24,4 +33,5 @@ add_external_project(netcdf
     -DUSE_SZIP:BOOL=ON
     -DUSE_HDF5:BOOL=ON
     -DENABLE_NETCDF_4:BOOL=ON
+  ${suppress_build_out}
 )

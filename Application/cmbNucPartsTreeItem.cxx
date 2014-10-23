@@ -11,8 +11,9 @@
 //-----------------------------------------------------------------------------
 cmbNucPartsTreeItem::cmbNucPartsTreeItem(
   QTreeWidgetItem* pNode, AssyPartObj* obj)
-:  FileChanged(false), NeedGeneration(false),
-   QTreeWidgetItem(pNode), PartObject(obj)
+:  QTreeWidgetItem(pNode),
+   FileChanged(false), NeedGeneration(false),
+   PartObject(obj)
 {
   this->connection = new cmbNucPartsTreeItemConnection();
   this->connection->v = this;
@@ -34,12 +35,12 @@ cmbNucPartsTreeItem::~cmbNucPartsTreeItem()
   delete this->connection;
 }
 //-----------------------------------------------------------------------------
-void cmbNucPartsTreeItem::setText ( int column, const QString & text )
+void cmbNucPartsTreeItem::setText ( int column, const QString & tin )
 {
-  this->QTreeWidgetItem::setText(column, text);
+  this->QTreeWidgetItem::setText(column, tin);
   if(column == 0)
     {
-    this->PreviousText = text;
+    this->PreviousText = tin;
     }
 }
 //-----------------------------------------------------------------------------

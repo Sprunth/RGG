@@ -4,6 +4,10 @@ get_libraries(szip szip_libraries)
 
 #hdf5 supports CMake
 add_external_project(hdf5
+# HDF5 1.8.9 has a CMake install rule bug. Fix that.
+  PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${CMAKE_SOURCE_DIR}/patches/hdf5.CMakeLists.txt
+                <SOURCE_DIR>/CMakeLists.txt
   DEPENDS zlib szip
   CMAKE_ARGS
     -DBUILD_SHARED_LIBS:BOOL=TRUE

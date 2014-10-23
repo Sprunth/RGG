@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile/menuNew" command="activate" arguments="actionNew_Rectilinear_Core" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.0.0" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuCreate" />
+  <event object="qNucMainWindow/menuBar/menuCreate" command="activate" arguments="Create Pin" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,8,108" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,10,198" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,10,198" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/layersTable/qt_scrollarea_viewport/PinMaterialBox_0" command="set_string" arguments="metal" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,11,125" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,12,54" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,12,54" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/CellMaterial" command="set_string" arguments="fuel" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,10,104" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,12,227" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,12,227" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/cutAwayViewCheckBox" command="set_boolean" arguments="true" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mousePress" arguments="1,1,0,337,429" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseMove" arguments="1,0,0,342,317" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseRelease" arguments="1,0,0,342,317" />
+</events>

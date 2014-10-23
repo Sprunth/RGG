@@ -33,7 +33,6 @@ public:
     QStyleOptionViewItemV4 ViewOption(rOption);
 
     QString oldText;
-    cmbNucPartsTreeItem * item = reinterpret_cast<cmbNucPartsTreeItem *>(rIndex.internalPointer());
 
     QColor ItemForegroundColor = rIndex.data(Qt::ForegroundRole).value<QColor>();
     if (ItemForegroundColor.isValid())
@@ -360,10 +359,10 @@ void cmbNucInputListWidget::onNewAssembly()
   assembly->computeDefaults();
   assembly->setFromDefaults(this->NuclearCore->GetDefaults());
 
-  double thickX, thickY, height;
+  double thickX, thickY, h;
   assembly->getDefaults()->getDuctThickness(thickX,thickY);
-  assembly->getDefaults()->getHeight(height);
-  Duct * newduct = new Duct(height, thickX, thickY);
+  assembly->getDefaults()->getHeight(h);
+  Duct * newduct = new Duct(h, thickX, thickY);
 
   assembly->AssyDuct.AddDuct(newduct);
 
@@ -380,17 +379,17 @@ void cmbNucInputListWidget::onNewPin()
   matColorMap->CalcRGB(rgb[0],rgb[1],rgb[2]);
 
   cmbNucAssembly * assy = this->getCurrentAssembly();
-  double px, py, height, r;
+  double px, py, h, r;
   if(!assy->getDefaults()->getPitch(px,py))
   {
     assy->calculatePitch(px,py);
   }
   assy->calculatePitch(px, py);
-  assy->getDefaults()->getHeight(height);
+  assy->getDefaults()->getHeight(h);
   assy->calculateRadius(r);
   PinCell* newpin = new PinCell(px,py);
   newpin->SetLegendColor(QColor::fromRgbF(rgb[0],rgb[1],rgb[2]));
-  newpin->AddCylinder(new Cylinder(r, 0, height));
+  newpin->AddCylinder(new Cylinder(r, 0, h));
   QString pinname = QString("PinCell").append(
     QString::number(this->getCurrentAssembly()->GetNumberOfPinCells()+1));
   newpin->name = newpin->label = pinname.toStdString();
@@ -428,7 +427,6 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     return;
     }
   AssyPartObj* selObj = selItem->getPartObject();
-  cmbNucPartsTreeItem* pItem = NULL;
   PinCell* pincell = NULL;
 
   enumNucPartsType selType = selObj->GetType();
@@ -448,9 +446,9 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
       {
       this->Internal->PartsList->blockSignals(true);
       cmbNucAssembly* assem = this->getCurrentAssembly();
-      QTreeWidgetItem * parent = selItem->parent();
+      QTreeWidgetItem * p = selItem->parent();
       delete selItem;
-      this->Internal->PartsList->setCurrentItem(parent);
+      this->Internal->PartsList->setCurrentItem(p);
       assem->RemovePinCell(pincell->label);
       emit pincellDeleted();
       emit pinsModified(assem);
@@ -564,7 +562,6 @@ void cmbNucInputListWidget::onMaterialClicked(QTreeWidgetItem* item, int col)
     {
     bgBrush.setColor(color);
     item->setBackground(col, bgBrush);
-    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
     }
 }
 

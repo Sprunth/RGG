@@ -69,10 +69,10 @@ protected:
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
-  vtkPolyData * CreateLayer(double h,
-                            double * innerBottomR, double * outerBottomR,
-                            double * innerTopR,    double * outerTopR,
-                            int innerRes, int outerRes);
+  vtkSmartPointer<vtkPolyData> CreateLayer( double h,
+                                            double * innerBottomR, double * outerBottomR,
+                                            double * innerTopR,    double * outerTopR,
+                                            int innerRes, int outerRes);
 
   double Height;
   struct radii

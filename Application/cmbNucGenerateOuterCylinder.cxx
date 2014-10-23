@@ -10,6 +10,7 @@
 
 #include <QFileDialog>
 #include <QSettings>
+#include <QMessageBox>
 
 QString GetRandomString(int length)
 {
@@ -41,13 +42,23 @@ void
 cmbNucGenerateOuterCylinder
 ::exportFiles(cmbNucCore * core)
 {
-  Core = core;
+  this->Core = core;
+  if(this->Core == NULL) return;
   deleteTempFiles();
-  if(this->generateCylinder())
+  if(this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate)
   {
-    random = GetRandomString(8);
     FileName = this->Core->Params.BackgroundFullPath.c_str();
-    Generate();
+    if(FileName.isEmpty())
+    {
+      QMessageBox msgBox;
+      msgBox.setText(QString("Could not generate a file outer jacket file, skipping"));
+      msgBox.exec();
+    }
+    else
+    {
+      random = GetRandomString(8);
+      Generate();
+    }
   }
 }
 
@@ -58,7 +69,7 @@ cmbNucGenerateOuterCylinder
   //Generate temp inp file of outer cores of an assembly
   QFileInfo fi(FileName);
   cmbNucAssembly * temp = this->Core->GetUsedAssemblies()[0];
-  QString fname = QString(temp->getLabel().c_str()) + random + ".inp";
+  QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
   fname = fname.toLower();
   QString fullPath =fi.dir().absoluteFilePath(fname);
   inpFileWriter::write(fullPath.toStdString(), *temp, false, true);
@@ -101,7 +112,7 @@ QString cmbNucGenerateOuterCylinder
 {
   QFileInfo fi(FileName);
   cmbNucAssembly * temp = this->Core->GetUsedAssemblies()[0];
-  QString fname = QString(temp->getLabel().c_str()) + random + ".inp";
+  QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
   return fi.dir().absoluteFilePath(fname);
 }
 
@@ -109,7 +120,7 @@ bool
 cmbNucGenerateOuterCylinder
 ::generateCylinder()
 {
-  return this->Core != NULL && this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate;
+  return this->Core != NULL && this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate && !FileName.isEmpty();
 }
 
 QString cmbNucGenerateOuterCylinder

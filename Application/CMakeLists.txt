@@ -3,6 +3,9 @@ PROJECT(RGGNuclear)
 FIND_PACKAGE(VTK)
 INCLUDE(${VTK_USE_FILE}) # include UseVTK.cmake
 
+find_package(QtTesting REQUIRED)
+INCLUDE_DIRECTORIES(${QtTesting_INCLUDE_DIRS})
+
 FIND_PACKAGE(Qt4 REQUIRED)
 INCLUDE(${QT_USE_FILE})  # include UseQt4.cmake
 INCLUDE_DIRECTORIES(${QT_INCLUDE_DIR})
@@ -48,6 +51,7 @@ SET(RGGNuclear_Srcs
   cmbAssyParametersWidget.cxx
   inpFileIO.cxx
   cmbCoreParametersWidget.cxx
+  pqXMLEventObserver.cxx
   cmbNucRender.cxx
 )
 
@@ -85,12 +89,12 @@ SET(RGGNuclear_Headers
   cmbNucPinCellEditor.h
   cmbNucDuctCell.h
   cmbNucDraw2DLattice.h
-  DrawLatticeItem.h
   cmbNucExport.h
   cmbNucExportDialog.h
   cmbNucPreferencesDialog.h
   cmbAssyParametersWidget.h
   cmbCoreParametersWidget.h
+  pqXMLEventObserver.h
   cmbNucRender.h
 )
 
@@ -156,7 +160,7 @@ set(TARGET_NAME)
 
 if(WIN32 OR APPLE)
   ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-  TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+  TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
 else()
   include(vtkForwardingExecutable)
   set(VTK_INSTALL_LIBRARY_DIR "lib")
@@ -174,13 +178,13 @@ else()
     TARGET_LINK_LIBRARIES(RGGNuclear ${QT_LIBRARIES} ${VTK_LIBRARIES})
 
     ADD_EXECUTABLE( RGGNuclear-GUI MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-    TARGET_LINK_LIBRARIES( RGGNuclear-GUI RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+    TARGET_LINK_LIBRARIES( RGGNuclear-GUI RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
 
   else()
     set(TARGET_NAME RGGNuclear)
     vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear ${RGGNuclear_Srcs} ${RGGNuclear_other_headers}
                                                       ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-    TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+    TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
   endif()
   IF (rgg_exe_suffix)
      # Shared forwarding enabled.
@@ -224,4 +228,112 @@ else()
              @ONLY)
   install (FILES ${EXECUTABLE_OUTPUT_PATH}/${materialColorsName}.ini DESTINATION lib)
   install(TARGETS ${TARGET_NAME} DESTINATION lib)
+endif()
+
+if(BUILD_TESTING)
+  ENABLE_TESTING()
+  INCLUDE(CTest)
+  if(Q_WS_MAC)
+    set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear.app/Contents/MacOS/RGGNuclear"
+                    --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
+  elseif(UNIX)
+    set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear-GUI"
+                    --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
+  else(Q_WS_MAC)
+    set(TEST_BINARY "${EXECUTABLE_OUTPUT_PATH}/RGGNuclear"
+                    --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
+  endif(Q_WS_MAC)
+
+  set (TESTS_WITH_MODEL_BASELINES  simple_rect_test
+                                   simple_rect_assy_test
+                                   simple_hex_test
+                                   simple_hex_assy_test
+                                   test_open_12th_hex
+                                   test_open_6th_flat
+                                   test_open_6th_vertex
+                                   test_open_assy_hex
+                                   test_open_assy_rect
+                                   test_new_rect
+                                   test_new_hex
+                                   test_multi_layer_rect_duct
+                                   test_multi_layer_hex_duct
+                                   test_multi_duct_rect
+                                   test_multi_duct_hex
+                                   test_pin_material_layers
+                                   test_pin_sections
+                                   test_pin_cellmaterial_rect
+                                   test_pin_cellmaterial_hex )
+
+  set (LONG_TEST create_and_save_rect
+                 create_and_save_hex)
+
+  set (TESTS_WITH_2D_BASELINES  simple_rect_test
+                                simple_rect_assy_test
+                                simple_hex_test
+                                simple_hex_assy_test
+                                test_open_12th_hex
+                                test_open_6th_flat
+                                test_open_6th_vertex
+                                test_open_assy_hex
+                                test_open_assy_rect
+                                test_new_rect
+                                test_new_hex)
+
+  set (TESTS_WITHOUT_BASELINES exit )
+
+  foreach(test ${TESTS_WITHOUT_BASELINES})
+    add_test(NAME ${test}_baseline COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test} --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR})
+    set_tests_properties(${test}_baseline PROPERTIES TIMEOUT 1000)
+    if(APPLE)
+      set_tests_properties(${test}_baseline PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")
+    elseif(UNIX)
+      if(BUILD_WITH_CUBIT)
+        set_tests_properties(${test}_baseline PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${CUBIT_PATH}/bin")
+      else()
+        set_tests_properties(${test}_baseline PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+      endif()
+    endif()
+  endforeach()
+
+  foreach(test ${TESTS_WITH_2D_BASELINES})
+    add_test(NAME ${test}_2D COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_2D.png)
+    set_tests_properties(${test}_2D PROPERTIES TIMEOUT 1000)
+    if(APPLE)
+      set_tests_properties(${test}_2D PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")
+    elseif(UNIX)
+      if(BUILD_WITH_CUBIT)
+        set_tests_properties(${test}_2D PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${CUBIT_PATH}/bin")
+      else()
+        set_tests_properties(${test}_2D PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+      endif()
+    endif()
+  endforeach()
+
+  foreach(test ${TESTS_WITH_MODEL_BASELINES})
+    add_test(NAME ${test}_model COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_model.png)
+    set_tests_properties(${test}_model PROPERTIES TIMEOUT 1000)
+    if(APPLE)
+      set_tests_properties(${test}_model PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")
+    elseif(UNIX)
+      if(BUILD_WITH_CUBIT)
+        set_tests_properties(${test}_model PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${CUBIT_PATH}/bin")
+      else()
+        set_tests_properties(${test}_model PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+      endif()
+    endif()
+  endforeach()
+
+  foreach(test ${LONG_TEST})
+    add_test(NAME ${test}_long COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_long_3D.png --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_long_2D.png)
+    set_tests_properties(${test}_long PROPERTIES TIMEOUT 3200)
+    if(APPLE)
+      set_tests_properties(${test}_long PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")
+    elseif(UNIX)
+      if(BUILD_WITH_CUBIT)
+        set_tests_properties(${test}_long PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${CUBIT_PATH}/bin")
+      else()
+        set_tests_properties(${test}_long PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+      endif()
+    endif()
+  endforeach()
 endif()

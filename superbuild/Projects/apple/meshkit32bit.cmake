@@ -4,11 +4,23 @@ set(BACKUP_CFLAGS ${cflags})
   set(cflags "" FORCE)
   set(cxxflags "" FORCE)
   set(CMAKE_OSX_ARCHITECTURES i386)
+
+option(SUPPRESS_meshkit32bit_BUILD_OUTPUT
+"Suppress meshkit32bit build output"
+ON)
+mark_as_advanced(SUPPRESS_meshkit32bit_BUILD_OUTPUT)
+
+if(SUPPRESS_meshkit32bit_BUILD_OUTPUT)
+set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+endif()
+
   
  # message("32 bit: ${CMAKE_OSX_ARCHITECTURES}")
 
   add_external_project(meshkit32bit
     APPLE_32Bit
+    BUILD_COMMAND "make -j5 install"
+    INSTALL_COMMAND ""
     CMAKE_ARGS
       -DBUILD_WITH_CUBIT:BOOL=ON
       -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>/meshkitCubit
@@ -18,7 +30,8 @@ set(BACKUP_CFLAGS ${cflags})
       -DAUTOM4TE_EXECUTABLE:path=${AUTOM4TE_EXECUTABLE}
       -DAUTORECONF_EXECUTABLE:path=${AUTORECONF_EXECUTABLE}
       -DAUTOUPDATE_EXECUTABLE:path=${AUTOUPDATE_EXECUTABLE}
-      -DCUBIT_PATH:PATH=${CUBIT_PATH})
+      -DCUBIT_PATH:PATH=${CUBIT_PATH}
+   ${suppress_build_out} )
 
   set(cflags ${BACKUP_CFLAGS})
   set(cxxflags ${BACKUP_CXXFLAGS})

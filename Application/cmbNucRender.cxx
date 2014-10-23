@@ -359,6 +359,7 @@ public:
   {
     if(pincell == NULL) return;
     size_t numParts = pincell->GetNumberOfParts();
+    point rotate(0,0,(isHex)?30:0);
 
     for(size_t j = 0; j < numParts; ++j)
     {
@@ -383,22 +384,18 @@ public:
           geometry[k].geo = manager->CreateUnitLayer(0);
         }
         GeoToPoints & geo = geometry[k];
-        geo.points.push_back(GeoToPoints::data(loc, point(), part->GetMaterial(0), scale));
+        geo.points.push_back(GeoToPoints::data(loc, rotate, part->GetMaterial(0), scale));
       }
 
       bool addCellMat = pincell->cellMaterialSet();
       for( int i = manager->GetNumberOfLayers()-1; i > 0; --i)
       {
         cmbNucMaterial * mat = part->GetMaterial(i);
-        point rotate;
+
         if(addCellMat)
         {
           addCellMat = false;
           mat = pincell->getCellMaterial();
-          if(isHex)
-          {
-            rotate.xyz[2] = 30;
-          }
         }
         key k(manager->GetResolution(i),
               manager->GetTopRadius(i, 0), manager->GetTopRadius(i, 1),
@@ -476,7 +473,7 @@ public:
             double tmXf[3] = {-data.points[0].rotation.xyz[0],
                               -data.points[0].rotation.xyz[1],
                               -data.points[0].rotation.xyz[2]};
-            transformNormal(plane.xyz, tmXf);
+            cmbNucRenderHelper::transformNormal(plane.xyz, tmXf);
             clip(data.geo, data.geo, plane.xyz, 0);
           }
           addGeometry( k, data, points, extraXTrans, extraYTrans, geometry, xformR );
@@ -530,14 +527,10 @@ public:
               ndp.geo = data.geo;
               for(unsigned int j = 0; j < sectioningPlanes.size(); ++j)
               {
-                point plane = sectioningPlanes[j];
-                double tmXf[3] = {-dp.rotation.xyz[0],
-                                  -dp.rotation.xyz[1],
-                                  -dp.rotation.xyz[2]};
-                transformNormal(plane.xyz, tmXf);
                 vtkNew<vtkPlane> testPlane;
+                point plane = sectioningPlanes[j];
                 testPlane->SetOrigin(0, 0, 0);
-                testPlane->SetNormal(plane.xyz[0], plane.xyz[1], plane.xyz[1]);
+                testPlane->SetNormal(plane.xyz[0], plane.xyz[1], plane.xyz[2]);
                 double tpdist = testPlane->EvaluateFunction(cp.pt.xyz);
                 if( tpdist < -currentR )
                 {
@@ -547,6 +540,10 @@ public:
                 else if( std::abs(tpdist) <= currentR && mode != IGNORE )
                 {
                   mode = CROPPED;
+                  double tmXf[3] = {-dp.rotation.xyz[0],
+                                    -dp.rotation.xyz[1],
+                                    -dp.rotation.xyz[2]};
+                  transformNormal(plane.xyz, tmXf);
                   clip(ndp.geo, ndp.geo, plane.xyz, 1);
                 }
               }
@@ -924,10 +921,15 @@ void cmbNucRender::render(PinCell* pinCell, bool isHex, bool cutaway)
   cmbNucRenderHelper::createGeo(pinCell, isHex, geometry);
   if(cutaway)
   {
-    double normal[] = {0, 1, 0};
     for(std::map<key, GeoToPoints>::iterator iter = geometry.begin(); iter != geometry.end(); ++iter)
     {
-      cmbNucRenderHelper::clip(iter->second.geo,iter->second.geo,normal);
+      double normal[] = {0, 1, 0};
+      double xform[] = { -iter->second.points[0].rotation.xyz[0],
+                         -iter->second.points[0].rotation.xyz[1],
+                         -iter->second.points[0].rotation.xyz[2] };
+
+      cmbNucRenderHelper::transformNormal(normal, xform);
+      cmbNucRenderHelper::clip(iter->second.geo, iter->second.geo, normal);
     }
   }
   BoundingBox = pinCell->computeBounds(isHex);
@@ -1118,12 +1120,12 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
 vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
 {
   Duct *duct = ductCell->getDuct(i);
-  double z = duct->z1;
-  double height = duct->z2 - duct->z1;
+  double z = duct->getZ1();
+  double height = duct->getZ2() - duct->getZ1();
   double deltaZ = height * 0.0005;
   if(i == 0) // first duct
   {
-    z = duct->z1 + deltaZ;
+    z = duct->getZ1() + deltaZ;
     // if more than one duct, first duct height need to be reduced by deltaZ
     height = ductCell->numberOfDucts() > 1 ? height - deltaZ : height - 2*deltaZ;
   }
@@ -1133,7 +1135,7 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCe
   }
   else
   {
-    z = duct->z1 + deltaZ;
+    z = duct->getZ1() + deltaZ;
   }
 
   int numLayers = duct->NumberOfLayers();

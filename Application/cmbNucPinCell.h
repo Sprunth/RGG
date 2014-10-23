@@ -86,17 +86,17 @@ public:
 
   PinSubPart * clone() const;
 
-  virtual double getNormalizedThickness(int layer, PinSubPart::End end)
+  virtual double getNormalizedThickness(int layer, PinSubPart::End /*end*/)
   {
     return this->getNormalizedThickness(layer);
   }
 
-  virtual void setNormalizedThickness(int layer, PinSubPart::End end, double thick)
+  virtual void setNormalizedThickness(int layer, PinSubPart::End /*end*/, double thick)
   {
     this->setNormalizedThickness(layer, thick);
   }
 
-  virtual double getRadius(int layer, PinSubPart::End end)
+  virtual double getRadius(int layer, PinSubPart::End /*end*/)
   {
     return this->getRadius(layer);
   }

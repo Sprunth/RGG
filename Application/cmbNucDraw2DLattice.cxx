@@ -10,14 +10,15 @@
 #include <QMenu>
 #include <QAction>
 #include <QStyleOptionGraphicsItem>
+#include <QPixmap>
 
 #include "vtkMath.h"
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
 
 cmbNucDraw2DLattice::cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape,
-    QWidget* parent, Qt::WindowFlags f)
-      : QGraphicsView(parent), ItemShape(shape), CurrentLattice(NULL), FullCellMode(HEX_FULL)
+    QWidget* p, Qt::WindowFlags f)
+      : QGraphicsView(p), CurrentLattice(NULL), ItemShape(shape), FullCellMode(HEX_FULL)
 {
   setScene(&this->Canvas);
   setInteractive(true);
@@ -77,9 +78,9 @@ bool cmbNucDraw2DLattice::copyGrid(std::vector<std::vector<Lattice::LatticeCell>
   return change;
 }
 
-void cmbNucDraw2DLattice::setActions(const QStringList& actions)
+void cmbNucDraw2DLattice::setActions(const QStringList& acts)
 {
-  this->ActionList = actions;
+  this->ActionList = acts;
 }
 
 int cmbNucDraw2DLattice::layers()
@@ -248,13 +249,13 @@ void cmbNucDraw2DLattice::rebuild()
       squareLength = std::min(this->width(), static_cast<int>(this->height()*1.6));
     }
     double hexRadius, hexDiameter, layerRadius;
-    hexDiameter = squareLength / (double)(3 * numLayers + 1);
+    hexDiameter = squareLength / static_cast<double>(3 * numLayers + 1);
     if(!(this->Grid.subType & ANGLE_360))
     {
       hexDiameter *= 1.8;
     }
     hexDiameter = std::max(hexDiameter, 20.0); // Enforce minimum size for hexes
-    hexRadius = hexDiameter / (double)(2 * cos(30.0 * vtkMath::Pi() / 180.0));
+    hexRadius = hexDiameter / static_cast<double>(2 * cos(30.0 * vtkMath::Pi() / 180.0));
     int begin, end;
 
     for(int i = 0; i < numLayers; i++)
@@ -390,7 +391,7 @@ cmbNucDraw2DLattice::CellDrawMode cmbNucDraw2DLattice::getHexDrawMode(int index,
 }
 
 void cmbNucDraw2DLattice::showContextMenu(
-  DrawLatticeItem *hexitem, QMouseEvent* event)
+  DrawLatticeItem *hexitem, QMouseEvent* qme)
 {
   if(!hexitem || !hexitem->is_available())
     {
@@ -406,7 +407,7 @@ void cmbNucDraw2DLattice::showContextMenu(
     contextMenu.addAction(pAction);
     }
 
-  QAction* assignAct = contextMenu.exec(event->globalPos());
+  QAction* assignAct = contextMenu.exec(qme->globalPos());
   if(assignAct)
     {
     hexitem->setText(assignAct->text());
@@ -423,15 +424,15 @@ void cmbNucDraw2DLattice::showContextMenu(
     }
 }
 
-void cmbNucDraw2DLattice::dropEvent(QDropEvent* event)
+void cmbNucDraw2DLattice::dropEvent(QDropEvent* qde)
 {
-  DrawLatticeItem* dest = dynamic_cast<DrawLatticeItem*>(this->itemAt(event->pos()));
+  DrawLatticeItem* dest = dynamic_cast<DrawLatticeItem*>(this->itemAt(qde->pos()));
   if(!dest || !dest->is_available())
     {
     return;
     }
 
-  dest->setText(event->mimeData()->text());
+  dest->setText(qde->mimeData()->text());
   QColor color(Qt::white);
   if(this->CurrentLattice)
     {
@@ -442,37 +443,36 @@ void cmbNucDraw2DLattice::dropEvent(QDropEvent* event)
     }
   this->Grid.SetCell(dest->layer(), dest->cellIndex(),
     dest->text().toStdString(), color, true);
-  event->acceptProposedAction();
+  qde->acceptProposedAction();
  }
 
-void cmbNucDraw2DLattice::resizeEvent( QResizeEvent * event )
+void cmbNucDraw2DLattice::resizeEvent( QResizeEvent * qre )
 {
-  QGraphicsView::resizeEvent(event);
+  QGraphicsView::resizeEvent(qre);
   this->rebuild();
 }
 
-void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* event)
+void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* qme)
 {
-  DrawLatticeItem* hitem = dynamic_cast<DrawLatticeItem*>(this->itemAt(
-    this->mapFromGlobal(event->globalPos())));
+  DrawLatticeItem* hitem = dynamic_cast<DrawLatticeItem*>(this->itemAt(qme->pos()));
   if(!hitem || !hitem->is_available())
     {
     return;
     }
 
   // Context menu on right click
-  if(event->button() == Qt::RightButton)
+  if(qme->button() == Qt::RightButton)
     {
-    this->showContextMenu(hitem, event);
+    this->showContextMenu(hitem, qme);
     }
   // Drag and drop on left click
-  else if(event->button() == Qt::LeftButton)
+  else if(qme->button() == Qt::LeftButton)
     {
     QMimeData* mimeData = new QMimeData;
     mimeData->setText(hitem->text());
 
-    QSize size = hitem->boundingRect().size().toSize();
-    QPixmap pixmap(size.width() + 1, size.height() + 1);
+    QSize tmpsize = hitem->boundingRect().size().toSize();
+    QPixmap pixmap(tmpsize.width() + 1, tmpsize.height() + 1);
     pixmap.fill(QColor(255, 255, 255, 0)); //Transparent background
     QPainter imagePainter(&pixmap);
     imagePainter.translate(-hitem->boundingRect().topLeft());
@@ -492,4 +492,15 @@ void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* event)
 
     imagePainter.end();
     }
+}
+
+void cmbNucDraw2DLattice::createImage(QString fname)
+{
+  QGraphicsView* view = new QGraphicsView(&Canvas,this);
+  view->setSceneRect(Canvas.itemsBoundingRect());
+  view->setMinimumHeight(600);
+  view->setMinimumWidth(600);
+  QPixmap pixMap = QPixmap::grabWidget(view, 0, 0, 600, 600);
+  pixMap.toImage().convertToFormat(QImage::Format_RGB32).save(fname);
+  delete view;
 }

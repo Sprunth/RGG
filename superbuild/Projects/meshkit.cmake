@@ -1,6 +1,14 @@
+option(SUPPRESS_MESHKIT_BUILD_OUTPUT "Suppress MESHKIT build output" ON)
+mark_as_advanced(SUPPRESS_MESHKIT_BUILD_OUTPUT)
+
+if(SUPPRESS_MESHKIT_BUILD_OUTPUT)
+  set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+endif()
+
 add_external_project(meshkit
   DEPENDS moab cgm lasso
   BUILD_IN_SOURCE 1
+  ${suppress_build_out}
   PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_moab_linking_linux.txt
   BUILD_COMMAND "make -j5 install"
   CONFIGURE_COMMAND  <SOURCE_DIR>/configure

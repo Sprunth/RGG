@@ -20,14 +20,20 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkXMLMultiBlockDataWriter.h>
-#include "vtkTransformFilter.h"
+#include <vtkTransformFilter.h>
 #include <vtkTextProperty.h>
 #include <vtkBoundingBox.h>
 #include <vtkPolyDataMapper.h>
-#include "vtkMath.h"
+#include <vtkMath.h>
+#include <vtkTesting.h>
+#include <vtkPNGReader.h>
+#include <vtkImageData.h>
+#include <vtkTrivialProducer.h>
+#include <vtkPNGWriter.h>
 
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFile>
 #include <QStringList>
 #include <QDebug>
 #include <QDockWidget>
@@ -35,7 +41,13 @@
 #include <QTemporaryFile>
 #include <QSettings>
 #include <QTimer>
+#include <QTime>
 #include <QMessageBox>
+#include <QXmlStreamWriter>
+
+#include <pqTestUtility.h>
+#include <pqEventObserver.h>
+#include <pqEventSource.h>
 
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
@@ -46,7 +58,6 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
 #include "cmbNucPreferencesDialog.h"
-#include "cmbNucGenerateOuterCylinder.h"
 #include "cmbNucMaterial.h"
 #include "inpFileIO.h"
 #include "cmbNucRender.h"
@@ -55,6 +66,111 @@
 #include "cmbNucLatticeWidget.h"
 
 #include "cmbNucCoregen.h"
+
+#include "pqXMLEventObserver.h"
+
+#include <qthread.h>
+
+class XMLEventSource : public pqEventSource
+{
+  typedef pqEventSource Superclass;
+  QXmlStreamReader *XMLStream;
+
+public:
+  XMLEventSource(QString testDir, QString outdir, QObject* p)
+    : TestDir(testDir), OutputDir(outdir), Superclass(p)
+  { this->XMLStream = NULL; isWaiting = false;}
+  ~XMLEventSource() { delete this->XMLStream; }
+
+protected:
+  QString TestDir;
+  QString OutputDir;
+  bool isWaiting;
+  QTime Time;
+  int WaitingTime;
+  virtual void setContent(const QString& xmlfilename)
+  {
+    delete this->XMLStream;
+    this->XMLStream = NULL;
+
+    QFile xml(xmlfilename);
+    if (!xml.open(QIODevice::ReadOnly))
+    {
+      qDebug() << "Failed to load " << xmlfilename;
+      return;
+    }
+    QByteArray data = xml.readAll();
+    this->XMLStream = new QXmlStreamReader(data);
+    if (this->XMLStream->atEnd())
+    {
+      qDebug() << "Invalid xml" << endl;
+    }
+    return;
+  }
+
+  int getNextEvent(QString& widget, QString& command, QString&
+                   arguments)
+  {
+    if(isWaiting)
+    {
+      if(Time.elapsed() < WaitingTime)
+      {
+        widget = QFileInfo( QCoreApplication::applicationFilePath() ).fileName()+"-app";
+        command = "pause";
+        arguments = "10";
+        return SUCCESS;
+      }
+      else
+      {
+        isWaiting = false;
+      }
+    }
+    if (this->XMLStream->atEnd())
+    {
+      return DONE;
+    }
+    while (!this->XMLStream->atEnd())
+    {
+      QXmlStreamReader::TokenType token = this->XMLStream->readNext();
+      if (token == QXmlStreamReader::StartElement)
+      {
+        qDebug() << this->XMLStream->name();
+        if (this->XMLStream->name() == "event")
+        {
+          break;
+        }
+      }
+    }
+    if (this->XMLStream->atEnd())
+    {
+      return DONE;
+    }
+    widget = this->XMLStream->attributes().value("object").toString();
+    command = this->XMLStream->attributes().value("command").toString();
+    arguments = this->XMLStream->attributes().value("arguments").toString();
+    arguments.replace("${TEST_DIRECTORY}", TestDir);
+    arguments.replace("${OUTPUT_DIRECTORY}", OutputDir);
+    if(widget == "TESTER" && command == "pause")
+    {
+      WaitingTime = arguments.toInt()*1000;
+      isWaiting = true;
+      widget = QFileInfo( QCoreApplication::applicationFilePath() ).fileName()+"-app";
+      command = "pause";
+      arguments = "1";
+      Time.start();
+    }
+    if(widget == "TESTER" && command == "delete")
+    {
+      QFile::remove(arguments);
+      return getNextEvent(widget, command, arguments);
+    }
+    if(widget == "APPLICATION")
+    {
+      widget = QFileInfo( QCoreApplication::applicationFilePath() ).fileName()+"-app";
+    }
+    return SUCCESS;
+  }
+};
 
 namespace
 {
@@ -82,6 +198,65 @@ namespace
       }
     }
   }
+
+  bool CompareImage( vtkRenderWindow* RenderWindow,
+                     const QString& ReferenceImage, double Threshold,
+                     const QString& TempDirectory)
+  {
+    vtkSmartPointer<vtkTesting> testing = vtkSmartPointer<vtkTesting>::New();
+    testing->AddArgument("-T");
+    testing->AddArgument(TempDirectory.toLatin1().data());
+    testing->AddArgument("-V");
+    testing->AddArgument(ReferenceImage.toLatin1().data());
+    testing->SetRenderWindow(RenderWindow);
+    if (testing->RegressionTest(Threshold) == vtkTesting::PASSED)
+    {
+      return true;
+    }
+    return false;
+  }
+
+  bool CompareImage( vtkImageData* testImage,
+                     const QString& ReferenceImage, double Threshold,
+                     const QString& TempDirectory )
+  {
+    vtkSmartPointer<vtkTesting> testing = vtkSmartPointer<vtkTesting>::New();
+    testing->AddArgument("-T");
+    testing->AddArgument(TempDirectory.toLatin1().data());
+    testing->AddArgument("-V");
+    testing->AddArgument(ReferenceImage.toLatin1().data());
+    vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
+    tp->SetOutput(testImage);
+    if (testing->RegressionTest(tp, Threshold) == vtkTesting::PASSED)
+    {
+      return true;
+    }
+    return false;
+  }
+
+  bool CompareImage( const QString& testPNGImage,
+                     const QString& referenceImage, double threshold,
+                     const QString& tempDirectory)
+  {
+    vtkSmartPointer<vtkPNGReader> reader = vtkSmartPointer<vtkPNGReader>::New();
+    if (!reader->CanReadFile(testPNGImage.toLatin1().data()))
+    {
+      qDebug() << "Cannot read file : " << testPNGImage;
+      return false;
+    }
+    reader->SetFileName(testPNGImage.toLatin1().data());
+    reader->Update();
+    vtkSmartPointer<vtkTesting> testing = vtkSmartPointer<vtkTesting>::New();
+    testing->AddArgument("-T");
+    testing->AddArgument(tempDirectory.toLatin1().data());
+    testing->AddArgument("-V");
+    testing->AddArgument(referenceImage.toLatin1().data());
+    if (testing->RegressionTest(reader, threshold) == vtkTesting::PASSED)
+    {
+      return true;
+    }
+    return false;
+  }
 }
 
 class NucMainInternal
@@ -100,6 +275,13 @@ public:
   bool IsFullMesh;
   double BoundsModel[6];
   double BoundsMesh[6];
+  pqXMLEventObserver * observer;
+  QString TestFileName;
+  bool ExitWhenTestFinshes;
+  QStringList TestModelCorrectImages;
+  QStringList Test2DCorrectImages;
+  QString TestDirectory;
+  QString TestOutputDirectory;
 };
 
 int numAssemblyDefaultColors = 42;
@@ -110,37 +292,37 @@ int defaultAssemblyColors[][3] =
   {65,171,93},
   {239,59,44},
   {128,125,186},
-  {115,115,115},  
+  {115,115,115},
   {198,219,239},
   {253,208,162},
   {199,233,192},
   {252,187,161},
   {218,218,235},
-  {217,217,217}, 
+  {217,217,217},
   {8,81,156},
   {166,54,3},
   {0,109,44},
   {165,15,21},
   {84,39,143},
-  {37,37,37},  
+  {37,37,37},
   {158,202,225},
   {253,174,107},
   {161,217,155},
   {252,146,114},
   {188,189,220},
-  {189,189,189},  
+  {189,189,189},
   {33,113,181},
   {217,72,1},
   {35,139,69},
   {203,24,29},
   {106,81,163},
-  {82,82,82},  
+  {82,82,82},
   {107,174,214},
   {253,141,60},
   {116,196,118},
   {251,106,74},
   {158,154,200},
-  {150,150,150}, 
+  {150,150,150},
   {8,48,10},
   {127,39,4},
   {0,68,27},
@@ -156,6 +338,8 @@ cmbNucMainWindow::cmbNucMainWindow()
 //  vtkAlgorithm::SetDefaultExecutivePrototype(compositeExec.GetPointer());
   isCameraIsMoving = false;
 
+  this->TestUtility = NULL;
+
   this->ui = new Ui_qNucMainWindow;
   this->setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
@@ -168,9 +352,9 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
   this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
   this->ui->Dock3D->raise();
-  this->meshControls(false);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
+  LatticeDraw->setObjectName("LatticeDrawWidget");
   this->ui->Dock2D->setWidget(LatticeDraw);
 
   this->ExportDialog = new cmbNucExportDialog(this);
@@ -266,12 +450,12 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->Internal->UnlinkCameraMesh = MeshRenderer->GetActiveCamera();
   this->Internal->UnlinkCameraModel = Renderer->GetActiveCamera();
-  this->Internal->LinkCamera = Renderer->MakeCamera();
-  //this->Internal->UnlinkCamera = Renderer->MakeCamera();
+  this->Internal->LinkCamera.TakeReference(Renderer->MakeCamera());
+
   this->Renderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerMesh);
   this->MeshRenderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerModel);
 
-  vtkCompositeDataDisplayAttributes * attributes = vtkCompositeDataDisplayAttributes::New();
+  vtkSmartPointer<vtkCompositeDataDisplayAttributes> attributes = vtkSmartPointer<vtkCompositeDataDisplayAttributes>::New();
   this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
 
   // Set up action signals and slots
@@ -286,6 +470,10 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExport_Visible_Mesh, SIGNAL(triggered()), this, SLOT(onExportVisibleMesh()));
 
   connect(this->ui->actionView_Axis,      SIGNAL(triggered(bool)), this, SLOT(setAxis(bool)));
+
+  connect(this->ui->actionRecord,         SIGNAL(triggered(bool)), this, SLOT(onStartRecordTest()));
+  connect(this->ui->actionStop_Recording, SIGNAL(triggered(bool)), this, SLOT(onStopRecordingTest()));
+  connect(this->ui->actionPlay,           SIGNAL(triggered(bool)), this, SLOT(onPlayTest()));
 
   connect(this->ui->actionReloadAll,      SIGNAL(triggered()), this, SLOT(onReloadAll()));
   connect(this->ui->actionReloadSelected, SIGNAL(triggered()), this, SLOT(onReloadSelected()));
@@ -350,6 +538,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->toolBar->addWidget(this->ui->viewScaleWidget);
   this->ui->toolBar->addWidget(this->ui->meshControls);
 
+  this->meshControls(false);
+
   QTimer::singleShot(0, this, SLOT(ResetView()));
 }
 
@@ -375,6 +565,8 @@ cmbNucMainWindow::~cmbNucMainWindow()
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
   this->InputsWidget->setCore(NULL);
+  onStopRecordingTest();
+  delete this->ExportDialog;
   delete this->NuclearCore;
   delete this->MaterialColors;
   delete this->NucMappers;
@@ -464,7 +656,7 @@ void cmbNucMainWindow::initPanels()
                      this, SLOT(outerLayer(double,int)));
     QObject::connect(this->PropertyWidget, SIGNAL(clearCylinder()),
                      this, SLOT(clearOuter()));
-    
+
     QObject::connect(this->LatticeDraw, SIGNAL(valuesChanged()),
                      this->InputsWidget, SLOT(valueChanged()));
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
@@ -1312,8 +1504,6 @@ void cmbNucMainWindow::exportRGG()
   }
 }
 
-//void cmbNucMainWindow::retryExport();
-
 void cmbNucMainWindow::zScaleChanged(int value)
 {
   this->ZScale = 1.0 / value;
@@ -1477,7 +1667,6 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
         for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
         {
           const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
-          //qDebug() << name << createMaterialLabel(name);
           QPointer<cmbNucMaterial> m =
               this->MaterialColors->getMaterialByName(createMaterialLabel(name));
           add_color(att, idx, m->getColor(), m->isVisible());
@@ -1708,5 +1897,122 @@ void cmbNucMainWindow::setAxis(bool ison)
   {
     this->MeshRenderer->Modified();
     this->ui->qvtkMeshWidget->update();
+  }
+}
+
+void cmbNucMainWindow::onStopRecordingTest()
+{
+  if(this->TestUtility == NULL) return;
+  this->Internal->observer->setStream(NULL);
+  delete this->TestUtility;
+  this->TestUtility = NULL;
+}
+
+void cmbNucMainWindow::onStartRecordTest()
+{
+  if(this->TestUtility != NULL)
+  {
+    onStopRecordingTest();
+  }
+  this->TestUtility = new pqTestUtility(this);
+  this->Internal->observer = new pqXMLEventObserver(this);
+  this->TestUtility->addEventObserver("xml", this->Internal->observer);
+  this->TestUtility->addEventSource("xml", new XMLEventSource(this->Internal->TestDirectory,
+                                                              this->Internal->TestOutputDirectory, this));
+  QString filename = QFileDialog::getSaveFileName (this, "Test File Name",
+                                                   QString(), "XML Files (*.xml)");
+  if (!filename.isEmpty())
+  {
+    this->TestUtility->recordTests(filename);
+  }
+}
+
+void cmbNucMainWindow::onPlayTest()
+{
+
+  QString filename = QFileDialog::getOpenFileName (this, "Test File Name",
+                                                   QString(), "XML Files (*.xml)");
+  this->playTest(filename);
+}
+
+bool cmbNucMainWindow::playTest(QString filename)
+{
+  if(this->TestUtility != NULL)
+  {
+    onStopRecordingTest();
+  }
+  if (!filename.isEmpty())
+  {
+    this->TestUtility = new pqTestUtility(this);
+    this->Internal->observer = new pqXMLEventObserver(this);
+    this->TestUtility->addEventObserver("xml", this->Internal->observer);
+    this->TestUtility->addEventSource("xml", new XMLEventSource(this->Internal->TestDirectory,
+                                                                this->Internal->TestOutputDirectory, this));
+    bool result = this->TestUtility->playTests(filename);
+    delete this->TestUtility;
+    this->TestUtility = NULL;
+    return result;
+  }
+  return false;
+}
+
+void cmbNucMainWindow::setUpTests(QString fname,
+                                  QStringList testModelCorrectImages,
+                                  QStringList test2DCorrectImages,
+                                  QString testDirectory,
+                                  QString testOutputDirectory, bool exit)
+{
+  this->Internal->TestFileName = fname;
+  this->Internal->ExitWhenTestFinshes = exit;
+  this->Internal->TestModelCorrectImages = testModelCorrectImages;
+  this->Internal->Test2DCorrectImages = test2DCorrectImages;
+  this->Internal->TestDirectory = testDirectory;
+  this->Internal->TestOutputDirectory = testOutputDirectory;
+}
+
+void cmbNucMainWindow::playTest()
+{
+  bool succeded = this->playTest(this->Internal->TestFileName);
+  if(succeded)
+  {
+    if(!this->Internal->TestModelCorrectImages.isEmpty())
+    {
+      this->ui->qvtkWidget->setMinimumSize( 600, 600 );
+      this->ui->qvtkWidget->setMaximumSize( 600, 600 );
+      vtkRenderWindow* render_window = this->ui->qvtkWidget->GetRenderWindow();
+      bool tmp = false;
+      QStringList::const_iterator iter;
+      for( iter = this->Internal->TestModelCorrectImages.constBegin();
+          iter != this->Internal->TestModelCorrectImages.constEnd();
+          ++iter )
+      {
+        tmp |= CompareImage( render_window, *iter, 3000,
+                            this->Internal->TestOutputDirectory );
+        if(tmp) break;
+      }
+      succeded &= tmp;
+    }
+    if(!this->Internal->Test2DCorrectImages.isEmpty())
+    {
+      bool tmp = false;
+      QDir tmpDir(this->Internal->TestOutputDirectory);
+      QStringList::const_iterator iter;
+      for( iter = this->Internal->Test2DCorrectImages.constBegin();
+          iter != this->Internal->Test2DCorrectImages.constEnd();
+          ++iter )
+      {
+        QFileInfo fi(*iter);
+        QString tmpStr = tmpDir.absoluteFilePath( fi.fileName() );
+        LatticeDraw->createImage(tmpStr);
+        tmp |= CompareImage( tmpStr, *iter, 0.005,
+                            this->Internal->TestOutputDirectory );
+        if(tmp) break;
+      }
+      succeded &= tmp;
+    }
+  }
+  if(this->Internal->ExitWhenTestFinshes)
+  {
+    qApp->exit(succeded ? 0 : 1);
   }
 }

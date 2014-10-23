@@ -40,7 +40,7 @@ PinConnection* PinSubPart::GetConnection() const
 
 QPointer<cmbNucMaterial> PinSubPart::GetMaterial(int i)
 {
-  if(i>=0 && i<this->Materials.size())
+  if(i>=0 && static_cast<size_t>(i)<this->Materials.size())
   {
     return this->Materials[i]->getMaterial();
   }
@@ -51,7 +51,7 @@ void
 PinSubPart::SetMaterial(int i,
                         QPointer<cmbNucMaterial> material)
 {
-  if(i>=0 && i<this->Materials.size())
+  if(i>=0 && static_cast<size_t>(i)<this->Materials.size())
   {
     this->Materials[i]->changeMaterial( material );
   }
@@ -59,8 +59,8 @@ PinSubPart::SetMaterial(int i,
 
 void PinSubPart::SetNumberOfLayers(int numLayers)
 {
-  if(this->Materials.size() == numLayers) return;
-  for(int i = numLayers; i < this->Materials.size(); ++i)
+  if(this->Materials.size() == static_cast<size_t>(numLayers)) return;
+  for(size_t i = static_cast<size_t>(numLayers); i < this->Materials.size(); ++i)
   {
     delete this->Materials[i];
     this->Materials[i] = NULL;
@@ -426,21 +426,21 @@ size_t PinCell::NumberOfFrustums() const
 
 Cylinder* PinCell::GetCylinder(int i) const
 {
-  if(i < this->Cylinders.size()) return Cylinders[i];
+  if(static_cast<size_t>(i) < this->Cylinders.size()) return Cylinders[i];
   return NULL;
 }
 
 Frustum * PinCell::GetFrustum(int i) const
 {
-  if(i < this->Frustums.size()) return Frustums[i];
+  if(static_cast<size_t>(i) < this->Frustums.size()) return Frustums[i];
   return NULL;
 }
 
 PinSubPart* PinCell::GetPart(int i) const
 {
-  if(i < this->Cylinders.size()) return Cylinders[i];
-  i = i - this->Cylinders.size();
-  if(i < this->Frustums.size()) return Frustums[i];
+  if(static_cast<size_t>(i) < this->Cylinders.size()) return Cylinders[i];
+  i = i - static_cast<int>(this->Cylinders.size());
+  if(static_cast<size_t>(i) < this->Frustums.size()) return Frustums[i];
   return NULL;
 }
 
@@ -480,7 +480,6 @@ bool PinCell::fill(PinCell const* other)
   changed |= setIfDifferent(other->pitchX, this->pitchX);
   changed |= setIfDifferent(other->pitchY, this->pitchY);
   changed |= setIfDifferent(other->pitchZ, this->pitchZ);
-  bool tmp = other->CellMaterial.getMaterial() != this->CellMaterial.getMaterial();
   if( other->CellMaterial.getMaterial() != this->CellMaterial.getMaterial())
   {
     changed = true;
@@ -602,13 +601,13 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
   double minZ = this->GetPart(0)->z1, maxZ = this->GetPart(0)->z2;
   double maxRadius = std::max(this->GetPart(0)->getRadius(PinSubPart::BOTTOM),
                               this->GetPart(0)->getRadius(PinSubPart::TOP));
-  for(int i = 1; i < this->GetNumberOfParts(); i++)
+  for(int i = 1; i < static_cast<int>(this->GetNumberOfParts()); i++)
   {
     PinSubPart * part = this->GetPart(i);
     if(part->z1 < minZ) minZ = part->z1;
     if(part->z2 > maxZ) maxZ = part->z2;
-    double tmp = std::max(this->GetPart(0)->getRadius(PinSubPart::BOTTOM),
-                          this->GetPart(0)->getRadius(PinSubPart::TOP));
+    double tmp = std::max(this->GetPart(i)->getRadius(PinSubPart::BOTTOM),
+                          this->GetPart(i)->getRadius(PinSubPart::TOP));
     if(tmp > maxRadius) maxRadius = tmp;
   }
   double x = maxRadius, y = maxRadius;

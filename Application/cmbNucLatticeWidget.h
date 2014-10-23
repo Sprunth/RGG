@@ -27,6 +27,7 @@ public slots:
   void redraw();
   void set_full_mode(cmbNucDraw2DLattice::CellDrawMode m);
   void clear();
+  void createImage(QString);
 signals:
   void valuesChanged();
   void objGeometryChanged(AssyPartObj* selObj);

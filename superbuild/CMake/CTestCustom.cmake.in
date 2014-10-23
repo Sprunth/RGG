@@ -5,6 +5,22 @@ set( CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000 )
 ## Regular expression for warning exception during build process
 set (CTEST_CUSTOM_WARNING_EXCEPTION
   ${CTEST_CUSTOM_WARNING_EXCEPTION}
+
+  "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/*"
+  "note: expanded from here"
+  "occ/install/include"
+  "netcdf/src/netcdf"
+  "Makefile.am:*: warning: source file * is in a subdirectory"
+  "/boost/"
+  "libboost_*"
+  "configure: WARNING: CGNS header not found."
+  "H5pubconf.h:* warning: "VERSION" redefined"
+  "OCCCurve.hpp"
+  "OCCModifyEngine.cpp"
+  "libs/libcgm.* has no symbols"
+
+  "/usr/include/x86_64-linux-gnu/bits/*"
+
   # From numpy, skip configtest warnings.
   "_configtest"
   "python/src/python"
@@ -159,6 +175,9 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
 # Regular expression for error exceptions during build process
 set (CTEST_CUSTOM_ERROR_EXCEPTION
   ${CTEST_CUSTOM_ERROR_EXCEPTION}
+
+  "configure.ac:*: installing"
+  "Makefile.am:*: but option * is disabled"
 
   # skip numpy configure errors on Windows.
   # these are warnings about Atlas/Blas not found.

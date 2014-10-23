@@ -1,7 +1,16 @@
+option(SUPPRESS_CGM_BUILD_OUTPUT
+"Suppress CGM build output"
+ON)
+mark_as_advanced(SUPPRESS_CGM_BUILD_OUTPUT)
+
+if(SUPPRESS_CGM_BUILD_OUTPUT)
+set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+endif()
+
 if(BUILD_WITH_CUBIT)
-message("cgm with cubit")
   add_external_project(cgm
     BUILD_IN_SOURCE 1
+    ${suppress_build_out}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
       --with-cubit=${CUBIT_PATH}
       --prefix=<INSTALL_DIR>
@@ -14,10 +23,10 @@ else()
   #configure_file(${patch_location}/cgm_build_step.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cgm_build_step.cmake @ONLY)
 
   #cgm has to be built in source to work
-  message("using oce")
   add_external_project(cgm
     DEPENDS OCE
     BUILD_IN_SOURCE 1
+    ${suppress_build_out}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
       --with-occ=${OCE_DIR}
       --prefix=<INSTALL_DIR>
@@ -29,7 +38,7 @@ endif()
 if(ENABLE_meshkit)
   add_external_project_step(oce-autoconf
     COMMENT "Running autoreconf for oce"
-      COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
+      COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR> &> <SOURCE_DIR>/AUTOTOOLS_MESSAGES.txt
       DEPENDEES update
       DEPENDERS configure
   )

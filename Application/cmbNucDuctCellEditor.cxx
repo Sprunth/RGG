@@ -9,8 +9,8 @@
 class DuctTableItem : public QTableWidgetItem
 {
 public:
-  DuctTableItem(Duct * d, cmbNucDuctCellEditor * l, double init)
-  :duct(d), link(l)
+  DuctTableItem(Duct * din, cmbNucDuctCellEditor * l, double init)
+  :duct(din), link(l)
   {
     this->setText(QString::number(init));
   }
@@ -36,27 +36,27 @@ public:
 
     if(this->column() == 0)
     {
-      if(v >= this->duct->z2) return false;
+      if(v >= this->duct->getZ2()) return false;
       if(this->row() > 0)
       {
         int other_col = 1;
         int other_row = this->row() - 1;
         QTableWidgetItem * other = this->tableWidget()->item( other_row, other_col );
         DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(other);
-        if(v <= selItem->duct->z1) return false;
+        if(v <= selItem->duct->getZ1()) return false;
       }
     }
 
     if(this->column() == 1)
     {
-      if(v <= this->duct->z1) return false;
+      if(v <= this->duct->getZ1()) return false;
       if(this->row()-1 < this->tableWidget()->rowCount())
       {
         int other_col = 0;
         int other_row = this->row() + 1;
         QTableWidgetItem * other = this->tableWidget()->item( other_row, other_col );
         DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(other);
-        if(v >= selItem->duct->z2) return false;
+        if(v >= selItem->duct->getZ2()) return false;
       }
     }
 
@@ -71,27 +71,27 @@ public:
       if(!valid(value,tmpv)) return;
       if(this->column() == 0)
       {
-        this->duct->z1 = tmpv;
+        this->duct->setZ1(tmpv);
         if(this->row() > 0)
         {
           int other_col = 1;
           int other_row = this->row() - 1;
           QTableWidgetItem * other = this->tableWidget()->item( other_row, other_col );
           DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(other);
-          selItem->duct->z2 = tmpv;
+          selItem->duct->setZ2(tmpv);
           other->setText(QString::number(tmpv));
         }
       }
       else
       {
-        this->duct->z2 = tmpv;
+        this->duct->setZ2(tmpv);
         if(this->row()-1 < this->tableWidget()->rowCount())
         {
           int other_col = 0;
           int other_row = this->row() + 1;
           QTableWidgetItem * other = this->tableWidget()->item( other_row, other_col );
           DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(other);
-          selItem->duct->z1 = tmpv;
+          selItem->duct->setZ1(tmpv);
           other->setText(QString::number(tmpv));
         }
       }
@@ -108,11 +108,17 @@ public:
 class DuctLayerThicknessEditor : public QTableWidgetItem
 {
 public:
-  DuctLayerThicknessEditor(Duct * d, cmbNucDuctCellEditor * l, double init)
-  :duct(d), link(l)
+  DuctLayerThicknessEditor(Duct * din, bool hex, cmbNucDuctCellEditor * l, double init)
+  :duct(din), link(l), isHex(hex)
   {
     this->setText(QString::number(init));
   }
+
+  void setValue(double v)
+  {
+    this->setText(QString::number(v));
+  }
+
   virtual void setData(int role, const QVariant& value)
   {
     if (this->tableWidget() != NULL && role == Qt::EditRole)
@@ -128,7 +134,7 @@ public:
       // Make sure value is greater than previous row
       if (this->row() > 0)
       {
-        double prev = this->tableWidget()->item(this->row() - 1, 1)
+        double prev = this->tableWidget()->item(this->row() - 1, this->column())
         ->data(Qt::DisplayRole).toDouble();
         if (dval <= prev)
         {
@@ -138,7 +144,7 @@ public:
       // Make sure value is less than next row
       if (this->row() < this->tableWidget()->rowCount() - 1)
       {
-        double next = this->tableWidget()->item(this->row() + 1, 1)
+        double next = this->tableWidget()->item(this->row() + 1, this->column())
         ->data(Qt::DisplayRole).toDouble();
         if (dval >= next)
         {
@@ -150,19 +156,27 @@ public:
         return;
       }
       double* thick = duct->getNormThick(this->row());
-      thick[this->column() - 1] = dval;
+      if(isHex)
+      {
+        thick[0] = thick[1] = dval;
+      }
+      else
+      {
+        thick[this->column() - 1] = dval;
+      }
       link->update();
     }
     QTableWidgetItem::setData(role, value);
   }
   Duct * duct;
   cmbNucDuctCellEditor * link;
+  bool isHex;
 };
 
 
 cmbNucDuctCellEditor
-::cmbNucDuctCellEditor(QWidget *parent)
-: QWidget(parent),
+::cmbNucDuctCellEditor(QWidget *p)
+: QWidget(p),
   Ui(new Ui::cmbDuctCellEditor),
   AssemblyObject(NULL)
 {
@@ -324,14 +338,14 @@ cmbNucDuctCellEditor
       this->setDuctRow(i, this->InternalDuctCell->getDuct(i));
       if(i == 0)
       {
-        global_z1 = d->z1;
-        global_z2 = d->z2;
+        global_z1 = d->getZ1();
+        global_z2 = d->getZ2();
         thickness[0] = d->thickness[0];
         thickness[1] = d->thickness[1];
       }
       else
       {
-        global_z2 = d->z2;
+        global_z2 = d->getZ2();
       }
     }
   }
@@ -347,9 +361,9 @@ void
 cmbNucDuctCellEditor
 ::setDuctRow(int r, Duct * d)
 {
-  DuctTableItem * item = new DuctTableItem(d, this, d->z1);
+  DuctTableItem * item = new DuctTableItem(d, this, d->getZ1());
   this->Ui->DuctSegmentTable->setItem(r, 0, item);
-  item = new DuctTableItem(d, this, d->z2);
+  item = new DuctTableItem(d, this, d->getZ2());
   item->link = this;
   this->Ui->DuctSegmentTable->setItem(r, 1, item);
 }
@@ -411,12 +425,11 @@ cmbNucDuctCellEditor
   QTableWidgetItem* rad = this->Ui->DuctSegmentTable->selectedItems().value(0);
   DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(rad);
   int row = rad->row();
-  double z2 = selItem->duct->z2;
-  this->InternalDuctCell->RemoveDuct(selItem->duct);
+  this->InternalDuctCell->RemoveDuct(selItem->duct, true);
   selItem = dynamic_cast<DuctTableItem*>(this->Ui->DuctSegmentTable->item(row-1, 0));
-  selItem->duct->z2 = z2;
   this->setDuctRow(row-1, selItem->duct);
   this->Ui->DuctSegmentTable->removeRow(row);
+  ductTableCellSelection();
   this->update();
 }
 
@@ -426,12 +439,11 @@ void cmbNucDuctCellEditor
   QTableWidgetItem* rad = this->Ui->DuctSegmentTable->selectedItems().value(0);
   DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(rad);
   int row = rad->row();
-  double z1 = selItem->duct->z1;
-  this->InternalDuctCell->RemoveDuct(selItem->duct);
+  this->InternalDuctCell->RemoveDuct(selItem->duct, false);
   selItem = dynamic_cast<DuctTableItem*>(this->Ui->DuctSegmentTable->item(row+1, 0));
-  selItem->duct->z1 = z1;
-  this->setDuctRow(row+1, selItem->duct);
   this->Ui->DuctSegmentTable->removeRow(row);
+  this->setDuctRow(row, selItem->duct);
+  ductTableCellSelection();
   this->update();
 }
 
@@ -532,23 +544,55 @@ cmbNucDuctCellEditor
 ::setDuctMaterialRow(int row, Duct * duct)
 {
   QTableWidget * tmpTable = this->Ui->MaterialLayerTable;
-  QComboBox* comboBox = new QComboBox;
+  {//drop box
+    QWidget * tmpWidget = tmpTable->cellWidget(row, 0);
+    QComboBox* comboBox = dynamic_cast<QComboBox*>(tmpWidget);
+    if(comboBox == NULL)
+    {
+      {
+        //NOTE: This garbage is needed for testing.  It appears that resize does not delete old comboboxes for rows
+        //thus testing gets confused by the name.  We are testing to see if the name exists.  If it does
+        //we will rename it a more appropriate name.
+        QComboBox* garbage = tmpTable->findChild<QComboBox*>( "DuctMaterialBox_" + QString::number(row) );
+        if(garbage) garbage->setObjectName("Garbage");
+      }
+      comboBox = new QComboBox;
+      comboBox->setObjectName("DuctMaterialBox_" + QString::number(row));
+      tmpTable->setCellWidget(row, 0, comboBox);
+      QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
+                       this, SLOT(onUpdateLayerMaterial()));
+    }
+    comboBox->blockSignals(true);
+    cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+    matColorMap->setUp(comboBox);
+    matColorMap->selectIndex(comboBox, duct->getMaterial(row));
+    comboBox->blockSignals(false);
+  }
+
   double* thick = duct->getNormThick(row);
 
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-  matColorMap->setUp(comboBox);
-  matColorMap->selectIndex(comboBox, duct->getMaterial(row));
+  DuctLayerThicknessEditor* thick1Item = dynamic_cast< DuctLayerThicknessEditor* >(tmpTable->item(row,1));
+  DuctLayerThicknessEditor* thick2Item = dynamic_cast< DuctLayerThicknessEditor* >(tmpTable->item(row,2));
 
-  tmpTable->setCellWidget(row, 0, comboBox);
+  if(thick1Item == NULL)
+  {
+    thick1Item = new DuctLayerThicknessEditor(duct, isHex, this, thick[0]);
+    tmpTable->setItem(row, 1, thick1Item);
+  }
+  else
+  {
+    thick1Item->setValue(thick[0]);
+  }
 
-  QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
-                   this, SLOT(onUpdateLayerMaterial()));
-
-  DuctLayerThicknessEditor* thick1Item = new DuctLayerThicknessEditor(duct, this, thick[0]);
-  DuctLayerThicknessEditor* thick2Item = new DuctLayerThicknessEditor(duct, this, thick[1]);
-
-  tmpTable->setItem(row, 1, thick1Item);
-  tmpTable->setItem(row, 2, thick2Item);
+  if(thick2Item == NULL)
+  {
+    thick2Item = new DuctLayerThicknessEditor(duct, isHex, this, thick[1]);
+    tmpTable->setItem(row, 2, thick2Item);
+  }
+  else
+  {
+    thick2Item->setValue(thick[1]);
+  }
 }
 
 void cmbNucDuctCellEditor::onUpdateLayerMaterial()
@@ -557,7 +601,7 @@ void cmbNucDuctCellEditor::onUpdateLayerMaterial()
   DuctTableItem* selItem = dynamic_cast<DuctTableItem*>(rad);
   // setup materials
   QComboBox *comboBox;
-  for(unsigned int i = 0; i < this->Ui->MaterialLayerTable->rowCount(); ++i)
+  for(int i = 0; i < this->Ui->MaterialLayerTable->rowCount(); ++i)
   {
     comboBox = qobject_cast<QComboBox *>(this->Ui->MaterialLayerTable->cellWidget(i, 0));
     if(comboBox)

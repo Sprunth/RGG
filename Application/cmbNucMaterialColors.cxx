@@ -78,7 +78,7 @@ cmbNucMaterialColors* cmbNucMaterialColors::instance()
 
 //-----------------------------------------------------------------------------
 cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
-  : MaterialTree(NULL), Llimit(0.1), Ulimit(0.9), numNewMaterials(0), newID(0)
+  : MaterialTree(NULL), Ulimit(0.9), Llimit(0.1), numNewMaterials(0), newID(0)
 {
   showMode = 0;
   UnknownMaterial = new cmbNucMaterial("!!!!UnknownMaterial!!!!",
@@ -316,9 +316,9 @@ void cmbNucMaterialColors::RemoveMaterialByLabel(const QString& name)
   {
     if(it.value())
     {
-      QString name = it.value()->getName();
+      QString tmpName = it.value()->getName();
       delete it.value();
-      RemoveMaterialByName(name);
+      RemoveMaterialByName(tmpName);
     }
     this->LabelToMaterial.erase(it);
   }
@@ -467,7 +467,6 @@ void cmbNucMaterialColors::selectIndex(QComboBox *comboBox,
 QPointer<cmbNucMaterial>
 cmbNucMaterialColors::getMaterial(QComboBox *comboBox) const
 {
-  int ci = comboBox->currentIndex();
   QPointer<cmbNucMaterial> result =
       this->getMaterialByName(comboBox->currentText());
   if(result == NULL)

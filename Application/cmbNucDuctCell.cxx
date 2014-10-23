@@ -71,9 +71,9 @@ double Duct::GetLayerThick(size_t layer, size_t t) const
 
 void Duct::insertLayer( int a )
 {
-  if(a > this->Materials.size()) return; //Do nothing
+  if(static_cast<size_t>(a) > this->Materials.size()) return; //Do nothing
   this->SetNumberOfLayers(this->Materials.size()+1);
-  if(a == this->Materials.size()-1)
+  if(static_cast<size_t>(a) == this->Materials.size()-1)
   {
     this->getNormThick(a)[0] = 1.0;
     this->getNormThick(a)[1] = 1.0;
@@ -90,7 +90,7 @@ void Duct::insertLayer( int a )
     }
     return;
   }
-  for(int i = this->Materials.size()-1; i > a; --i)
+  for(int i = static_cast<int>(this->Materials.size())-1; i > a; --i)
   {
     this->setMaterial(i, this->getMaterial(i-1));
     double * ntat = getNormThick(i);
@@ -113,9 +113,9 @@ void Duct::insertLayer( int a )
 void Duct::removeLayer( int a )
 {
   if(this->Materials.size() == 1) return; //Must have one
-  if(a >= this->Materials.size()) return; //outside range
+  if(static_cast<size_t>(a) >= this->Materials.size()) return; //outside range
 
-  for(int i = a+1; i < this->Materials.size(); i++)
+  for(int i = a+1; i < static_cast<int>(this->Materials.size()); i++)
   {
     this->setMaterial(i-1, this->getMaterial(i));
     double * ntat = getNormThick(i-1);
@@ -139,7 +139,7 @@ bool Duct::operator==(const Duct& obj)
 
 void Duct::SetNumberOfLayers(int i)
 {
-  if(this->Materials.size() == i) return;
+  if(this->Materials.size() == static_cast<size_t>(i)) return;
   for(size_t at = 0; at < this->Materials.size(); at++)
   {
     QObject::disconnect(this->Materials[at].GetConnection(), SIGNAL(materialChanged()),
@@ -160,19 +160,19 @@ size_t Duct::NumberOfLayers() const
 
 QPointer<cmbNucMaterial> Duct::getMaterial(int i)
 {
-  if(i >= Materials.size()) return NULL;
+  if(static_cast<size_t>(i) >= Materials.size()) return NULL;
   return Materials[i].getMaterial();
 }
 
 double* Duct::getNormThick(int i)
 {
-  if(i >= this->Materials.size()) return NULL;
+  if(static_cast<size_t>(i) >= this->Materials.size()) return NULL;
   return this->Materials[i].getThickness();
 }
 
 void Duct::setMaterial( int i, QPointer<cmbNucMaterial> mat )
 {
-  if(i >= this->Materials.size()) return;
+  if(static_cast<size_t>(i) >= this->Materials.size()) return;
   this->Materials[i].changeMaterial(mat);
 }
 
@@ -207,14 +207,15 @@ DuctConnection * DuctCell::GetConnection()
 enumNucPartsType DuctCell::GetType() const
 { return CMBNUC_ASSY_DUCTCELL;}
 
-void DuctCell::RemoveDuct(Duct* duct)
+void DuctCell::RemoveDuct(Duct* duct, bool merge_prev)
 {
   if(duct != NULL && this->Ducts.size() > 1)
   {
     unsigned int at = this->Ducts.size();
     for(unsigned int i = 0; i < this->Ducts.size(); ++i)
     {
-      if(this->Ducts[i] == duct) at = i;
+      if(this->Ducts[i] == duct)
+      { at = i; break; }
     }
     if( at == 0 )
     {
@@ -222,7 +223,14 @@ void DuctCell::RemoveDuct(Duct* duct)
     }
     else if(at < this->Ducts.size())
     {
-      this->Ducts[at-1]->z2 = duct->z2;
+      if(merge_prev || at+1 == this->Ducts.size())
+      {
+        this->Ducts[at-1]->z2 = duct->z2;
+      }
+      else
+      {
+        this->Ducts[at+1]->z1 = duct->z1;
+      }
     }
   }
   this->removeObj(duct, this->Ducts);
@@ -244,7 +252,7 @@ size_t DuctCell::numberOfDucts() const
 
 Duct * DuctCell::getDuct(int i)
 {
-  if (i > this->Ducts.size()) return NULL;
+  if (static_cast<size_t>(i) > this->Ducts.size()) return NULL;
   return this->Ducts[i];
 }
 
@@ -348,7 +356,7 @@ vtkBoundingBox DuctCell::computeBounds(bool hex)
   return vtkBoundingBox(-t, t, -t, t, z1, z1 + getLength());
 }
 
-bool ductComp(Duct* i,Duct* j) { return (i->z1<j->z1); }
+bool ductComp(Duct* i,Duct* j) { return (i->getZ1() < j->getZ1()); }
 
 void DuctCell::sort()
 {

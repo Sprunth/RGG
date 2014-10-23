@@ -1,9 +1,23 @@
 #apple meshkit
 #build 64 bit version
 
+option(SUPPRESS_meshkit_BUILD_OUTPUT
+"Suppress meshkit build output"
+ON)
+mark_as_advanced(SUPPRESS_meshkit_BUILD_OUTPUT)
+
+if(SUPPRESS_meshkit_BUILD_OUTPUT)
+set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+set(junk_output "&> /dev/null")
+endif()
+
+
 add_external_project(meshkit
   DEPENDS moab cgm lasso
   BUILD_IN_SOURCE 1
+  ${suppress_build_out}
+  BUILD_COMMAND "make -j5 install"
+  INSTALL_COMMAND ""
   PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_make_watertight.txt
   CONFIGURE_COMMAND  <SOURCE_DIR>/configure
   --prefix=<INSTALL_DIR>
@@ -19,7 +33,7 @@ add_external_project(meshkit
 if(ENABLE_meshkit)
   find_package(Autotools REQUIRED)
   add_external_project_step(meshkit-autoconf
-    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
+    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR> &> <SOURCE_DIR>/AUTOTOOLS_MESSAGES.txt
     DEPENDEES update
     DEPENDERS configure
   )

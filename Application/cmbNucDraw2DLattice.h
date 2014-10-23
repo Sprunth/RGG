@@ -40,6 +40,7 @@ public:
 
 public slots:
   void clear();
+  void createImage(QString name);
 
 protected:
   virtual void mousePressEvent(QMouseEvent* event);

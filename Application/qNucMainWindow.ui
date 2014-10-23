@@ -135,7 +135,17 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <widget class="QMenu" name="menuTesting">
+     <property name="title">
+      <string>Testing</string>
+     </property>
+     <addaction name="actionRecord"/>
+     <addaction name="actionStop_Recording"/>
+     <addaction name="actionPlay"/>
+    </widget>
     <addaction name="actionExport"/>
+    <addaction name="separator"/>
+    <addaction name="menuTesting"/>
    </widget>
    <widget class="QMenu" name="menuCreate">
     <property name="title">
@@ -511,6 +521,21 @@
   <action name="actionGenerate_Cylinder">
    <property name="text">
     <string>Generate Cylinder</string>
+   </property>
+  </action>
+  <action name="actionRecord">
+   <property name="text">
+    <string>Start Recording</string>
+   </property>
+  </action>
+  <action name="actionPlay">
+   <property name="text">
+    <string>Play</string>
+   </property>
+  </action>
+  <action name="actionStop_Recording">
+   <property name="text">
+    <string>Stop Recording</string>
    </property>
   </action>
   <action name="actionExport_Visible_Mesh">

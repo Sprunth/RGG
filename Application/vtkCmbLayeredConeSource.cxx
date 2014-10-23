@@ -198,10 +198,10 @@ int vtkCmbLayeredConeSource::RequestData(
     outerBottomR = this->LayerRadii[i].BaseRadii;
     outerTopR = this->LayerRadii[i].TopRadii;
     outerRes = this->LayerRadii[i].Resolution;
-    vtkPolyData * tmpLayer = CreateLayer( this->Height,
-                                          innerBottomR, outerBottomR,
-                                          innerTopR,    outerTopR,
-                                          innerRes,     outerRes );
+    vtkSmartPointer<vtkPolyData> tmpLayer = CreateLayer( this->Height,
+                                                         innerBottomR, outerBottomR,
+                                                         innerTopR,    outerTopR,
+                                                         innerRes,     outerRes );
     innerBottomR = outerBottomR;
     innerTopR    = outerTopR;
     innerRes     = outerRes;
@@ -236,17 +236,15 @@ namespace
   void Upsample(vtkPoints *points, double * pt0, double * pt1, int number)
   {
     double tmpPt[] = {pt0[0],pt0[1],pt0[2]};
-    int id = points->InsertNextPoint(tmpPt);
+    /*int id =*/ points->InsertNextPoint(tmpPt);
     double d[] = {pt1[0]-pt0[0],pt1[1]-pt0[1]};
     for(int i = 1; i < (number-1); ++i)
     {
       double r = static_cast<double>(i)/(number-1.0);
       tmpPt[0] = pt0[0] + r*d[0];
       tmpPt[1] = pt0[1] + r*d[1];
-      id = points->InsertNextPoint(tmpPt);
+      /*id =*/ points->InsertNextPoint(tmpPt);
     }
-    pt0[0] = pt1[0];
-    pt0[1] = pt1[1];
   }
 
   class GeneratePoints
@@ -311,22 +309,21 @@ namespace
     }
     void AddPointsUpsampled(vtkPoints *points, double h, double * r, int maxRes, double shift)
     {
-      double start[] = {0,0,h};
       double point[] = {0,0,h};
       double prevPoint[] = {0,0,h};
       int res = usedResolution();
       if(res == 0) return;
       int ptsPerSide = maxRes/res + 1;
       assert(maxRes%res == 0); //right now only handle res that are multiples of each other
-      assert(multX[0] == 1 && multY[0] == 0);
-      start[0] = prevPoint[0] = (r[0] + shift);
-      start[1] = prevPoint[1] = 0;
       for(int j = 1; j < res; j++)
       {
+        compPt(j-1, prevPoint, r, shift);
         compPt(j, point, r, shift);
         Upsample(points, prevPoint, point, ptsPerSide);
       }
-      Upsample(points, prevPoint, start, ptsPerSide);
+      compPt(res-1, prevPoint, r, shift);
+      compPt(0, point, r, shift);
+      Upsample(points, prevPoint, point, ptsPerSide);
     }
   protected:
     std::vector<double> multX;
@@ -390,13 +387,13 @@ void vtkCmbLayeredConeSource
       vtkSmartPointer<vtkPolygon>::New();
     for(int i = 0; i < outerRes; ++i)
     {
-      double * pts = fullPoints->GetPoint(i);
-      points->InsertNextPoint(pts[0], pts[1], 0);
+      double * tmppt = fullPoints->GetPoint(i);
+      points->InsertNextPoint(tmppt[0], tmppt[1], 0);
     }
     for(int i = outerRes; i < offset; ++i)
     {
-      double * pts = fullPoints->GetPoint(i);
-      points->InsertNextPoint(pts[0], pts[1], 0);
+      double * tmppt = fullPoints->GetPoint(i);
+      points->InsertNextPoint(tmppt[0], tmppt[1], 0);
       aPolygon->GetPointIds()->InsertNextId(offset-(i-outerRes)-1);
     }
 
@@ -411,6 +408,7 @@ void vtkCmbLayeredConeSource
     boundary->SetPolys(aCellArray);
     vtkSmartPointer<vtkDelaunay2D> delaunay =
       vtkSmartPointer<vtkDelaunay2D>::New();
+    delaunay->SetTolerance(0.0);
 
     delaunay->SetInputData(aPolyData);
     delaunay->SetSourceData(boundary);
@@ -443,7 +441,7 @@ void vtkCmbLayeredConeSource
   }
 }
 
-vtkPolyData *
+vtkSmartPointer<vtkPolyData>
 vtkCmbLayeredConeSource
 ::CreateLayer( double h,
                double * innerBottomR, double * outerBottomR,
@@ -452,16 +450,15 @@ vtkCmbLayeredConeSource
 {
   if(outerTopR == NULL || outerBottomR == NULL) return NULL;
   if(outerRes == 0) return NULL;
-  vtkPolyData *polyData = vtkPolyData::New();
+  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
   polyData->Allocate();
 
-  vtkPoints *points = vtkPoints::New();
+  vtkPoints * points = vtkPoints::New();
   vtkCellArray *cells = vtkCellArray::New();
 
   points->SetDataTypeToDouble(); //used later during transformation
 
   vtkIdType pts[5];
-  double tpt[3];
   bool forceDelaunay = false;
 
   if(innerRes == 0 && InnerPoints.empty())
@@ -500,17 +497,31 @@ vtkCmbLayeredConeSource
     gp.AddPoints(points, h, outerTopR,    0);
     gp.AddPoints(points, h, innerTopR,    0.0005);
   }
+  else if(outerRes < innerRes)
+  {
+    double mult = 2.0;//std::floor(innerRes/outerRes);
+    GeneratePoints gpO(outerRes);
+    outerRes = gpO.usedResolution()*mult;
+    GeneratePoints gpI(innerRes);
+    innerRes = gpI.usedResolution();
+    points->Allocate(((outerRes*mult)+innerRes)*2);
+    gpO.AddPointsUpsampled(points, 0, outerBottomR, outerRes, 0);
+    gpI.AddPoints(points, 0, innerBottomR, 0.0005);
+    gpO.AddPointsUpsampled(points, h, outerTopR, outerRes, 0);
+    gpI.AddPoints(points, h, innerTopR,    0.0005);
+  }
   else
   {
+    double mult = std::floor(outerRes/innerRes);
     GeneratePoints gpO(outerRes);
     outerRes = gpO.usedResolution();
     GeneratePoints gpI(innerRes);
-    innerRes = gpI.usedResolution();
-    points->Allocate((outerRes+innerRes)*2);
+    innerRes = gpI.usedResolution()*mult;
+    points->Allocate((outerRes+(innerRes*mult))*2);
     gpO.AddPoints(points, 0, outerBottomR, 0);
-    gpI.AddPoints(points, 0, innerBottomR, 0.0005);
+    gpI.AddPointsUpsampled(points, 0, innerBottomR, innerRes, 0.0005);
     gpO.AddPoints(points, h, outerTopR, 0);
-    gpI.AddPoints(points, h, innerTopR,    0.0005);
+    gpI.AddPointsUpsampled(points, h, innerTopR, innerRes,  0.0005);
   }
 
   //Add bottom calls
@@ -519,7 +530,7 @@ vtkCmbLayeredConeSource
   if(1)
   {
     int offset = outerRes+innerRes;
-    for(unsigned int i = 0; i < outerRes; ++i)
+    for(int i = 0; i < outerRes; ++i)
     {
       pts[0] = i;
       pts[1] = (i+1) % outerRes;
@@ -532,7 +543,7 @@ vtkCmbLayeredConeSource
   if(1)
   {
     int offset = outerRes+innerRes;
-    for(unsigned int i = 0; i < innerRes; ++i)
+    for(int i = 0; i < innerRes; ++i)
     {
       pts[0] = i + outerRes;
       pts[3] = (i+1) % innerRes + outerRes;

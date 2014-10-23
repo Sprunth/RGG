@@ -6,11 +6,12 @@
 
 #include <QVBoxLayout>
 
-cmbNucLatticeWidget::cmbNucLatticeWidget(QWidget * parent)
-:QWidget(parent), lattice(NULL)
+cmbNucLatticeWidget::cmbNucLatticeWidget(QWidget * p)
+:QWidget(p), lattice(NULL)
 {
   QVBoxLayout * box = new  QVBoxLayout();
   draw_control = new cmbNucDraw2DLattice(DrawLatticeItem::Polygon, NULL);
+  draw_control->setObjectName("Drawing_2D_Widget");
   box->addWidget(draw_control);
   this->setLayout(box);
 }
@@ -93,4 +94,9 @@ cmbNucLatticeWidget::redraw()
 {
   if(lattice == NULL) return;
   this->draw_control->rebuild();
+}
+
+void cmbNucLatticeWidget::createImage(QString fname)
+{
+  draw_control->createImage(fname);
 }

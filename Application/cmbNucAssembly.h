@@ -169,7 +169,7 @@ public:
   class Section: public Transform
   {
   public:
-    Section(): value(0), dir(1){}
+    Section(): dir(1), value(0){}
     Section(std::string a, double v, std::string dir);
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const { return value; }

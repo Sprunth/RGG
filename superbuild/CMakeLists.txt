@@ -246,7 +246,7 @@ if (UNIX AND NOT APPLE)
     include(fontconfig)
 endif()
 
-
+include(QtTesting)
 include(nuclearRGG)
 
 include(nuclearRGG.bundle OPTIONAL)

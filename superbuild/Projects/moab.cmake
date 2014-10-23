@@ -6,6 +6,14 @@ if (build-projects)
   set (cppflags "${pre_netcdf_cpp_flags}")
 endif()
 
+option(SUPPRESS_MOAB_BUILD_OUTPUT "Suppress MOAB build output" ON)
+mark_as_advanced(SUPPRESS_MOAB_BUILD_OUTPUT)
+
+if(SUPPRESS_MOAB_BUILD_OUTPUT)
+set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+endif()
+
+
 if(ENABLE_meshkit)
   add_external_project(moab
     DEPENDS hdf5 cgm netcdf
@@ -18,6 +26,7 @@ if(ENABLE_meshkit)
       -DMOAB_USE_HDF:BOOL=ON
       -DNetCDF_DIR:path=<INSTALL_DIR>
       -DCGM_CFG:path=<INSTALL_DIR>/lib/cgm.make
+    ${suppress_build_out}
   )
 
 else()
@@ -32,6 +41,7 @@ else()
       -DMOAB_USE_NETCDF:BOOL=ON
       -DMOAB_USE_HDF:BOOL=ON
       -DNetCDF_DIR:path=<INSTALL_DIR>
+    ${suppress_build_out}
   )
 
 endif()

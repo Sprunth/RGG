@@ -87,7 +87,7 @@ add_revision( nuclearRGG SOURCE_DIR ${CMAKE_SOURCE_DIR}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY git://vtk.org/VTK.git
-  GIT_TAG origin/master)
+  GIT_TAG 423001ec771bc5fd8232a16b5d696010729b3a22)
 
 if (UNIX)
   add_revision(mpi
@@ -171,7 +171,11 @@ add_revision(gdal
   URL http://vtk.org/files/support/gdal_5b8309b.tar.gz
   URL_MD5 8d77df722a01cc86b292300a007a3282
   )
-  
+
+add_revision(QtTesting
+  GIT_REPOSITORY "http://paraview.org/QtTesting.git"
+  GIT_TAG master)
+
 #Meshkit
 add_revision(OCE
   GIT_REPOSITORY "https://github.com/robertmaynard/oce.git"
@@ -187,14 +191,16 @@ add_revision(lasso
   GIT_TAG Version3.1
   )
 
+if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
+add_revision(meshkit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
+else()
 add_revision(meshkit
   GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
   GIT_TAG MeshKitv1.2
   )
+endif()
 
 add_revision(meshkit32bit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
-
-
 
 #------------------------------------------------------------------------------
 # moab versions
