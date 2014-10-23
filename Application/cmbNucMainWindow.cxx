@@ -58,7 +58,6 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucExport.h"
 #include "cmbNucPreferencesDialog.h"
-#include "cmbNucGenerateOuterCylinder.h"
 #include "cmbNucMaterial.h"
 #include "inpFileIO.h"
 #include "cmbNucRender.h"
@@ -567,6 +566,7 @@ cmbNucMainWindow::~cmbNucMainWindow()
   this->PropertyWidget->setAssembly(NULL);
   this->InputsWidget->setCore(NULL);
   onStopRecordingTest();
+  delete this->ExportDialog;
   delete this->NuclearCore;
   delete this->MaterialColors;
   delete this->NucMappers;
