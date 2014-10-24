@@ -261,6 +261,7 @@ if(BUILD_TESTING)
                                    test_multi_duct_hex
                                    test_pin_material_layers
                                    test_pin_sections
+                                   testing_delete_pin
                                    test_pin_cellmaterial_rect
                                    test_pin_cellmaterial_hex )
 
@@ -276,6 +277,7 @@ if(BUILD_TESTING)
                                 test_open_6th_vertex
                                 test_open_assy_hex
                                 test_open_assy_rect
+                                testing_delete_pin
                                 test_new_rect
                                 test_new_hex)
 

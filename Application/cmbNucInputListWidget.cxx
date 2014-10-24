@@ -179,10 +179,12 @@ cmbNucInputListWidget::~cmbNucInputListWidget()
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputListWidget::setCreateOptions(QMenu * qm) const
+void cmbNucInputListWidget::setPartOptions(QMenu * qm) const
 {
   qm->clear();
+  qm->addAction(this->Internal->Action_NewAssembly);
   qm->addAction(this->Internal->Action_NewPin);
+  qm->addAction(this->Internal->Action_DeletePart);
 }
 
 void cmbNucInputListWidget::clear()
@@ -201,15 +203,6 @@ void cmbNucInputListWidget::setToModel()
 {
   this->Internal->tabInputs->setCurrentIndex(0);
   this->Internal->tabInputs->setTabEnabled(0, true);
-}
-
-void cmbNucInputListWidget::switchToMesh()
-{
-  this->Internal->tabInputs->setCurrentIndex(2);
-  this->setEnabled(true);
-  this->Internal->tabInputs->setTabEnabled(0, false);
-  this->Internal->tabInputs->setTabEnabled(1, true);
-  this->Internal->tabInputs->setTabEnabled(2, true);
 }
 
 bool cmbNucInputListWidget::onlyMeshLoaded()

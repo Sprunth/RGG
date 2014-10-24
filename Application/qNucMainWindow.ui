@@ -147,9 +147,9 @@
     <addaction name="separator"/>
     <addaction name="menuTesting"/>
    </widget>
-   <widget class="QMenu" name="menuCreate">
+   <widget class="QMenu" name="menuPart">
     <property name="title">
-     <string>Create</string>
+     <string>Part</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -162,7 +162,7 @@
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
    <addaction name="menuTools"/>
-   <addaction name="menuCreate"/>
+   <addaction name="menuPart"/>
   </widget>
   <widget class="QDockWidget" name="InputsDock">
    <property name="sizePolicy">

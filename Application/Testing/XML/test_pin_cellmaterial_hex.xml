@@ -5,7 +5,7 @@
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.0.0" />
   <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
-  <event object="qNucMainWindow/menuBar/menuCreate" command="activate" arguments="Create Pin" />
+  <event object="qNucMainWindow/menuBar/menuPart" command="activate" arguments="Create Pin" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/CellMaterial" command="set_string" arguments="sodium" />
   <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mousePress" arguments="1,1,0,255,502" />
   <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseMove" arguments="1,0,0,264,335" />

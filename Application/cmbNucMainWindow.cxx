@@ -216,24 +216,6 @@ namespace
     return false;
   }
 
-  bool CompareImage( vtkImageData* testImage,
-                     const QString& ReferenceImage, double Threshold,
-                     const QString& TempDirectory )
-  {
-    vtkSmartPointer<vtkTesting> testing = vtkSmartPointer<vtkTesting>::New();
-    testing->AddArgument("-T");
-    testing->AddArgument(TempDirectory.toLatin1().data());
-    testing->AddArgument("-V");
-    testing->AddArgument(ReferenceImage.toLatin1().data());
-    vtkSmartPointer<vtkTrivialProducer> tp = vtkSmartPointer<vtkTrivialProducer>::New();
-    tp->SetOutput(testImage);
-    if (testing->RegressionTest(tp, Threshold) == vtkTesting::PASSED)
-    {
-      return true;
-    }
-    return false;
-  }
-
   bool CompareImage( const QString& testPNGImage,
                      const QString& referenceImage, double threshold,
                      const QString& tempDirectory)
@@ -475,9 +457,6 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionStop_Recording, SIGNAL(triggered(bool)), this, SLOT(onStopRecordingTest()));
   connect(this->ui->actionPlay,           SIGNAL(triggered(bool)), this, SLOT(onPlayTest()));
 
-  connect(this->ui->actionReloadAll,      SIGNAL(triggered()), this, SLOT(onReloadAll()));
-  connect(this->ui->actionReloadSelected, SIGNAL(triggered()), this, SLOT(onReloadSelected()));
-
   connect( this->ui->action1_6_Symetric_Flat,    SIGNAL(triggered()),
            this,                                 SLOT(onNewCore()) );
   connect( this->ui->action1_6_Symetric_Vertex,  SIGNAL(triggered()),
@@ -580,7 +559,7 @@ void cmbNucMainWindow::initPanels()
   if(this->InputsWidget == NULL)
   {
     this->InputsWidget = new cmbNucInputListWidget(this);
-    this->InputsWidget->setCreateOptions(this->ui->menuCreate);
+    this->InputsWidget->setPartOptions(this->ui->menuPart);
 
     this->ui->InputsDock->setWidget(this->InputsWidget);
     this->ui->InputsDock->setFeatures(QDockWidget::DockWidgetMovable |
@@ -990,60 +969,6 @@ void cmbNucMainWindow::onFileOpen()
   emit checkSave();
   this->resetCamera();
   this->Renderer->Render();
-}
-
-void cmbNucMainWindow::onReloadSelected()
-{
-  inpFileReader freader;
-  //Get the selected core or assembly.
-  AssyPartObj* part = InputsWidget->getSelectedCoreOrAssembly();
-  if(part == NULL) return;
-  //check for type
-  switch(part->GetType())
-  {
-    case CMBNUC_ASSEMBLY:
-      {
-      cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(part);
-      if(assy->FileName.empty()) return;
-      freader.open(assy->FileName);
-      freader.read(*assy);
-      }
-      break;
-    case CMBNUC_CORE:
-      {
-      cmbNucCore* core = dynamic_cast<cmbNucCore*>(part);
-      if(core->FileName.empty()) return;
-      freader.open(core->FileName);
-      freader.read(*core, false);
-      }
-      break;
-    default:
-      return;
-  }
-  emit checkSave();
-  this->resetCamera();
-  this->Renderer->Render();
-}
-
-void cmbNucMainWindow::onReloadAll()
-{
-  for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
-  {
-    inpFileReader freader;
-    cmbNucAssembly* assy = NuclearCore->GetAssembly(i);
-    if(assy->FileName.empty()) continue;
-    freader.open(assy->FileName);
-    freader.read(*assy);
-  }
-
-  if(!NuclearCore->FileName.empty())
-  {
-    inpFileReader freader;
-    freader.open(NuclearCore->FileName);
-    freader.read(*NuclearCore, false);
-  }
-
-  emit checkSave();
 }
 
 void cmbNucMainWindow::onClearMesh()

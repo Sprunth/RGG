@@ -39,11 +39,9 @@ public:
 
   void setToModel();
 
-  void switchToMesh();
-
   void clearTable();
 
-  void setCreateOptions(QMenu * qm) const;
+  void setPartOptions(QMenu * qm) const;
 
   void initMaterialsTree();
 
@@ -65,6 +63,7 @@ signals:
 public slots:
   void onNewAssembly();
   void valueChanged();
+  void onRemoveSelectedPart();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -91,7 +90,6 @@ private slots:
   // Description:
   // Tree widget context menu related slots
   void onNewPin();
-  void onRemoveSelectedPart();
   void onImportMaterial();
   void onSaveMaterial();
 
