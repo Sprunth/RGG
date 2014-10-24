@@ -160,7 +160,9 @@ Cylinder::Cylinder(double rin, double z1in, double z2in)
 }
 
 Cylinder::Cylinder(PinSubPart const* other)
+: PinSubPart(0, 10)
 {
+  r=1;
   this->fill(other);
 }
 
@@ -207,7 +209,9 @@ Frustum::Frustum(double const* rin,
 }
 
 Frustum::Frustum(PinSubPart const* other)
+: PinSubPart(0, 1)
 {
+  r[0]= r[1] = 1.0;
   this->fill(other);
 }
 
@@ -520,7 +524,7 @@ bool PinCell::fill(PinCell const* other)
   while (other->Frustums.size() > this->Frustums.size())
   {
     changed = true;
-    double r[2];
+    double r[2] = {1,1};
     Frustum * f = new Frustum(r, 0, 0);
     this->AddFrustum(f);
   }
