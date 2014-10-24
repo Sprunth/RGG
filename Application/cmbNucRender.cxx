@@ -958,7 +958,7 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
   vtkSmartPointer<vtkDoubleArray> rotationAngles = vtkSmartPointer<vtkDoubleArray>::New();
   vtkSmartPointer<vtkDoubleArray> rotationAnglesTrans = vtkSmartPointer<vtkDoubleArray>::New();
 
-  vtkSmartPointer<vtkDoubleArray> scale = vtkSmartPointer<vtkDoubleArray>::New();
+  vtkSmartPointer<vtkDoubleArray> scaleGlyph = vtkSmartPointer<vtkDoubleArray>::New();
   vtkSmartPointer<vtkDoubleArray> scaleTrans = vtkSmartPointer<vtkDoubleArray>::New();
 
   colors->SetName("colors");
@@ -977,8 +977,8 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
   rotationAnglesTrans->SetNumberOfComponents(3);
   rotationAnglesTrans->SetName("Rotation");
 
-  scale->SetNumberOfComponents(3);
-  scale->SetName("Scale");
+  scaleGlyph->SetNumberOfComponents(3);
+  scaleGlyph->SetName("Scale");
   scaleTrans->SetNumberOfComponents(3);
   scaleTrans->SetName("Scale");
 
@@ -1003,7 +1003,7 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
       vtkSmartPointer<vtkIntArray> toutsc = polyScalers;
       vtkSmartPointer<vtkUnsignedCharArray> toutc = colors;
       vtkSmartPointer<vtkDoubleArray> toutr = rotationAngles;
-      vtkSmartPointer<vtkDoubleArray> tscale = scale;
+      vtkSmartPointer<vtkDoubleArray> tscale = scaleGlyph;
       int at = index-1;
 
       if(bColor.alphaF() == 0) continue;
@@ -1041,7 +1041,7 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
   polydata->SetPoints(polyPoints);
   polydata->GetPointData()->AddArray(polyScalers);
   polydata->GetPointData()->AddArray(rotationAngles);
-  polydata->GetPointData()->AddArray(scale);
+  polydata->GetPointData()->AddArray(scaleGlyph);
   polydata->GetPointData()->SetScalars(colors);
   GlyphMapper->ScalingOn();
   GlyphMapper->ClampingOff();
