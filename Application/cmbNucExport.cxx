@@ -519,7 +519,6 @@ bool cmbNucExport::runAssyHelper( const QStringList &assygenFile,
       in.LibPath = "";
       std::stringstream ss(AssygenLib.toStdString().c_str());
       std::string line;
-      unsigned int i = 0;
       while( std::getline(ss, line))
       {
         in.LibPath += line + ":";
