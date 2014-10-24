@@ -1309,6 +1309,7 @@ void cmbNucMainWindow::clearCore()
   if(this->NuclearCore)
   {
     this->NuclearCore->clearExceptAssembliesAndGeom();
+    this->LatticeDraw->setLattice(this->NuclearCore);
     this->updateCoreMaterialColors();
     this->PropertyWidget->resetCore(this->NuclearCore);
     this->InputsWidget->updateUI(true);
