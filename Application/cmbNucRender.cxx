@@ -109,7 +109,6 @@ public:
     cmbNucAssembly * assy = input->GetAssembly(0);
     double startX = assy->AssyDuct.getDuct(0)->x;
     double startY = assy->AssyDuct.getDuct(0)->y;
-    double outerDuctWidth = assy->AssyDuct.getDuct(0)->thickness[1];
     double outerDuctHeight = assy->AssyDuct.getDuct(0)->thickness[0];
 
     int subType = lat.GetGeometrySubType();
@@ -212,13 +211,10 @@ public:
     extraXTrans = 0;
     extraYTrans = 0;
     Duct *hexDuct = input->AssyDuct.getDuct(0);
-    double layerRadius;
     Lattice & lat = input->getLattice();
 
-    double overallDx = 0;
     for(size_t i = 0; i < lat.Grid.size(); i++)
     {
-      double overallDy = 0;
 
       const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
       for(size_t j = 0; j < row.size(); j++)
@@ -655,13 +651,13 @@ public:
     return GeoToPoints::data(tranpt,rotation, pt.material, pt.ptScale);
   }
 
-  static void addGeometry( key k, GeoToPoints const& tmpGeoI,
+  static void addGeometry( key keyIn, GeoToPoints const& tmpGeoI,
                            std::vector<point> const& points,
                            double extraXTrans, double extraYTrans,
                            std::map<key, GeoToPoints> & geometry,
                            point xformR = point())
   {
-    GeoToPoints &newGeo = geometry[k];
+    GeoToPoints &newGeo = geometry[keyIn];
     if(newGeo.geo == NULL)
     {
       newGeo.geo = tmpGeoI.geo;
@@ -792,10 +788,10 @@ public:
           cylinder->addInnerPoint(pt1[0]+tmp * AssyCosSinAngles[sp1][0],
                                   pt1[1]+tmp * AssyCosSinAngles[sp1][1]);
         }
-        else for(int j = 0; j < core->getLattice().Grid.size(); ++j)
+        else for(size_t j = 0; j < core->getLattice().Grid.size(); ++j)
         {
-          double s = j/(core->getLattice().Grid.size()-1.0);
-          double pt[] = {pt1[0]*(1.0-s)+pt2[0]*(s), pt1[1]*(1.0-s)+pt2[1]*(s)};
+          double tmps = j/(core->getLattice().Grid.size()-1.0);
+          double pt[] = {pt1[0]*(1.0-s)+pt2[0]*(tmps), pt1[1]*(1.0-tmps)+pt2[1]*(tmps)};
 
           {
             cylinder->addInnerPoint(pt[0]+tmp * AssyCosSinAngles[sp1][0],
@@ -1089,12 +1085,9 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
   coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
   coneSource->SetBaseCenter(0, 0, part->z1);
   coneSource->SetHeight(part->z2 - part->z1);
-  double lastR[2];
 
   for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
   {
-    lastR[0] = part->getRadius(k,Frustum::BOTTOM);
-    lastR[1] = part->getRadius(k,Frustum::TOP);
     coneSource->SetBaseRadius(k, part->getRadius(k,Frustum::BOTTOM));
     coneSource->SetTopRadius(k, part->getRadius(k,Frustum::TOP));
     coneSource->SetResolution(k, PinCellResolution);

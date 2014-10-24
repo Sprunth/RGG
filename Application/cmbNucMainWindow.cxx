@@ -78,7 +78,7 @@ class XMLEventSource : public pqEventSource
 
 public:
   XMLEventSource(QString testDir, QString outdir, QObject* p)
-    : TestDir(testDir), OutputDir(outdir), Superclass(p)
+    :Superclass(p), TestDir(testDir), OutputDir(outdir)
   { this->XMLStream = NULL; isWaiting = false;}
   ~XMLEventSource() { delete this->XMLStream; }
 
@@ -178,7 +178,7 @@ namespace
   {
     if(dataset == NULL) return;
     // move the assembly to the correct position
-    for(int idx=0; idx<dataset->GetNumberOfBlocks(); idx++)
+    for(size_t idx=0; idx<dataset->GetNumberOfBlocks(); idx++)
     {
       // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
       if(vtkDataObject* objBlock = dataset->GetBlock(idx))
@@ -799,15 +799,15 @@ void cmbNucMainWindow::onExit()
   }
 }
 
-void cmbNucMainWindow::closeEvent(QCloseEvent *event)
+void cmbNucMainWindow::closeEvent(QCloseEvent *qce)
 {
   if(checkFilesBeforePreceeding())
   {
-    event->accept();
+    qce->accept();
   }
   else
   {
-    event->ignore();
+    qce->ignore();
   }
 }
 
@@ -816,13 +816,11 @@ void cmbNucMainWindow::onNewCore()
   //Is saving needed for current?
   if(!checkFilesBeforePreceeding()) return;
   //Get the action that called this.
-  QObject * sender = QObject::sender();
-  QAction * act = dynamic_cast<QAction*>(sender);
+  QAction * act = dynamic_cast<QAction*>(QObject::sender());
   if(act != NULL)
   {
     QString type = act->text();
     std::string geoType = "HexFlat";;
-    enumGeometryType geoTypeEnum = HEXAGONAL;
     int subtype = 1;
     if(type.contains("1/6 Symmetric Flat"))
     {
@@ -843,7 +841,6 @@ void cmbNucMainWindow::onNewCore()
     }
     else if(type.contains("Rectilinear"))
     {
-      geoTypeEnum = RECTILINEAR;
       geoType = "Rectangular";
     }
     else
@@ -896,7 +893,7 @@ void cmbNucMainWindow::onFileOpen()
   int numExistingAssy = this->NuclearCore->GetNumberOfAssemblies();
   bool need_to_use_assem = false;
 
-  for(unsigned int i = 0; i < fileNames.count(); ++i)
+  for( int i = 0; i < fileNames.count(); ++i)
   {
     inpFileReader freader;
     switch(freader.open(fileNames[i].toStdString()))
@@ -918,7 +915,7 @@ void cmbNucMainWindow::onFileOpen()
           QMessageBox msgBox;
           msgBox.setText("Not the same type");
           msgBox.setInformativeText(fileNames[i]+" is not the same geometry type as current core.");
-          int ret = msgBox.exec();
+          msgBox.exec();
           delete assembly;
           this->unsetCursor();
           return;
@@ -1030,7 +1027,7 @@ void cmbNucMainWindow::onReloadSelected()
 
 void cmbNucMainWindow::onReloadAll()
 {
-  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
     inpFileReader freader;
     cmbNucAssembly* assy = NuclearCore->GetAssembly(i);
@@ -1151,7 +1148,7 @@ void cmbNucMainWindow::onSaveAll()
 
 void cmbNucMainWindow::saveAll(bool requestFileName, bool force_save)
 {
-  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
     {
     this->save(NuclearCore->GetAssembly(i), requestFileName, force_save);
     }
@@ -1169,7 +1166,7 @@ void cmbNucMainWindow::onSaveProjectAs()
 
   if(dir.isEmpty()) return;
   QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
-  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
     QString label(NuclearCore->GetAssembly(i)->label.c_str());
     std::string tmpl = label.toLower().toStdString();
@@ -1255,7 +1252,7 @@ void cmbNucMainWindow::save(cmbNucCore* core, bool request_file_name, bool force
 
 void cmbNucMainWindow::checkForNewCUBH5MFiles()
 {
-  for(unsigned int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
     NuclearCore->GetAssembly(i)->setAndTestDiffFromFiles(NuclearCore->GetAssembly(i)->changeSinceLastSave());
   }
@@ -1648,8 +1645,8 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
 {
   if(b)
   {
-    vtkSmartPointer<vtkDataObject> data = this->Internal->MoabSource->getData();
-    if(data == NULL) return;
+    vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
+    if(dataObj == NULL) return;
     QColor color;
     bool visible;
     vtkCompositeDataDisplayAttributes *att = this->MeshMapper->GetCompositeDataDisplayAttributes();
@@ -1657,7 +1654,7 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
     att->RemoveBlockVisibilites();
     att->RemoveBlockOpacities();
     att->RemoveBlockColors();
-    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(data);
+    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
     switch(this->Internal->MoabSource->getSelectedType())
     {
       case 5: //Material
@@ -1717,15 +1714,15 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
 
 void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
 {
-  vtkProperty* property = this->MeshActor->GetProperty();
+  vtkProperty* meshProperty = this->MeshActor->GetProperty();
   if(b)
   {
-    property->SetEdgeVisibility(1);
-    property->SetEdgeColor(0,0,0.4);
+    meshProperty->SetEdgeVisibility(1);
+    meshProperty->SetEdgeColor(0,0,0.4);
   }
   else
   {
-    property->SetEdgeVisibility(0);
+    meshProperty->SetEdgeVisibility(0);
   }
   this->MeshActor->Modified();
   this->MeshMapper->Modified();
@@ -1737,26 +1734,24 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
   }
 }
 
-void cmbNucMainWindow::onInteractionTransition(vtkObject * obj, unsigned long event)
+void cmbNucMainWindow::onInteractionTransition(vtkObject *, unsigned long e)
 {
-  switch (event)
+  switch (e)
     {
     case vtkCommand::StartInteractionEvent:
-      //this->Renderer->UseDepthPeelingOff();
       this->Renderer->SetMaximumNumberOfPeels(1);
       this->MeshRenderer->SetUseDepthPeeling(1);
       break;
     case vtkCommand::EndInteractionEvent:
-      //this->Renderer->UseDepthPeelingOn();
       this->Renderer->SetMaximumNumberOfPeels(5);
       this->MeshRenderer->SetUseDepthPeeling(5);
       break;
     }
 }
 
-void cmbNucMainWindow::onInteractionMeshTransition(vtkObject *, unsigned long event)
+void cmbNucMainWindow::onInteractionMeshTransition(vtkObject *, unsigned long e)
 {
-  switch (event)
+  switch (e)
   {
     case vtkCommand::StartInteractionEvent:
       this->MeshRenderer->SetMaximumNumberOfPeels(3);
