@@ -87,7 +87,7 @@ add_revision( nuclearRGG SOURCE_DIR ${CMAKE_SOURCE_DIR}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY git://vtk.org/VTK.git
-  GIT_TAG 423001ec771bc5fd8232a16b5d696010729b3a22)
+  GIT_TAG fa9ca03e2fb4ee413e3070e05cff2206170177c4 )
 
 if (UNIX)
   add_revision(mpi
