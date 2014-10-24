@@ -267,7 +267,8 @@ if(BUILD_TESTING)
                                    test_pin_material_layers
                                    test_pin_sections
                                    test_pin_cellmaterial_rect
-                                   test_pin_cellmaterial_hex )
+                                   test_pin_cellmaterial_hex
+                                   test_material )
 
   set (LONG_TEST create_and_save_rect
                  create_and_save_hex)
