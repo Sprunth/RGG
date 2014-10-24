@@ -256,7 +256,7 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
 {
   this->AssygenFileList.clear();
   MainWindow->checkForNewCUBH5MFiles();
-  for (size_t i = 0; i < Core->GetNumberOfAssemblies(); ++i)
+  for (int i = 0; i < Core->GetNumberOfAssemblies(); ++i)
   {
     cmbNucAssembly * assy = this->Core->GetAssembly(i);
     if(force || assy->changeSinceLastGenerate())

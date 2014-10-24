@@ -18,7 +18,8 @@
 
 cmbNucDraw2DLattice::cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape,
     QWidget* p, Qt::WindowFlags f)
-      : QGraphicsView(p), CurrentLattice(NULL), ItemShape(shape), FullCellMode(HEX_FULL)
+      : QGraphicsView(p), CurrentLattice(NULL),
+        FullCellMode(HEX_FULL), ItemShape(shape)
 {
   setScene(&this->Canvas);
   setInteractive(true);
