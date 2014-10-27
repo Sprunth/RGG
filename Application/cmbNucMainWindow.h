@@ -69,8 +69,6 @@ public slots:
   void onSaveAll();
   void onSaveProjectAs();
   void onSaveSelectedAs();
-  void onReloadSelected();
-  void onReloadAll();
   void clearAll();
   void clearCore();
   void saveFile(cmbNucAssembly*);

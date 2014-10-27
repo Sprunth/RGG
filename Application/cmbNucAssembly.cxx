@@ -173,29 +173,6 @@ void cmbNucAssembly::getZRange(double & z1, double & z2)
   this->AssyDuct.getZRange(z1, z2);
 }
 
-void cmbNucAssembly::UpdateGrid()
-{
-  std::pair<int, int> dim = this->lattice.GetDimensions();
-  for(size_t i = 0; i < static_cast<size_t>(dim.first); i++)
-    {
-    size_t layerCells = this->lattice.GetGeometryType() == HEXAGONAL ?
-      6*i : dim.second;
-    for(size_t j = 0; j < layerCells; j++)
-      {
-      std::string lat_label = this->lattice.GetCell(i, j).label;
-      PinCell* pc = this->GetPinCell(lat_label);
-      if(pc)
-        {
-        this->lattice.SetCell(i, j, lat_label, pc->GetLegendColor());
-        }
-      else
-        {
-        this->lattice.ClearCell(i, j);
-        }
-      }
-    }
-}
-
 void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
   QObject::connect(pincell->GetConnection(), SIGNAL(Changed()),
@@ -443,11 +420,6 @@ void cmbNucAssembly::calculateRadius(double & r)
   r = (minWidth/maxNumber)*0.5;
   r = r - r*0.25;
   if(r<0) r = -1;
-}
-
-void cmbNucAssembly::removeDuct(Duct* d)
-{
-  AssyDuct.RemoveDuct(d);
 }
 
 void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)

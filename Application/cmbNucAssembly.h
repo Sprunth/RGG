@@ -208,9 +208,6 @@ public:
   // Remove the pincell with label from the assembly.
   void RemovePinCell(const std::string label);
 
-  // Call this when a pin cell property changes, it will rebuild the lattice
-  void UpdateGrid();
-
   void geometryChanged();
 
   // Returns the pincell with label. Returns 0 if no pincell with
@@ -228,8 +225,6 @@ public:
   // The color to use to represent this assembly type in the lattice editor
   QColor GetLegendColor() const;
   void SetLegendColor(const QColor& color);
-
-  void removeDuct(Duct* d);
 
   cmbAssyParameters* GetParameters() {return this->Parameters;}
 
