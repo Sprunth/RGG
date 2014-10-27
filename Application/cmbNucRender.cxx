@@ -791,7 +791,7 @@ public:
         else for(size_t j = 0; j < core->getLattice().Grid.size(); ++j)
         {
           double tmps = j/(core->getLattice().Grid.size()-1.0);
-          double pt[] = {pt1[0]*(1.0-s)+pt2[0]*(tmps), pt1[1]*(1.0-tmps)+pt2[1]*(tmps)};
+          double pt[] = {pt1[0]*(1.0-tmps)+pt2[0]*(tmps), pt1[1]*(1.0-tmps)+pt2[1]*(tmps)};
 
           {
             cylinder->addInnerPoint(pt[0]+tmp * AssyCosSinAngles[sp1][0],
