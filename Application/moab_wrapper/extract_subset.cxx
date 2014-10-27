@@ -1,6 +1,8 @@
 #include "extract_subset.h"
 #include "SimpleMoab.h"
 
+#include <algorithm>
+
 bool extract_subset::extract(std::string fin, std::string fout,
                              std::vector<std::string> const& remove_material)
 {
@@ -27,9 +29,13 @@ bool extract_subset::extract(std::string fin, std::string fout,
     else
       name = name.substr(2);
     bool remove = false;
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
     for(unsigned int j = 0; j < remove_material.size(); ++j)
     {
-      remove = remove || name == remove_material[j];
+      //NOTE: If this becomes a performance issue, this can be cached
+      std::string rmMat = remove_material[j];
+      std::transform(rmMat.begin(), rmMat.end(), rmMat.begin(), ::tolower);
+      remove = remove || name == rmMat;
     }
     if(remove)
     {
