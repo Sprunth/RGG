@@ -139,7 +139,6 @@ private:
   mutable QMutex Mutex, Memory, ServerProtect;
   void constructWorkers();
   void deleteWorkers();
-  bool checkCoreFile(const QString coregenFile, std::string & msg);
   QThread WorkerThreads[3];
   cmbNucExporterWorker * assygenWorker;
   cmbNucExporterWorker * coregenWorker;

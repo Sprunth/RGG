@@ -611,54 +611,6 @@ bool cmbNucExport::runCubitHelper(const QString cubitFile,
   return true;
 }
 
-bool cmbNucExport::checkCoreFile(const QString coregenFile, std::string & message)
-{
-  QFileInfo fi( coregenFile );
-  if(!fi.exists())
-  {
-    message = " Required File does not exist: " + coregenFile.toStdString();
-    return false;
-  }
-  std::ifstream input(coregenFile.toStdString().c_str());
-  int count = 0;
-  while(!input.eof())
-  {
-    std::string line("");
-    std::getline(input,line);
-    line = line.substr(0, line.find_first_of('!'));
-    if(line.empty()) continue;
-    std::string fname;
-    std::stringstream ss(line);
-    std::string tag;
-    ss >> tag;
-    std::transform(tag.begin(), tag.end(), tag.begin(), ::tolower);
-    if(count > 0)
-    {
-      count--;
-      fname = tag;
-    }
-    else if(tag == "assemblies")
-    {
-      ss >> count;
-      continue;
-    }
-    else if(tag == "background")
-    {
-      ss >> fname;
-    }
-    else
-      continue;
-    QFileInfo tmpFI( fname.c_str() );
-    if(!QFileInfo(fname.c_str()).exists() &&
-       !QFileInfo(fi.absoluteDir(),fname.c_str()).exists() )
-    {
-      message = " Required File does not exist: " + fname;
-      return false;
-    }
-  }
-  return true;
-}
-
 bool cmbNucExport::runCoreHelper( const QString coregenFile,
                                   const QString CoreGenOutputFile,
                                   double & count, double max_count )

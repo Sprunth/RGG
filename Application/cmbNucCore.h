@@ -243,12 +243,6 @@ public:
     {
     return this->lattice.GetCell(i, j);
     }
-  // Clears the contents of the Assembly (i, j). This is equivalent
-  // to calling SetAssembly(i, j, "xx", Qt::white).
-  void ClearAssemblyLabel(int i, int j)
-    {
-    this->lattice.ClearCell(i, j);
-    }
 
   // Rebuild the grid (which for now just updates the colors at each cell)
   void RebuildGrid();
