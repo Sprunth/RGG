@@ -144,11 +144,14 @@ protected slots:
 
   void resetCamera();
 
+  void updateMeshMaterials(int i);
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
 
   void doClearAll(bool needSave = false);
+  void clearMeshDisplayMaterial();
 
   cmbNucRender * NucMappers;
   vtkSmartPointer<vtkRenderer> Renderer;

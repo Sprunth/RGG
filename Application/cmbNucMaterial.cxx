@@ -95,13 +95,19 @@ bool cmbNucMaterialLayer::operator==( const cmbNucMaterialLayer & other ) const
 }
 
 cmbNucMaterial::cmbNucMaterial()
-: Visible(true), NumberReferenced(0), IsDisplayed(false)
-{}
+: Visible(true), NumberReferenced(0)
+{
+  IsDisplayed[MODEL] = false;
+  IsDisplayed[MESH] = false;
+}
 
 cmbNucMaterial::cmbNucMaterial(const QString& name,
                                const QString& label, const QColor& color)
-: Name(name), Label(label), Color(color), Visible(true), NumberReferenced(0), IsDisplayed(false)
-{}
+: Name(name), Label(label), Color(color), Visible(true), NumberReferenced(0)
+{
+  IsDisplayed[MODEL] = false;
+  IsDisplayed[MESH] = false;
+}
 
 cmbNucMaterial::~cmbNucMaterial()
 {
@@ -174,6 +180,8 @@ void cmbNucMaterial::dec()
     NumberReferenced--;
     if(NumberReferenced == 0)
     {
+      this->IsDisplayed[MODEL] = false;
+      this->IsDisplayed[MESH] = false;
       emit useChanged();
     }
   }
@@ -208,15 +216,15 @@ void cmbNucMaterial::revertLabel(QString label)
 
 bool cmbNucMaterial::isDisplayed()
 {
-  return IsDisplayed;
+  return IsDisplayed[MODEL] || IsDisplayed[MESH];
 }
 
-void cmbNucMaterial::clearDisplayed()
+void cmbNucMaterial::clearDisplayed(cmbNucMaterial::DisplayMode mode)
 {
-  IsDisplayed = false;
+  IsDisplayed[mode] = false;
 }
 
-void cmbNucMaterial::setDisplayed()
+void cmbNucMaterial::setDisplayed(cmbNucMaterial::DisplayMode mode)
 {
-  IsDisplayed = true;
+  IsDisplayed[mode] = true;
 }

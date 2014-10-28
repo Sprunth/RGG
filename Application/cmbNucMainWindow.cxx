@@ -134,7 +134,6 @@ protected:
       QXmlStreamReader::TokenType token = this->XMLStream->readNext();
       if (token == QXmlStreamReader::StartElement)
       {
-        qDebug() << this->XMLStream->name();
         if (this->XMLStream->name() == "event")
         {
           break;
@@ -256,6 +255,7 @@ public:
   bool IsCoreView;
   bool IsFullMesh;
   bool HasModel;
+  std::vector< QPointer<cmbNucMaterial> > MeshDisplayedMaterial;
   double BoundsModel[6];
   double BoundsMesh[6];
   pqXMLEventObserver * observer;
@@ -982,6 +982,8 @@ void cmbNucMainWindow::onFileOpen()
 void cmbNucMainWindow::onClearMesh()
 {
   Internal->MoabSource->clear();
+  this->clearMeshDisplayMaterial();
+  this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
   this->meshControls(false);
   this->setCameras(this->Internal->IsCoreView, false);
@@ -1020,6 +1022,7 @@ void cmbNucMainWindow::onFileOpenMoab()
     this->ui->qvtkMeshWidget->update();
     this->InputsWidget->meshIsLoaded(true);
   }
+  this->updateMeshMaterials(this->Internal->MoabSource->getSelectedType());
 }
 
 void cmbNucMainWindow::modelControls(bool v)
@@ -1520,16 +1523,20 @@ void cmbNucMainWindow::onChangeToModelTab()
 {
   this->onSelectionChange();
   connect(this->Internal->MoabSource, SIGNAL(update()),
-          this, SLOT(onSelectionChange()));
+          this, SLOT(onSelectionChange()), Qt::UniqueConnection);
 }
 
 void cmbNucMainWindow::onSelectionChange()
 {
-  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
-  this->onChangeMeshEdgeMode(this->ui->drawEdges->isChecked());
   int sel = this->Internal->MoabSource->getSelectedType();
   this->setCameras(this->Internal->IsCoreView, sel == 0 || sel == 3 || sel == 5);
+  this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
+
+  this->updateMeshMaterials(this->Internal->MoabSource->getSelectedType());
+  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+  this->onChangeMeshEdgeMode(this->ui->drawEdges->isChecked());
+
   vtkBoundingBox box;
   computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
   box.GetBounds(this->Internal->BoundsMesh);
@@ -1599,6 +1606,41 @@ void add_color(vtkCompositeDataDisplayAttributes *att,
   att->SetBlockVisibility(idx, visible);
 }
 
+void cmbNucMainWindow::clearMeshDisplayMaterial()
+{
+  for(size_t i = 0; i < this->Internal->MeshDisplayedMaterial.size(); ++i)
+  {
+    this->Internal->MeshDisplayedMaterial[i]->dec();
+    this->Internal->MeshDisplayedMaterial[i]->clearDisplayed(cmbNucMaterial::MESH);
+  }
+  this->Internal->MeshDisplayedMaterial.clear();
+}
+
+void cmbNucMainWindow::updateMeshMaterials(int i)
+{
+  this->clearMeshDisplayMaterial();
+  if(i == 5 || i == 3)
+  {
+    vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
+    if(dataObj == NULL) return;
+    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
+    int offset = sec->GetNumberOfBlocks()-1;
+    for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
+    {
+      const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
+      QString qname = createMaterialLabel(name);
+      QPointer<cmbNucMaterial> m = this->MaterialColors->getMaterialByName(qname);
+      if(!qname.isEmpty() && m == this->MaterialColors->getUnknownMaterial())
+      {
+        m = this->MaterialColors->AddMaterial(qname,qname);
+      }
+      m->inc();
+      m->setDisplayed(cmbNucMaterial::MESH);
+      this->Internal->MeshDisplayedMaterial.push_back(m);
+    }
+  }
+}
+
 void cmbNucMainWindow::onChangeMeshColorMode(bool b)
 {
   if(b)
@@ -1613,47 +1655,25 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
     att->RemoveBlockOpacities();
     att->RemoveBlockColors();
     vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
-    switch(this->Internal->MoabSource->getSelectedType())
+    int offset = sec->GetNumberOfBlocks()-1;
+    if(sec!= NULL)
     {
-      case 5: //Material
-      case 3:
+      for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
       {
-        int offset = sec->GetNumberOfBlocks()-1;
-        for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
+        if(idx < this->Internal->MeshDisplayedMaterial.size())
         {
-          const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
-          QString qname = createMaterialLabel(name);
-          QPointer<cmbNucMaterial> m = this->MaterialColors->getMaterialByName(qname);
-          if(!qname.isEmpty() && m == this->MaterialColors->getUnknownMaterial())
-          {
-            m = this->MaterialColors->AddMaterial(qname,qname);
-          }
-          add_color(att, idx, m->getColor(), m->isVisible());
-         }
-        }
-        break;
-      default:
-      {
-        if(sec!= NULL)
-        {
-          for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
-          {
-            unsigned int cind = idx%(numAssemblyDefaultColors-1);
-            color = QColor(defaultAssemblyColors[cind][0],
-                           defaultAssemblyColors[cind][1],
-                           defaultAssemblyColors[cind][2]);
-            visible = true;
-            add_color(att, idx, color, visible);
-          }
+          color = this->Internal->MeshDisplayedMaterial[idx]->getColor();
+          visible = this->Internal->MeshDisplayedMaterial[idx]->isVisible();
         }
         else
         {
-          color = QColor(defaultAssemblyColors[0][0],
-                         defaultAssemblyColors[0][1],
-                         defaultAssemblyColors[0][2]);
-          visible = true;
-          add_color(att, 0, color, visible);
+          unsigned int cind = idx%(numAssemblyDefaultColors-1);
+          color = QColor( defaultAssemblyColors[cind][0],
+                          defaultAssemblyColors[cind][1],
+                          defaultAssemblyColors[cind][2]);
+          visible = this->Internal->MeshDisplayedMaterial.empty();
         }
+        add_color(att, idx, color, visible);
       }
     }
   }
@@ -1663,7 +1683,6 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
     this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
     attributes->Delete();
   }
-  //this->MeshRenderer->SetActiveCamera(Renderer->GetActiveCamera());
   this->MeshMapper->Modified();
   if( isMeshTabVisible() )
   {
