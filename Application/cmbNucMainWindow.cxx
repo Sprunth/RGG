@@ -255,6 +255,7 @@ public:
   bool MeshOpen;
   bool IsCoreView;
   bool IsFullMesh;
+  bool HasModel;
   double BoundsModel[6];
   double BoundsMesh[6];
   pqXMLEventObserver * observer;
@@ -346,6 +347,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Internal->IsFullMesh = false;
   this->Internal->CamerasLinked = false;
   this->Internal->MoabSource = NULL;
+  this->Internal->HasModel = false;
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -842,6 +844,7 @@ void cmbNucMainWindow::onNewCore()
     this->ui->actionGenerate_Cylinder->setEnabled(true);
     this->resetCamera();
     this->Renderer->Render();
+    this->Internal->HasModel = true;
   }
   else
   {
@@ -914,6 +917,7 @@ void cmbNucMainWindow::onFileOpen()
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
         this->ui->actionGenerate_Cylinder->setEnabled(true);
+        this->Internal->HasModel = true;
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -931,6 +935,7 @@ void cmbNucMainWindow::onFileOpen()
         this->ui->actionGenerate_Cylinder->setEnabled(true);
         this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
+        this->Internal->HasModel = true;
         break;
       default:
         qDebug() << "could not open" << fileNames[i];
@@ -1287,6 +1292,8 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->ui->actionExport->setEnabled(false);
   this->ui->actionGenerate_Cylinder->setEnabled(false);
 
+  this->Internal->HasModel = false;
+
   if(this->Internal->MoabSource != NULL) this->onClearMesh();
 
   this->setCameras(false, false);
@@ -1590,8 +1597,12 @@ void cmbNucMainWindow::onChangeMeshColorMode(bool b)
         for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
         {
           const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
-          QPointer<cmbNucMaterial> m =
-              this->MaterialColors->getMaterialByName(createMaterialLabel(name));
+          QString qname = createMaterialLabel(name);
+          QPointer<cmbNucMaterial> m = this->MaterialColors->getMaterialByName(qname);
+          if(!qname.isEmpty() && m == this->MaterialColors->getUnknownMaterial())
+          {
+            m = this->MaterialColors->AddMaterial(qname,qname);
+          }
           add_color(att, idx, m->getColor(), m->isVisible());
          }
         }
