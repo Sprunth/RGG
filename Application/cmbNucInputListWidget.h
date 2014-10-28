@@ -45,6 +45,8 @@ public:
 
   void initMaterialsTree();
 
+  void meshIsLoaded(bool);
+
 signals:
   // Description:
   // Fired when a part/material is selected in the tree

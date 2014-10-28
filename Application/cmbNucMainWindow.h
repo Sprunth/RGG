@@ -86,6 +86,7 @@ public slots:
   void playTest();
   void onExportVisibleMesh();
   void meshControls(bool);
+  void modelControls(bool);
 
 signals:
   void updateGlobalZScale(double scale);

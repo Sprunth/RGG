@@ -845,6 +845,7 @@ void cmbNucMainWindow::onNewCore()
     this->resetCamera();
     this->Renderer->Render();
     this->Internal->HasModel = true;
+    this->modelControls(true);
   }
   else
   {
@@ -918,6 +919,7 @@ void cmbNucMainWindow::onFileOpen()
         this->ui->actionExport->setEnabled(true);
         this->ui->actionGenerate_Cylinder->setEnabled(true);
         this->Internal->HasModel = true;
+        this->modelControls(true);
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -936,6 +938,7 @@ void cmbNucMainWindow::onFileOpen()
         this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
         this->Internal->HasModel = true;
+        this->modelControls(true);
         break;
       default:
         qDebug() << "could not open" << fileNames[i];
@@ -1008,6 +1011,21 @@ void cmbNucMainWindow::onFileOpenMoab()
     return;
   }
   Internal->MoabSource->openFile(fileNames.first());
+  if(!this->Internal->HasModel)
+  {
+    this->modelControls(false);
+    this->ui->DockMesh->raise();
+    this->setScaledBounds();
+    this->resetCamera();
+    this->ui->qvtkMeshWidget->update();
+    this->InputsWidget->meshIsLoaded(true);
+  }
+}
+
+void cmbNucMainWindow::modelControls(bool v)
+{
+  this->ui->Dock2D->setVisible(v);
+  this->ui->Dock3D->setVisible(v);
 }
 
 void cmbNucMainWindow::onExportVisibleMesh()
@@ -1466,6 +1484,7 @@ void cmbNucMainWindow::ResetView()
 void cmbNucMainWindow::colorChange()
 {
   this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+  if(!this->Internal->HasModel) return;
   AssyPartObj* cp = this->InputsWidget->getSelectedPart();
   switch(cp->GetType())
   {
@@ -1517,6 +1536,12 @@ void cmbNucMainWindow::onSelectionChange()
   setScaledBounds();
   if( isMeshTabVisible() )
   {
+    this->ui->qvtkMeshWidget->update();
+  }
+  if(!this->Internal->HasModel)
+  {
+    this->MeshRenderer->Modified();
+    this->MeshRenderer->ResetCamera();
     this->ui->qvtkMeshWidget->update();
   }
 }
