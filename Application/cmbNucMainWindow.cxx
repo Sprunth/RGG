@@ -255,7 +255,6 @@ public:
   bool IsCoreView;
   bool IsFullMesh;
   bool HasModel;
-  std::vector< QPointer<cmbNucMaterial> > MeshDisplayedMaterial;
   double BoundsModel[6];
   double BoundsMesh[6];
   pqXMLEventObserver * observer;
@@ -263,6 +262,7 @@ public:
   bool ExitWhenTestFinshes;
   QStringList TestModelCorrectImages;
   QStringList Test2DCorrectImages;
+  QString TestMeshCorrectImage;
   QString TestDirectory;
   QString TestOutputDirectory;
 };
@@ -585,17 +585,25 @@ void cmbNucMainWindow::initPanels()
 
   {
     delete(this->Internal->MoabSource);
-    this->Internal->MoabSource = new cmbNucCoregen(this->ui->meshSubcomponent);
+    this->Internal->MoabSource = new cmbNucCoregen();
     this->Internal->MeshOpen = false;
     QObject::connect(this->ExportDialog, SIGNAL(finished(QString)),
             this->Internal->MoabSource, SLOT(openFile(QString)));
     QObject::connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
-    QObject::connect(this->ui->drawEdges, SIGNAL(clicked(bool)),
+    QObject::connect(this->InputsWidget, SIGNAL(sendEdgeControl(bool)),
                      this, SLOT(onChangeMeshEdgeMode(bool)));
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
                      this, SLOT(onSelectionChange()));
     QObject::connect(this->Internal->MoabSource, SIGNAL(fileOpen(bool)),
                      this, SLOT(meshControls(bool)));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(components(QList<QTreeWidgetItem*>)),
+                     this->InputsWidget, SLOT(updateMeshTable(QList<QTreeWidgetItem*>)));
+    QObject::connect(this->InputsWidget, SIGNAL(subMeshSelected(QTreeWidgetItem*)),
+                     this->Internal->MoabSource, SLOT(selectionChanged(QTreeWidgetItem *)));
+    QObject::connect(this->InputsWidget, SIGNAL(meshValueChanged(QTreeWidgetItem*)),
+                     this->Internal->MoabSource, SLOT(valueChanged(QTreeWidgetItem *)));
+    QObject::connect(this->InputsWidget, SIGNAL(sendColorControl(bool)),
+                     this->Internal->MoabSource, SLOT(setColor(bool)));
   }
 
   if(this->PropertyWidget == NULL)
@@ -982,20 +990,17 @@ void cmbNucMainWindow::onFileOpen()
 void cmbNucMainWindow::onClearMesh()
 {
   Internal->MoabSource->clear();
-  this->clearMeshDisplayMaterial();
   this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
-  this->meshControls(false);
   this->setCameras(this->Internal->IsCoreView, false);
 }
 
 void  cmbNucMainWindow::meshControls(bool v)
 {
   this->ui->DockMesh->setVisible(v);
-  this->ui->meshSubcomponent->setVisible(v);
-  this->ui->drawEdges->setVisible(v);
   this->Internal->MeshOpen = v;
   this->ui->actionExport_Visible_Mesh->setEnabled(v);
+  this->InputsWidget->meshIsLoaded(v);
 }
 
 void cmbNucMainWindow::onFileOpenMoab()
@@ -1020,7 +1025,6 @@ void cmbNucMainWindow::onFileOpenMoab()
     this->setScaledBounds();
     this->resetCamera();
     this->ui->qvtkMeshWidget->update();
-    this->InputsWidget->meshIsLoaded(true);
   }
   this->updateMeshMaterials(this->Internal->MoabSource->getSelectedType());
 }
@@ -1325,7 +1329,6 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->MaterialColors->OpenFile(materialfile);
 
   emit checkSave();
-  onChangeMeshEdgeMode(false);
 
   this->ui->qvtkWidget->update();
   this->resetCamera();
@@ -1535,7 +1538,6 @@ void cmbNucMainWindow::onSelectionChange()
 
   this->updateMeshMaterials(this->Internal->MoabSource->getSelectedType());
   this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
-  this->onChangeMeshEdgeMode(this->ui->drawEdges->isChecked());
 
   vtkBoundingBox box;
   computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
@@ -1553,50 +1555,6 @@ void cmbNucMainWindow::onSelectionChange()
   }
 }
 
-QString createMaterialLabel(const char * name)
-{
-  if(name == NULL) return QString();
-  QString result(name);
-  if(result.endsWith("_top_ss"))
-  {
-    return result.remove("_top_ss");
-  }
-  if(result.endsWith("_bot_ss"))
-  {
-    return result.remove("_bot_ss");
-  }
-  if(result.endsWith("_side_ss"))
-  {
-    return result.remove("_side_ss");
-  }
-  if(result.endsWith("_side1_ss"))
-  {
-    return result.remove("_side1_ss");
-  }
-  if(result.endsWith("_side2_ss"))
-  {
-    return result.remove("_side2_ss");
-  }
-  if(result.endsWith("_side3_ss"))
-  {
-    return result.remove("_side3_ss");
-  }
-  if(result.endsWith("_side4_ss"))
-  {
-    return result.remove("_side4_ss");
-  }
-  if(result.endsWith("_side5_ss"))
-  {
-    return result.remove("_side5_ss");
-  }
-  if(result.endsWith("_side6_ss"))
-  {
-    return result.remove("_side6_ss");
-  }
-  return QString(&(name[2]));
-
-}
-
 void add_color(vtkCompositeDataDisplayAttributes *att,
                unsigned int idx, QColor color, bool visible)
 {
@@ -1606,82 +1564,27 @@ void add_color(vtkCompositeDataDisplayAttributes *att,
   att->SetBlockVisibility(idx, visible);
 }
 
-void cmbNucMainWindow::clearMeshDisplayMaterial()
-{
-  for(size_t i = 0; i < this->Internal->MeshDisplayedMaterial.size(); ++i)
-  {
-    this->Internal->MeshDisplayedMaterial[i]->dec();
-    this->Internal->MeshDisplayedMaterial[i]->clearDisplayed(cmbNucMaterial::MESH);
-  }
-  this->Internal->MeshDisplayedMaterial.clear();
-}
-
 void cmbNucMainWindow::updateMeshMaterials(int i)
 {
-  this->clearMeshDisplayMaterial();
-  if(i == 5 || i == 3)
-  {
-    vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
-    if(dataObj == NULL) return;
-    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
-    int offset = sec->GetNumberOfBlocks()-1;
-    for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
-    {
-      const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
-      QString qname = createMaterialLabel(name);
-      QPointer<cmbNucMaterial> m = this->MaterialColors->getMaterialByName(qname);
-      if(!qname.isEmpty() && m == this->MaterialColors->getUnknownMaterial())
-      {
-        m = this->MaterialColors->AddMaterial(qname,qname);
-      }
-      m->inc();
-      m->setDisplayed(cmbNucMaterial::MESH);
-      this->Internal->MeshDisplayedMaterial.push_back(m);
-    }
-  }
 }
 
 void cmbNucMainWindow::onChangeMeshColorMode(bool b)
 {
-  if(b)
+  vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
+  if(dataObj == NULL) return;
+  QColor color;
+  bool visible;
+  vtkCompositeDataDisplayAttributes *att = this->MeshMapper->GetCompositeDataDisplayAttributes();
+  if(att == NULL) return;
+  att->RemoveBlockVisibilites();
+  att->RemoveBlockOpacities();
+  att->RemoveBlockColors();
+
+  unsigned int total = this->Internal->MoabSource->numberOfParts();
+  for(unsigned int idx=0; idx < total; idx++)
   {
-    vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
-    if(dataObj == NULL) return;
-    QColor color;
-    bool visible;
-    vtkCompositeDataDisplayAttributes *att = this->MeshMapper->GetCompositeDataDisplayAttributes();
-    if(att == NULL) return;
-    att->RemoveBlockVisibilites();
-    att->RemoveBlockOpacities();
-    att->RemoveBlockColors();
-    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
-    int offset = sec->GetNumberOfBlocks()-1;
-    if(sec!= NULL)
-    {
-      for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
-      {
-        if(idx < this->Internal->MeshDisplayedMaterial.size())
-        {
-          color = this->Internal->MeshDisplayedMaterial[idx]->getColor();
-          visible = this->Internal->MeshDisplayedMaterial[idx]->isVisible();
-        }
-        else
-        {
-          unsigned int cind = idx%(numAssemblyDefaultColors-1);
-          color = QColor( defaultAssemblyColors[cind][0],
-                          defaultAssemblyColors[cind][1],
-                          defaultAssemblyColors[cind][2]);
-          visible = this->Internal->MeshDisplayedMaterial.empty();
-        }
-        add_color(att, idx, color, visible);
-      }
-    }
-  }
-  else
-  {
-    vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
-    this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
-    attributes->Delete();
+    this->Internal->MoabSource->getColor(idx, color, visible);
+    add_color(att, idx, color, visible);
   }
   this->MeshMapper->Modified();
   if( isMeshTabVisible() )
@@ -1935,6 +1838,7 @@ bool cmbNucMainWindow::playTest(QString filename)
 void cmbNucMainWindow::setUpTests(QString fname,
                                   QStringList testModelCorrectImages,
                                   QStringList test2DCorrectImages,
+                                  QString testMeshCorrectImage,
                                   QString testDirectory,
                                   QString testOutputDirectory, bool exit)
 {
@@ -1944,6 +1848,7 @@ void cmbNucMainWindow::setUpTests(QString fname,
   this->Internal->Test2DCorrectImages = test2DCorrectImages;
   this->Internal->TestDirectory = testDirectory;
   this->Internal->TestOutputDirectory = testOutputDirectory;
+  this->Internal->TestMeshCorrectImage = testMeshCorrectImage;
 }
 
 void cmbNucMainWindow::playTest()
@@ -1973,8 +1878,8 @@ void cmbNucMainWindow::playTest()
       bool tmp = false;
       QDir tmpDir(this->Internal->TestOutputDirectory);
       QStringList::const_iterator iter;
-      for( iter = this->Internal->Test2DCorrectImages.constBegin();
-          iter != this->Internal->Test2DCorrectImages.constEnd();
+      for( iter  = this->Internal->Test2DCorrectImages.constBegin();
+           iter != this->Internal->Test2DCorrectImages.constEnd();
           ++iter )
       {
         QFileInfo fi(*iter);
@@ -1985,6 +1890,18 @@ void cmbNucMainWindow::playTest()
         if(tmp) break;
       }
       succeded &= tmp;
+    }
+    if(!this->Internal->TestMeshCorrectImage.isEmpty())
+    {
+      if(!this->ui->DockMesh->isVisible()) succeded = false;
+      else
+      {
+        this->ui->qvtkMeshWidget->setMinimumSize( 600, 600 );
+        this->ui->qvtkMeshWidget->setMaximumSize( 600, 600 );
+        vtkRenderWindow* render_window = this->ui->qvtkMeshWidget->GetRenderWindow();
+        succeded &= CompareImage( render_window, this->Internal->TestMeshCorrectImage, 3000,
+                                  this->Internal->TestOutputDirectory );
+      }
     }
   }
   if(this->Internal->ExitWhenTestFinshes)

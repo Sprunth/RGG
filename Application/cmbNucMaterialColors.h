@@ -23,6 +23,9 @@ class cmbNucMaterialColors: public QObject
   Q_OBJECT
 public:
 
+  static QString createMaterialLabel(const char * name);
+
+
   typedef QMap<QString, QPointer<cmbNucMaterial> > Material_Map;
 
 

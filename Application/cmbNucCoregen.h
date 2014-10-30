@@ -6,6 +6,9 @@
 #include <QComboBox>
 #include <QCheckBox>
 #include <QObject>
+#include <QList>
+#include <QTreeWidgetItem>
+#include <QColor>
 #include <vtkSmartPointer.h>
 #include <vtkMultiBlockDataSet.h>
 #include <vtkPolyData.h>
@@ -13,6 +16,7 @@
 #include "cmbNucCore.h"
 #include "ui_qCoregenModel.h"
 #include <vector>
+#include <map>
 
 class vtkMoabReader;
 class vtkGeometryFilter;
@@ -21,10 +25,14 @@ class cmbNucCoregen : public QObject
 {
   Q_OBJECT
 public:
-  cmbNucCoregen(QComboBox *);
+
+  cmbNucCoregen();
   ~cmbNucCoregen();
 
   vtkSmartPointer<vtkDataObject> getData();
+
+  bool isSubSection()
+  { return subSection != -1; }
 
   bool colorBlocks() const { return this->color; }
 
@@ -36,13 +44,21 @@ public:
   void exportVisible(QString outFname,
                      std::vector<std::string> const& remove );
 
+  void getColor(int i, QColor & color, bool & visible);
+
+  unsigned int numberOfParts();
+
 public slots:
   void openFile(QString file);
+  void selectionChanged(QTreeWidgetItem *);
+  void valueChanged(QTreeWidgetItem *);
+  void setColor(bool);
 
 signals:
   void error(QString);
   void update();
   void fileOpen(bool);
+  void components(QList<QTreeWidgetItem*>);
 
 private:
   // Designer form
@@ -50,13 +66,15 @@ private:
   std::vector< vtkSmartPointer<vtkGeometryFilter> > GeoFilt;
   vtkSmartPointer<vtkDataObject> Data;
   std::vector< vtkSmartPointer<vtkDataObject> > DataSets;
-  QComboBox * List;
+  std::vector< std::vector<bool> > SubPartVisible;
+  std::vector< QPointer<cmbNucMaterial> > MeshDisplayedMaterial;
   bool color;
   unsigned int selectedType;
+  int subSection;
   QString FileName;
 
-protected slots:
-  void onSelectionChanged(int sel);
+  void clearMeshDisplayMaterial();
+
 };
 
 #endif

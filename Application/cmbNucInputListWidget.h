@@ -2,6 +2,7 @@
 #define __cmbNucInputListWidget_h
 
 #include <QWidget>
+#include <QTreeWidgetItem>
 #include "cmbNucPartDefinition.h"
 
 class cmbNucAssembly;
@@ -45,8 +46,6 @@ public:
 
   void initMaterialsTree();
 
-  void meshIsLoaded(bool);
-
 signals:
   // Description:
   // Fired when a part/material is selected in the tree
@@ -61,11 +60,18 @@ signals:
   void checkSavedAndGenerate();
 
   void pincellDeleted();
+  void subMeshSelected(QTreeWidgetItem*);
+  void meshValueChanged(QTreeWidgetItem*);
+
+  void sendColorControl(bool);
+  void sendEdgeControl(bool);
 
 public slots:
   void onNewAssembly();
   void valueChanged();
   void onRemoveSelectedPart();
+  void meshIsLoaded(bool);
+  void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -79,6 +85,7 @@ protected:
                            const QColor& color );
   void assemblyModified(cmbNucPartsTreeItem* assyNode);
   void coreModified();
+
 
 private slots:
   // Description:

@@ -57,8 +57,10 @@ public:
   void setUpTests(QString,
                   QStringList testModelCorrectImages,
                   QStringList test2DCorrectImages,
+                  QString testMeshCorrectImage,
                   QString testDirectory,
-                  QString testOutputDirectory, bool exit);
+                  QString testOutputDirectory,
+                  bool exit);
 
 public slots:
   void onExit();
@@ -151,7 +153,6 @@ private:
   Ui_qNucMainWindow *ui;
 
   void doClearAll(bool needSave = false);
-  void clearMeshDisplayMaterial();
 
   cmbNucRender * NucMappers;
   vtkSmartPointer<vtkRenderer> Renderer;

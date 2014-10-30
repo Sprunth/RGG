@@ -20,6 +20,9 @@
    <property name="topMargin">
     <number>6</number>
    </property>
+   <property name="rightMargin">
+    <number>6</number>
+   </property>
    <property name="bottomMargin">
     <number>6</number>
    </property>
@@ -117,6 +120,46 @@
           <string>Hide Labels</string>
          </property>
         </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabMesh">
+      <attribute name="title">
+       <string>Mesh</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="margin">
+        <number>1</number>
+       </property>
+       <item>
+        <widget class="QTreeWidget" name="MeshComponents">
+         <column>
+          <property name="text">
+           <string notr="true">1</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QCheckBox" name="color_control">
+           <property name="text">
+            <string>Color</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="edge_control">
+           <property name="text">
+            <string>Draw Edges</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
