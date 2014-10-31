@@ -2,6 +2,7 @@
 #define __cmbNucInputListWidget_h
 
 #include <QWidget>
+#include <QTreeWidgetItem>
 #include "cmbNucPartDefinition.h"
 
 class cmbNucAssembly;
@@ -59,11 +60,21 @@ signals:
   void checkSavedAndGenerate();
 
   void pincellDeleted();
+  void subMeshSelected(QTreeWidgetItem*);
+  void meshValueChanged(QTreeWidgetItem*);
+  void majorMeshSelection(int);
+
+  void sendColorControl(int);
+  void sendEdgeControl(bool);
+  void resetMeshCamera();
 
 public slots:
   void onNewAssembly();
   void valueChanged();
   void onRemoveSelectedPart();
+  void meshIsLoaded(bool);
+  void updateMainMeshComponents(QStringList parts, int select);
+  void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -77,6 +88,7 @@ protected:
                            const QColor& color );
   void assemblyModified(cmbNucPartsTreeItem* assyNode);
   void coreModified();
+
 
 private slots:
   // Description:

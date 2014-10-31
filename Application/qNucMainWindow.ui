@@ -298,18 +298,7 @@
      </property>
      <item>
       <widget class="QWidget" name="meshControls" native="true">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QComboBox" name="meshSubcomponent"/>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="drawEdges">
-          <property name="text">
-           <string>Draw Edges</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <layout class="QHBoxLayout" name="horizontalLayout_3"/>
       </widget>
      </item>
      <item>

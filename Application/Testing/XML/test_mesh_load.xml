@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenMOABFile" />
+  <event object="APPLICATION" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/simple_hexflatcore-Modified/shfc.h5m" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.0.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCheckState" arguments="0.0.0.1,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.1.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.2.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.3.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.4.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.5.1" />
+  <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="2" />
+  <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="3" />
+  <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="4" />
+  <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="5" />
+  <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="6" />
+  <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="7" />
+  <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="8" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mousePress" arguments="1,1,0,246,351" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mouseMove" arguments="1,0,0,180,227" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mouseRelease" arguments="1,0,0,180,227" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/resetCamera" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/resetCamera" command="activate" arguments="" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mousePress" arguments="1,1,0,248,283" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mouseMove" arguments="1,0,0,323,412" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mouseRelease" arguments="1,0,0,323,412" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/edge_control" command="set_boolean" arguments="true" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/edge_control" command="set_boolean" arguments="false" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/color_control" command="set_string" arguments="Color By Block" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/color_control" command="set_string" arguments="Color By Material" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/color_control" command="set_string" arguments="No Color" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/color_control" command="set_string" arguments="Color By Material" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCheckState" arguments="0.0,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCheckState" arguments="0.0.2.0,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/materialDisplayed" command="set_string" arguments="Core" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="3.0,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="4.0,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="10.0,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="17.0,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="17.0,2" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="18.0,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,10,68" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,11,141" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,11,141" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCheckState" arguments="0.0.7.0,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/meshMajorSet" command="set_string" arguments="Neumann Sets" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCheckState" arguments="0.0.0.0,2" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.1.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.2.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.3.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.4.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.5.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.6.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.7.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.8.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.9.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.10.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.11.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.12.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.13.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.14.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.13.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.12.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.11.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.10.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.9.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.8.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.7.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.6.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.5.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.4.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.3.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.2.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.1.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/resetCamera" command="activate" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionExport_Visible_Mesh" />
+  <event object="APPLICATION" command="FileSave" arguments="${OUTPUT_DIRECTORY}/outer.h5m" />
+  <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionClear_Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assemblies" />
+  <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenMOABFile" />
+  <event object="APPLICATION" command="FilesOpen" arguments="${OUTPUT_DIRECTORY}/outer.h5m" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.0.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCheckState" arguments="0.0.0.1,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.1.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCheckState" arguments="0.0.1.1,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/meshMajorSet" command="set_string" arguments="Neumann Sets" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="0.0.0.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCheckState" arguments="0.0.0.1,0" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mousePress" arguments="1,1,0,156,370" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mouseMove" arguments="1,0,0,185,392" />
+  <event object="qNucMainWindow/DockMesh/dockWidgetContents_5/qvtkMeshWidget" command="mouseRelease" arguments="1,0,0,185,392" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/resetCamera" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/color_control" command="set_string" arguments="Color By Block" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/color_control" command="set_string" arguments="No Color" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/color_control" command="set_string" arguments="Color By Material" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/MeshComponents" command="setCurrent" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/meshMajorSet" command="set_string" arguments="Material Sets" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMesh/resetCamera" command="activate" arguments="" />
+</events>

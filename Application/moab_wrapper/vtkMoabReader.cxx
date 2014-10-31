@@ -99,7 +99,6 @@ int vtkMoabReader::RequestData(vtkInformation *vtkNotUsed(request),
   this->CreateSubBlocks(neumannRoot, &interface, &neTag);
   this->CreateSubBlocks(dirichletRoot, &interface, &diTag);
 
-  //this->CreateSubBlocks(materialRoot, &interface, &metTag); // no points
   this->CreateSubBlocks(materialRoot, &interface, &metTag,  &geom3Tag);
 
   return 1;

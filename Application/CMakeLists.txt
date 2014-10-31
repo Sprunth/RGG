@@ -270,6 +270,8 @@ if(BUILD_TESTING)
                                    test_pin_cellmaterial_hex
                                    test_material )
 
+  set (TESTS_WITH_MESH_BASELINES test_mesh_load)
+
   set (LONG_TEST create_and_save_rect
                  create_and_save_hex)
 
@@ -278,7 +280,9 @@ if(BUILD_TESTING)
   set (TESTS_WITHOUT_BASELINES exit )
 
   foreach(test ${TESTS_WITHOUT_BASELINES})
-    add_test(NAME ${test}_baseline COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test} --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR})
+    add_test(NAME ${test}_baseline
+             COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}
+                                    --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR})
     set_tests_properties(${test}_baseline PROPERTIES TIMEOUT 1000)
     if(APPLE)
       set_tests_properties(${test}_baseline PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")
@@ -292,7 +296,11 @@ if(BUILD_TESTING)
   endforeach()
 
   foreach(test ${TESTS_WITH_2D_BASELINES})
-    add_test(NAME ${test}_2D COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_2D.png)
+    add_test(NAME ${test}_2D
+             COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml
+                                    --exit
+                                    --test-output-directory=${CMAKE_CURRENT_BINARY_DIR}
+                                    --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_2D.png)
     set_tests_properties(${test}_2D PROPERTIES TIMEOUT 1000)
     if(APPLE)
       set_tests_properties(${test}_2D PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")
@@ -306,7 +314,11 @@ if(BUILD_TESTING)
   endforeach()
 
   foreach(test ${TESTS_WITH_MODEL_BASELINES})
-    add_test(NAME ${test}_model COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_model.png)
+    add_test(NAME ${test}_model
+             COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml
+                                    --exit
+                                    --test-output-directory=${CMAKE_CURRENT_BINARY_DIR}
+                                    --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_model.png)
     set_tests_properties(${test}_model PROPERTIES TIMEOUT 1000)
     if(APPLE)
       set_tests_properties(${test}_model PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")
@@ -319,8 +331,31 @@ if(BUILD_TESTING)
     endif()
   endforeach()
 
+  foreach(test ${TESTS_WITH_MESH_BASELINES})
+    add_test(NAME ${test}_mesh
+             COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml
+                                    --exit
+                                    --test-output-directory=${CMAKE_CURRENT_BINARY_DIR}
+                                    --truth-mesh-image=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_mesh.png)
+    set_tests_properties(${test}_mesh PROPERTIES TIMEOUT 1000)
+    if(APPLE)
+      set_tests_properties(${test}_mesh PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")
+    elseif(UNIX)
+      if(BUILD_WITH_CUBIT)
+        set_tests_properties(${test}_mesh PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${CUBIT_PATH}/bin")
+      else()
+        set_tests_properties(${test}_mesh PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib")
+      endif()
+    endif()
+  endforeach()
+
   foreach(test ${LONG_TEST})
-    add_test(NAME ${test}_long COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR} --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_long_3D.png --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_long_2D.png)
+    add_test(NAME ${test}_long
+             COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml
+                                    --exit
+                                    --test-output-directory=${CMAKE_CURRENT_BINARY_DIR}
+                                    --truth-model-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_long_3D.png
+                                    --truth-2D-images=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}_long_2D.png)
     set_tests_properties(${test}_long PROPERTIES TIMEOUT 3200)
     if(APPLE)
       set_tests_properties(${test}_long PROPERTIES ENVIRONMENT "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:$ENV{DYLD_LIBRARY_PATH}")

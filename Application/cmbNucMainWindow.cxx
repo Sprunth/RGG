@@ -134,7 +134,6 @@ protected:
       QXmlStreamReader::TokenType token = this->XMLStream->readNext();
       if (token == QXmlStreamReader::StartElement)
       {
-        qDebug() << this->XMLStream->name();
         if (this->XMLStream->name() == "event")
         {
           break;
@@ -255,6 +254,7 @@ public:
   bool MeshOpen;
   bool IsCoreView;
   bool IsFullMesh;
+  bool HasModel;
   double BoundsModel[6];
   double BoundsMesh[6];
   pqXMLEventObserver * observer;
@@ -262,6 +262,7 @@ public:
   bool ExitWhenTestFinshes;
   QStringList TestModelCorrectImages;
   QStringList Test2DCorrectImages;
+  QString TestMeshCorrectImage;
   QString TestDirectory;
   QString TestOutputDirectory;
 };
@@ -346,10 +347,12 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Internal->IsFullMesh = false;
   this->Internal->CamerasLinked = false;
   this->Internal->MoabSource = NULL;
+  this->Internal->HasModel = false;
 
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
   this->MeshRenderer = vtkSmartPointer<vtkRenderer>::New();
+  this->MeshRenderer->SetBackground(0.3,0.3,0.3); // Background color
   vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
   vtkRenderWindow *meshRenderWindow = this->ui->qvtkMeshWidget->GetRenderWindow();
   renderWindow->AddRenderer(this->Renderer);
@@ -583,17 +586,33 @@ void cmbNucMainWindow::initPanels()
 
   {
     delete(this->Internal->MoabSource);
-    this->Internal->MoabSource = new cmbNucCoregen(this->ui->meshSubcomponent);
+    this->Internal->MoabSource = new cmbNucCoregen();
     this->Internal->MeshOpen = false;
     QObject::connect(this->ExportDialog, SIGNAL(finished(QString)),
             this->Internal->MoabSource, SLOT(openFile(QString)));
     QObject::connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
-    QObject::connect(this->ui->drawEdges, SIGNAL(clicked(bool)),
+    QObject::connect(this->InputsWidget, SIGNAL(sendEdgeControl(bool)),
                      this, SLOT(onChangeMeshEdgeMode(bool)));
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
                      this, SLOT(onSelectionChange()));
     QObject::connect(this->Internal->MoabSource, SIGNAL(fileOpen(bool)),
                      this, SLOT(meshControls(bool)));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(components(QList<QTreeWidgetItem*>)),
+                     this->InputsWidget, SLOT(updateMeshTable(QList<QTreeWidgetItem*>)));
+    QObject::connect(this->InputsWidget, SIGNAL(subMeshSelected(QTreeWidgetItem*)),
+                     this->Internal->MoabSource, SLOT(selectionChanged(QTreeWidgetItem *)));
+    QObject::connect(this->InputsWidget, SIGNAL(meshValueChanged(QTreeWidgetItem*)),
+                     this->Internal->MoabSource, SLOT(valueChanged(QTreeWidgetItem *)));
+    QObject::connect(this->InputsWidget, SIGNAL(sendColorControl(int)),
+                     this->Internal->MoabSource, SLOT(setColor(int)));
+    QObject::connect(this->InputsWidget, SIGNAL(majorMeshSelection(int)),
+                     this->Internal->MoabSource, SLOT(rootChanged(int)));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(components(QStringList, int)),
+                     this->InputsWidget, SLOT(updateMainMeshComponents(QStringList, int)));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(resetCamera()),
+                     this, SLOT(resetMeshCamera()));
+    QObject::connect(this->InputsWidget, SIGNAL(resetMeshCamera()),
+                     this, SLOT(resetMeshCamera()));
   }
 
   if(this->PropertyWidget == NULL)
@@ -842,6 +861,8 @@ void cmbNucMainWindow::onNewCore()
     this->ui->actionGenerate_Cylinder->setEnabled(true);
     this->resetCamera();
     this->Renderer->Render();
+    this->Internal->HasModel = true;
+    this->modelControls(true);
   }
   else
   {
@@ -914,6 +935,8 @@ void cmbNucMainWindow::onFileOpen()
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
         this->ui->actionGenerate_Cylinder->setEnabled(true);
+        this->Internal->HasModel = true;
+        this->modelControls(true);
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -931,6 +954,8 @@ void cmbNucMainWindow::onFileOpen()
         this->ui->actionGenerate_Cylinder->setEnabled(true);
         this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
+        this->Internal->HasModel = true;
+        this->modelControls(true);
         break;
       default:
         qDebug() << "could not open" << fileNames[i];
@@ -974,18 +999,17 @@ void cmbNucMainWindow::onFileOpen()
 void cmbNucMainWindow::onClearMesh()
 {
   Internal->MoabSource->clear();
+  this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
-  this->meshControls(false);
   this->setCameras(this->Internal->IsCoreView, false);
 }
 
 void  cmbNucMainWindow::meshControls(bool v)
 {
   this->ui->DockMesh->setVisible(v);
-  this->ui->meshSubcomponent->setVisible(v);
-  this->ui->drawEdges->setVisible(v);
   this->Internal->MeshOpen = v;
   this->ui->actionExport_Visible_Mesh->setEnabled(v);
+  this->InputsWidget->meshIsLoaded(v);
 }
 
 void cmbNucMainWindow::onFileOpenMoab()
@@ -1003,6 +1027,20 @@ void cmbNucMainWindow::onFileOpenMoab()
     return;
   }
   Internal->MoabSource->openFile(fileNames.first());
+  if(!this->Internal->HasModel)
+  {
+    this->modelControls(false);
+    this->ui->DockMesh->raise();
+    this->setScaledBounds();
+    this->resetCamera();
+    this->ui->qvtkMeshWidget->update();
+  }
+}
+
+void cmbNucMainWindow::modelControls(bool v)
+{
+  this->ui->Dock2D->setVisible(v);
+  this->ui->Dock3D->setVisible(v);
 }
 
 void cmbNucMainWindow::onExportVisibleMesh()
@@ -1287,6 +1325,8 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->ui->actionExport->setEnabled(false);
   this->ui->actionGenerate_Cylinder->setEnabled(false);
 
+  this->Internal->HasModel = false;
+
   if(this->Internal->MoabSource != NULL) this->onClearMesh();
 
   this->setCameras(false, false);
@@ -1297,7 +1337,6 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->MaterialColors->OpenFile(materialfile);
 
   emit checkSave();
-  onChangeMeshEdgeMode(false);
 
   this->ui->qvtkWidget->update();
   this->resetCamera();
@@ -1458,7 +1497,8 @@ void cmbNucMainWindow::ResetView()
 
 void cmbNucMainWindow::colorChange()
 {
-  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+  this->onChangeMeshColorMode();
+  if(!this->Internal->HasModel) return;
   AssyPartObj* cp = this->InputsWidget->getSelectedPart();
   switch(cp->GetType())
   {
@@ -1482,7 +1522,7 @@ void cmbNucMainWindow::colorChange()
 
 void cmbNucMainWindow::Render()
 {
-  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+  this->onChangeMeshColorMode();
 
   //this->updateCoreMaterialColors();
   this->PropertyWidget->colorChanged();
@@ -1494,16 +1534,18 @@ void cmbNucMainWindow::onChangeToModelTab()
 {
   this->onSelectionChange();
   connect(this->Internal->MoabSource, SIGNAL(update()),
-          this, SLOT(onSelectionChange()));
+          this, SLOT(onSelectionChange()), Qt::UniqueConnection);
 }
 
 void cmbNucMainWindow::onSelectionChange()
 {
-  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
-  this->onChangeMeshEdgeMode(this->ui->drawEdges->isChecked());
   int sel = this->Internal->MoabSource->getSelectedType();
   this->setCameras(this->Internal->IsCoreView, sel == 0 || sel == 3 || sel == 5);
+  this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
+
+  this->onChangeMeshColorMode();
+
   vtkBoundingBox box;
   computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
   box.GetBounds(this->Internal->BoundsMesh);
@@ -1512,50 +1554,18 @@ void cmbNucMainWindow::onSelectionChange()
   {
     this->ui->qvtkMeshWidget->update();
   }
+  if(!this->Internal->HasModel)
+  {
+    this->MeshRenderer->Modified();
+    //this->MeshRenderer->ResetCamera();
+    this->ui->qvtkMeshWidget->update();
+  }
 }
 
-QString createMaterialLabel(const char * name)
+void cmbNucMainWindow::resetMeshCamera()
 {
-  if(name == NULL) return QString();
-  QString result(name);
-  if(result.endsWith("_top_ss"))
-  {
-    return result.remove("_top_ss");
-  }
-  if(result.endsWith("_bot_ss"))
-  {
-    return result.remove("_bot_ss");
-  }
-  if(result.endsWith("_side_ss"))
-  {
-    return result.remove("_side_ss");
-  }
-  if(result.endsWith("_side1_ss"))
-  {
-    return result.remove("_side1_ss");
-  }
-  if(result.endsWith("_side2_ss"))
-  {
-    return result.remove("_side2_ss");
-  }
-  if(result.endsWith("_side3_ss"))
-  {
-    return result.remove("_side3_ss");
-  }
-  if(result.endsWith("_side4_ss"))
-  {
-    return result.remove("_side4_ss");
-  }
-  if(result.endsWith("_side5_ss"))
-  {
-    return result.remove("_side5_ss");
-  }
-  if(result.endsWith("_side6_ss"))
-  {
-    return result.remove("_side6_ss");
-  }
-  return QString(&(name[2]));
-
+  this->MeshRenderer->ResetCamera();
+  this->ui->qvtkMeshWidget->update();
 }
 
 void add_color(vtkCompositeDataDisplayAttributes *att,
@@ -1567,67 +1577,24 @@ void add_color(vtkCompositeDataDisplayAttributes *att,
   att->SetBlockVisibility(idx, visible);
 }
 
-void cmbNucMainWindow::onChangeMeshColorMode(bool b)
+void cmbNucMainWindow::onChangeMeshColorMode()
 {
-  if(b)
+  vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
+  if(dataObj == NULL) return;
+  QColor color;
+  bool visible;
+  vtkCompositeDataDisplayAttributes *att = this->MeshMapper->GetCompositeDataDisplayAttributes();
+  if(att == NULL) return;
+  att->RemoveBlockVisibilites();
+  att->RemoveBlockOpacities();
+  att->RemoveBlockColors();
+
+  unsigned int total = this->Internal->MoabSource->numberOfParts();
+  for(unsigned int idx=0; idx < total; idx++)
   {
-    vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
-    if(dataObj == NULL) return;
-    QColor color;
-    bool visible;
-    vtkCompositeDataDisplayAttributes *att = this->MeshMapper->GetCompositeDataDisplayAttributes();
-    if(att == NULL) return;
-    att->RemoveBlockVisibilites();
-    att->RemoveBlockOpacities();
-    att->RemoveBlockColors();
-    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
-    switch(this->Internal->MoabSource->getSelectedType())
-    {
-      case 5: //Material
-      case 3:
-      {
-        int offset = sec->GetNumberOfBlocks()-1;
-        for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
-        {
-          const char * name = sec->GetMetaData((idx+offset)%sec->GetNumberOfBlocks())->Get(vtkCompositeDataSet::NAME());
-          QPointer<cmbNucMaterial> m =
-              this->MaterialColors->getMaterialByName(createMaterialLabel(name));
-          add_color(att, idx, m->getColor(), m->isVisible());
-         }
-        }
-        break;
-      default:
-      {
-        if(sec!= NULL)
-        {
-          for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
-          {
-            unsigned int cind = idx%(numAssemblyDefaultColors-1);
-            color = QColor(defaultAssemblyColors[cind][0],
-                           defaultAssemblyColors[cind][1],
-                           defaultAssemblyColors[cind][2]);
-            visible = true;
-            add_color(att, idx, color, visible);
-          }
-        }
-        else
-        {
-          color = QColor(defaultAssemblyColors[0][0],
-                         defaultAssemblyColors[0][1],
-                         defaultAssemblyColors[0][2]);
-          visible = true;
-          add_color(att, 0, color, visible);
-        }
-      }
-    }
+    this->Internal->MoabSource->getColor(idx, color, visible);
+    add_color(att, idx, color, visible);
   }
-  else
-  {
-    vtkCompositeDataDisplayAttributes *attributes = vtkCompositeDataDisplayAttributes::New();
-    this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
-    attributes->Delete();
-  }
-  //this->MeshRenderer->SetActiveCamera(Renderer->GetActiveCamera());
   this->MeshMapper->Modified();
   if( isMeshTabVisible() )
   {
@@ -1880,6 +1847,7 @@ bool cmbNucMainWindow::playTest(QString filename)
 void cmbNucMainWindow::setUpTests(QString fname,
                                   QStringList testModelCorrectImages,
                                   QStringList test2DCorrectImages,
+                                  QString testMeshCorrectImage,
                                   QString testDirectory,
                                   QString testOutputDirectory, bool exit)
 {
@@ -1889,6 +1857,7 @@ void cmbNucMainWindow::setUpTests(QString fname,
   this->Internal->Test2DCorrectImages = test2DCorrectImages;
   this->Internal->TestDirectory = testDirectory;
   this->Internal->TestOutputDirectory = testOutputDirectory;
+  this->Internal->TestMeshCorrectImage = testMeshCorrectImage;
 }
 
 void cmbNucMainWindow::playTest()
@@ -1918,8 +1887,8 @@ void cmbNucMainWindow::playTest()
       bool tmp = false;
       QDir tmpDir(this->Internal->TestOutputDirectory);
       QStringList::const_iterator iter;
-      for( iter = this->Internal->Test2DCorrectImages.constBegin();
-          iter != this->Internal->Test2DCorrectImages.constEnd();
+      for( iter  = this->Internal->Test2DCorrectImages.constBegin();
+           iter != this->Internal->Test2DCorrectImages.constEnd();
           ++iter )
       {
         QFileInfo fi(*iter);
@@ -1930,6 +1899,18 @@ void cmbNucMainWindow::playTest()
         if(tmp) break;
       }
       succeded &= tmp;
+    }
+    if(!this->Internal->TestMeshCorrectImage.isEmpty())
+    {
+      if(!this->ui->DockMesh->isVisible()) succeded = false;
+      else
+      {
+        this->ui->qvtkMeshWidget->setMinimumSize( 600, 600 );
+        this->ui->qvtkMeshWidget->setMaximumSize( 600, 600 );
+        vtkRenderWindow* render_window = this->ui->qvtkMeshWidget->GetRenderWindow();
+        succeded &= CompareImage( render_window, this->Internal->TestMeshCorrectImage, 3000,
+                                  this->Internal->TestOutputDirectory );
+      }
     }
   }
   if(this->Internal->ExitWhenTestFinshes)
