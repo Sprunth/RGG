@@ -89,6 +89,7 @@ public slots:
   void onExportVisibleMesh();
   void meshControls(bool);
   void modelControls(bool);
+  void resetMeshCamera();
 
 signals:
   void updateGlobalZScale(double scale);

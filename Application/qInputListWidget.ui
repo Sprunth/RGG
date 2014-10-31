@@ -132,6 +132,20 @@
         <number>1</number>
        </property>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QComboBox" name="meshMajorSet"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="resetCamera">
+           <property name="text">
+            <string>Reset Camera</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QTreeWidget" name="MeshComponents">
          <column>
           <property name="text">
@@ -143,14 +157,39 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QCheckBox" name="color_control">
-           <property name="text">
-            <string>Color</string>
+          <widget class="QComboBox" name="color_control">
+           <property name="currentIndex">
+            <number>1</number>
            </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
+           <item>
+            <property name="text">
+             <string>No Color</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Color By Material</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Color By Block</string>
+            </property>
+           </item>
           </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
          <item>
           <widget class="QCheckBox" name="edge_control">

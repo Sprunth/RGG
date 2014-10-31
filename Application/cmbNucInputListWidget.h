@@ -62,15 +62,18 @@ signals:
   void pincellDeleted();
   void subMeshSelected(QTreeWidgetItem*);
   void meshValueChanged(QTreeWidgetItem*);
+  void majorMeshSelection(int);
 
-  void sendColorControl(bool);
+  void sendColorControl(int);
   void sendEdgeControl(bool);
+  void resetMeshCamera();
 
 public slots:
   void onNewAssembly();
   void valueChanged();
   void onRemoveSelectedPart();
   void meshIsLoaded(bool);
+  void updateMainMeshComponents(QStringList parts, int select);
   void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
 
 protected:

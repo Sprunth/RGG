@@ -180,10 +180,15 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   QObject::connect(this, SIGNAL(deleteAssembly(QTreeWidgetItem*)),
                    this, SLOT(onDeleteAssembly(QTreeWidgetItem*)));
 
-  QObject::connect(this->Internal->color_control, SIGNAL(clicked(bool)),
-                   this, SIGNAL(sendColorControl(bool)));
+  QObject::connect(this->Internal->color_control, SIGNAL(currentIndexChanged(int)),
+                   this, SIGNAL(sendColorControl(int)));
   QObject::connect(this->Internal->edge_control, SIGNAL(clicked(bool)),
                    this, SIGNAL(sendEdgeControl(bool)));
+
+  QObject::connect(this->Internal->meshMajorSet, SIGNAL(currentIndexChanged(int)),
+                   this, SIGNAL(majorMeshSelection(int)));
+
+  QObject::connect(this->Internal->resetCamera, SIGNAL(clicked()), this, SIGNAL(resetMeshCamera()));
 
   this->initUI();
 }
@@ -921,7 +926,16 @@ void cmbNucInputListWidget::updateMeshTable(QList<QTreeWidgetItem*> meshParts)
   treeWidget->setAcceptDrops(false);
   treeWidget->addTopLevelItems( meshParts );
   treeWidget->resizeColumnToContents(0);
-   meshParts.at(5)->setSelected(true);
+  meshParts.at(0)->setSelected(true);
   treeWidget->blockSignals(false);
-  emit(subMeshSelected(meshParts.at(5)));
+  emit(subMeshSelected(meshParts.at(0)));
+}
+
+void cmbNucInputListWidget::updateMainMeshComponents(QStringList parts, int sel)
+{
+  this->Internal->meshMajorSet->blockSignals(true);
+  this->Internal->meshMajorSet->clear();
+  this->Internal->meshMajorSet->addItems(parts);
+  this->Internal->meshMajorSet->blockSignals(false);
+  this->Internal->meshMajorSet->setCurrentIndex ( sel );
 }

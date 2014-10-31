@@ -52,13 +52,16 @@ public slots:
   void openFile(QString file);
   void selectionChanged(QTreeWidgetItem *);
   void valueChanged(QTreeWidgetItem *);
-  void setColor(bool);
+  void setColor(int);
+  void rootChanged(int r);
 
 signals:
   void error(QString);
   void update();
   void fileOpen(bool);
   void components(QList<QTreeWidgetItem*>);
+  void components(QStringList parts, int sel);
+  void resetCamera();
 
 private:
   // Designer form
@@ -68,7 +71,8 @@ private:
   std::vector< vtkSmartPointer<vtkDataObject> > DataSets;
   std::vector< std::vector<bool> > SubPartVisible;
   std::vector< QPointer<cmbNucMaterial> > MeshDisplayedMaterial;
-  bool color;
+  std::vector< std::string > Names;
+  int color;
   unsigned int selectedType;
   int subSection;
   QString FileName;

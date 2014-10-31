@@ -352,6 +352,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   // VTK/Qt wedded
   this->Renderer = vtkSmartPointer<vtkRenderer>::New();
   this->MeshRenderer = vtkSmartPointer<vtkRenderer>::New();
+  this->MeshRenderer->SetBackground(0.3,0.3,0.3); // Background color
   vtkRenderWindow *renderWindow = this->ui->qvtkWidget->GetRenderWindow();
   vtkRenderWindow *meshRenderWindow = this->ui->qvtkMeshWidget->GetRenderWindow();
   renderWindow->AddRenderer(this->Renderer);
@@ -602,8 +603,16 @@ void cmbNucMainWindow::initPanels()
                      this->Internal->MoabSource, SLOT(selectionChanged(QTreeWidgetItem *)));
     QObject::connect(this->InputsWidget, SIGNAL(meshValueChanged(QTreeWidgetItem*)),
                      this->Internal->MoabSource, SLOT(valueChanged(QTreeWidgetItem *)));
-    QObject::connect(this->InputsWidget, SIGNAL(sendColorControl(bool)),
-                     this->Internal->MoabSource, SLOT(setColor(bool)));
+    QObject::connect(this->InputsWidget, SIGNAL(sendColorControl(int)),
+                     this->Internal->MoabSource, SLOT(setColor(int)));
+    QObject::connect(this->InputsWidget, SIGNAL(majorMeshSelection(int)),
+                     this->Internal->MoabSource, SLOT(rootChanged(int)));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(components(QStringList, int)),
+                     this->InputsWidget, SLOT(updateMainMeshComponents(QStringList, int)));
+    QObject::connect(this->Internal->MoabSource, SIGNAL(resetCamera()),
+                     this, SLOT(resetMeshCamera()));
+    QObject::connect(this->InputsWidget, SIGNAL(resetMeshCamera()),
+                     this, SLOT(resetMeshCamera()));
   }
 
   if(this->PropertyWidget == NULL)
@@ -1550,9 +1559,15 @@ void cmbNucMainWindow::onSelectionChange()
   if(!this->Internal->HasModel)
   {
     this->MeshRenderer->Modified();
-    this->MeshRenderer->ResetCamera();
+    //this->MeshRenderer->ResetCamera();
     this->ui->qvtkMeshWidget->update();
   }
+}
+
+void cmbNucMainWindow::resetMeshCamera()
+{
+  this->MeshRenderer->ResetCamera();
+  this->ui->qvtkMeshWidget->update();
 }
 
 void add_color(vtkCompositeDataDisplayAttributes *att,

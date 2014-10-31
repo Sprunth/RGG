@@ -120,35 +120,39 @@ unsigned int cmbNucCoregen::numberOfParts()
 void cmbNucCoregen::getColor(int i, QColor & color, bool & visible)
 {
   int offset = this->MeshDisplayedMaterial.size()-1;
-  int idx = (this->subSection == -1)?(i+offset)%(this->MeshDisplayedMaterial.size()):i;
+  int idx = (this->subSection == -1)?(i+offset)%(this->MeshDisplayedMaterial.size()):(i);
   bool tmpv = this->SubPartVisible[this->selectedType][(this->subSection == -1)?idx:this->subSection];
-  if(this->color)
+  switch(this->color)
   {
-    if(this->selectedType == 3 || this->selectedType == 5)
+    case 1:
     {
       if(static_cast<size_t>(i) < this->MeshDisplayedMaterial.size() && this->MeshDisplayedMaterial[idx] != NULL)
       {
         color = this->MeshDisplayedMaterial[idx]->getColor();
         visible = this->MeshDisplayedMaterial[idx]->isVisible() && tmpv;
-        return;
       }
       else
       {
         color = cmbNucMaterialColors::instance()->getUnknownMaterial()->getColor();
         visible = cmbNucMaterialColors::instance()->getUnknownMaterial()->isVisible() && tmpv;
-        return;
       }
+      break;
     }
-    unsigned int cind = ((isSubSection())?subSection:i)%(numAssemblyDefaultColors-1);
+    case 2:
+    {
+      unsigned int cind = ((isSubSection())?subSection:idx)%(numAssemblyDefaultColors-1);
 
-    color = QColor( defaultAssemblyColors[cind][0],
-                    defaultAssemblyColors[cind][1],
-                    defaultAssemblyColors[cind][2]);
-    visible = tmpv;
-    return;
+      color = QColor( defaultAssemblyColors[cind][0],
+                      defaultAssemblyColors[cind][1],
+                      defaultAssemblyColors[cind][2] );
+      visible = tmpv;
+      break;
+    }
+    break;
+    default:
+      color = QColor( 255, 255, 255 );
+      visible = tmpv;
   }
-  color = QColor( 255, 255, 255 );
-  visible = tmpv;
 }
 
 void cmbNucCoregen::clear()
@@ -168,6 +172,47 @@ cmbNucCoregen::getData()
   return this->Data;
 }
 
+void cmbNucCoregen::rootChanged(int i)
+{
+  int unknown = 0;
+  if(i > DataSets.size()) return;
+  QList<QTreeWidgetItem*> roots;
+  vtkSmartPointer<vtkDataObject> dataObj = DataSets[i];
+  if(dataObj == NULL) return;
+  MeshTreeItem * root = new MeshTreeItem(NULL, i, -1, DataSets[i]);
+  root->setText(0, QString(this->Names[i].c_str()));
+  vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
+  if(sec == NULL) return;
+  int offset = sec->GetNumberOfBlocks()-1;
+  QString gname;
+  root->materials.resize(sec->GetNumberOfBlocks());
+  Qt::ItemFlags matFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable |
+                         Qt::ItemIsEditable | Qt::ItemIsUserCheckable);
+  for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
+  {
+    const char * name = sec->GetMetaData(idx)->Get(vtkCompositeDataSet::NAME());
+    QString label(name);
+    if(label.isEmpty())
+    {
+      label = "Unlabeled " + QString::number(unknown++);
+    }
+    MeshTreeItem* node = new MeshTreeItem(root, i, static_cast<int>(idx), sec->GetBlock(idx));
+    node->setText(2,gname);
+    node->setText(1, label);
+    node->setFlags(matFlags);
+    node->setCheckState(0, (this->SubPartVisible[i][idx])?(Qt::Checked):(Qt::Unchecked));
+    if(i == 3 || i==5)
+    {
+      QString matname = cmbNucMaterialColors::createMaterialLabel(name);
+      QPointer<cmbNucMaterial> m = cmbNucMaterialColors::instance()->getMaterialByName(matname);
+      node->materials.push_back(m);
+      root->materials[idx] = m;
+    }
+  }
+  roots.append(root);
+  emit components(roots);
+}
+
 void cmbNucCoregen::openFile(QString file)
 {
   if(file.isEmpty()) return;
@@ -179,63 +224,39 @@ void cmbNucCoregen::openFile(QString file)
   this->GeoFilt.resize(tmp->GetNumberOfBlocks(), NULL);
   QList<QTreeWidgetItem*> roots;
 
-  Qt::ItemFlags matFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable |
-                         Qt::ItemIsEditable | Qt::ItemIsUserCheckable);
   int unknown = 0;
   this->SubPartVisible.resize(tmp->GetNumberOfBlocks());
+  this->Names.resize(tmp->GetNumberOfBlocks());
+  QStringList list;
 
   for (unsigned int i = 0; i < tmp->GetNumberOfBlocks(); ++i)
   {
     if(this->GeoFilt[i] == NULL) this->GeoFilt[i] = vtkSmartPointer<vtkGeometryFilter>::New();
     const char * pname = tmp->GetMetaData(i)->Get(vtkCompositeDataSet::NAME());
+    this->Names[i] = pname;
+    list.append(QString(pname));
     this->GeoFilt[i]->SetInputData(tmp->GetBlock(i));
     this->GeoFilt[i]->Update();
     DataSets[i].TakeReference(this->GeoFilt[i]->GetOutputDataObject(0)->NewInstance());
     DataSets[i]->DeepCopy(this->GeoFilt[i]->GetOutputDataObject(0));
-    vtkSmartPointer<vtkDataObject> dataObj = DataSets[i];
-    if(dataObj == NULL) continue;
-    //QTreeWidgetItem * root = new QTreeWidgetItem();
-    MeshTreeItem * root = new MeshTreeItem(NULL, i, -1, DataSets[i]);
-    root->setText(0, QString(pname));
-    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
+    vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(DataSets[i]);
     if(sec == NULL) continue;
-    int offset = sec->GetNumberOfBlocks()-1;
-    QString gname;
-    root->materials.resize(sec->GetNumberOfBlocks());
-    this->SubPartVisible[i].resize(sec->GetNumberOfBlocks());
+    this->SubPartVisible[i].resize(sec->GetNumberOfBlocks(), true);
     for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
     {
       const char * name = sec->GetMetaData(idx)->Get(vtkCompositeDataSet::NAME());
-      QString label(name);
       QString matname = cmbNucMaterialColors::createMaterialLabel(name);
       if(!matname.isEmpty() &&
-         cmbNucMaterialColors::instance()->getMaterialByName(matname) == cmbNucMaterialColors::instance()->getUnknownMaterial())
+         cmbNucMaterialColors::instance()->getMaterialByName(matname) ==
+         cmbNucMaterialColors::instance()->getUnknownMaterial())
       {
         cmbNucMaterialColors::instance()->AddMaterial(matname,matname);
       }
-      if(label.isEmpty())
-      {
-        label = "Unlabeled " + QString::number(unknown++);
-      }
-      MeshTreeItem* node = new MeshTreeItem(root, i, static_cast<int>(idx), sec->GetBlock(idx));
-      node->setText(2,gname);
-      node->setText(1, label);
-      node->setFlags(matFlags);
-      node->setCheckState(0, Qt::Checked);
-      assert(idx < this->SubPartVisible[i].size());
-      this->SubPartVisible[i][idx] = true;
-      assert(this->SubPartVisible[i][idx]);
-      if(i == 3 || i==5)
-      {
-        QPointer<cmbNucMaterial> m = cmbNucMaterialColors::instance()->getMaterialByName(matname);
-        node->materials.push_back(m);
-        root->materials[idx] = m;
-      }
     }
-    roots.append(root);
   }
   emit fileOpen(true);
-  emit components(roots);
+  emit components(list,5);
+  emit resetCamera();
 }
 
 void cmbNucCoregen::exportVisible(QString outFname, std::vector<std::string> const& remove )
@@ -244,7 +265,7 @@ void cmbNucCoregen::exportVisible(QString outFname, std::vector<std::string> con
   extract_subset::extract(FileName.toStdString(), outFname.toStdString(), this->SubPartVisible, remove);
 }
 
-void cmbNucCoregen::setColor(bool c)
+void cmbNucCoregen::setColor(int c)
 {
   this->color = c;
   emit update();
