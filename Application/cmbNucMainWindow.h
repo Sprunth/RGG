@@ -119,7 +119,7 @@ protected slots:
 
   void onSelectionChange();
 
-  void onChangeMeshColorMode(bool b);
+  void onChangeMeshColorMode();
   void onChangeMeshEdgeMode(bool b);
 
   // updates the block colors based on their materials
@@ -146,8 +146,6 @@ protected slots:
   void clearOuter();
 
   void resetCamera();
-
-  void updateMeshMaterials(int i);
 
 private:
   // Designer form

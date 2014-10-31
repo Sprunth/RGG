@@ -23,10 +23,10 @@ extern int numAssemblyDefaultColors;
 class MeshTreeItem : public QTreeWidgetItem
 {
 public:
-  MeshTreeItem(QTreeWidgetItem* pNode, size_t r, int s, vtkSmartPointer<vtkDataObject> d)
+  MeshTreeItem(QTreeWidgetItem* pNode, size_t r, int s, vtkSmartPointer<vtkDataObject> data_in)
   :QTreeWidgetItem(pNode)
   {
-    data = d;
+    data = data_in;
     rootId = r;
     subId = s;
   }
@@ -91,7 +91,7 @@ void cmbNucCoregen::valueChanged(QTreeWidgetItem * item)
   if(mitem == NULL) return;
   bool value = item->checkState(0)!=0;
   assert(mitem->rootId<this->SubPartVisible.size());
-  assert(mitem->subId<this->SubPartVisible[mitem->rootId].size());
+  assert(static_cast<size_t>(mitem->subId)<this->SubPartVisible[mitem->rootId].size());
   this->SubPartVisible[mitem->rootId][mitem->subId] = value;
   emit(update());
 }
@@ -117,7 +117,7 @@ unsigned int cmbNucCoregen::numberOfParts()
   }
 }
 
-void cmbNucCoregen::getColor(int i, QColor & color, bool & visible)
+void cmbNucCoregen::getColor(int i, QColor & color_out, bool & visible)
 {
   int offset = this->MeshDisplayedMaterial.size()-1;
   int idx = (this->subSection == -1)?(i+offset)%(this->MeshDisplayedMaterial.size()):(i);
@@ -128,12 +128,12 @@ void cmbNucCoregen::getColor(int i, QColor & color, bool & visible)
     {
       if(static_cast<size_t>(i) < this->MeshDisplayedMaterial.size() && this->MeshDisplayedMaterial[idx] != NULL)
       {
-        color = this->MeshDisplayedMaterial[idx]->getColor();
+        color_out = this->MeshDisplayedMaterial[idx]->getColor();
         visible = this->MeshDisplayedMaterial[idx]->isVisible() && tmpv;
       }
       else
       {
-        color = cmbNucMaterialColors::instance()->getUnknownMaterial()->getColor();
+        color_out = cmbNucMaterialColors::instance()->getUnknownMaterial()->getColor();
         visible = cmbNucMaterialColors::instance()->getUnknownMaterial()->isVisible() && tmpv;
       }
       break;
@@ -142,15 +142,15 @@ void cmbNucCoregen::getColor(int i, QColor & color, bool & visible)
     {
       unsigned int cind = ((isSubSection())?subSection:idx)%(numAssemblyDefaultColors-1);
 
-      color = QColor( defaultAssemblyColors[cind][0],
-                      defaultAssemblyColors[cind][1],
-                      defaultAssemblyColors[cind][2] );
+      color_out = QColor( defaultAssemblyColors[cind][0],
+                          defaultAssemblyColors[cind][1],
+                          defaultAssemblyColors[cind][2] );
       visible = tmpv;
       break;
     }
     break;
     default:
-      color = QColor( 255, 255, 255 );
+      color_out = QColor( 255, 255, 255 );
       visible = tmpv;
   }
 }
@@ -175,7 +175,7 @@ cmbNucCoregen::getData()
 void cmbNucCoregen::rootChanged(int i)
 {
   int unknown = 0;
-  if(i > DataSets.size()) return;
+  if(static_cast<size_t>(i) > DataSets.size()) return;
   QList<QTreeWidgetItem*> roots;
   vtkSmartPointer<vtkDataObject> dataObj = DataSets[i];
   if(dataObj == NULL) return;
@@ -183,7 +183,6 @@ void cmbNucCoregen::rootChanged(int i)
   root->setText(0, QString(this->Names[i].c_str()));
   vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(dataObj);
   if(sec == NULL) return;
-  int offset = sec->GetNumberOfBlocks()-1;
   QString gname;
   root->materials.resize(sec->GetNumberOfBlocks());
   Qt::ItemFlags matFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable |
@@ -224,7 +223,6 @@ void cmbNucCoregen::openFile(QString file)
   this->GeoFilt.resize(tmp->GetNumberOfBlocks(), NULL);
   QList<QTreeWidgetItem*> roots;
 
-  int unknown = 0;
   this->SubPartVisible.resize(tmp->GetNumberOfBlocks());
   this->Names.resize(tmp->GetNumberOfBlocks());
   QStringList list;

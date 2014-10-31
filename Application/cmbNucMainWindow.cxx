@@ -1035,7 +1035,6 @@ void cmbNucMainWindow::onFileOpenMoab()
     this->resetCamera();
     this->ui->qvtkMeshWidget->update();
   }
-  this->updateMeshMaterials(this->Internal->MoabSource->getSelectedType());
 }
 
 void cmbNucMainWindow::modelControls(bool v)
@@ -1498,7 +1497,7 @@ void cmbNucMainWindow::ResetView()
 
 void cmbNucMainWindow::colorChange()
 {
-  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+  this->onChangeMeshColorMode();
   if(!this->Internal->HasModel) return;
   AssyPartObj* cp = this->InputsWidget->getSelectedPart();
   switch(cp->GetType())
@@ -1523,7 +1522,7 @@ void cmbNucMainWindow::colorChange()
 
 void cmbNucMainWindow::Render()
 {
-  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+  this->onChangeMeshColorMode();
 
   //this->updateCoreMaterialColors();
   this->PropertyWidget->colorChanged();
@@ -1545,8 +1544,7 @@ void cmbNucMainWindow::onSelectionChange()
   this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
 
-  this->updateMeshMaterials(this->Internal->MoabSource->getSelectedType());
-  this->onChangeMeshColorMode(this->Internal->MoabSource->colorBlocks());
+  this->onChangeMeshColorMode();
 
   vtkBoundingBox box;
   computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
@@ -1579,11 +1577,7 @@ void add_color(vtkCompositeDataDisplayAttributes *att,
   att->SetBlockVisibility(idx, visible);
 }
 
-void cmbNucMainWindow::updateMeshMaterials(int i)
-{
-}
-
-void cmbNucMainWindow::onChangeMeshColorMode(bool b)
+void cmbNucMainWindow::onChangeMeshColorMode()
 {
   vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
   if(dataObj == NULL) return;

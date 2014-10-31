@@ -34,8 +34,6 @@ public:
   bool isSubSection()
   { return subSection != -1; }
 
-  bool colorBlocks() const { return this->color; }
-
   unsigned int getSelectedType() const
   { return selectedType; }
 
