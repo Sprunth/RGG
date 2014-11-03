@@ -79,14 +79,10 @@ add_revision(manta
   URL "http://paraview.org/files/dependencies/manta-r2439.tar.gz"
   URL_MD5 fbf4107fe2f6d7e8a5ae3dda71805bdc)
 
-add_revision(molequeue
-  GIT_REPOSITORY git://source.openchemistry.org/molequeue.git
-  GIT_TAG e545ee25b4b79d5bae9e1)
-
 add_revision( nuclearRGG SOURCE_DIR ${CMAKE_SOURCE_DIR}/.. )
 
 add_revision(vtk
-  GIT_REPOSITORY git://vtk.org/VTK.git
+  GIT_REPOSITORY http://vtk.org/VTK.git
   GIT_TAG fa9ca03e2fb4ee413e3070e05cff2206170177c4 )
 
 if (UNIX)
@@ -159,7 +155,7 @@ endif()
 
 add_revision(remus
   GIT_REPOSITORY http://public.kitware.com/Remus.git
-  GIT_TAG 6b382bd4df55585a96adfae9dd9d6e7198a25b23
+  GIT_TAG dceff20f93de6067ca9e2b688153fe0167a9b2e8
   )
 
 add_revision(kml

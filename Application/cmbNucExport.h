@@ -21,6 +21,7 @@ class ExecuteProcess;
 namespace server
 {
 class Server;
+class WorkerFactory;
 }
 }
 
