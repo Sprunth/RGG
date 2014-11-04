@@ -227,7 +227,7 @@ void cmbNucExporterWorker::run()
     if(pollStatus(process, job))
     {
       remus::proto::JobResult results = remus::proto::make_JobResult(job.id(),"DUMMY FOR NOW;");
-      this->returnMeshResults(results);
+      this->returnResult(results);
     }
     else
     {
