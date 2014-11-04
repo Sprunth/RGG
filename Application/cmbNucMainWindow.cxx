@@ -863,6 +863,7 @@ void cmbNucMainWindow::onNewCore()
     this->Renderer->Render();
     this->Internal->HasModel = true;
     this->modelControls(true);
+    this->InputsWidget->modelIsLoaded(true);
   }
   else
   {
@@ -961,7 +962,7 @@ void cmbNucMainWindow::onFileOpen()
         qDebug() << "could not open" << fileNames[i];
     }
   }
-  this->InputsWidget->setToModel();
+  this->InputsWidget->modelIsLoaded(true);
 
   int numNewAssy = this->NuclearCore->GetNumberOfAssemblies() - numExistingAssy;
   if(numNewAssy && !need_to_use_assem)

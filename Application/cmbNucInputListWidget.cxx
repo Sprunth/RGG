@@ -127,8 +127,7 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   this->Internal->setupUi(this);
   this->Internal->initActions();
 
-  this->Internal->tabInputs->setTabEnabled(0, false);
-  this->Internal->tabInputs->setTabEnabled(1, false);
+  this->modelIsLoaded(false);
   this->Internal->tabInputs->setTabEnabled(2, false);
 
   this->Internal->PartsList->setAlternatingRowColors(true);
@@ -218,16 +217,8 @@ void cmbNucInputListWidget::clear()
   {
     this->Internal->RootCoreNode = NULL;
   }
-  this->Internal->tabInputs->setTabEnabled(0, false);
-  this->Internal->tabInputs->setTabEnabled(1, false);
+  this->modelIsLoaded(false);
   this->Internal->tabInputs->setTabEnabled(2, false);
-}
-
-void cmbNucInputListWidget::setToModel()
-{
-  this->Internal->tabInputs->setCurrentIndex(0);
-  this->Internal->tabInputs->setTabEnabled(0, true);
-  this->Internal->tabInputs->setTabEnabled(1, true);
 }
 
 bool cmbNucInputListWidget::onlyMeshLoaded()
@@ -938,4 +929,11 @@ void cmbNucInputListWidget::updateMainMeshComponents(QStringList parts, int sel)
   this->Internal->meshMajorSet->addItems(parts);
   this->Internal->meshMajorSet->blockSignals(false);
   this->Internal->meshMajorSet->setCurrentIndex ( sel );
+}
+
+void cmbNucInputListWidget::modelIsLoaded(bool v)
+{
+  if(v) this->Internal->tabInputs->setCurrentIndex(0);
+  this->Internal->tabInputs->setTabEnabled(0, v);
+  this->Internal->tabInputs->setTabEnabled(1, v);
 }
