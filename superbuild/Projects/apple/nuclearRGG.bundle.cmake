@@ -47,7 +47,7 @@ if(ENABLE_meshkit)
               execute_process(
                 COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
                         \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/coregen\"
-                        \"${install_location}/lib\"
+                        \"${SEARCH_LOC}\"
                         \"${install_location}/plugins\")
     "
     COMPONENT superbuild)
