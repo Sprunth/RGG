@@ -20,6 +20,7 @@
 #include <QMenu>
 #include <QHeaderView>
 #include <QPainter>
+#include <QTreeWidgetItem>
 
 class PartsItemDelegate: public QItemDelegate
 {
@@ -126,6 +127,10 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   this->Internal->setupUi(this);
   this->Internal->initActions();
 
+  this->Internal->tabInputs->setTabEnabled(0, false);
+  this->Internal->tabInputs->setTabEnabled(1, false);
+  this->Internal->tabInputs->setTabEnabled(2, false);
+
   this->Internal->PartsList->setAlternatingRowColors(true);
   this->Internal->PartsList->header()->setResizeMode(QHeaderView::ResizeToContents);
 
@@ -163,11 +168,27 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   QObject::connect(this->Internal->MaterialTree, SIGNAL(itemClicked (QTreeWidgetItem*, int)),
                    this, SLOT(onMaterialClicked(QTreeWidgetItem*, int)), Qt::QueuedConnection);
 
+  QObject::connect(this->Internal->MeshComponents, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem * )),
+                   this, SIGNAL(subMeshSelected(QTreeWidgetItem *)), Qt::QueuedConnection);
+
+  QObject::connect(this->Internal->MeshComponents, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
+                   this, SIGNAL(meshValueChanged(QTreeWidgetItem*)));
+
   QObject::connect(this->Internal->tabInputs, SIGNAL(currentChanged(int)),
                    this, SLOT(onTabChanged(int)));
 
   QObject::connect(this, SIGNAL(deleteAssembly(QTreeWidgetItem*)),
                    this, SLOT(onDeleteAssembly(QTreeWidgetItem*)));
+
+  QObject::connect(this->Internal->color_control, SIGNAL(currentIndexChanged(int)),
+                   this, SIGNAL(sendColorControl(int)));
+  QObject::connect(this->Internal->edge_control, SIGNAL(clicked(bool)),
+                   this, SIGNAL(sendEdgeControl(bool)));
+
+  QObject::connect(this->Internal->meshMajorSet, SIGNAL(currentIndexChanged(int)),
+                   this, SIGNAL(majorMeshSelection(int)));
+
+  QObject::connect(this->Internal->resetCamera, SIGNAL(clicked()), this, SIGNAL(resetMeshCamera()));
 
   this->initUI();
 }
@@ -197,17 +218,30 @@ void cmbNucInputListWidget::clear()
   {
     this->Internal->RootCoreNode = NULL;
   }
+  this->Internal->tabInputs->setTabEnabled(0, false);
+  this->Internal->tabInputs->setTabEnabled(1, false);
+  this->Internal->tabInputs->setTabEnabled(2, false);
 }
 
 void cmbNucInputListWidget::setToModel()
 {
   this->Internal->tabInputs->setCurrentIndex(0);
   this->Internal->tabInputs->setTabEnabled(0, true);
+  this->Internal->tabInputs->setTabEnabled(1, true);
 }
 
 bool cmbNucInputListWidget::onlyMeshLoaded()
 {
   return this->isEnabled() && !this->Internal->tabInputs->isTabEnabled(0);
+}
+
+void cmbNucInputListWidget::meshIsLoaded(bool v)
+{
+  if(this->onlyMeshLoaded() || v) this->setEnabled(v);
+  if(this->onlyMeshLoaded() || v) this->Internal->tabInputs->setTabEnabled(1, v);
+  this->Internal->tabInputs->setTabEnabled(2, v);
+  if(v) this->initMaterialsTree();
+  if(v && onlyMeshLoaded()) this->Internal->tabInputs->setCurrentIndex(2);
 }
 
 //-----------------------------------------------------------------------------
@@ -872,9 +906,36 @@ AssyPartObj* cmbNucInputListWidget::getSelectedCoreOrAssembly()
 void cmbNucInputListWidget::clearTable()
 {
   this->Internal->PartsList->clear();
+  this->Internal->MeshComponents->clear();
 }
 
 void cmbNucInputListWidget::hideLabels(bool v)
 {
   this->Internal->MaterialTree->setColumnHidden(2,v);
+}
+
+void cmbNucInputListWidget::updateMeshTable(QList<QTreeWidgetItem*> meshParts)
+{
+  QTreeWidget* treeWidget = this->Internal->MeshComponents;
+
+  treeWidget->blockSignals(true);
+  treeWidget->clear();
+  treeWidget->setHeaderLabels(QStringList() << tr("") << tr(""));
+  treeWidget->setHeaderHidden(true);
+  treeWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+  treeWidget->setAcceptDrops(false);
+  treeWidget->addTopLevelItems( meshParts );
+  treeWidget->resizeColumnToContents(0);
+  meshParts.at(0)->setSelected(true);
+  treeWidget->blockSignals(false);
+  emit(subMeshSelected(meshParts.at(0)));
+}
+
+void cmbNucInputListWidget::updateMainMeshComponents(QStringList parts, int sel)
+{
+  this->Internal->meshMajorSet->blockSignals(true);
+  this->Internal->meshMajorSet->clear();
+  this->Internal->meshMajorSet->addItems(parts);
+  this->Internal->meshMajorSet->blockSignals(false);
+  this->Internal->meshMajorSet->setCurrentIndex ( sel );
 }

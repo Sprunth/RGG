@@ -60,6 +60,7 @@ class cmbNucMaterial: public QObject
   Q_OBJECT
 public:
   friend class cmbNucMaterialColors;
+  enum DisplayMode{MODEL = 0, MESH = 1};
 
   bool isVisible() const;
 
@@ -73,8 +74,8 @@ public:
   void dec();
   bool isUsed();
   bool isDisplayed();
-  void clearDisplayed();
-  void setDisplayed();
+  void clearDisplayed(DisplayMode mode = MODEL);
+  void setDisplayed(DisplayMode mode = MODEL);
 
   void emitMaterialChange();
   void emitColorChange();
@@ -103,7 +104,7 @@ protected:
 
   unsigned int NumberReferenced;
 
-  bool IsDisplayed;
+  bool IsDisplayed[2];
 
   cmbNucMaterial();
   cmbNucMaterial(const QString& name, const QString& label, const QColor& color);

@@ -57,8 +57,10 @@ public:
   void setUpTests(QString,
                   QStringList testModelCorrectImages,
                   QStringList test2DCorrectImages,
+                  QString testMeshCorrectImage,
                   QString testDirectory,
-                  QString testOutputDirectory, bool exit);
+                  QString testOutputDirectory,
+                  bool exit);
 
 public slots:
   void onExit();
@@ -86,6 +88,8 @@ public slots:
   void playTest();
   void onExportVisibleMesh();
   void meshControls(bool);
+  void modelControls(bool);
+  void resetMeshCamera();
 
 signals:
   void updateGlobalZScale(double scale);
@@ -115,7 +119,7 @@ protected slots:
 
   void onSelectionChange();
 
-  void onChangeMeshColorMode(bool b);
+  void onChangeMeshColorMode();
   void onChangeMeshEdgeMode(bool b);
 
   // updates the block colors based on their materials

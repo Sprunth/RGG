@@ -23,6 +23,7 @@ int main( int argc, char** argv )
   QStringList test2DCorrectImages;
   QString testDirectory;
   QString testOutputDirectory;
+  QString testMeshCorrectImage;
 
   for(int i = 1; i < argc; ++i)
   {
@@ -50,13 +51,19 @@ int main( int argc, char** argv )
     {
       testOutputDirectory = QString(argv[i]).split("=").at(1);
     }
+    if(QString(argv[i]).startsWith("--truth-mesh-image"))
+    {
+      testMeshCorrectImage = QString(argv[i]).split("=").at(1);
+    }
   }
+  
 
   if(!testFName.isEmpty())
   {
     QString retVal;
     QTimer::singleShot(0,&cmbNucAppUI, SLOT(playTest()));
-    cmbNucAppUI.setUpTests(testFName, testModelCorrectImages, test2DCorrectImages, testDirectory, testOutputDirectory, exit);
+    cmbNucAppUI.setUpTests(testFName, testModelCorrectImages, test2DCorrectImages,
+                           testMeshCorrectImage, testDirectory, testOutputDirectory, exit);
   }
 
   return app.exec();
