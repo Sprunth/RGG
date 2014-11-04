@@ -115,10 +115,9 @@ vtkBoundingBox cmbNucCore::computeBounds()
       double tmp = tx - wh[0];
       double t2 = tmp*0.5;
       ty = -std::sqrt(tmp*tmp-t2*t2);
-      min[0] = -radius;
-      min[1] = -tmpH;
-      max[0] = radius;
-      max[1] = tmpH;
+      double r = std::max(tmpH,radius);
+      min[0] = min[1] = -r;
+      max[0] = max[1] = r;
     }
     else if((subType & ANGLE_60) && (subType & VERTEX))
     {
