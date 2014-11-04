@@ -38,8 +38,6 @@ public:
 
   void clear();
 
-  void setToModel();
-
   void clearTable();
 
   void setPartOptions(QMenu * qm) const;
@@ -73,6 +71,7 @@ public slots:
   void valueChanged();
   void onRemoveSelectedPart();
   void meshIsLoaded(bool);
+  void modelIsLoaded(bool);
   void updateMainMeshComponents(QStringList parts, int select);
   void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
 
