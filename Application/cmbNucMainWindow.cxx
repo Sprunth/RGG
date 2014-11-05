@@ -909,7 +909,16 @@ void cmbNucMainWindow::onFileOpen()
         std::string label = finfo.completeBaseName().toStdString();
         cmbNucAssembly *assembly = new cmbNucAssembly();
         assembly->label = label;
-        freader.read(*assembly);
+        if(!freader.read(*assembly))
+        {
+          QMessageBox msgBox;
+          msgBox.setText("Invalid INP file");
+          msgBox.setInformativeText(fileNames[i]+" could not be readed.");
+          msgBox.exec();
+          delete assembly;
+          this->unsetCursor();
+          return;
+        }
         if(this->InputsWidget->isEnabled() &&
            assembly->IsHexType() != NuclearCore->IsHexType())
         {
@@ -946,7 +955,15 @@ void cmbNucMainWindow::onFileOpen()
         doClearAll();
         this->PropertyWidget->setObject(NULL, NULL);
         this->PropertyWidget->setAssembly(NULL);
-        freader.read(*(this->NuclearCore));
+        if(!freader.read(*(this->NuclearCore)))
+        {
+          QMessageBox msgBox;
+          msgBox.setText("Invalid INP file");
+          msgBox.setInformativeText(fileNames[i]+" could not be readed.");
+          msgBox.exec();
+          this->unsetCursor();
+          return;
+        }
         this->NuclearCore->setAndTestDiffFromFiles(false);
         this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);

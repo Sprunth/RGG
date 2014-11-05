@@ -362,7 +362,7 @@ cmbNucAssembly* cmbNucCore::loadAssemblyFromFile(
   // read file and create new assembly
   cmbNucAssembly* assembly = new cmbNucAssembly;
   assembly->label = assyLabel;
-  assembly->ReadFile(fileName);
+  if(!assembly->ReadFile(fileName)) return NULL;
   this->AddAssembly(assembly);
   return assembly;
 }

@@ -28,35 +28,42 @@ public:
   typedef std::map<std::string, QPointer<cmbNucMaterial> >::iterator map_iter;
   bool labelIsDifferent;
   template <typename TYPE>
-  void readGeometryType( std::stringstream & input,
+  bool readGeometryType( std::stringstream & input,
                          TYPE &v, Lattice &lat)
   {
     std::string in;
     input >> in;
     v.setGeometryLabel(in);
     lat.SetDimensions(0, 0);
+    return true;
   }
 
-  void readLattice( std::stringstream & input, Lattice &lat);
-  void readMaterials( std::stringstream & input, cmbNucAssembly &assembly );
-  void readDuct( std::stringstream & input, cmbNucAssembly &assembly );
-  void readPincell( std::stringstream & input, cmbNucAssembly &assembly );
-  void readAssemblies( std::stringstream & input, cmbNucCore &core,
+  bool readLattice( std::stringstream & input, Lattice &lat);
+  bool readMaterials( std::stringstream & input, cmbNucAssembly &assembly );
+  bool readDuct( std::stringstream & input, cmbNucAssembly &assembly );
+  bool readPincell( std::stringstream & input, cmbNucAssembly &assembly );
+  bool readAssemblies( std::stringstream & input, cmbNucCore &core,
                        std::string strPath, bool readAssemblies );
-  template<class TYPE> void read( std::stringstream & input,
+  template<class TYPE> bool read( std::stringstream & input,
                                   bool /*isHex*/,
                                   std::string /*mesg*/,
                                   TYPE &destination )
   {
-    input >> destination;
+    if(input)
+    {
+      input >> destination;
+      return true;
+    }
+    return false;
   }
 
-  void readUnknown( std::stringstream &input, std::string value,
+  bool readUnknown( std::stringstream &input, std::string value,
                    std::vector<std::string> &unknowns)
   {
     std::string restOfLine;
     std::getline(input, restOfLine);
     unknowns.push_back(value + " "+restOfLine);
+    return true;
   }
 
   void writeHeader( std::ofstream &output, std::string type );
@@ -87,39 +94,45 @@ public:
 };
 
 template<>
-void inpFileHelper
+bool inpFileHelper
 ::read<ExtrudedType>( std::stringstream & input,
                         bool /*isHex*/,
                         std::string /*mesg*/,
                         ExtrudedType &extrude )
 {
+  if(!input) return false;
   input >> extrude.Size >> extrude.Divisions;
+  return true;
 }
 
 template<>
-void inpFileHelper
+bool inpFileHelper
 ::read<NeumannSetTypeVec>( std::stringstream & input,
                              bool /*isHex*/,
                              std::string /*mesg*/,
                              NeumannSetTypeVec &extrude )
 {
+  if(!input) return false;
   NeumannSetType nst;
   input >> nst.Side >> nst.Id;
   std::getline(input, nst.Equation);
   extrude.push_back(nst);
+  return true;
 }
 
 template<>
-void inpFileHelper
+bool inpFileHelper
 ::read<bool>( std::stringstream & input,
                 bool /*isHex*/,
                 std::string mesg,
                 bool &destination )
 {
+  if(!input) return false;
   std::string v;
   input >> v;
   std::transform(v.begin(), v.end(), v.begin(), ::tolower);
   destination = v == mesg;
+  return true;
 }
 
 template<>
@@ -284,23 +297,23 @@ bool inpFileReader
       }
     else if(value == "geometrytype")
       {
-      helper.readGeometryType( input, assembly, assembly.getLattice() );
+      if(!helper.readGeometryType( input, assembly, assembly.getLattice() )) return false;
       }
     else if(value == "materials")
       {
-      helper.readMaterials( input, assembly );
+      if(!helper.readMaterials( input, assembly )) return false;
       }
     else if(value == "duct" || value == "dimensions")
       {
-      helper.readDuct( input, assembly );
+      if(!helper.readDuct( input, assembly )) return false;
       }
     else if(value == "pincells")
       {
-      helper.readPincell( input, assembly );
+      if(!helper.readPincell( input, assembly )) return false;
       }
     else if(value == "assembly")
       {
-      helper.readLattice( input, assembly.getLattice() );
+      if(!helper.readLattice( input, assembly.getLattice() )) return false;
       }
     else if(value == "tetmeshsize")
       {
@@ -355,18 +368,18 @@ bool inpFileReader
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)\
     else if(value == #Key)\
       { \
-      helper.read(input, assembly.IsHexType(), MSG, assembly.Parameters->Var);\
+      if(!helper.read(input, assembly.IsHexType(), MSG, assembly.Parameters->Var))return false;\
       }
     ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
     else
       {
-      helper.readUnknown(input, value, assembly.Parameters->UnknownParams);
+      if(!helper.readUnknown(input, value, assembly.Parameters->UnknownParams)) return false;
       }
     }
   assembly.computeDefaults();
   assembly.setAndTestDiffFromFiles(helper.labelIsDifferent);
-  return true;
+  return assembly.AssyDuct.getDuct(0) != NULL;
 }
 
 bool inpFileReader
@@ -413,11 +426,11 @@ bool inpFileReader
       }
     else if(value == "assemblies")
       {
-      helper.readAssemblies( input, core, strPath, read_assemblies );
+      if(!helper.readAssemblies( input, core, strPath, read_assemblies )) return false;
       }
     else if(value == "lattice")
       {
-      helper.readLattice( input, core.getLattice() );
+      if(!helper.readLattice( input, core.getLattice() )) return false;
       }
     else if(value == "background")
       {
@@ -458,7 +471,7 @@ bool inpFileReader
 #undef FUN_STRUCT
     else //unknown
       {
-        helper.readUnknown(input, value, core.Params.UnknownKeyWords);
+      if(!helper.readUnknown(input, value, core.Params.UnknownKeyWords)) return false;
       }
     }
   core.calculateDefaults();
@@ -860,9 +873,10 @@ void inpFileHelper::writeMaterials( std::ofstream &output,
   output << "\n";
 }
 
-void inpFileHelper::readMaterials( std::stringstream & input,
+bool inpFileHelper::readMaterials( std::stringstream & input,
                                    cmbNucAssembly & /*assembly*/ )
 {
+  if(!input) return false;
   int countR;
   input >> countR;
   std::string mlabel;
@@ -900,6 +914,7 @@ void inpFileHelper::readMaterials( std::stringstream & input,
     materialLabelMap[mlabel] = mat;
     materialLabelMap[mname] = mat;
     }
+  return true;
 }
 
 void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly, bool limited )
@@ -927,8 +942,9 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
   }
 }
 
-void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assembly )
+bool inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assembly )
 {
+  if(!input) return false;
   Duct* duct = new Duct(0,0,0);
   int materials;
   std::string mlabel;
@@ -980,6 +996,7 @@ void inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
     }
 
   assembly.AssyDuct.AddDuct(duct);
+  return true;
 }
 
 void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
@@ -1064,8 +1081,9 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     }
 }
 
-void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & assembly )
+bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & assembly )
 {
+  if(!input) return false;
   std::string value;
   std::string mlabel;
   int count = 0;
@@ -1233,6 +1251,7 @@ void inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
       }
     assembly.AddPinCell(pincell);
     }
+  return true;
 }
 
 void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
@@ -1390,9 +1409,10 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
 }
 
 
-void inpFileHelper::readLattice( std::stringstream & input,
+bool inpFileHelper::readLattice( std::stringstream & input,
                                  Lattice &lattice )
 {
+  if(!input) return false;
   enumGeometryType type = lattice.GetGeometryType();
   int subType = lattice.GetGeometrySubType();
   size_t colsR=0;
@@ -1506,13 +1526,15 @@ void inpFileHelper::readLattice( std::stringstream & input,
         }
       }
     }
+  return true;
 }
 
-void inpFileHelper::readAssemblies( std::stringstream &input,
+bool inpFileHelper::readAssemblies( std::stringstream &input,
                                     cmbNucCore &core,
                                     std::string strPath,
                                     bool readAssy )
 {
+  if(!input) return false;
   int count;
   input >> count;
   input >> core.AssyemblyPitchX;
@@ -1542,9 +1564,10 @@ void inpFileHelper::readAssemblies( std::stringstream &input,
       }
     if(assyInfo.exists() && readAssy)
       {
-      core.loadAssemblyFromFile(assyInfo.absoluteFilePath().toStdString(), assylabel);
+      if(core.loadAssemblyFromFile(assyInfo.absoluteFilePath().toStdString(), assylabel) == NULL) return false;
       }
     }
+  return true;
 }
 
 void inpFileHelper::writeAssemblies( std::ofstream &output,
