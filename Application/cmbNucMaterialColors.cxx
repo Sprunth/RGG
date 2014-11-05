@@ -81,8 +81,7 @@ cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
   : MaterialTree(NULL), Ulimit(0.9), Llimit(0.1), numNewMaterials(0), newID(0)
 {
   showMode = 0;
-  UnknownMaterial = new cmbNucMaterial("!!!!UnknownMaterial!!!!",
-                                       "!!!!Unknown!!!!",
+  UnknownMaterial = new cmbNucMaterial("UnknownMaterial", "Unknown",
                                        QColor::fromRgbF(1.0,1.0,1.0));
   connect(UnknownMaterial, SIGNAL(nameHasChanged(QString, QPointer<cmbNucMaterial>)),
           this, SLOT(UnknownRename(QString)));
@@ -393,24 +392,15 @@ void cmbNucMaterialColors::testAndRelabel(QString oldl,
 //----------------------------------------------------------------------------
 void cmbNucMaterialColors::UnknownRename(QString oldn)
 {
-  QString newN = UnknownMaterial->getName();
-  if(this->find(newN, this->NameToMaterial) != this->NameToMaterial.end())
-  {
-    UnknownMaterial->revertName(oldn);
-    if(MaterialTree) MaterialTree->update();
-  }
+  UnknownMaterial->revertName(oldn);
+  if(MaterialTree) MaterialTree->update();
 }
 
 //----------------------------------------------------------------------------
 void cmbNucMaterialColors::UnknownRelabel(QString oldl)
 {
-  QString newL = UnknownMaterial->getLabel();
-  if(this->find(newL, this->LabelToMaterial) != this->LabelToMaterial.end())
-  {
-    UnknownMaterial->revertLabel(oldl);
-    if(MaterialTree) MaterialTree->update();
-    return;
-  }
+  UnknownMaterial->revertLabel(oldl);
+  if(MaterialTree) MaterialTree->update();
 }
 
 //----------------------------------------------------------------------------

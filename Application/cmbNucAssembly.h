@@ -217,7 +217,7 @@ public:
   std::size_t GetNumberOfPinCells() const;
 
   // Reads an assembly from a ".inp" file.
-  void ReadFile(const std::string &FileName);
+  bool ReadFile(const std::string &FileName);
 
   // Writes the assembly to a ".inp" file.
   void WriteFile(const std::string &FileName);

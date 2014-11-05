@@ -107,9 +107,12 @@ public:
     extraYTrans = 0;
     extraXTrans = 0;
     cmbNucAssembly * assy = input->GetAssembly(0);
-    double startX = assy->AssyDuct.getDuct(0)->x;
-    double startY = assy->AssyDuct.getDuct(0)->y;
-    double outerDuctHeight = assy->AssyDuct.getDuct(0)->thickness[0];
+    if(assy == NULL) return;
+    Duct * dc = assy->AssyDuct.getDuct(0);
+    if(dc == NULL) return;
+    double startX = dc->x;
+    double startY = dc->y;
+    double outerDuctHeight = dc->thickness[0];
 
     int subType = lat.GetGeometrySubType();
     double LocalCosSinAngles[6][2] =

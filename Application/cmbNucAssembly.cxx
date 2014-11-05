@@ -261,14 +261,14 @@ bool cmbNucAssembly::IsHexType()
   return this->lattice.GetGeometryType() == HEXAGONAL;
 }
 
-void cmbNucAssembly::ReadFile(const std::string &fname)
+bool cmbNucAssembly::ReadFile(const std::string &fname)
 {
   inpFileReader freader;
   if(!freader.open(fname))
   {
-    return;
+    return false;
   }
-  freader.read(*this);
+  return freader.read(*this);
 }
 
 void cmbNucAssembly::WriteFile(const std::string &fname)

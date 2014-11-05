@@ -252,7 +252,7 @@ size_t DuctCell::numberOfDucts() const
 
 Duct * DuctCell::getDuct(int i)
 {
-  if (static_cast<size_t>(i) > this->Ducts.size()) return NULL;
+  if (this->Ducts.empty() || static_cast<size_t>(i) > this->Ducts.size()) return NULL;
   return this->Ducts[i];
 }
 
