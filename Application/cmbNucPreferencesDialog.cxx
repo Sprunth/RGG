@@ -63,6 +63,8 @@ void cmbNucPreferencesDialog::setPreferences(bool e)
   this->ui->CoreGenLib->setText(libs);
   bool useCustom = settings.value("custom_meshkit",
                                   QVariant(!cmbNucPreferencesDialog::hasPackaged())).toBool();
+  int nop = settings.value("number_of_processors", QVariant(3)).toInt();
+  this->ui->numberOfProccessors->setValue(nop);
   this->ui->customMeshkit->setChecked(useCustom);
   this->ui->customMeshkit->setVisible(cmbNucPreferencesDialog::hasPackaged());
   this->ui->AssygenGroup->setVisible(useCustom || !cmbNucPreferencesDialog::hasPackaged());
@@ -115,6 +117,7 @@ void cmbNucPreferencesDialog::setValues()
   QString cubitExe = ui->cubitExecutable->text();
   QString coregenExe = ui->coregenExecutable->text();
   QString coregenLibs = ui->CoreGenLib->toPlainText();
+  int numberOfProcessors = ui->numberOfProccessors->value();
   QSettings settings(NAME_PROJECT, EXPORTER_NAME);
   settings.setValue("assygen_exe", assygenExe);
   settings.setValue("assygen_libs", assygenLibs);
@@ -122,6 +125,7 @@ void cmbNucPreferencesDialog::setValues()
   settings.setValue("cubit_exe", cubitExe);
   settings.setValue("coregen_libs", coregenLibs);
   settings.setValue("custom_meshkit", this->ui->customMeshkit->isChecked());
+  settings.setValue("number_of_processors", numberOfProcessors);
   if(EmitValuesSet) emit valuesSet();
 }
 
@@ -184,11 +188,13 @@ bool cmbNucPreferencesDialog::usePackaged()
 
 bool cmbNucPreferencesDialog::getExecutable(QString & assygenExe, QString & assygenLib,
                                             QString & cubitExe,
-                                            QString & coregenExe, QString & coregenLib)
+                                            QString & coregenExe, QString & coregenLib,
+                                            int & numberOfProcessors )
 {
   qDebug() << "Get exe";
   QSettings settings(NAME_PROJECT, EXPORTER_NAME);
   bool useCustom = settings.value("custom_meshkit", QVariant(false)).toBool();
+  numberOfProcessors = settings.value("number_of_processors", QVariant(3)).toInt();
   if(useCustom || !cmbNucPreferencesDialog::hasPackaged())
   {
     assygenExe = settings.value("assygen_exe").toString();
