@@ -70,6 +70,7 @@ public:
   void registerWorker(cmbNucExporterWorker*);
   void workerDone(cmbNucExporterWorker*);
   remus::worker::ServerConnection make_ServerConnection();
+  void waitTillDone();
 public slots:
   void run( const QStringList &assygenFile,
             const QString coregenFile,
@@ -119,7 +120,6 @@ private:
   bool KeepGoing;
   void deleteServer();
   mutable QMutex Mutex, Memory, ServerProtect;
-  void deleteWorkers();
   remus::server::ServerPorts serverPorts;
   remus::server::Server * Server;
   remus::worker::ServerConnection ServerConnection;
@@ -133,6 +133,8 @@ private:
   cmbNucExporterClient * client;
   void clearJobs();
   void processJobs();
+  mutable QMutex end_control;
+  bool isDone;
 };
 
 #endif //cmbNucExport_H

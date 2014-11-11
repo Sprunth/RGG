@@ -60,6 +60,7 @@ public:
   cmbNucExport * exporter;
   std::vector<std::string> ExtraArgs;
   bool keepGoing;
+  QMutex syncronizer;
 };
 
 class cmbNucExportWorkerRunner: public QRunnable
@@ -69,7 +70,7 @@ public:
                             //remus::worker::ServerConnection const& conn,
                             cmbNucExport * e,
                             std::vector<std::string> extra_args = std::vector<std::string>())
-  :IOType(miotype), /*serverConnection(conn),*/ exporter(e), ExtraArgs(extra_args), label(l)
+  :IOType(miotype), ExtraArgs(extra_args), exporter(e), label(l)
   {
   }
   ~cmbNucExportWorkerRunner()
@@ -84,7 +85,6 @@ public:
   }
 
   remus::common::MeshIOType IOType;
-  //remus::worker::ServerConnection serverConnection;
   RunnableConnection connection;
   std::vector<std::string> ExtraArgs;
   cmbNucExport * exporter;
@@ -264,16 +264,16 @@ struct JobHolder
 };
 
 cmbNucExporterWorker
-::cmbNucExporterWorker( std::string label, remus::common::MeshIOType miotype,
+::cmbNucExporterWorker( std::string l, remus::common::MeshIOType miotype,
                         RunnableConnection & rconn,
                         remus::worker::ServerConnection const& conn,
                         cmbNucExport * e,
                         std::vector<std::string> extra_args )
-:remus::worker::Worker( remus::proto::make_JobRequirements(miotype, label, ""), conn),
+:remus::worker::Worker( remus::proto::make_JobRequirements(miotype, l, ""), conn),
  connection(rconn), exporter(e), ExtraArgs(extra_args),
  keepGoing(true)
 {
-  this->label = label;
+  this->label = l;
   if(exporter!=NULL) exporter->registerWorker(this);
 }
 
@@ -281,6 +281,7 @@ void
 cmbNucExporterWorker
 ::process()
 {
+  syncronizer.lock();
   remus::worker::Job job = this->getJob();
   if(!job.valid())
   {
@@ -326,25 +327,27 @@ cmbNucExporterWorker
 #endif
 
   qDebug() << "starting exe: " << this->label.c_str();
-  remus::common::ExecuteProcess* process = new remus::common::ExecuteProcess( input.Function, args);
+  remus::common::ExecuteProcess* ep = new remus::common::ExecuteProcess( input.Function, args);
 
   //actually launch the new process
-  process->execute(remus::common::ExecuteProcess::Attached);
+  ep->execute(remus::common::ExecuteProcess::Attached);
 
   //Wait for finish
   qDebug() << "waiting: " << this->label.c_str();
-  if(pollStatus(process, job) && QFileInfo(input.OutputFile.c_str()).exists())
+  if(pollStatus(ep, job) && QFileInfo(input.OutputFile.c_str()).exists())
   {
+    qDebug() << "Done waiting.  Is ok: " << this->label.c_str();
     remus::proto::JobResult results = remus::proto::make_JobResult(job.id(),"DUMMY FOR NOW;");
     this->returnResult(results);
   }
   else
   {
+    qDebug() << "Done waiting.  Job Failed: " << this->label.c_str();
     remus::proto::JobStatus status(job.id(),remus::FAILED);
     updateStatus(status);
   }
   QDir::setCurrent( current );
-  delete process;
+  delete ep;
 
 #ifdef __APPLE__
   if(oldEnv != NULL)
@@ -358,6 +361,7 @@ cmbNucExporterWorker
   }
 #endif
   qDebug() << "finish: " << this->label.c_str();
+  syncronizer.unlock();
   if(exporter!=NULL) exporter->workerDone(this);
 }
 
@@ -389,6 +393,7 @@ bool cmbNucExporterWorker
   }
   if(process->isAlive())
   {
+    qDebug() << "Killing process";
     process->kill();
   }
 
@@ -409,11 +414,11 @@ cmbNucExporterClient::cmbNucExporterClient(remus::client::ServerConnection conn)
 }
 
 bool
-cmbNucExporterClient::getOutput(std::string label, std::string input_type, std::string output_type,
+cmbNucExporterClient::getOutput(std::string label, std::string it, std::string ot,
                                 ExporterInput const& in, remus::proto::Job ** job)
 {
   ExporterOutput eo;
-  remus::common::MeshIOType mesh_types(input_type, output_type);
+  remus::common::MeshIOType mesh_types(it, ot);
   remus::proto::JobRequirements reqs = remus::proto::make_JobRequirements(mesh_types, label,"");
   if(Client->canMesh(reqs))
   {
@@ -429,12 +434,13 @@ cmbNucExporterClient::getOutput(std::string label, std::string input_type, std::
 }
 
 cmbNucExport::cmbNucExport()
-: Server(NULL),
-  client(NULL),
-  serverPorts(zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
+: serverPorts(zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
               zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")),
+  Server(NULL),
+  client(NULL),
   factory(new ExporterWorkerFactory(this, 4))
 {
+  this->isDone = false;
 }
 
 cmbNucExport::~cmbNucExport()
@@ -453,6 +459,10 @@ cmbNucExport::run( const QStringList &assygenFile,
                    const QString coregenFileCylinder,
                    const QString coregenResultFileCylinder )
 {
+  {
+    QMutexLocker locker(&end_control);
+    this->isDone = false;
+  }
   this->clearJobs();
   if(!this->startUpHelper()) return;
 
@@ -465,6 +475,10 @@ cmbNucExport::run( const QStringList &assygenFile,
 
   this->runCoreHelper( coregenFile, deps, CoreGenOutputFile );
   processJobs();
+  {
+    QMutexLocker locker(&end_control);
+    this->isDone = true;
+  }
 }
 
 void cmbNucExport::cancelHelper()
@@ -472,8 +486,8 @@ void cmbNucExport::cancelHelper()
   emit currentProcess("  CANCELED");
   emit done();
   emit terminate();
+  clearJobs();
   this->deleteServer();
-  this->deleteWorkers();
 }
 
 void cmbNucExport::failedHelper(QString msg, QString pmsg)
@@ -483,7 +497,6 @@ void cmbNucExport::failedHelper(QString msg, QString pmsg)
   emit done();
   clearJobs();
   this->deleteServer();
-  this->deleteWorkers();
 }
 
 JobHolder* cmbNucExport::makeAssyJob(const QString assygenFile)
@@ -624,20 +637,20 @@ void cmbNucExport::cancel()
   //todo: fix this
   {
     QMutexLocker locker(&Memory);
-    setKeepGoing(false);
     for(std::set<cmbNucExporterWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
     {
       (*iter)->keepGoing = false;
+      (*iter)->syncronizer.lock();
+      (*iter)->syncronizer.unlock();
     }
+    setKeepGoing(false);
   }
-  this->deleteWorkers();
   emit cancelled();
 }
 
 void cmbNucExport::finish()
 {
   this->deleteServer();
-  this->deleteWorkers();
   clearJobs();
   emit progress(100);
   emit currentProcess("Finished");
@@ -660,15 +673,23 @@ void cmbNucExport::setKeepGoing(bool b)
 void cmbNucExport::deleteServer()
 {
   QMutexLocker locker(&ServerProtect);
+  { //make sure workers are done
+    QMutexLocker locker(&Memory);
+    for(std::set<cmbNucExporterWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
+    {
+      (*iter)->keepGoing = false;
+      (*iter)->syncronizer.lock();
+      (*iter)->syncronizer.unlock();
+    }
+  }
+  workers.clear();
+  qDebug() << "stop brocking";
   if(this->Server != NULL) this->Server->stopBrokering();
-  delete this->Server;
-  this->Server = NULL;
   delete this->client;
   this->client = NULL;
-}
-
-void cmbNucExport::deleteWorkers()
-{
+  qDebug() << "deleting server";
+  delete this->Server;
+  this->Server = NULL;
 }
 
 bool cmbNucExport::startUpHelper()
@@ -778,7 +799,6 @@ void cmbNucExport::processJobs()
   {
     if(!keepGoing())
     {
-      clearJobs();
       cancelHelper();
       return;
     }
@@ -789,7 +809,9 @@ void cmbNucExport::processJobs()
       if(jobs_to_do[i]->done) continue;
       else if(jobs_to_do[i]->running )
       {
+        ServerProtect.lock();
         remus::proto::JobStatus jobState = client->jobStatus(jobs_to_do[i]->job);
+        ServerProtect.unlock();
 
         if(jobState.good())
         {
@@ -835,6 +857,7 @@ void cmbNucExport::processJobs()
         }
         if(taf)
         {
+          QMutexLocker locker(&ServerProtect);
           this->jobs_to_do[i]->running = true;
           qDebug() << "i is starting" << i;
           bool r = client->getOutput( jobs_to_do[i]->label, jobs_to_do[i]->itype,
@@ -859,6 +882,22 @@ cmbNucExport::make_ServerConnection()
   remus::worker::ServerConnection conn = remus::worker::make_ServerConnection(serverPorts.worker().endpoint());
   conn.context(serverPorts.context());
   return conn;
+}
+
+void
+cmbNucExport::waitTillDone()
+{
+  QEventLoop el;
+  {
+    QMutexLocker locker(&end_control);
+  }
+  while( !this->isDone )
+  {
+    el.processEvents();
+  }
+  {
+    this->isDone = false;
+  }
 }
 
 #endif //#ifndef cmbNucExport_cxx

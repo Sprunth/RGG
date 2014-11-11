@@ -39,6 +39,11 @@ public:
   cmbNucExportDialog(cmbNucMainWindow* mainWindow);
   ~cmbNucExportDialog();
 
+  void waitTillDone()
+  {
+    Exporter->waitTillDone();
+  }
+
 public slots:
   void exportFile(cmbNucCore * core);
 
