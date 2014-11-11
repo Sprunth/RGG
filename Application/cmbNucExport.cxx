@@ -371,7 +371,7 @@ cmbNucExporterWorker
 }
 
 bool cmbNucExporterWorker
-::pollStatus( remus::common::ExecuteProcess* process,
+::pollStatus( remus::common::ExecuteProcess* ep,
               const remus::worker::Job& job)
 {
   typedef remus::common::ProcessPipe ProcessPipe;
@@ -379,10 +379,10 @@ bool cmbNucExporterWorker
   //poll on STDOUT and STDERRR only
   bool validExection=true;
   remus::proto::JobStatus status(job.id(),remus::IN_PROGRESS);
-  while(process->isAlive()&& validExection && this->keepGoing)
+  while(ep->isAlive()&& validExection && this->keepGoing)
   {
     //poll till we have a data, waiting for-ever!
-    ProcessPipe data = process->poll(2);
+    ProcessPipe data = ep->poll(2);
     if(data.type == ProcessPipe::STDOUT || data.type == ProcessPipe::STDERR)
     {
       //we have something on the output pipe
@@ -391,14 +391,14 @@ bool cmbNucExporterWorker
       connection.sendCurrentMessage( QString(data.text.c_str()) );
     }
   }
-  if(process->isAlive())
+  if(ep->isAlive())
   {
     qDebug() << "Killing process";
-    process->kill();
+    ep->kill();
   }
 
   //verify we exited normally, not segfault or numeric exception
-  validExection &= process->exitedNormally();
+  validExection &= ep->exitedNormally();
 
   if(!validExection)
   {
@@ -437,8 +437,8 @@ cmbNucExport::cmbNucExport()
 : serverPorts(zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
               zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")),
   Server(NULL),
-  client(NULL),
-  factory(new ExporterWorkerFactory(this, 4))
+  factory(new ExporterWorkerFactory(this, 4)),
+  client(NULL)
 {
   this->isDone = false;
 }
@@ -674,7 +674,7 @@ void cmbNucExport::deleteServer()
 {
   QMutexLocker locker(&ServerProtect);
   { //make sure workers are done
-    QMutexLocker locker(&Memory);
+    QMutexLocker memlocker(&Memory);
     for(std::set<cmbNucExporterWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
     {
       (*iter)->keepGoing = false;

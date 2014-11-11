@@ -79,7 +79,7 @@ class XMLEventSource : public pqEventSource
 
 public:
   XMLEventSource(cmbNucMainWindow * mw, QString testDir, QString outdir, QObject* p)
-    :Superclass(p), TestDir(testDir), OutputDir(outdir), mainWindow(mw)
+    :Superclass(p), mainWindow(mw), TestDir(testDir), OutputDir(outdir)
   { this->XMLStream = NULL; isWaiting = false;}
   ~XMLEventSource() { delete this->XMLStream; }
 
