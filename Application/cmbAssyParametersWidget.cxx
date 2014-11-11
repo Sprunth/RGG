@@ -298,6 +298,7 @@ void setValue(QCheckBox * to, bool &from)
   FUN(NumSuperBlocks) \
   FUN(SuperBlocks) \
   FUN(MeshType)\
+  FUN(CreateSideset)\
   FUN2(MoveXYZ[0],MoveX)\
   FUN2(MoveXYZ[1],MoveY)\
   FUN2(MoveXYZ[2],MoveZ)

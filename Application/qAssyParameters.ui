@@ -26,9 +26,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-371</y>
+        <y>0</y>
         <width>463</width>
-        <height>1036</height>
+        <height>1054</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -467,7 +467,7 @@ Selected</string>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="CreateSideSet">
+          <widget class="QComboBox" name="CreateSideset">
            <item>
             <property name="text">
              <string>NotSet</string>
@@ -720,7 +720,7 @@ Selected</string>
   <tabstop>MoveX</tabstop>
   <tabstop>MoveY</tabstop>
   <tabstop>MoveZ</tabstop>
-  <tabstop>CreateSideSet</tabstop>
+  <tabstop>CreateSideset</tabstop>
   <tabstop>Info</tabstop>
   <tabstop>addRotation</tabstop>
   <tabstop>addSection</tabstop>
