@@ -3,6 +3,8 @@
 
 #include <algorithm>
 
+#include <QDebug>
+
 #include "../cmbNucMaterialColors.h"
 #include "../cmbNucMaterial.h"
 
@@ -57,6 +59,8 @@ namespace
     {
       std::string name =
         COLOR::instance()->getMaterialByName(COLOR::createMaterialLabel(interface.name(*i).c_str()))->getName().toStdString();
+      qDebug() << name.c_str() << c << visible.size();
+      assert(c < visible.size());
       bool remove = !visible[c];
       std::transform(name.begin(), name.end(), name.begin(), ::tolower);
       for(unsigned int j = 0; j < remove_material.size(); ++j)
@@ -68,6 +72,7 @@ namespace
       }
       if(remove)
       {
+        qDebug() << "\tremoving: " << interface.name(*i).c_str() << visible[c];
         interface.remove(*i);
       }
     }
@@ -80,6 +85,7 @@ bool extract_subset::extract(std::string fin, std::string fout,
 {
   smoab::Interface interface(fin);
   { // volumns
+    qDebug() << "saving volumns" << visible[0].size();
     smoab::GeomTag geom3Tag(3);
     remove_visiblity(interface, geom3Tag, visible[0]);
   }
@@ -87,18 +93,22 @@ bool extract_subset::extract(std::string fin, std::string fout,
     //TODO:  I am not sure how to do this one, so for now I am just ignoring it
   }
   { //surfaceRoot
+    qDebug() << "saving surface" << visible[2].size();
     smoab::GeomTag geom2Tag(2);
     remove_visiblity(interface, geom2Tag, visible[2]);
   }
   { //neumann
     smoab::NeumannTag neTag;
+    qDebug() << "saving neumann" << visible[3].size();
     remove_visiblity_and_material( interface, neTag, visible[3], remove_material );
   }
   { //Dirichlet
+    qDebug() << "saving Dirichlet" << visible[4].size();
     smoab::DirichletTag diTag;
     remove_visiblity_and_material( interface, diTag, visible[4], remove_material );
   }
   { //material filter
+    qDebug() << "saving material" << visible[5].size();
     smoab::MaterialTag metTag;
     remove_visiblity_and_material( interface, metTag, visible[5], remove_material );
   }

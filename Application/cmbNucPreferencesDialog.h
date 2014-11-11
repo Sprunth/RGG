@@ -23,7 +23,8 @@ public:
   static bool usePackaged();
   static bool getExecutable(QString & assygenExe, QString & assygenLib,
                             QString & cubitExe,
-                            QString & coregenExe, QString & coregenLib);
+                            QString & coregenExe, QString & coregenLib,
+                            int & numberOfProcessors);
   static bool getPackaged(QString & assygenExe, QString & coregenExe);
 
 public slots:

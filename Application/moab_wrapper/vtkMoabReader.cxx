@@ -141,7 +141,7 @@ void vtkMoabReader::CreateSubBlocks(vtkNew<vtkMultiBlockDataSet> & root,
     converter.fill(*i, block.GetPointer(),index);
 
     //only add it if we have cells found
-    if(block->GetNumberOfCells() > 0)
+    //if(block->GetNumberOfCells() > 0)
       {
       root->SetBlock(index,block.GetPointer());
       std::string name = interface->name(*i);

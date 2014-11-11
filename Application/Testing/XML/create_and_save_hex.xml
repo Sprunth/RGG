@@ -819,7 +819,8 @@
 <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
 <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
 <event object="1QMessageBox0/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
-<event object="TESTER" command="pause" arguments="250"/>
+<event object="TESTER" command="wait_for_export" arguments="" />
+<!--event object="TESTER" command="pause" arguments="250"/-->
 <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
 <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
 <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
@@ -827,6 +828,7 @@
 <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
 <event object="1QMessageBox0/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
 <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
-<event object="TESTER" command="pause" arguments="700"/>
+<!--event object="TESTER" command="pause" arguments="700"/-->
+<event object="TESTER" command="wait_for_export" arguments="" />
 
 </events>

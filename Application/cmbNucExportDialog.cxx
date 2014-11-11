@@ -47,20 +47,11 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
            this, SLOT(GetRunnableAssyFiles(bool)));
   connect( this->ui->forceCore, SIGNAL(clicked(bool)),
           this, SLOT(GetRunnableCoreFile(bool)));
-  connect( this, SIGNAL(process( const QStringList &, const QString, const QString)),
-           this->Exporter, SLOT(run( const QStringList &, const QString, const QString)));
+
   connect( this, SIGNAL(process( const QStringList &, const QString, const QString,
                                  const QString, const QString, const QString, const QString, const QString)),
           this->Exporter, SLOT(run( const QStringList &, const QString, const QString,
                                     const QString, const QString, const QString, const QString, const QString)));
-  connect( this, SIGNAL(process( const QStringList &)),
-           this->Exporter, SLOT(runAssy( const QStringList &)));
-  connect( this, SIGNAL(process( const QString, const QString)),
-           this->Exporter, SLOT(runCore( const QString, const QString)));
-  connect( this, SIGNAL(process( const QString, const QString,
-                                 const QString, const QString, const QString, const QString, const QString)),
-           this->Exporter, SLOT(runCore( const QString, const QString,
-                                         const QString, const QString, const QString, const QString, const QString)));
   connect( this->Exporter, SIGNAL(fileDone()), this, SIGNAL(fileFinish()));
   Thread.start();
 }
@@ -97,9 +88,10 @@ void cmbNucExportDialog::exportFile(cmbNucCore * core)
 void cmbNucExportDialog::sendSignalToProcess()
 {
   qDebug() << "SENDING TO THREAD";
+  int numberOfThreads;
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
-                                             coregenExe, coreGenLibs))
+                                             coregenExe, coreGenLibs, numberOfThreads))
   {
     qDebug() << "One of the export exe is missing";
     emit error("One of the export exe is missing");
@@ -109,6 +101,7 @@ void cmbNucExportDialog::sendSignalToProcess()
 
   Exporter->setAssygen(assygenExe,assyGenLibs);
   Exporter->setCubit(cubitExe);
+  Exporter->setNumberOfProcessors(numberOfThreads);
   coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe, coreGenLibs);
 
@@ -157,15 +150,16 @@ void cmbNucExportDialog::sendSignalToProcess()
   }
   else
   {
-    emit process(this->AssygenFileList, CoregenFile, outputMesh);
+    emit process(this->AssygenFileList, CoregenFile, outputMesh, QString(), QString(), QString(), QString(), QString());
   }
 }
 
 void cmbNucExportDialog::runAssygen()
 {
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  int thread_count;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
-                                             coregenExe, coreGenLibs))
+                                             coregenExe, coreGenLibs, thread_count))
   {
     qDebug() << "One of the export exe is missing";
     emit error("One of the export exe is missing");
@@ -174,6 +168,7 @@ void cmbNucExportDialog::runAssygen()
   this->hide();
   Exporter->setAssygen(assygenExe,assyGenLibs);
   Exporter->setCubit(cubitExe);
+  Exporter->setNumberOfProcessors(thread_count);
 
   if(this->AssygenFileList.empty())
   {
@@ -182,7 +177,7 @@ void cmbNucExportDialog::runAssygen()
 
   this->Progress->show();
   send_core_mesh = false;
-  emit process(this->AssygenFileList);
+  emit process(this->AssygenFileList, QString(), QString(), QString(), QString(), QString(), QString(), QString());
 }
 
 void cmbNucExportDialog::runSelectedAssygen()
@@ -202,8 +197,9 @@ void cmbNucExportDialog::runCoregen()
   qDebug() << "SENDING TO THREAD";
   send_core_mesh = true;
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  int thread_count;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
-                                             coregenExe, coreGenLibs))
+                                             coregenExe, coreGenLibs, thread_count))
   {
     qDebug() << "One of the export exe is missing";
     emit error("One of the export exe is missing");
@@ -211,6 +207,7 @@ void cmbNucExportDialog::runCoregen()
   }
   coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe,coreGenLibs);
+  Exporter->setNumberOfProcessors(thread_count);
   this->hide();
   if(CoregenFile.isEmpty())
   {
@@ -240,7 +237,7 @@ void cmbNucExportDialog::runCoregen()
   OuterCylinder->exportFiles(this->Core);
   if(OuterCylinder->generateCylinder())
   {
-    emit process(CoregenFile, outputMesh,
+    emit process(QStringList(), CoregenFile, outputMesh,
                  OuterCylinder->getAssygenFileName(), OuterCylinder->getCubitFileName(),
                  this->Core->Params.BackgroundFullPath.c_str(),
                  OuterCylinder->getCoreGenFileName(), OuterCylinder->getSATFileName());
@@ -248,7 +245,7 @@ void cmbNucExportDialog::runCoregen()
   }
   else
   {
-    emit process( CoregenFile, outputMesh );
+    emit process( QStringList(), CoregenFile, outputMesh, QString(), QString(), QString(), QString(), QString());
   }
 }
 

@@ -138,7 +138,7 @@ add_revision(portfwd
 
 add_revision(vxl
   URL http://vtk.org/files/support/vxl_r35313.tar.gz
-  URL_MD5 cb7884a8eb0f816a4bb378dc968c8333)
+  URL_MD5 2fd3ed6fe208e70be2637bd7342a0011a3e2574e)
 
 if (WIN32)
   #windows uses the custom cmake build of zeroMQ

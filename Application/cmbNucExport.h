@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <QObject>
 #include <QThread>
 #include <QMutex>
@@ -25,46 +26,34 @@ class WorkerFactory;
 }
 }
 
-class cmbNucExporterWorker: public QObject, public remus::worker::Worker
+class cmbNucExporterWorker;
+class ExporterWorkerFactory;
+class cmbNucExporterClient;
+struct JobHolder;
+
+class RunnableConnection : public QObject
 {
   Q_OBJECT
-  QThread workerThread;
 public:
-  static cmbNucExporterWorker *
-    AssygenWorker(remus::worker::ServerConnection const& connection,
-                  std::vector<std::string> extra_args = std::vector<std::string>());
-  static cmbNucExporterWorker *
-    CoregenWorker(remus::worker::ServerConnection const& connection,
-                  std::vector<std::string> extra_args = std::vector<std::string>());
-  static cmbNucExporterWorker *
-    CubitWorker(remus::worker::ServerConnection const& connection,
-                std::vector<std::string> extra_args = std::vector<std::string>());
-
+  RunnableConnection():terminate(false)
+  {}
+  bool terminate;
+  void sendErrorMessage(QString s)
+  { emit errorMessage(s); }
+  void sendCurrentMessage(QString s)
+  { emit currentMessage(s);}
+  void sendDoNextStep(QString outputFile, int index)
+  { emit doNextStep(outputFile, index); }
 public slots:
-  void start()
-  { this->run(); }
-  void stop();
+  void terminateProcess()
+  {
+    terminate = true;
+  }
 signals:
   void errorMessage( QString );
   void currentMessage( QString );
-private:
-  bool stillRunning();
-  void run();
-  bool StillRunning;
-  mutable QMutex Mutex;
-  std::string Name;
-
-  bool pollStatus( remus::common::ExecuteProcess* process,
-                  const remus::worker::Job& job);
-  std::vector< std::string > ExtraArgs;
-
-  cmbNucExporterWorker( std::string label, remus::common::MeshIOType miotype,
-                        remus::worker::ServerConnection const& connection,
-                        std::vector<std::string> extra_args = std::vector<std::string>());
+  void doNextStep(QString, int);
 };
-
-class cmbNucExporterWorker;
-
 
 class cmbNucExport : public QObject
 {
@@ -76,11 +65,13 @@ public:
   void setKeepGoing(bool);
   void setAssygen(QString assygenExe,QString assygenLib);
   void setCoregen(QString coregenExe,QString coregenLib);
+  void setNumberOfProcessors(int v);
   void setCubit(QString cubitExe);
+  void registerWorker(cmbNucExporterWorker*);
+  void workerDone(cmbNucExporterWorker*);
+  remus::worker::ServerConnection make_ServerConnection();
+  void waitTillDone();
 public slots:
-  void run( const QStringList &assygenFile,
-            const QString coregenFile,
-            const QString CoreGenOutputFile);
   void run( const QStringList &assygenFile,
             const QString coregenFile,
             const QString CoreGenOutputFile,
@@ -89,21 +80,12 @@ public slots:
             const QString cubitOutputFileCylinder,
             const QString coregenFileCylinder,
             const QString coregenResultFileCylinder );
-  void runAssy( const QStringList &assygenFile );
-  void runCore(const QString coregenFile,
-               const QString CoreGenOutputFile);
-  void runCore(const QString coregenFile,
-               const QString CoreGenOutputFile,
-               const QString assygenFileCylinder,
-               const QString cubitFileCylinder,
-               const QString cubitOutputFileCylinder,
-               const QString coregenFileCylinder,
-               const QString coregenResultFileCylinder);
   void cancel();
 signals:
   void done();
   void successful();
   void cancelled();
+  void terminate();
   void sendCoreResult(QString);
   void progress(int);
   void currentProcess(QString);
@@ -114,42 +96,45 @@ protected:
 signals:
   void startWorkers();
   void endWorkers();
+
 private:
-  bool runAssyHelper( const QStringList &assygenFile,
-                      double & count, double max_count );
-  bool runCubitHelper(const QString cubitFile,
-                      const QString cubitOutputFile,
-                      double & count, double max_count);
-  bool runCoreHelper( const QString coregenFile,
-                      const QString CoreGenOutputFile,
-                      double & count, double max_count );
-  bool exportCylinder( const QString assygenFile,
-                       const QString cubitFile,
-                       const QString cubitOutputFile,
-                       const QString coregenFile,
-                       const QString coregenResultFile,
-                       double & total_number_of_file,
-                       double & current );
+  std::vector<JobHolder*> runAssyHelper( const QStringList &assygenFile);
+  std::vector<JobHolder*> runCubitHelper(const QString cubitFile,
+                                         std::vector<JobHolder*> debIn,
+                                         const QString cubitOutputFile);
+  std::vector<JobHolder*> runCoreHelper( const QString coregenFile,
+                                         std::vector<JobHolder*> debIn,
+                                         const QString CoreGenOutputFile );
+  std::vector<JobHolder*> exportCylinder( const QString assygenFile,
+                                          const QString cubitFile,
+                                          const QString cubitOutputFile,
+                                          const QString coregenFile,
+                                          const QString coregenResultFile );
+  JobHolder* makeAssyJob(const QString assygenFile);
+
   void finish();
   void cancelHelper();
   void failedHelper(QString msg, QString pmsg);
-  bool startUpHelper(double & count, double max_count);
+  bool startUpHelper();
   bool keepGoing() const;
   bool KeepGoing;
   void deleteServer();
   mutable QMutex Mutex, Memory, ServerProtect;
-  void constructWorkers();
-  void deleteWorkers();
-  QThread WorkerThreads[3];
-  cmbNucExporterWorker * assygenWorker;
-  cmbNucExporterWorker * coregenWorker;
-  cmbNucExporterWorker * cubitWorker;
+  remus::server::ServerPorts serverPorts;
   remus::server::Server * Server;
   remus::worker::ServerConnection ServerConnection;
-  boost::shared_ptr<remus::server::WorkerFactory> factory;
+  boost::shared_ptr<ExporterWorkerFactory> factory;
   QString AssygenExe, AssygenLib;
   QString CoregenExe, CoregenLib;
   QString CubitExe;
+  std::set<cmbNucExporterWorker*> workers;
+
+  std::vector<JobHolder*> jobs_to_do;
+  cmbNucExporterClient * client;
+  void clearJobs();
+  void processJobs();
+  mutable QMutex end_control;
+  bool isDone;
 };
 
 #endif //cmbNucExport_H

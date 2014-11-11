@@ -92,6 +92,7 @@ void cmbNucCoregen::valueChanged(QTreeWidgetItem * item)
   bool value = item->checkState(0)!=0;
   assert(mitem->rootId<this->SubPartVisible.size());
   assert(static_cast<size_t>(mitem->subId)<this->SubPartVisible[mitem->rootId].size());
+  qDebug() << "changing value:" << mitem->rootId << mitem->subId << this->SubPartVisible[mitem->rootId][mitem->subId] << "to" << item << this->SubPartVisible.size() << " " << this->SubPartVisible[mitem->rootId].size();
   this->SubPartVisible[mitem->rootId][mitem->subId] = value;
   emit(update());
 }
@@ -223,6 +224,7 @@ void cmbNucCoregen::openFile(QString file)
   this->GeoFilt.resize(tmp->GetNumberOfBlocks(), NULL);
   QList<QTreeWidgetItem*> roots;
 
+  qDebug() << "there are " << tmp->GetNumberOfBlocks() << "blocks";
   this->SubPartVisible.resize(tmp->GetNumberOfBlocks());
   this->Names.resize(tmp->GetNumberOfBlocks());
   QStringList list;
@@ -239,6 +241,7 @@ void cmbNucCoregen::openFile(QString file)
     DataSets[i]->DeepCopy(this->GeoFilt[i]->GetOutputDataObject(0));
     vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(DataSets[i]);
     if(sec == NULL) continue;
+    qDebug() << "\tFor" << i << "there are " << sec->GetNumberOfBlocks() << "blocks";
     this->SubPartVisible[i].resize(sec->GetNumberOfBlocks(), true);
     for(unsigned int idx=0; idx < sec->GetNumberOfBlocks(); idx++)
     {

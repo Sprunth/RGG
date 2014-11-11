@@ -75,10 +75,11 @@ class XMLEventSource : public pqEventSource
 {
   typedef pqEventSource Superclass;
   QXmlStreamReader *XMLStream;
+  cmbNucMainWindow *mainWindow;
 
 public:
-  XMLEventSource(QString testDir, QString outdir, QObject* p)
-    :Superclass(p), TestDir(testDir), OutputDir(outdir)
+  XMLEventSource(cmbNucMainWindow * mw, QString testDir, QString outdir, QObject* p)
+    :Superclass(p), mainWindow(mw), TestDir(testDir), OutputDir(outdir)
   { this->XMLStream = NULL; isWaiting = false;}
   ~XMLEventSource() { delete this->XMLStream; }
 
@@ -161,6 +162,11 @@ protected:
     if(widget == "TESTER" && command == "delete")
     {
       QFile::remove(arguments);
+      return getNextEvent(widget, command, arguments);
+    }
+    if(widget == "TESTER" && command == "wait_for_export")
+    {
+      mainWindow->waitForExportingToBeDone();
       return getNextEvent(widget, command, arguments);
     }
     if(widget == "APPLICATION")
@@ -1629,7 +1635,7 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
   if(b)
   {
     meshProperty->SetEdgeVisibility(1);
-    meshProperty->SetEdgeColor(0,0,0.4);
+    meshProperty->SetEdgeColor(0,0,0.9);
   }
   else
   {
@@ -1823,7 +1829,7 @@ void cmbNucMainWindow::onStartRecordTest()
   this->TestUtility = new pqTestUtility(this);
   this->Internal->observer = new pqXMLEventObserver(this);
   this->TestUtility->addEventObserver("xml", this->Internal->observer);
-  this->TestUtility->addEventSource("xml", new XMLEventSource(this->Internal->TestDirectory,
+  this->TestUtility->addEventSource("xml", new XMLEventSource(this, this->Internal->TestDirectory,
                                                               this->Internal->TestOutputDirectory, this));
   QString filename = QFileDialog::getSaveFileName (this, "Test File Name",
                                                    QString(), "XML Files (*.xml)");
@@ -1852,7 +1858,7 @@ bool cmbNucMainWindow::playTest(QString filename)
     this->TestUtility = new pqTestUtility(this);
     this->Internal->observer = new pqXMLEventObserver(this);
     this->TestUtility->addEventObserver("xml", this->Internal->observer);
-    this->TestUtility->addEventSource("xml", new XMLEventSource(this->Internal->TestDirectory,
+    this->TestUtility->addEventSource("xml", new XMLEventSource(this, this->Internal->TestDirectory,
                                                                 this->Internal->TestOutputDirectory, this));
     bool result = this->TestUtility->playTests(filename);
     delete this->TestUtility;
@@ -1935,4 +1941,9 @@ void cmbNucMainWindow::playTest()
   {
     qApp->exit(succeded ? 0 : 1);
   }
+}
+
+void cmbNucMainWindow::waitForExportingToBeDone()
+{
+  this->ExportDialog->waitTillDone();
 }
