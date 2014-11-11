@@ -1012,6 +1012,7 @@
   <event object="qNucMainWindow/qExporterDialog/frame/AssygneGroup/forceAssy" command="set_boolean" arguments="true" />
   <event object="qNucMainWindow/qExporterDialog/frame/groupBox/forceCore" command="set_boolean" arguments="true" />
   <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
+  <event object="TESTER"  command="pause" arguments="5" />
   <event object="qNucMainWindow/qExporterDialog/qProgress/cancel" command="activate" arguments="" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget" command="mousePress" arguments="1,1,0,206,365" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget" command="mouseRelease" arguments="1,0,0,206,365" />
