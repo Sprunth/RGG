@@ -43,22 +43,51 @@ public:
 
 class cmbNucExporterClient;
 
-
-class cmbNucExportRunnableWorker: public QRunnable, public remus::worker::Worker
+class cmbNucExporterWorker: public remus::worker::Worker
 {
 public:
-  cmbNucExportRunnableWorker( std::string label, remus::common::MeshIOType miotype,
-                             remus::worker::ServerConnection const& connection,
-                             cmbNucExport * exporter,
-                             std::vector<std::string> extra_args = std::vector<std::string>());
-  ~cmbNucExportRunnableWorker();
-  virtual void run();
+  cmbNucExporterWorker( std::string label, remus::common::MeshIOType miotype,
+                        RunnableConnection & rconn,
+                        remus::worker::ServerConnection const& sconn,
+                        cmbNucExport * exporter,
+                        std::vector<std::string> extra_args = std::vector<std::string>());
+  ~cmbNucExporterWorker();
+  RunnableConnection & connection;
+  void process();
   bool pollStatus( remus::common::ExecuteProcess* process,
-                  const remus::worker::Job& job );
+                   const remus::worker::Job& job );
+  std::string label;
+  cmbNucExport * exporter;
+  std::vector<std::string> ExtraArgs;
+  bool keepGoing;
+};
+
+class cmbNucExportWorkerRunner: public QRunnable
+{
+public:
+  cmbNucExportWorkerRunner( std::string l, remus::common::MeshIOType miotype,
+                            //remus::worker::ServerConnection const& conn,
+                            cmbNucExport * e,
+                            std::vector<std::string> extra_args = std::vector<std::string>())
+  :IOType(miotype), /*serverConnection(conn),*/ exporter(e), ExtraArgs(extra_args), label(l)
+  {
+  }
+  ~cmbNucExportWorkerRunner()
+  {}
+
+  virtual void run()
+  {
+    remus::worker::ServerConnection serverConnection = this->exporter->make_ServerConnection();
+    cmbNucExporterWorker worker(this->label, this->IOType, this->connection,
+                                serverConnection, this->exporter, this->ExtraArgs);
+    worker.process();
+  }
+
+  remus::common::MeshIOType IOType;
+  //remus::worker::ServerConnection serverConnection;
   RunnableConnection connection;
   std::vector<std::string> ExtraArgs;
   cmbNucExport * exporter;
-  bool keepGoing;
   std::string label;
 };
 
@@ -69,71 +98,67 @@ public:
   :exporter(e)
   {
     this->setMaxWorkerCount(maxThreadCount);
-    types[0] = remus::common::MeshIOType("ASSYGEN_IN", "CUBIT_IN");
-    types[1] = remus::common::MeshIOType("CUBIT_IN", "COREGEN_IN");
-    types[2] = remus::common::MeshIOType("COREGEN_IN", "COREGEN_OUT");
+    types[0] = remus::proto::make_JobRequirements(remus::common::MeshIOType("ASSYGEN_IN", "CUBIT_IN"), "Assygen", "");
+    types[1] = remus::proto::make_JobRequirements(remus::common::MeshIOType("CUBIT_IN", "COREGEN_IN"), "Cubit", "");
+    types[2] = remus::proto::make_JobRequirements(remus::common::MeshIOType("COREGEN_IN", "COREGEN_OUT"), "Coregen", "");
     threadPool.setMaxThreadCount( maxThreadCount );
     threadPool.setExpiryTimeout( -1 );
   }
 
   virtual remus::proto::JobRequirementsSet workerRequirements(remus::common::MeshIOType type) const
   {
-    std::string label;
-    if(types[0] == type) label = "Assygen";
-    else if(types[1] == type) label = "Cubit";
-    else if(types[2] == type) label = "Coregen";
     remus::proto::JobRequirementsSet result;
-    result.insert(remus::proto::JobRequirements(remus::common::ContentFormat::Type(),
-                                                type, label, std::string("") ));
+    if(types[0].meshTypes() == type) result.insert(types[0]);
+    else if(types[1].meshTypes() == type) result.insert(types[1]);
+    else if(types[2].meshTypes() == type) result.insert(types[2]);
     return result;
   }
 
   virtual remus::common::MeshIOTypeSet supportedIOTypes() const
   {
     remus::common::MeshIOTypeSet result;
-    result.insert(types[0]);
-    result.insert(types[1]);
-    result.insert(types[2]);
+    result.insert(types[0].meshTypes());
+    result.insert(types[1].meshTypes());
+    result.insert(types[2].meshTypes());
     return result;
   }
 
   virtual bool haveSupport(const remus::proto::JobRequirements& reqs) const
   {
-    remus::common::MeshIOType type = reqs.meshTypes();
-    return type == types[0] || type == types[1] || type == types[2];
+    return reqs == types[0] || reqs == types[1] || reqs == types[2];
   }
 
   virtual bool createWorker(const remus::proto::JobRequirements& reqs,
                             remus::server::WorkerFactory::FactoryDeletionBehavior /*lifespan*/)
   {
     if(this->currentWorkerCount() >= this->maxWorkerCount()) return false;
-    remus::worker::ServerConnection connection = remus::worker::ServerConnection();
-    remus::common::MeshIOType type = reqs.meshTypes();
-    cmbNucExportRunnableWorker * worker;
-    if(type == types[0])
+    //remus::worker::ServerConnection connection = remus::worker::ServerConnection();
+    cmbNucExportWorkerRunner * runner;
+    if(reqs == types[0])
     {
       //create and connect assygen worker
-      worker = new cmbNucExportRunnableWorker( "Assygen", type, connection, exporter);
+      runner = new cmbNucExportWorkerRunner( "Assygen", reqs.meshTypes(), /*connection,*/ exporter);
     }
-    else if(type == types[1])
+    else if(reqs == types[1])
     {
       //create and connect cubit worker
       std::vector<std::string> args;
       args.push_back("-nographics");
       args.push_back("-batch");
-      worker = new cmbNucExportRunnableWorker( "Cubit", type, connection, exporter, args);
+      runner = new cmbNucExportWorkerRunner( "Cubit", reqs.meshTypes(), /*connection,*/ exporter, args);
     }
-    else if(type == types[2])
+    else if(reqs == types[2])
     {
       //create and connect coregen worker
-      worker = new cmbNucExportRunnableWorker( "Coregen", type, connection, exporter);
+      runner = new cmbNucExportWorkerRunner( "Coregen", reqs.meshTypes(), /*connection,*/ exporter);
     }
     else
     {
       return false;
     }
-    QObject::connect( &(worker->connection), SIGNAL(currentMessage(QString)), exporter, SIGNAL(statusMessage(QString)) );
-    threadPool.start(worker);
+    QObject::connect( &(runner->connection), SIGNAL(currentMessage(QString)), exporter, SIGNAL(statusMessage(QString)) );
+    qDebug() << threadPool.maxThreadCount();
+    threadPool.start(runner);
     return true;
   }
 
@@ -154,7 +179,7 @@ public:
   }
 
 protected:
-  remus::common::MeshIOType types[3];
+  remus::proto::JobRequirements types[3];
   QThreadPool threadPool;
   cmbNucExport * exporter;
 };
@@ -203,10 +228,11 @@ struct ExporterOutput
 class cmbNucExporterClient
 {
 public:
-  cmbNucExporterClient(std::string label, std::string itype, std::string otype, std::string server = "");
+  cmbNucExporterClient(remus::client::ServerConnection conn);
   ~cmbNucExporterClient()
   {delete Client;}
-  bool getOutput(ExporterInput const& in, remus::proto::Job ** job);
+  bool getOutput(std::string label, std::string itype, std::string otype,
+                 ExporterInput const& in, remus::proto::Job ** job);
   remus::proto::JobStatus jobStatus(remus::proto::Job * job)
   {
     return Client->jobStatus(*job);
@@ -224,7 +250,6 @@ struct JobHolder
   JobHolder(QString exeDir, QString fun, QString file, QString of)
   : running(false), done(false), in(exeDir, fun, file, of)
   {
-    client = NULL;
     job = NULL;
   }
   ~JobHolder()
@@ -233,13 +258,28 @@ struct JobHolder
   }
   bool running, done;
   std::vector<JobHolder*> dependencies;
-  cmbNucExporterClient * client;
+  std::string label, itype, otype;
   remus::proto::Job * job;
   ExporterInput in;
 };
 
-void 
-cmbNucExportRunnableWorker::run()
+cmbNucExporterWorker
+::cmbNucExporterWorker( std::string label, remus::common::MeshIOType miotype,
+                        RunnableConnection & rconn,
+                        remus::worker::ServerConnection const& conn,
+                        cmbNucExport * e,
+                        std::vector<std::string> extra_args )
+:remus::worker::Worker( remus::proto::make_JobRequirements(miotype, label, ""), conn),
+ connection(rconn), exporter(e), ExtraArgs(extra_args),
+ keepGoing(true)
+{
+  this->label = label;
+  if(exporter!=NULL) exporter->registerWorker(this);
+}
+
+void
+cmbNucExporterWorker
+::process()
 {
   remus::worker::Job job = this->getJob();
   if(!job.valid())
@@ -318,28 +358,15 @@ cmbNucExportRunnableWorker::run()
   }
 #endif
   qDebug() << "finish: " << this->label.c_str();
-}
-
-cmbNucExportRunnableWorker
-::cmbNucExportRunnableWorker( std::string label, remus::common::MeshIOType miotype,
-                              remus::worker::ServerConnection const& conn,
-                              cmbNucExport * e,
-                              std::vector<std::string> extra_args )
-:remus::worker::Worker( remus::proto::make_JobRequirements(miotype, label, ""), conn),
- exporter(e),
- ExtraArgs(extra_args), keepGoing(true)
-{
-  this->label = label;
-  if(exporter!=NULL) exporter->registerWorker(this);
-}
-
-cmbNucExportRunnableWorker
-::~cmbNucExportRunnableWorker()
-{
   if(exporter!=NULL) exporter->workerDone(this);
 }
 
-bool cmbNucExportRunnableWorker
+cmbNucExporterWorker
+::~cmbNucExporterWorker()
+{
+}
+
+bool cmbNucExporterWorker
 ::pollStatus( remus::common::ExecuteProcess* process,
               const remus::worker::Job& job)
 {
@@ -375,25 +402,19 @@ bool cmbNucExportRunnableWorker
   return true;
 }
 
-cmbNucExporterClient::cmbNucExporterClient(std::string label, std::string itype,
-                                           std::string otype, std::string server)
+cmbNucExporterClient::cmbNucExporterClient(remus::client::ServerConnection conn)
 {
-  Label = label;
-  input_type = itype;
-  output_type = otype;
-  if ( !server.empty())
-    {
-    Connection = remus::client::make_ServerConnection(server);
-    }
+  Connection = conn;
   Client = new remus::Client(Connection);
 }
 
 bool
-cmbNucExporterClient::getOutput(ExporterInput const& in, remus::proto::Job ** job)
+cmbNucExporterClient::getOutput(std::string label, std::string input_type, std::string output_type,
+                                ExporterInput const& in, remus::proto::Job ** job)
 {
   ExporterOutput eo;
   remus::common::MeshIOType mesh_types(input_type, output_type);
-  remus::proto::JobRequirements reqs = remus::proto::make_JobRequirements(mesh_types, Label,"");
+  remus::proto::JobRequirements reqs = remus::proto::make_JobRequirements(mesh_types, label,"");
   if(Client->canMesh(reqs))
   {
     remus::proto::JobContent content =
@@ -402,7 +423,6 @@ cmbNucExporterClient::getOutput(ExporterInput const& in, remus::proto::Job ** jo
     remus::proto::JobSubmission sub(reqs,content);
 
     (*job) = new remus::proto::Job(Client->submitJob(sub));
-    //qDebug() << "Job Sent";
     return true;
   }
   return false;
@@ -410,23 +430,17 @@ cmbNucExporterClient::getOutput(ExporterInput const& in, remus::proto::Job ** jo
 
 cmbNucExport::cmbNucExport()
 : Server(NULL),
+  client(NULL),
+  serverPorts(zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
+              zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")),
   factory(new ExporterWorkerFactory(this, 4))
 {
-  assygenClient = new cmbNucExporterClient("Assygen", "ASSYGEN_IN", "CUBIT_IN");
-  cubitClient = new cmbNucExporterClient("Cubit","CUBIT_IN", "COREGEN_IN");
-  coreClient = new cmbNucExporterClient("Coregen", "COREGEN_IN", "COREGEN_OUT");
 }
 
 cmbNucExport::~cmbNucExport()
 {
   QMutexLocker locker(&Memory);
-  for(std::set<cmbNucExportRunnableWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
-  {
-    (*iter)->exporter = NULL;
-  }
-  delete assygenClient;
-  delete cubitClient;
-  delete coreClient;
+  delete client;
 }
 
 void
@@ -443,7 +457,7 @@ cmbNucExport::run( const QStringList &assygenFile,
   if(!this->startUpHelper()) return;
 
   std::vector<JobHolder*> deps = exportCylinder( assygenFileCylinder, cubitFileCylinder, cubitOutputFileCylinder,
-                                                    coregenFileCylinder, coregenResultFileCylinder );
+                                                 coregenFileCylinder, coregenResultFileCylinder );
 
   std::vector<JobHolder*> assy = this->runAssyHelper( assygenFile );
 
@@ -480,7 +494,9 @@ JobHolder* cmbNucExport::makeAssyJob(const QString assygenFile)
   QString pass = path + '/' + name;
   JobHolder * assyJob = new JobHolder(path, AssygenExe, name, pass + ".jou");
   jobs_to_do.push_back(assyJob);
-  assyJob->client = assygenClient;
+  assyJob->label = "Assygen";
+  assyJob->itype = "ASSYGEN_IN";
+  assyJob->otype = "CUBIT_IN";
 
   {
     assyJob->in.LibPath = "";
@@ -536,7 +552,9 @@ cmbNucExport::runCubitHelper( const QString cubitFile,
     QString name = fi.completeBaseName();
 
     JobHolder * cubitJob = new JobHolder(path, CubitExe, cubitFile, cubitOutputFile);
-    cubitJob->client = cubitClient;
+    cubitJob->label = "Cubit";
+    cubitJob->itype = "CUBIT_IN";
+    cubitJob->otype = "COREGEN_IN";
     cubitJob->dependencies = depIn;
     jobs_to_do.push_back(cubitJob);
     result.push_back(cubitJob);
@@ -559,7 +577,9 @@ cmbNucExport::runCoreHelper( const QString coregenFile,
     QString pass = path + '/' + name;
 
     JobHolder * coreJob = new JobHolder(path, CoregenExe, pass, CoreGenOutputFile);
-    coreJob->client = coreClient;
+    coreJob->label = "Coregen";
+    coreJob->itype = "COREGEN_IN";
+    coreJob->otype = "COREGEN_OUT";
     coreJob->dependencies = depIn;
     jobs_to_do.push_back(coreJob);
     result.push_back(coreJob);
@@ -605,7 +625,7 @@ void cmbNucExport::cancel()
   {
     QMutexLocker locker(&Memory);
     setKeepGoing(false);
-    for(std::set<cmbNucExportRunnableWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
+    for(std::set<cmbNucExporterWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
     {
       (*iter)->keepGoing = false;
     }
@@ -643,6 +663,8 @@ void cmbNucExport::deleteServer()
   if(this->Server != NULL) this->Server->stopBrokering();
   delete this->Server;
   this->Server = NULL;
+  delete this->client;
+  this->client = NULL;
 }
 
 void cmbNucExport::deleteWorkers()
@@ -668,7 +690,7 @@ bool cmbNucExport::startUpHelper()
   //create a default server with the factory
   {
     QMutexLocker locker(&ServerProtect);
-    Server = new remus::server::Server(factory);
+    Server = new remus::server::Server(serverPorts, factory);
   }
 
   //start accepting connections for clients and workers
@@ -677,6 +699,9 @@ bool cmbNucExport::startUpHelper()
   {
     QMutexLocker locker(&ServerProtect);
     valid = Server->startBrokering(remus::Server::NONE);
+    remus::client::ServerConnection conn = remus::client::make_ServerConnection(serverPorts.client().endpoint());
+    conn.context(serverPorts.context());
+    client = new cmbNucExporterClient(conn);
   }
   if( !valid )
   {
@@ -685,7 +710,9 @@ bool cmbNucExport::startUpHelper()
     emit currentProcess("  failed to start server");
     emit done();
     delete Server;
+    delete client;
     Server = NULL;
+    client = NULL;
     return false;
   }
 
@@ -720,13 +747,13 @@ void cmbNucExport::setCubit(QString cubitExe)
   this->CubitExe = cubitExe;
 }
 
-void cmbNucExport::registerWorker(cmbNucExportRunnableWorker* w)
+void cmbNucExport::registerWorker(cmbNucExporterWorker* w)
 {
   QMutexLocker locker(&Memory);
   workers.insert(w);
 }
 
-void cmbNucExport::workerDone(cmbNucExportRunnableWorker* w)
+void cmbNucExport::workerDone(cmbNucExporterWorker* w)
 {
   QMutexLocker locker(&Memory);
   workers.erase(w);
@@ -762,7 +789,7 @@ void cmbNucExport::processJobs()
       if(jobs_to_do[i]->done) continue;
       else if(jobs_to_do[i]->running )
       {
-        remus::proto::JobStatus jobState = jobs_to_do[i]->client->jobStatus(jobs_to_do[i]->job);
+        remus::proto::JobStatus jobState = client->jobStatus(jobs_to_do[i]->job);
 
         if(jobState.good())
         {
@@ -810,7 +837,9 @@ void cmbNucExport::processJobs()
         {
           this->jobs_to_do[i]->running = true;
           qDebug() << "i is starting" << i;
-          bool r = jobs_to_do[i]->client->getOutput(jobs_to_do[i]->in, &(jobs_to_do[i]->job));
+          bool r = client->getOutput( jobs_to_do[i]->label, jobs_to_do[i]->itype,
+                                      jobs_to_do[i]->otype, jobs_to_do[i]->in,
+                                      &(jobs_to_do[i]->job));
           if(!r)
           {
             failedHelper("Remus ERROR", " Remus does not support the job");
@@ -822,6 +851,14 @@ void cmbNucExport::processJobs()
     if(all_finish) break;
   }
   this->finish();
+}
+
+remus::worker::ServerConnection
+cmbNucExport::make_ServerConnection()
+{
+  remus::worker::ServerConnection conn = remus::worker::make_ServerConnection(serverPorts.worker().endpoint());
+  conn.context(serverPorts.context());
+  return conn;
 }
 
 #endif //#ifndef cmbNucExport_cxx

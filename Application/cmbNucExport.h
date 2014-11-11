@@ -26,7 +26,7 @@ class WorkerFactory;
 }
 }
 
-class cmbNucExportRunnableWorker;
+class cmbNucExporterWorker;
 class ExporterWorkerFactory;
 class cmbNucExporterClient;
 struct JobHolder;
@@ -67,8 +67,9 @@ public:
   void setCoregen(QString coregenExe,QString coregenLib);
   void setNumberOfProcessors(int v);
   void setCubit(QString cubitExe);
-  void registerWorker(cmbNucExportRunnableWorker*);
-  void workerDone(cmbNucExportRunnableWorker*);
+  void registerWorker(cmbNucExporterWorker*);
+  void workerDone(cmbNucExporterWorker*);
+  remus::worker::ServerConnection make_ServerConnection();
 public slots:
   void run( const QStringList &assygenFile,
             const QString coregenFile,
@@ -119,18 +120,17 @@ private:
   void deleteServer();
   mutable QMutex Mutex, Memory, ServerProtect;
   void deleteWorkers();
+  remus::server::ServerPorts serverPorts;
   remus::server::Server * Server;
   remus::worker::ServerConnection ServerConnection;
   boost::shared_ptr<ExporterWorkerFactory> factory;
   QString AssygenExe, AssygenLib;
   QString CoregenExe, CoregenLib;
   QString CubitExe;
-  std::set<cmbNucExportRunnableWorker*> workers;
+  std::set<cmbNucExporterWorker*> workers;
 
   std::vector<JobHolder*> jobs_to_do;
-  cmbNucExporterClient * assygenClient;
-  cmbNucExporterClient * cubitClient;
-  cmbNucExporterClient * coreClient;
+  cmbNucExporterClient * client;
   void clearJobs();
   void processJobs();
 };
