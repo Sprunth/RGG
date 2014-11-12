@@ -335,6 +335,14 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
   this->ui->setupUi(this);
+  {
+    vtkRenderWindow* win = vtkRenderWindow::New();
+    win->SetAlphaBitPlanes(1);
+    this->ui->qvtkWidget->SetRenderWindow(win);
+    win = vtkRenderWindow::New();
+    win->SetAlphaBitPlanes(1);
+    this->ui->qvtkMeshWidget->SetRenderWindow(win);
+  }
   this->NuclearCore = new cmbNucCore(false);
   setTitle();
 
