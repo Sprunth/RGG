@@ -46,6 +46,7 @@ class cmbNucExporterClient;
 class cmbNucExporterWorker: public remus::worker::Worker
 {
 public:
+  enum status{FAILED, TERMINATE, OK};
   cmbNucExporterWorker( std::string label, remus::common::MeshIOType miotype,
                         RunnableConnection & rconn,
                         remus::worker::ServerConnection const& sconn,
@@ -54,8 +55,8 @@ public:
   ~cmbNucExporterWorker();
   RunnableConnection & connection;
   void process();
-  bool pollStatus( remus::common::ExecuteProcess* process,
-                   const remus::worker::Job& job );
+  status pollStatus( remus::common::ExecuteProcess* process,
+                     const remus::worker::Job& job );
   std::string label;
   cmbNucExport * exporter;
   std::vector<std::string> ExtraArgs;
@@ -237,6 +238,10 @@ public:
   {
     return Client->jobStatus(*job);
   }
+  void terminate(remus::proto::Job * job)
+  {
+    Client->terminate(*job);
+  }
 private:
   remus::client::ServerConnection Connection;
   remus::Client * Client;
@@ -274,6 +279,7 @@ cmbNucExporterWorker
  keepGoing(true)
 {
   this->label = l;
+  syncronizer.lock();
   if(exporter!=NULL) exporter->registerWorker(this);
 }
 
@@ -281,7 +287,6 @@ void
 cmbNucExporterWorker
 ::process()
 {
-  syncronizer.lock();
   remus::worker::Job job = this->getJob();
   if(!job.valid())
   {
@@ -333,18 +338,28 @@ cmbNucExporterWorker
   ep->execute(remus::common::ExecuteProcess::Attached);
 
   //Wait for finish
-  qDebug() << "waiting: " << this->label.c_str();
-  if(pollStatus(ep, job) && QFileInfo(input.OutputFile.c_str()).exists())
+  qDebug() << "waiting for execuable to finish: " << this->label.c_str();
+  switch(pollStatus(ep, job))
   {
-    qDebug() << "Done waiting.  Is ok: " << this->label.c_str();
-    remus::proto::JobResult results = remus::proto::make_JobResult(job.id(),"DUMMY FOR NOW;");
-    this->returnResult(results);
-  }
-  else
-  {
-    qDebug() << "Done waiting.  Job Failed: " << this->label.c_str();
-    remus::proto::JobStatus status(job.id(),remus::FAILED);
-    updateStatus(status);
+    case OK:
+      if(QFileInfo(input.OutputFile.c_str()).exists())
+      {
+        qDebug() << "Done waiting.  Is ok: " << this->label.c_str();
+        remus::proto::JobResult results = remus::proto::make_JobResult(job.id(),"DUMMY FOR NOW;");
+        this->returnResult(results);
+        break;
+      }
+    case FAILED:
+    {
+      qDebug() << "Done waiting.  Job Failed: " << this->label.c_str();
+      remus::proto::JobStatus status(job.id(),remus::FAILED);
+      updateStatus(status);
+      break;
+    }
+    case TERMINATE:
+    {
+      ((void)0); //return no message.
+    }
   }
   QDir::setCurrent( current );
   delete ep;
@@ -370,7 +385,7 @@ cmbNucExporterWorker
 {
 }
 
-bool cmbNucExporterWorker
+cmbNucExporterWorker::status cmbNucExporterWorker
 ::pollStatus( remus::common::ExecuteProcess* ep,
               const remus::worker::Job& job)
 {
@@ -379,10 +394,10 @@ bool cmbNucExporterWorker
   //poll on STDOUT and STDERRR only
   bool validExection=true;
   remus::proto::JobStatus status(job.id(),remus::IN_PROGRESS);
-  while(ep->isAlive()&& validExection && this->keepGoing)
+  while(ep->isAlive()&& validExection && this->pendingJobCount() == 0)
   {
     //poll till we have a data, waiting for-ever!
-    ProcessPipe data = ep->poll(2);
+    ProcessPipe data = ep->poll(4);
     if(data.type == ProcessPipe::STDOUT || data.type == ProcessPipe::STDERR)
     {
       //we have something on the output pipe
@@ -395,6 +410,12 @@ bool cmbNucExporterWorker
   {
     qDebug() << "Killing process";
     ep->kill();
+    /*ProcessPipe data =*/ ep->poll(4); //clear pipe
+  }
+
+  if(this->pendingJobCount() != 0 )
+  {
+    return TERMINATE;
   }
 
   //verify we exited normally, not segfault or numeric exception
@@ -402,9 +423,9 @@ bool cmbNucExporterWorker
 
   if(!validExection)
   {
-    return false;
+    return FAILED;
   }
-  return true;
+  return OK;
 }
 
 cmbNucExporterClient::cmbNucExporterClient(remus::client::ServerConnection conn)
@@ -635,16 +656,7 @@ cmbNucExport::exportCylinder( const QString assygenFile,
 void cmbNucExport::cancel()
 {
   //todo: fix this
-  {
-    QMutexLocker locker(&Memory);
-    for(std::set<cmbNucExporterWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
-    {
-      (*iter)->keepGoing = false;
-      (*iter)->syncronizer.lock();
-      (*iter)->syncronizer.unlock();
-    }
-    setKeepGoing(false);
-  }
+  setKeepGoing(false);
   emit cancelled();
 }
 
@@ -675,16 +687,20 @@ void cmbNucExport::deleteServer()
   QMutexLocker locker(&ServerProtect);
   { //make sure workers are done
     QMutexLocker memlocker(&Memory);
-    for(std::set<cmbNucExporterWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
+    /*for(std::set<cmbNucExporterWorker*>::iterator iter = workers.begin(); iter != workers.end(); ++iter)
     {
       (*iter)->keepGoing = false;
       (*iter)->syncronizer.lock();
       (*iter)->syncronizer.unlock();
-    }
+    }*/
+    workers.clear();
   }
-  workers.clear();
   qDebug() << "stop brocking";
-  if(this->Server != NULL) this->Server->stopBrokering();
+  if(this->Server != NULL)
+  {
+    this->Server->stopBrokering();
+    //this->Server->waitForBrokeringToFinish();
+  }
   delete this->client;
   this->client = NULL;
   qDebug() << "deleting server";
@@ -800,6 +816,13 @@ void cmbNucExport::processJobs()
     if(!keepGoing())
     {
       cancelHelper();
+      for(unsigned int i = 0; i < jobs_to_do.size(); ++i)
+      {
+        if(jobs_to_do[i]->running )
+        {
+          client->terminate(jobs_to_do[i]->job);
+        }
+      }
       return;
     }
     el.processEvents();
