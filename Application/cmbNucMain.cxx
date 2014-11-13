@@ -8,7 +8,7 @@
 int main( int argc, char** argv )
 {
   QApplication::setApplicationName("CMB Nuclear Energy Reactor Geometry Generator");
-  QApplication::setApplicationVersion("1.0.0");
+  QApplication::setApplicationVersion("1.1.0");
   QApplication::setOrganizationName("Kitware Inc");
  
   // QT Stuff
