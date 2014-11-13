@@ -16,25 +16,6 @@ class cmbNucAssembly;
 class AssyPartObj;
 class cmbNucRender;
 
-class DuctTabelCellConnection : public QObject
-{
-  Q_OBJECT
-public:
-public slots:
-  void SetValue(double d)
-  { this->SetValueImp(d); }
-  void NeighborRowDeleted(int r)
-  {
-    this->NeighborDeleteIMP(r);
-  }
-signals:
-  void ValueChanged(double);
-  void Deleted(int);
-protected:
-  virtual void SetValueImp(double){}
-  virtual void NeighborDeleteIMP(int){}
-};
-
 // the pin cell editor widget. this dialog allows the user to modify a
 // single pin cell in an assembly. the sections (cylinders/frustums) can
 // be added/removed/modifed as well as the layers. materials can be assigned

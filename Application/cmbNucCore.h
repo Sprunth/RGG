@@ -110,53 +110,6 @@ public:
   std::vector<std::string> UnknownKeyWords;
   std::string Background;
   std::string BackgroundFullPath;
-
-private:
-
-  void convert(QString qw, std::string & result) const
-  {
-    result = qw.toStdString();
-  }
-
-  void convert(QString qw, double & result) const
-  {
-    bool ok;
-    double previous = result;
-    result = qw.toDouble(&ok);
-    if(!ok)
-    {
-      result = previous;
-    }
-  }
-
-  void convert(bool qw, bool & result) const
-  {
-    result = qw;
-  }
-
-public slots:
-
-  void setProblemType(QString v)
-  {  convert(v, ProblemType); }
-
-  void setGeometry(QString v)
-  {  convert(v, Geometry); }
-
-  void setMergeTolerance(QString v)
-  {  convert(v, MergeTolerance); }
-
-  void setSaveParallel(QString v)
-  {  convert(v, SaveParallel); }
-
-  void setInfo(bool v)
-  {  convert(v, Info); }
-
-  void setMeshInfo(bool v)
-  {  convert(v, MeshInfo); }
-
-  void setOutputFileName(QString v)
-  {  convert(v, OutputFileName); }
-
 };
 
 class cmbNucCore;

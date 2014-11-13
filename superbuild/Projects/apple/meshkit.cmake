@@ -11,7 +11,6 @@ set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 set(junk_output "&> /dev/null")
 endif()
 
-
 add_external_project(meshkit
   DEPENDS moab cgm lasso
   BUILD_IN_SOURCE 1

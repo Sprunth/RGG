@@ -67,8 +67,6 @@ public:
   void setCoregen(QString coregenExe,QString coregenLib);
   void setNumberOfProcessors(int v);
   void setCubit(QString cubitExe);
-  void registerWorker(cmbNucExporterWorker*);
-  void workerDone(cmbNucExporterWorker*);
   remus::worker::ServerConnection make_ServerConnection();
   void waitTillDone();
 public slots:
@@ -119,6 +117,7 @@ private:
   bool keepGoing() const;
   bool KeepGoing;
   void deleteServer();
+  void stopJobs();
   mutable QMutex Mutex, Memory, ServerProtect;
   remus::server::ServerPorts serverPorts;
   remus::server::Server * Server;
@@ -127,7 +126,6 @@ private:
   QString AssygenExe, AssygenLib;
   QString CoregenExe, CoregenLib;
   QString CubitExe;
-  std::set<cmbNucExporterWorker*> workers;
 
   std::vector<JobHolder*> jobs_to_do;
   cmbNucExporterClient * client;

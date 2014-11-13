@@ -360,6 +360,7 @@ changed |= setValue(corein->Params.Var, Internal->Var);
   if(meshFile != corein->h5mFile)
   {
     corein->h5mFile = meshFile;
+    changed = true;
   }
 
   cmbNucCoreParams::NeumannSetStruct tmp;

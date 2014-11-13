@@ -3,7 +3,7 @@
 # We hardcode the version numbers since we cannot determine versions during
 # configure stage.
 set (rgg_version_major 1)
-set (rgg_version_minor 0)
+set (rgg_version_minor 1)
 set (rgg_version_patch 0)
 set (rgg_version_suffix)
 set (rgg_version "${rgg_version_major}.${rgg_version_minor}")
