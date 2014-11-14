@@ -862,7 +862,7 @@ void cmbNucExport::stopJobs()
 {
   for(unsigned int i = 0; i < jobs_to_do.size(); ++i)
   {
-    if(jobs_to_do[i]->running )
+    if(jobs_to_do[i]->running && !jobs_to_do[i]->done )
     {
       client->terminate(jobs_to_do[i]->job);
     }
