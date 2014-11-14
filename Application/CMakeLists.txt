@@ -256,6 +256,7 @@ if(BUILD_TESTING)
                         testing_delete_pin
                         testing_delete_assy
                         testing_delete_core
+                        testing_6thflat
                         test_new_rect
                         test_new_hex)
 

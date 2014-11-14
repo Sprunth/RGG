@@ -30,6 +30,8 @@
 
 #include "cmbNucExport.h"
 
+//#define USE_REMUS_EXECUTE_PROCESS
+
 namespace
 {
 class Thread : public QThread
@@ -56,8 +58,13 @@ public:
   ~cmbNucExporterWorker();
   RunnableConnection & connection;
   void process();
+#ifdef USE_REMUS_EXECUTE_PROCESS
   status pollStatus( remus::common::ExecuteProcess* process,
                      const remus::worker::Job& job );
+#else
+  status pollStatus( QProcess & process,
+                     const remus::worker::Job& job );
+#endif
   std::string label;
   cmbNucExport * exporter;
   std::vector<std::string> ExtraArgs;
@@ -84,6 +91,7 @@ public:
     cmbNucExporterWorker worker(this->label, this->IOType, this->connection,
                                 serverConnection, this->exporter, this->ExtraArgs);
     worker.process();
+    qDebug() << label.c_str() << "is done running";
   }
 
   remus::common::MeshIOType IOType;
@@ -159,7 +167,8 @@ public:
       return false;
     }
     QObject::connect( &(runner->connection), SIGNAL(currentMessage(QString)), exporter, SIGNAL(statusMessage(QString)) );
-    qDebug() << threadPool.maxThreadCount();
+    qDebug() << "Current thread count: " << threadPool.activeThreadCount() << "out of" << threadPool.maxThreadCount();
+    runner->setAutoDelete(true);
     threadPool.start(runner);
     return true;
   }
@@ -178,6 +187,12 @@ public:
   {
     threadPool.setMaxThreadCount( maxThreadCount );
     this->setMaxWorkerCount(maxThreadCount);
+  }
+
+  void wait()
+  {
+    qDebug() << "Waiting for workers to finish" << threadPool.activeThreadCount();
+    threadPool.waitForDone();
   }
 
 protected:
@@ -335,11 +350,14 @@ cmbNucExporterWorker
 #endif
 
   qDebug() << "starting exe: " << this->label.c_str();
-#if 0
+#ifdef USE_REMUS_EXECUTE_PROCESS
   remus::common::ExecuteProcess* ep = new remus::common::ExecuteProcess( input.Function, args);
-
   //actually launch the new process
   ep->execute(remus::common::ExecuteProcess::Attached);
+#else
+  QProcess ep;
+  ep.start(input.Function.c_str(), qargs);
+#endif
 
   //Wait for finish
   qDebug() << "waiting for execuable to finish: " << this->label.c_str();
@@ -365,31 +383,8 @@ cmbNucExporterWorker
       ((void)0); //return no message.
     }
   }
+#ifdef USE_REMUS_EXECUTE_PROCESS
   delete ep;
-#else
-  QProcess runner;
-  runner.start(input.Function.c_str(), qargs);
-  if (!runner.waitForStarted(-1))
-  {
-    qDebug() << "waiting for start failed"<< this->label.c_str();
-    remus::proto::JobStatus status(job.id(),remus::FAILED);
-    updateStatus(status);
-  }
-  qDebug() << "running qprocess"<< this->label.c_str();
-
-  if (!runner.waitForFinished(-1))
-  {
-    qDebug() << "waiting for wait failed" << runner.error() << this->label.c_str();
-    remus::proto::JobStatus status(job.id(),remus::FAILED);
-    updateStatus(status);
-  }
-  else
-  {
-    qDebug() << "success"<< this->label.c_str();
-    remus::proto::JobResult results = remus::proto::make_JobResult(job.id(),"DUMMY FOR NOW;");
-    this->returnResult(results);
-  }
-  qDebug() << "done with qProcess"<< this->label.c_str();
 #endif
 
   QDir::setCurrent( current );
@@ -414,6 +409,7 @@ cmbNucExporterWorker
 {
 }
 
+#ifdef USE_REMUS_EXECUTE_PROCESS
 cmbNucExporterWorker::status cmbNucExporterWorker
 ::pollStatus( remus::common::ExecuteProcess* ep,
               const remus::worker::Job& job)
@@ -457,6 +453,48 @@ cmbNucExporterWorker::status cmbNucExporterWorker
   }
   return OK;
 }
+#else
+cmbNucExporterWorker::status cmbNucExporterWorker
+::pollStatus( QProcess & qp,
+              const remus::worker::Job& job )
+{
+  if (!qp.waitForStarted(-1))
+  {
+    qDebug() << "waiting for start failed"<< this->label.c_str();
+    return FAILED;
+  }
+  int pid = qp.pid();
+  qDebug() << "process " << qp.pid() << "started";
+  while(!qp.waitForFinished(4) && this->pendingJobCount() == 0)
+  {
+    QByteArray tmp = qp.readAll();
+    if(tmp.isEmpty()) continue;
+    QList<QByteArray> lines = tmp.split('\n');
+    foreach ( const QByteArray &line, lines)
+    {
+      connection.sendCurrentMessage( QString("Process ") + QString::number(qp.pid()) + QString(": ") + QString(line) );
+    }
+  }
+  if(qp.state() == QProcess::Running)
+  {
+    qDebug() << "Killing process:" << pid;
+    //qp.kill();
+    qp.terminate();
+    qp.waitForFinished();
+  }
+  if(this->pendingJobCount() != 0 )
+  {
+    return TERMINATE;
+  }
+  if( qp.exitStatus() == QProcess::NormalExit)
+  {
+    qDebug() << "exited normally process:" << pid;
+    return OK;
+  }
+  qDebug() << "exit"<< qp.exitStatus() << "error:" <<  qp.error();
+  return FAILED;
+}
+#endif
 
 cmbNucExporterClient::cmbNucExporterClient(remus::client::ServerConnection conn)
 {
@@ -719,13 +757,18 @@ void cmbNucExport::deleteServer()
   if(this->Server != NULL)
   {
     this->Server->stopBrokering();
-    //this->Server->waitForBrokeringToFinish();
+    if(this->Server->isBrokering())
+    {
+      this->Server->waitForBrokeringToFinish();
+    }
   }
   delete this->client;
   this->client = NULL;
   qDebug() << "deleting server";
   delete this->Server;
   this->Server = NULL;
+  factory->wait();
+  qDebug() << "Done deleting server";
 }
 
 bool cmbNucExport::startUpHelper()
@@ -806,6 +849,7 @@ void cmbNucExport::setCubit(QString cubitExe)
 
 void cmbNucExport::clearJobs()
 {
+  this->stopJobs();
   for(unsigned int i = 0; i < jobs_to_do.size(); ++i)
   {
     delete jobs_to_do[i];

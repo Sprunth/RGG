@@ -1365,7 +1365,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
         for( size_t j = start; j < cols; j++)
           {
           std::string label = lat.Grid[i][j].label;
-          if( forceLabel.empty() )
+          if( !forceLabel.empty() )
             {
             label = forceLabel;
             }
