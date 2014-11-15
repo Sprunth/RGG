@@ -21,6 +21,7 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QProcess>
+#include <QTime>
 
 #include <iostream>
 #include <sstream>
@@ -49,7 +50,7 @@ class cmbNucExporterClient;
 class cmbNucExporterWorker: public remus::worker::Worker
 {
 public:
-  enum status{FAILED, TERMINATE, OK};
+  enum status{FAILED, TERMINATE, RETRY, OK};
   cmbNucExporterWorker( std::string label, remus::common::MeshIOType miotype,
                         RunnableConnection & rconn,
                         remus::worker::ServerConnection const& sconn,
@@ -62,6 +63,7 @@ public:
   status pollStatus( remus::common::ExecuteProcess* process,
                      const remus::worker::Job& job );
 #else
+  void sendMessages( QProcess & qp);
   status pollStatus( QProcess & process,
                      const remus::worker::Job& job );
 #endif
@@ -69,7 +71,9 @@ public:
   cmbNucExport * exporter;
   std::vector<std::string> ExtraArgs;
   bool keepGoing;
-  QMutex syncronizer;
+  unsigned int numberOfTries;
+  std::string FileName;
+  int pid;
 };
 
 class cmbNucExportWorkerRunner: public QRunnable
@@ -249,14 +253,14 @@ public:
   ~cmbNucExporterClient()
   {delete Client;}
   bool getOutput(std::string label, std::string itype, std::string otype,
-                 ExporterInput const& in, remus::proto::Job ** job);
-  remus::proto::JobStatus jobStatus(remus::proto::Job * job)
+                 ExporterInput const& in, remus::proto::Job & job);
+  remus::proto::JobStatus jobStatus(remus::proto::Job & job)
   {
-    return Client->jobStatus(*job);
+    return Client->jobStatus(job);
   }
-  void terminate(remus::proto::Job * job)
+  void terminate(remus::proto::Job & job)
   {
-    Client->terminate(*job);
+    Client->terminate(job);
   }
 private:
   remus::client::ServerConnection Connection;
@@ -269,18 +273,16 @@ private:
 struct JobHolder
 {
   JobHolder(QString exeDir, QString fun, QString file, QString of)
-  : running(false), done(false), in(exeDir, fun, file, of)
+  : running(false), done(false), job(remus::proto::make_invalidJob()), in(exeDir, fun, file, of)
   {
-    job = NULL;
   }
   ~JobHolder()
   {
-    delete job;
   }
   bool running, done;
   std::vector<JobHolder*> dependencies;
   std::string label, itype, otype;
-  remus::proto::Job * job;
+  remus::proto::Job job;
   ExporterInput in;
 };
 
@@ -295,14 +297,43 @@ cmbNucExporterWorker
  keepGoing(true)
 {
   this->label = l;
-  syncronizer.lock();
 }
 
 void
 cmbNucExporterWorker
 ::process()
 {
-  remus::worker::Job job = this->getJob();
+#if 0
+  remus::worker::Job job = takePendingJob();
+  //remus::worker::Job job = this->getJob();
+  int count = 0;
+  while(!job.valid())
+  {
+    if(count++>=10)
+    {
+      qDebug() << "!!!!!!!!!!!DID NOT GET A VALID JOB!!!!!!!!!!!!!!!";
+      return;
+    }
+    Thread::msleep(100);
+    job = takePendingJob();
+  }
+#else
+  int count = 0;
+  this->askForJobs(1);
+  while(this->pendingJobCount() == 0)
+  {
+    //qDebug() << count <<"waiting for jobs: " << this->pendingJobCount();
+    if(count++>=100)
+    {
+      connection.sendErrorMessage("JOB NEVER CAME");
+      qDebug() << "!!!!!!!!!!!DID NOT GET A VALID JOB!!!!!!!!!!!!!!!";
+      return;
+    }
+    QThread::yieldCurrentThread();
+    Thread::msleep(100);
+  }
+  remus::worker::Job job = takePendingJob();
+#endif
   if(!job.valid())
   {
     switch(job.validityReason())
@@ -311,6 +342,7 @@ cmbNucExporterWorker
         connection.sendErrorMessage("JOB NOT VALID");
         return;
       case remus::worker::Job::TERMINATE_WORKER:
+        std::cout << "TERMINATE_WORKER" << std::endl;
         return;
       case remus::worker::Job::VALID_JOB:
         ((void)0); //have valid job, move on.
@@ -338,6 +370,8 @@ cmbNucExporterWorker
   }
   args.push_back(input.FileArg);
   qargs << input.FileArg.c_str();
+  FileName = input.FileArg;
+  numberOfTries = 0;
 
 #ifdef __APPLE__
   char* oldEnv = getenv("DYLD_LIBRARY_PATH");
@@ -349,39 +383,53 @@ cmbNucExporterWorker
   setenv("LD_LIBRARY_PATH", env.c_str(), 1);
 #endif
 
-  qDebug() << "starting exe: " << this->label.c_str();
+  bool retry = true;
+  while(retry)
+  {
+    qDebug() << "starting exe: " << this->label.c_str() << numberOfTries;
 #ifdef USE_REMUS_EXECUTE_PROCESS
-  remus::common::ExecuteProcess* ep = new remus::common::ExecuteProcess( input.Function, args);
-  //actually launch the new process
-  ep->execute(remus::common::ExecuteProcess::Attached);
+    remus::common::ExecuteProcess* ep = new remus::common::ExecuteProcess( input.Function, args);
+    //actually launch the new process
+    ep->execute(remus::common::ExecuteProcess::Attached);
 #else
-  QProcess ep;
-  ep.start(input.Function.c_str(), qargs);
+    QProcess ep;
+    ep.start(input.Function.c_str(), qargs);
 #endif
 
-  //Wait for finish
-  qDebug() << "waiting for execuable to finish: " << this->label.c_str();
-  switch(pollStatus(ep, job))
-  {
-    case OK:
-      if(QFileInfo(input.OutputFile.c_str()).exists())
+    //Wait for finish
+    qDebug() << "waiting for execuable to finish: " << this->label.c_str() << numberOfTries;
+    switch(pollStatus(ep, job))
+    {
+      case OK:
+        if(QFileInfo(input.OutputFile.c_str()).exists())
+        {
+          qDebug() << "Done waiting.  Is ok: " << this->label.c_str();
+          remus::proto::JobResult results = remus::proto::make_JobResult(job.id(),"DUMMY FOR NOW;");
+          this->returnResult(results);
+          break;
+        }
+      case RETRY:
+        QThread::yieldCurrentThread();
+        Thread::msleep(30);
+        if(numberOfTries++ < 10)
+        {
+          //At times the exectuable crashes, we retry it 10 times.
+          qDebug() << "Done waiting.  Crashed, retrying: " << this->label.c_str();
+          continue;
+        }
+      case FAILED:
       {
-        qDebug() << "Done waiting.  Is ok: " << this->label.c_str();
-        remus::proto::JobResult results = remus::proto::make_JobResult(job.id(),"DUMMY FOR NOW;");
-        this->returnResult(results);
+        qDebug() << "Done waiting.  Job Failed: " << this->label.c_str();
+        remus::proto::JobStatus status(job.id(),remus::FAILED);
+        updateStatus(status);
         break;
       }
-    case FAILED:
-    {
-      qDebug() << "Done waiting.  Job Failed: " << this->label.c_str();
-      remus::proto::JobStatus status(job.id(),remus::FAILED);
-      updateStatus(status);
-      break;
+      case TERMINATE:
+      {
+        ((void)0); //return no message.
+      }
     }
-    case TERMINATE:
-    {
-      ((void)0); //return no message.
-    }
+    retry = false;
   }
 #ifdef USE_REMUS_EXECUTE_PROCESS
   delete ep;
@@ -401,7 +449,6 @@ cmbNucExporterWorker
   }
 #endif
   qDebug() << "finish: " << this->label.c_str();
-  syncronizer.unlock();
 }
 
 cmbNucExporterWorker
@@ -419,7 +466,7 @@ cmbNucExporterWorker::status cmbNucExporterWorker
   //poll on STDOUT and STDERRR only
   bool validExection=true;
   remus::proto::JobStatus status(job.id(),remus::IN_PROGRESS);
-  while(ep->isAlive()&& validExection && this->pendingJobCount() == 0)
+  while(ep->isAlive()&& validExection && !this->jobShouldBeTerminated(job))
   {
     //poll till we have a data, waiting for-ever!
     ProcessPipe data = ep->poll(0);
@@ -439,7 +486,7 @@ cmbNucExporterWorker::status cmbNucExporterWorker
   }
   ep->poll(4);
 
-  if(this->pendingJobCount() != 0 )
+  if(this->jobShouldBeTerminated(job) )
   {
     return TERMINATE;
   }
@@ -454,6 +501,18 @@ cmbNucExporterWorker::status cmbNucExporterWorker
   return OK;
 }
 #else
+void cmbNucExporterWorker
+::sendMessages( QProcess & qp)
+{
+  QByteArray tmp = qp.readAll();
+  if(tmp.isEmpty()) return;
+  QList<QByteArray> lines = tmp.split('\n');
+  foreach ( const QByteArray &line, lines)
+  {
+    connection.sendCurrentMessage( QString("Process ") + QString::number(pid) + QString(": ") + QString(line) );
+  }
+}
+
 cmbNucExporterWorker::status cmbNucExporterWorker
 ::pollStatus( QProcess & qp,
               const remus::worker::Job& job )
@@ -463,18 +522,17 @@ cmbNucExporterWorker::status cmbNucExporterWorker
     qDebug() << "waiting for start failed"<< this->label.c_str();
     return FAILED;
   }
-  int pid = qp.pid();
-  qDebug() << "process " << qp.pid() << "started";
-  while(!qp.waitForFinished(4) && this->pendingJobCount() == 0)
+  pid = qp.pid();
+  if(qp.state() != QProcess::Running)
   {
-    QByteArray tmp = qp.readAll();
-    if(tmp.isEmpty()) continue;
-    QList<QByteArray> lines = tmp.split('\n');
-    foreach ( const QByteArray &line, lines)
-    {
-      connection.sendCurrentMessage( QString("Process ") + QString::number(qp.pid()) + QString(": ") + QString(line) );
-    }
+    qDebug() << pid << "started but Is Not Running";
   }
+  qDebug() << "process " << qp.pid() << "started" << this->label.c_str() << this->FileName.c_str();
+  while(!qp.waitForFinished(50) && !this->jobShouldBeTerminated(job))
+  {
+    sendMessages(qp);
+  }
+  sendMessages(qp);
   if(qp.state() == QProcess::Running)
   {
     qDebug() << "Killing process:" << pid;
@@ -482,7 +540,7 @@ cmbNucExporterWorker::status cmbNucExporterWorker
     qp.terminate();
     qp.waitForFinished();
   }
-  if(this->pendingJobCount() != 0 )
+  if(this->jobShouldBeTerminated(job))
   {
     return TERMINATE;
   }
@@ -491,7 +549,17 @@ cmbNucExporterWorker::status cmbNucExporterWorker
     qDebug() << "exited normally process:" << pid;
     return OK;
   }
-  qDebug() << "exit"<< qp.exitStatus() << "error:" <<  qp.error();
+  qDebug() << pid << "exit"<< qp.exitStatus() << "error:" <<  qp.error() << this->label.c_str();
+  QStringList qargs;
+  for( std::vector<std::string>::const_iterator i = ExtraArgs.begin();
+      i < ExtraArgs.end(); ++i )
+  {
+    qargs << i->c_str();
+  }
+  qDebug() << pid << qargs << FileName.c_str();
+
+  if(qp.error() == QProcess::Crashed)
+    return RETRY;
   return FAILED;
 }
 #endif
@@ -504,7 +572,7 @@ cmbNucExporterClient::cmbNucExporterClient(remus::client::ServerConnection conn)
 
 bool
 cmbNucExporterClient::getOutput(std::string label, std::string it, std::string ot,
-                                ExporterInput const& in, remus::proto::Job ** job)
+                                ExporterInput const& in, remus::proto::Job & job)
 {
   ExporterOutput eo;
   remus::common::MeshIOType mesh_types(it, ot);
@@ -516,15 +584,15 @@ cmbNucExporterClient::getOutput(std::string label, std::string it, std::string o
 
     remus::proto::JobSubmission sub(reqs,content);
 
-    (*job) = new remus::proto::Job(Client->submitJob(sub));
+    job = Client->submitJob(sub);
     return true;
   }
   return false;
 }
 
 cmbNucExport::cmbNucExport()
-: serverPorts(zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
-              zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")),
+: serverPorts(/*zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
+              zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")*/),
   Server(NULL),
   factory(new ExporterWorkerFactory(this, 4)),
   client(NULL)
@@ -889,6 +957,18 @@ void cmbNucExport::processJobs()
       if(jobs_to_do[i]->done) continue;
       else if(jobs_to_do[i]->running )
       {
+        QTime time;
+        time.start();
+        while(time.elapsed()<100)
+        {
+          if(!keepGoing())
+          {
+            this->stopJobs();
+            cancelHelper();
+            return;
+          }
+          el.processEvents();
+        }
         ServerProtect.lock();
         remus::proto::JobStatus jobState = client->jobStatus(jobs_to_do[i]->job);
         ServerProtect.unlock();
@@ -920,8 +1000,18 @@ void cmbNucExport::processJobs()
         }
         else if(jobState.status() == remus::EXPIRED)
         {
-          failedHelper("Remus ERROR", " Remus Expired");
-          this->stopJobs();
+          all_finish = false;
+          //failedHelper("Remus ERROR", " Remus Expired");
+          qDebug() << "REMUS EXPIRED resubmit job";
+          bool r = client->getOutput( jobs_to_do[i]->label, jobs_to_do[i]->itype,
+                                      jobs_to_do[i]->otype, jobs_to_do[i]->in,
+                                      jobs_to_do[i]->job );
+          if(!r)
+          {
+            failedHelper("Remus ERROR", " Remus does not support the job");
+            this->stopJobs();
+            return;
+          }
           return;
         }
         else
@@ -946,7 +1036,7 @@ void cmbNucExport::processJobs()
           qDebug() << "i is starting" << i;
           bool r = client->getOutput( jobs_to_do[i]->label, jobs_to_do[i]->itype,
                                       jobs_to_do[i]->otype, jobs_to_do[i]->in,
-                                      &(jobs_to_do[i]->job));
+                                      jobs_to_do[i]->job );
           if(!r)
           {
             failedHelper("Remus ERROR", " Remus does not support the job");
@@ -956,7 +1046,15 @@ void cmbNucExport::processJobs()
         }
       }
     }
-    if(all_finish) break;
+    if(all_finish)
+    {
+      break;
+    }
+  }
+  qDebug() << "All jobs have been finished";
+  for(unsigned int i = 0; i < jobs_to_do.size(); ++i)
+  {
+    qDebug() << jobs_to_do[i]->label.c_str() << jobs_to_do[i]->in.FileArg.c_str() << " " << jobs_to_do[i]->done;
   }
   this->finish();
 }
