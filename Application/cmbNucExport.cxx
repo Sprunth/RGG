@@ -1012,7 +1012,7 @@ void cmbNucExport::processJobs()
             this->stopJobs();
             return;
           }
-          return;
+          continue;
         }
         else
         {
