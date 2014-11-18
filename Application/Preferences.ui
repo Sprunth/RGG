@@ -7,14 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>531</width>
-    <height>694</height>
+    <height>748</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>System Preferences</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
-   <property name="leftMargin">
+   <property name="margin">
     <number>6</number>
    </property>
    <item>
@@ -240,13 +240,6 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QCheckBox" name="parallel_Projection">
-          <property name="text">
-           <string>Parallel Projection</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QCheckBox" name="customMeshkit">
           <property name="text">
            <string>Use Custom Meshkit</string>
@@ -255,21 +248,27 @@
         </item>
        </layout>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>System Controls</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_8">
+      <property name="margin">
+       <number>2</number>
+      </property>
+      <item>
+       <widget class="QCheckBox" name="parallel_Projection">
+        <property name="text">
+         <string>Parallel Projection</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
         <item>
          <widget class="QLabel" name="label_6">
           <property name="text">
@@ -286,6 +285,19 @@
            <number>3</number>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
