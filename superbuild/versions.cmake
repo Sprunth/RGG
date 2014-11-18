@@ -155,7 +155,7 @@ endif()
 
 add_revision(remus
   GIT_REPOSITORY http://public.kitware.com/Remus.git
-  GIT_TAG 5199facbe94f1f5c6a498f891ea31f26e0bd04fa
+  GIT_TAG 7f9fbb25f78e0b7627e31c0d55d28716bb75b3e4
   )
 
 add_revision(kml
