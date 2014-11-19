@@ -154,8 +154,9 @@ else()
 endif()
 
 add_revision(remus
-  GIT_REPOSITORY http://public.kitware.com/Remus.git
-  GIT_TAG 7f9fbb25f78e0b7627e31c0d55d28716bb75b3e4
+  #GIT_REPOSITORY http://public.kitware.com/Remus.git
+  GIT_REPOSITORY https://github.com/robertmaynard/Remus.git
+  GIT_TAG c21bfabd468a5b2f99f91184b643b5fea2645aea
   )
 
 add_revision(kml
