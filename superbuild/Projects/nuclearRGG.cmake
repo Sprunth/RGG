@@ -17,7 +17,6 @@ add_external_project_or_just_build_dependencies(nuclearRGG
     # platforms.
     -DMACOSX_APP_INSTALL_PREFIX:PATH=<INSTALL_DIR>/Applications
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    -DVTK_DIR:PATH=${CMAKE_BINARY_DIR}/vtk/src/vtk-build
     -DVTK_MOAB_SUPPORT:BOOL=ON
     ${CUBIT_ARGS}
     -DMOAB_ROOT_DIR:PATH=<INSTALL_DIR>
