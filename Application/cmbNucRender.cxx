@@ -518,7 +518,7 @@ public:
             for(unsigned int z = 0; z < points.size(); ++z)
             {
               GeoToPoints::data cp = computeData( dp, points[z], extraXTrans, extraYTrans, 0);
-              enum {KEEP, CROPPED, IGNORE} mode = KEEP;
+              enum {KEEP_PT, CROPPED_PT, IGNORE_PT} mode = KEEP_PT;
               key k = i->first;
               k.type = cmbNucRender::key::Sectioned;
               k.sides = sectionedCount++;
@@ -533,12 +533,12 @@ public:
                 double tpdist = testPlane->EvaluateFunction(cp.pt.xyz);
                 if( tpdist < -currentR )
                 {
-                  mode = IGNORE;
+                  mode = IGNORE_PT;
                   continue;
                 }
                 else if( std::abs(tpdist) <= currentR && mode != IGNORE )
                 {
-                  mode = CROPPED;
+                  mode = CROPPED_PT;
                   double tmXf[3] = {-dp.rotation.xyz[0],
                                     -dp.rotation.xyz[1],
                                     -dp.rotation.xyz[2]};
@@ -548,10 +548,10 @@ public:
               }
               switch(mode)
               {
-                case KEEP:
+                case KEEP_PT:
                   keep.points.push_back(cp);
                   break;
-                case CROPPED:
+                case CROPPED_PT:
                   ndp.points.push_back(cp);
                   addGeometry( k, ndp, std::vector<point>(1), 0, 0, geometry, xformR);
                   break;

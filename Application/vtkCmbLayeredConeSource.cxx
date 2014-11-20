@@ -512,7 +512,7 @@ vtkCmbLayeredConeSource
   }
   else
   {
-    double mult = std::floor(outerRes/innerRes);
+    double mult = std::floor(double(outerRes)/innerRes);
     GeneratePoints gpO(outerRes);
     outerRes = gpO.usedResolution();
     GeneratePoints gpI(innerRes);
