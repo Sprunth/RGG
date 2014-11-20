@@ -8,6 +8,8 @@
 #   ..
 # endif()
 
+get_filename_component(superbuild_top_dir "${CMAKE_SOURCE_DIR}" REALPATH)
+
 add_revision(zlib
   URL "http://www.paraview.org/files/dependencies/zlib-1.2.7.tar.gz"
   URL_MD5 60df6a37c56e7c1366cca812414f7b85)
@@ -79,7 +81,7 @@ add_revision(manta
   URL "http://paraview.org/files/dependencies/manta-r2439.tar.gz"
   URL_MD5 fbf4107fe2f6d7e8a5ae3dda71805bdc)
 
-add_revision( nuclearRGG SOURCE_DIR ${CMAKE_SOURCE_DIR}/.. )
+add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
@@ -189,7 +191,7 @@ add_revision(lasso
   )
 
 if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
-add_revision(meshkit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
+add_revision(meshkit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
 else()
 add_revision(meshkit
   GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
@@ -197,7 +199,7 @@ add_revision(meshkit
   )
 endif()
 
-add_revision(meshkit32bit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
+add_revision(meshkit32bit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
 
 #------------------------------------------------------------------------------
 # moab versions
