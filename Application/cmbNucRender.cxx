@@ -536,7 +536,7 @@ public:
                   mode = IGNORE_PT;
                   continue;
                 }
-                else if( std::abs(tpdist) <= currentR && mode != IGNORE )
+                else if( std::abs(tpdist) <= currentR && mode != IGNORE_PT )
                 {
                   mode = CROPPED_PT;
                   double tmXf[3] = {-dp.rotation.xyz[0],
