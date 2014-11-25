@@ -294,7 +294,7 @@ cmbNucExporterWorker
                         std::vector<std::string> extra_args )
 :remus::worker::Worker( remus::proto::make_JobRequirements(miotype, l, ""), conn),
  connection(rconn), exporter(e), ExtraArgs(extra_args),
- keepGoing(true)
+ keepGoing(true), pid(0)
 {
   this->label = l;
 }
@@ -522,12 +522,21 @@ cmbNucExporterWorker::status cmbNucExporterWorker
     qDebug() << "waiting for start failed"<< this->label.c_str();
     return FAILED;
   }
+#ifdef _WIN32
+  //Currently, we are not running meshkit in windows.  
+  //pid is different in windows, instead it is a struct.  Because
+  //I am being lazy, I will delay getting this working until we
+  //need it.  Bwaha
+  //pid = qp.pid()->dwProcessId;
+  pid++; //TODO: change this to something better
+#else
   pid = qp.pid();
+#endif
   if(qp.state() != QProcess::Running)
   {
     qDebug() << pid << "started but Is Not Running";
   }
-  qDebug() << "process " << qp.pid() << "started" << this->label.c_str() << this->FileName.c_str();
+  qDebug() << "process " << pid << "started" << this->label.c_str() << this->FileName.c_str();
   while(!qp.waitForFinished(50) && !this->jobShouldBeTerminated(job))
   {
     sendMessages(qp);

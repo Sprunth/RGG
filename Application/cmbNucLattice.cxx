@@ -117,6 +117,7 @@ bool Lattice::getValidRange(int layer, int & start, int & end) const
 
 std::pair<int, int> Lattice::GetDimensions() const
 {
+  if(this->Grid.size() == 0) return std::make_pair(0,0);
   if(this->enGeometryType == RECTILINEAR)
   {
     return std::make_pair(static_cast<int>(this->Grid.size()),
