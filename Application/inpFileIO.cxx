@@ -1547,6 +1547,9 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
     input >> core.AssyemblyPitchY;
   }
 
+  QString current = QDir::currentPath();
+  QDir::setCurrent( strPath.c_str() );
+
   // read in assembly files
   for(int i = 0; i < count; i++)
     {
@@ -1567,6 +1570,7 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
       if(core.loadAssemblyFromFile(assyInfo.absoluteFilePath().toStdString(), assylabel) == NULL) return false;
       }
     }
+  QDir::setCurrent( current );
   return true;
 }
 
