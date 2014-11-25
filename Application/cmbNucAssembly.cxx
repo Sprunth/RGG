@@ -141,6 +141,7 @@ cmbNucAssembly::~cmbNucAssembly()
   for(unsigned int i = 0; i < this->Transforms.size(); ++i)
   {
     delete this->Transforms[i];
+    this->Transforms[i] = NULL;
   }
   this->Transforms.clear();
   delete this->Parameters;
@@ -467,6 +468,12 @@ void cmbNucAssembly::clear()
   this->PinCells.clear();
   delete this->Parameters;
   this->Parameters = new cmbAssyParameters;
+  for(unsigned int i = 0; i < this->Transforms.size(); ++i)
+  {
+    delete this->Transforms[i];
+    this->Transforms[i] = NULL;
+  }
+  this->Transforms.clear();
 }
 
 QSet< cmbNucMaterial* > cmbNucAssembly::getMaterials()
@@ -608,6 +615,14 @@ bool cmbNucAssembly::updateTransform(int at, Transform * in)
 
 bool cmbNucAssembly::removeOldTransforms(int i)
 {
+  for(unsigned int r = i; r < this->Transforms.size(); ++r)
+  {
+    if(this->Transforms[r] != NULL)
+    {
+      delete this->Transforms[r];
+      this->Transforms[r] = NULL;
+    }
+  }
   if(static_cast<size_t>(i) < this->Transforms.size())
   {
     this->Transforms.resize(i);
