@@ -346,9 +346,20 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->NuclearCore = new cmbNucCore(false);
   setTitle();
 
+  //this->ui->InputsDock->setFloating(true);
+  //this->ui->PropertyDock->setFloating(true);
+  //this->addDockWidget(Qt::RightDockWidgetArea, this->ui->InputsDock);
+  //this->addDockWidget(Qt::RightDockWidgetArea, this->ui->PropertyDock);
+
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
   this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
   this->ui->Dock3D->raise();
+  this->setCentralWidget(0);
+
+  this->splitDockWidget(this->ui->InputsDock, this->ui->PropertyDock, Qt::Vertical);
+
+  //this->addDockWidget(Qt::LeftDockWidgetArea, this->ui->InputsDock);
+  //this->addDockWidget(Qt::LeftDockWidgetArea, this->ui->PropertyDock);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
   LatticeDraw->setObjectName("LatticeDrawWidget");
@@ -496,7 +507,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
   connect(this->ui->actionClear_Mesh, SIGNAL(triggered()), this, SLOT(onClearMesh()));
 
-  //this->centralWidget()->hide();
+  //this->setCentralWidget(0);
 
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();
