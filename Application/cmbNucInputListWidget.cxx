@@ -86,6 +86,7 @@ class cmbNucInputListWidgetInternal :
 public:
   cmbNucInputListWidgetInternal()
   {
+    previousMeshOrModelTab = -1;
     this->RootCoreNode = NULL;
     TreeItemDelegate = new PartsItemDelegate();
     MaterialDelegate = new MaterialItemDelegate();
@@ -116,6 +117,7 @@ public:
 
   PartsItemDelegate * TreeItemDelegate;
   MaterialItemDelegate * MaterialDelegate;
+  int previousMeshOrModelTab; //contains the previous tab except for material
 };
 
 //-----------------------------------------------------------------------------
@@ -338,11 +340,21 @@ void cmbNucInputListWidget::initUI()
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onTabChanged(int currentTab)
 {
+  if(currentTab == 0)
+  {
+    if(this->Internal->previousMeshOrModelTab != 0) emit raiseModelDock();
+    this->Internal->previousMeshOrModelTab = 0;
+  }
   if(currentTab == 1) // materials
-    {
-      int i = this->Internal->materialDisplayed->currentIndex();
-      cmbNucMaterialColors::instance()->controlShow(i);
-    }
+  {
+    int i = this->Internal->materialDisplayed->currentIndex();
+    cmbNucMaterialColors::instance()->controlShow(i);
+  }
+  if(currentTab == 2)
+  {
+    if(this->Internal->previousMeshOrModelTab != 2) emit raiseMeshDock();
+    this->Internal->previousMeshOrModelTab = 2;
+  }
  }
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::setActionsEnabled(bool val)
@@ -936,4 +948,22 @@ void cmbNucInputListWidget::modelIsLoaded(bool v)
   if(v) this->Internal->tabInputs->setCurrentIndex(0);
   this->Internal->tabInputs->setTabEnabled(0, v);
   this->Internal->tabInputs->setTabEnabled(1, v);
+}
+
+void cmbNucInputListWidget::selectMeshTab(bool v)
+{
+  if(v)
+  {
+    this->Internal->previousMeshOrModelTab = 2; //used to supress signal
+    this->Internal->tabInputs->setCurrentIndex(2);
+  }
+}
+
+void cmbNucInputListWidget::selectModelTab(bool v)
+{
+  if(v)
+  {
+    this->Internal->previousMeshOrModelTab = 0; //used to supress signal
+    this->Internal->tabInputs->setCurrentIndex(0);
+  }
 }
