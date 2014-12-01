@@ -596,13 +596,23 @@ void cmbNucMainWindow::initPanels()
     QObject::connect( this, SIGNAL(checkSave()),
                       this->InputsWidget, SIGNAL(checkSavedAndGenerate()) );
     QObject::connect( this->ui->actionNew_Assembly, SIGNAL(triggered()),
-                      this->InputsWidget,           SLOT(onNewAssembly()));
+                      this->InputsWidget,           SLOT(onNewAssembly()) );
     QObject::connect( this->InputsWidget, SIGNAL(objectSelected(AssyPartObj*, const char*)),
-                      this, SLOT(onObjectSelected(AssyPartObj*, const char*)));
+                      this, SLOT(onObjectSelected(AssyPartObj*, const char*)) );
     QObject::connect( this->InputsWidget, SIGNAL(objectRemoved()),
                       this, SLOT(onObjectModified()));
     QObject::connect( this->InputsWidget, SIGNAL(deleteCore()),
-                      this, SLOT(clearCore()));
+                      this, SLOT(clearCore()) );
+    QObject::connect( this->InputsWidget, SIGNAL(raiseMeshDock()),
+                      this, SLOT(onRaiseMesh()) );
+    QObject::connect( this->InputsWidget, SIGNAL(raiseModelDock()),
+                      this, SLOT(onRaiseModel()) );
+    QObject::connect( this->ui->DockMesh, SIGNAL(visibilityChanged(bool)),
+                      this->InputsWidget, SLOT(selectMeshTab(bool)) );
+    QObject::connect( this->ui->Dock3D, SIGNAL(visibilityChanged(bool)),
+                      this->InputsWidget, SLOT(selectModelTab(bool)) );
+    QObject::connect( this->ui->Dock2D, SIGNAL(visibilityChanged(bool)),
+                      this->InputsWidget, SLOT(selectModelTab(bool)) );
   }
   this->InputsWidget->setEnabled(0);
   this->ui->actionExport->setEnabled(false);
@@ -1965,4 +1975,17 @@ void cmbNucMainWindow::playTest()
 void cmbNucMainWindow::waitForExportingToBeDone()
 {
   this->ExportDialog->waitTillDone();
+}
+
+void cmbNucMainWindow::onRaiseMesh()
+{
+  if(this->Internal->MeshOpen)
+  {
+    this->ui->DockMesh->raise();
+  }
+}
+
+void cmbNucMainWindow::onRaiseModel()
+{
+  this->ui->Dock3D->raise();
 }

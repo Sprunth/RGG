@@ -66,12 +66,17 @@ signals:
   void sendEdgeControl(bool);
   void resetMeshCamera();
 
+  void raiseMeshDock();
+  void raiseModelDock();
+
 public slots:
   void onNewAssembly();
   void valueChanged();
   void onRemoveSelectedPart();
   void meshIsLoaded(bool);
   void modelIsLoaded(bool);
+  void selectMeshTab(bool);
+  void selectModelTab(bool);
   void updateMainMeshComponents(QStringList parts, int select);
   void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
 
