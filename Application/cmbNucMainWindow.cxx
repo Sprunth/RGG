@@ -250,7 +250,6 @@ class NucMainInternal
 {
 public:
   cmbNucCoregen *MoabSource;
-  vtkRenderWindow* RenderWin;
 
   DuctCell* CurrentDuctCell;
   PinCell* CurrentPinCell;
