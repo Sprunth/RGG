@@ -9,26 +9,10 @@
 #include <QThread>
 #include <QMutex>
 
-#include <remus/client/ServerConnection.h>
-#include <remus/worker/Worker.h>
-#include <remus/server/Server.h>
-
-namespace remus
-{
-namespace common
-{
-class ExecuteProcess;
-}
-namespace server
-{
-class Server;
-class WorkerFactory;
-}
-}
-
 class cmbNucExporterWorker;
-class ExporterWorkerFactory;
 class cmbNucExporterClient;
+class cmbNucExportInternal;
+class cmbNucExportWorkerRunner;
 struct JobHolder;
 
 class RunnableConnection : public QObject
@@ -60,6 +44,7 @@ class cmbNucExport : public QObject
   Q_OBJECT
   QThread workerThread;
 public:
+  friend class cmbNucExportWorkerRunner;
   cmbNucExport();
   ~cmbNucExport();
   void setKeepGoing(bool);
@@ -67,7 +52,6 @@ public:
   void setCoregen(QString coregenExe,QString coregenLib);
   void setNumberOfProcessors(int v);
   void setCubit(QString cubitExe);
-  remus::worker::ServerConnection make_ServerConnection();
   void waitTillDone();
 public slots:
   void run( const QStringList &assygenFile,
@@ -119,13 +103,12 @@ private:
   void deleteServer();
   void stopJobs();
   mutable QMutex Mutex, Memory, ServerProtect;
-  remus::server::ServerPorts serverPorts;
-  remus::server::Server * Server;
-  remus::worker::ServerConnection ServerConnection;
-  boost::shared_ptr<ExporterWorkerFactory> factory;
+
   QString AssygenExe, AssygenLib;
   QString CoregenExe, CoregenLib;
   QString CubitExe;
+
+  cmbNucExportInternal * internal;
 
   std::vector<JobHolder*> jobs_to_do;
   cmbNucExporterClient * client;
