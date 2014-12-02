@@ -9,8 +9,10 @@
 #include <remus/server/WorkerFactory.h>
 #include <remus/common/MeshTypes.h>
 #include <remus/common/ExecuteProcess.h>
-//#include <remus/client/JobResult.h>
 #include <remus/proto/JobResult.h>
+#include <remus/client/ServerConnection.h>
+#include <remus/worker/Worker.h>
+#include <remus/server/Server.h>
 
 #include <QDebug>
 #include <QFileInfo>
@@ -44,6 +46,22 @@ public:
   }
 };
 }
+
+class ExporterWorkerFactory;
+
+struct cmbNucExportInternal
+{
+  remus::server::ServerPorts serverPorts;
+  remus::server::Server * Server;
+  remus::worker::ServerConnection ServerConnection;
+  remus::worker::ServerConnection make_ServerConnection();
+  boost::shared_ptr<ExporterWorkerFactory> factory;
+  cmbNucExportInternal(cmbNucExport* exporter);
+  ~cmbNucExportInternal()
+  {
+  }
+};
+
 
 class cmbNucExporterClient;
 
@@ -91,7 +109,7 @@ public:
 
   virtual void run()
   {
-    remus::worker::ServerConnection serverConnection = this->exporter->make_ServerConnection();
+    remus::worker::ServerConnection serverConnection = this->exporter->internal->make_ServerConnection();
     cmbNucExporterWorker worker(this->label, this->IOType, this->connection,
                                 serverConnection, this->exporter, this->ExtraArgs);
     worker.process();
@@ -204,6 +222,15 @@ protected:
   QThreadPool threadPool;
   cmbNucExport * exporter;
 };
+
+cmbNucExportInternal
+::cmbNucExportInternal(cmbNucExport* exporter)
+ : serverPorts(/*zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
+               zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")*/),
+ Server(NULL),
+ factory(new ExporterWorkerFactory(exporter, 4))
+{
+}
 
 struct ExporterInput
 {
@@ -600,12 +627,9 @@ cmbNucExporterClient::getOutput(std::string label, std::string it, std::string o
 }
 
 cmbNucExport::cmbNucExport()
-: serverPorts(/*zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
-              zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")*/),
-  Server(NULL),
-  factory(new ExporterWorkerFactory(this, 4)),
-  client(NULL)
+: client(NULL)
 {
+  internal = new cmbNucExportInternal(this);
   this->isDone = false;
 }
 
@@ -613,6 +637,7 @@ cmbNucExport::~cmbNucExport()
 {
   QMutexLocker locker(&Memory);
   delete client;
+  delete internal;
 }
 
 void
@@ -831,20 +856,20 @@ void cmbNucExport::deleteServer()
 {
   QMutexLocker locker(&ServerProtect);
   qDebug() << "stop brocking";
-  if(this->Server != NULL)
+  if(this->internal->Server != NULL)
   {
-    this->Server->stopBrokering();
-    if(this->Server->isBrokering())
+     this->internal->Server->stopBrokering();
+    if( this->internal->Server->isBrokering())
     {
-      this->Server->waitForBrokeringToFinish();
+       this->internal->Server->waitForBrokeringToFinish();
     }
   }
   delete this->client;
   this->client = NULL;
   qDebug() << "deleting server";
-  delete this->Server;
-  this->Server = NULL;
-  factory->wait();
+  delete  this->internal->Server;
+  this->internal->Server = NULL;
+  this->internal->factory->wait();
   qDebug() << "Done deleting server";
 }
 
@@ -852,7 +877,7 @@ bool cmbNucExport::startUpHelper()
 {
   {
     QMutexLocker locker(&ServerProtect);
-    if(Server != NULL)
+    if(this->internal->Server != NULL)
     {
       emit errorMessage("Currently running a process");
       emit currentProcess("  Please wait until previous process completes");
@@ -867,7 +892,7 @@ bool cmbNucExport::startUpHelper()
   //create a default server with the factory
   {
     QMutexLocker locker(&ServerProtect);
-    Server = new remus::server::Server(serverPorts, factory);
+    this->internal->Server = new remus::server::Server(this->internal->serverPorts, this->internal->factory);
   }
 
   //start accepting connections for clients and workers
@@ -875,9 +900,9 @@ bool cmbNucExport::startUpHelper()
   bool valid;
   {
     QMutexLocker locker(&ServerProtect);
-    valid = Server->startBrokering(remus::Server::NONE);
-    remus::client::ServerConnection conn = remus::client::make_ServerConnection(serverPorts.client().endpoint());
-    conn.context(serverPorts.context());
+    valid = this->internal->Server->startBrokering(remus::Server::NONE);
+    remus::client::ServerConnection conn = remus::client::make_ServerConnection(this->internal->serverPorts.client().endpoint());
+    conn.context(this->internal->serverPorts.context());
     client = new cmbNucExporterClient(conn);
   }
   if( !valid )
@@ -886,16 +911,16 @@ bool cmbNucExport::startUpHelper()
     emit errorMessage("failed to start server");
     emit currentProcess("  failed to start server");
     emit done();
-    delete Server;
+    delete this->internal->Server;
     delete client;
-    Server = NULL;
+    this->internal->Server = NULL;
     client = NULL;
     return false;
   }
 
   {
     QMutexLocker locker(&ServerProtect);
-    Server->waitForBrokeringToStart();
+    this->internal->Server->waitForBrokeringToStart();
   }
   emit progress(2);
 
@@ -916,7 +941,7 @@ void cmbNucExport::setCoregen(QString coregenExe,QString coregenLib)
 
 void cmbNucExport::setNumberOfProcessors(int v)
 {
-  this->factory->setMaxThreadCount(v);
+  this->internal->factory->setMaxThreadCount(v);
 }
 
 void cmbNucExport::setCubit(QString cubitExe)
@@ -1069,10 +1094,10 @@ void cmbNucExport::processJobs()
 }
 
 remus::worker::ServerConnection
-cmbNucExport::make_ServerConnection()
+cmbNucExportInternal::make_ServerConnection()
 {
-  remus::worker::ServerConnection conn = remus::worker::make_ServerConnection(serverPorts.worker().endpoint());
-  conn.context(serverPorts.context());
+  remus::worker::ServerConnection conn = remus::worker::make_ServerConnection(this->serverPorts.worker().endpoint());
+  conn.context(this->serverPorts.context());
   return conn;
 }
 
