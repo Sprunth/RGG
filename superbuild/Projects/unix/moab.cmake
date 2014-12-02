@@ -10,6 +10,7 @@ if(ENABLE_meshkit AND NOT BUILD_WITH_CUBIT)
   add_external_project(moab
     DEPENDS hdf5 cgm netcdf
     CMAKE_ARGS
+      -DBUILD_SHARED_LIBS:BOOL=ON # LGPL
       -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>
       -DHDF5_DIR:path=<INSTALL_DIR>
       -DENABLE_IMESH:BOOL=ON
@@ -25,6 +26,7 @@ else()
   add_external_project(moab
     DEPENDS hdf5 netcdfcpp
     CMAKE_ARGS
+      -DBUILD_SHARED_LIBS:BOOL=ON # LGPL
       -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>
       -DHDF5_DIR:path=<INSTALL_DIR>
       -DENABLE_IMESH:BOOL=ON
