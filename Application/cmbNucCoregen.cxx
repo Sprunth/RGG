@@ -220,7 +220,8 @@ void cmbNucCoregen::openFile(QString file)
   this->MoabReader->SetFileName(file.toStdString().c_str());
   this->MoabReader->Modified();
   this->MoabReader->Update();
-  vtkSmartPointer<vtkMultiBlockDataSet> tmp = this->MoabReader->GetOutput();  DataSets.resize(tmp->GetNumberOfBlocks());
+  vtkSmartPointer<vtkMultiBlockDataSet> tmp = this->MoabReader->GetOutput();
+  DataSets.resize(tmp->GetNumberOfBlocks());
   this->GeoFilt.resize(tmp->GetNumberOfBlocks(), NULL);
   QList<QTreeWidgetItem*> roots;
 
@@ -237,7 +238,7 @@ void cmbNucCoregen::openFile(QString file)
     list.append(QString(pname));
     this->GeoFilt[i]->SetInputData(tmp->GetBlock(i));
     this->GeoFilt[i]->Update();
-    DataSets[i].TakeReference(this->GeoFilt[i]->GetOutputDataObject(0)->NewInstance());
+    DataSets[i] = vtkSmartPointer<vtkDataObject>::NewInstance(this->GeoFilt[i]->GetOutputDataObject(0));
     DataSets[i]->DeepCopy(this->GeoFilt[i]->GetOutputDataObject(0));
     vtkMultiBlockDataSet* sec = vtkMultiBlockDataSet::SafeDownCast(DataSets[i]);
     if(sec == NULL) continue;

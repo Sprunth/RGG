@@ -339,9 +339,11 @@ cmbNucMainWindow::cmbNucMainWindow()
     vtkRenderWindow* win = vtkRenderWindow::New();
     win->SetAlphaBitPlanes(1);
     this->ui->qvtkWidget->SetRenderWindow(win);
+    win->Delete();
     win = vtkRenderWindow::New();
     win->SetAlphaBitPlanes(1);
     this->ui->qvtkMeshWidget->SetRenderWindow(win);
+    win->Delete();
   }
   this->NuclearCore = new cmbNucCore(false);
   setTitle();
