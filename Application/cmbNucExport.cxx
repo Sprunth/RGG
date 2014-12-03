@@ -664,7 +664,7 @@ cmbNucExport::run( const QStringList &assygenFile,
 
   deps.insert(deps.end(), assy.begin(), assy.end());
 
-  this->runCoreHelper( coregenFile, deps, CoreGenOutputFile );
+  this->runCoreHelper( coregenFile, deps, CoreGenOutputFile, false );
   processJobs();
   {
     QMutexLocker locker(&end_control);
@@ -770,7 +770,8 @@ cmbNucExport::runCubitHelper( const QString cubitFile,
 std::vector<JobHolder*>
 cmbNucExport::runCoreHelper( const QString coregenFile,
                              std::vector<JobHolder*> depIn,
-                             const QString CoreGenOutputFile )
+                             const QString CoreGenOutputFile,
+                             bool use_cylinder_version )
 {
   std::vector<JobHolder*> result;
   if(!coregenFile.isEmpty())
@@ -780,7 +781,14 @@ cmbNucExport::runCoreHelper( const QString coregenFile,
     QString name = fi.completeBaseName();
     QString pass = path + '/' + name;
 
-    JobHolder * coreJob = new JobHolder(path, CoregenExe, pass, CoreGenOutputFile);
+    QString exe = CoregenExe, lib = CoregenLib;
+    if(use_cylinder_version)
+    {
+      exe = CylinderCoregenExe;
+      lib = AssygenLib;
+    }
+
+    JobHolder * coreJob = new JobHolder(path, exe, pass, CoreGenOutputFile);
     coreJob->label = "Coregen";
     coreJob->itype = "COREGEN_IN";
     coreJob->otype = "COREGEN_OUT";
@@ -789,15 +797,18 @@ cmbNucExport::runCoreHelper( const QString coregenFile,
     result.push_back(coreJob);
     {
       coreJob->in.LibPath = "";
-      std::stringstream ss(CoregenLib.toStdString().c_str());
+      std::stringstream ss(lib.toStdString().c_str());
       std::string line;
       while( std::getline(ss, line))
       {
         coreJob->in.LibPath += line + ":";
       }
 
-      QFileInfo libPaths(CoregenExe);
+      QFileInfo libPaths(exe);
       coreJob->in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
+      if(use_cylinder_version)
+        coreJob->in.LibPath += ":"+ QFileInfo(CubitExe).absolutePath().toStdString();
+      qDebug() << coreJob->in.LibPath.c_str();
     }
   }
   return result;
@@ -817,7 +828,7 @@ cmbNucExport::exportCylinder( const QString assygenFile,
   }
   JobHolder* assyJob = makeAssyJob(assygenFile);
   std::vector<JobHolder*> tmp = this->runCoreHelper( coregenFile, std::vector<JobHolder*>(1,assyJob),
-                                                     coregenResultFile );
+                                                     coregenResultFile, true );
   result = runCubitHelper(cubitFile, tmp, cubitOutputFile);
   return result;
 }
@@ -930,6 +941,10 @@ bool cmbNucExport::startUpHelper()
 void cmbNucExport::setAssygen(QString assygenExe,QString assygenLib)
 {
   this->AssygenExe = assygenExe;
+  QFileInfo fi(assygenExe);
+  QString path = fi.absolutePath();
+  this->CylinderCoregenExe =  path + "/coregen";
+  qDebug() << "=========>" <<this->CylinderCoregenExe;
   this->AssygenLib = assygenLib;
 }
 
