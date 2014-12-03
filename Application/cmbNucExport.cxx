@@ -9,8 +9,10 @@
 #include <remus/server/WorkerFactory.h>
 #include <remus/common/MeshTypes.h>
 #include <remus/common/ExecuteProcess.h>
-//#include <remus/client/JobResult.h>
 #include <remus/proto/JobResult.h>
+#include <remus/client/ServerConnection.h>
+#include <remus/worker/Worker.h>
+#include <remus/server/Server.h>
 
 #include <QDebug>
 #include <QFileInfo>
@@ -44,6 +46,22 @@ public:
   }
 };
 }
+
+class ExporterWorkerFactory;
+
+struct cmbNucExportInternal
+{
+  remus::server::ServerPorts serverPorts;
+  remus::server::Server * Server;
+  remus::worker::ServerConnection ServerConnection;
+  remus::worker::ServerConnection make_ServerConnection();
+  boost::shared_ptr<ExporterWorkerFactory> factory;
+  cmbNucExportInternal(cmbNucExport* exporter);
+  ~cmbNucExportInternal()
+  {
+  }
+};
+
 
 class cmbNucExporterClient;
 
@@ -91,7 +109,7 @@ public:
 
   virtual void run()
   {
-    remus::worker::ServerConnection serverConnection = this->exporter->make_ServerConnection();
+    remus::worker::ServerConnection serverConnection = this->exporter->internal->make_ServerConnection();
     cmbNucExporterWorker worker(this->label, this->IOType, this->connection,
                                 serverConnection, this->exporter, this->ExtraArgs);
     worker.process();
@@ -205,6 +223,15 @@ protected:
   cmbNucExport * exporter;
 };
 
+cmbNucExportInternal
+::cmbNucExportInternal(cmbNucExport* exporter)
+ : serverPorts(/*zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
+               zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")*/),
+ Server(NULL),
+ factory(new ExporterWorkerFactory(exporter, 4))
+{
+}
+
 struct ExporterInput
 {
   std::string ExeDir;
@@ -294,7 +321,7 @@ cmbNucExporterWorker
                         std::vector<std::string> extra_args )
 :remus::worker::Worker( remus::proto::make_JobRequirements(miotype, l, ""), conn),
  connection(rconn), exporter(e), ExtraArgs(extra_args),
- keepGoing(true)
+ keepGoing(true), pid(0)
 {
   this->label = l;
 }
@@ -522,12 +549,21 @@ cmbNucExporterWorker::status cmbNucExporterWorker
     qDebug() << "waiting for start failed"<< this->label.c_str();
     return FAILED;
   }
+#ifdef _WIN32
+  //Currently, we are not running meshkit in windows.  
+  //pid is different in windows, instead it is a struct.  Because
+  //I am being lazy, I will delay getting this working until we
+  //need it.  Bwaha
+  //pid = qp.pid()->dwProcessId;
+  pid++; //TODO: change this to something better
+#else
   pid = qp.pid();
+#endif
   if(qp.state() != QProcess::Running)
   {
     qDebug() << pid << "started but Is Not Running";
   }
-  qDebug() << "process " << qp.pid() << "started" << this->label.c_str() << this->FileName.c_str();
+  qDebug() << "process " << pid << "started" << this->label.c_str() << this->FileName.c_str();
   while(!qp.waitForFinished(50) && !this->jobShouldBeTerminated(job))
   {
     sendMessages(qp);
@@ -591,12 +627,9 @@ cmbNucExporterClient::getOutput(std::string label, std::string it, std::string o
 }
 
 cmbNucExport::cmbNucExport()
-: serverPorts(/*zmq::socketInfo<zmq::proto::inproc>("export_client_channel"),
-              zmq::socketInfo<zmq::proto::inproc>("export_worker_channel")*/),
-  Server(NULL),
-  factory(new ExporterWorkerFactory(this, 4)),
-  client(NULL)
+: client(NULL)
 {
+  internal = new cmbNucExportInternal(this);
   this->isDone = false;
 }
 
@@ -604,6 +637,7 @@ cmbNucExport::~cmbNucExport()
 {
   QMutexLocker locker(&Memory);
   delete client;
+  delete internal;
 }
 
 void
@@ -630,7 +664,7 @@ cmbNucExport::run( const QStringList &assygenFile,
 
   deps.insert(deps.end(), assy.begin(), assy.end());
 
-  this->runCoreHelper( coregenFile, deps, CoreGenOutputFile );
+  this->runCoreHelper( coregenFile, deps, CoreGenOutputFile, false );
   processJobs();
   {
     QMutexLocker locker(&end_control);
@@ -736,7 +770,8 @@ cmbNucExport::runCubitHelper( const QString cubitFile,
 std::vector<JobHolder*>
 cmbNucExport::runCoreHelper( const QString coregenFile,
                              std::vector<JobHolder*> depIn,
-                             const QString CoreGenOutputFile )
+                             const QString CoreGenOutputFile,
+                             bool use_cylinder_version )
 {
   std::vector<JobHolder*> result;
   if(!coregenFile.isEmpty())
@@ -746,7 +781,14 @@ cmbNucExport::runCoreHelper( const QString coregenFile,
     QString name = fi.completeBaseName();
     QString pass = path + '/' + name;
 
-    JobHolder * coreJob = new JobHolder(path, CoregenExe, pass, CoreGenOutputFile);
+    QString exe = CoregenExe, lib = CoregenLib;
+    if(use_cylinder_version)
+    {
+      exe = CylinderCoregenExe;
+      lib = AssygenLib;
+    }
+
+    JobHolder * coreJob = new JobHolder(path, exe, pass, CoreGenOutputFile);
     coreJob->label = "Coregen";
     coreJob->itype = "COREGEN_IN";
     coreJob->otype = "COREGEN_OUT";
@@ -755,15 +797,18 @@ cmbNucExport::runCoreHelper( const QString coregenFile,
     result.push_back(coreJob);
     {
       coreJob->in.LibPath = "";
-      std::stringstream ss(CoregenLib.toStdString().c_str());
+      std::stringstream ss(lib.toStdString().c_str());
       std::string line;
       while( std::getline(ss, line))
       {
         coreJob->in.LibPath += line + ":";
       }
 
-      QFileInfo libPaths(CoregenExe);
+      QFileInfo libPaths(exe);
       coreJob->in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
+      if(use_cylinder_version)
+        coreJob->in.LibPath += ":"+ QFileInfo(CubitExe).absolutePath().toStdString();
+      qDebug() << coreJob->in.LibPath.c_str();
     }
   }
   return result;
@@ -783,7 +828,7 @@ cmbNucExport::exportCylinder( const QString assygenFile,
   }
   JobHolder* assyJob = makeAssyJob(assygenFile);
   std::vector<JobHolder*> tmp = this->runCoreHelper( coregenFile, std::vector<JobHolder*>(1,assyJob),
-                                                     coregenResultFile );
+                                                     coregenResultFile, true );
   result = runCubitHelper(cubitFile, tmp, cubitOutputFile);
   return result;
 }
@@ -822,20 +867,20 @@ void cmbNucExport::deleteServer()
 {
   QMutexLocker locker(&ServerProtect);
   qDebug() << "stop brocking";
-  if(this->Server != NULL)
+  if(this->internal->Server != NULL)
   {
-    this->Server->stopBrokering();
-    if(this->Server->isBrokering())
+     this->internal->Server->stopBrokering();
+    if( this->internal->Server->isBrokering())
     {
-      this->Server->waitForBrokeringToFinish();
+       this->internal->Server->waitForBrokeringToFinish();
     }
   }
   delete this->client;
   this->client = NULL;
   qDebug() << "deleting server";
-  delete this->Server;
-  this->Server = NULL;
-  factory->wait();
+  delete  this->internal->Server;
+  this->internal->Server = NULL;
+  this->internal->factory->wait();
   qDebug() << "Done deleting server";
 }
 
@@ -843,7 +888,7 @@ bool cmbNucExport::startUpHelper()
 {
   {
     QMutexLocker locker(&ServerProtect);
-    if(Server != NULL)
+    if(this->internal->Server != NULL)
     {
       emit errorMessage("Currently running a process");
       emit currentProcess("  Please wait until previous process completes");
@@ -858,7 +903,7 @@ bool cmbNucExport::startUpHelper()
   //create a default server with the factory
   {
     QMutexLocker locker(&ServerProtect);
-    Server = new remus::server::Server(serverPorts, factory);
+    this->internal->Server = new remus::server::Server(this->internal->serverPorts, this->internal->factory);
   }
 
   //start accepting connections for clients and workers
@@ -866,9 +911,9 @@ bool cmbNucExport::startUpHelper()
   bool valid;
   {
     QMutexLocker locker(&ServerProtect);
-    valid = Server->startBrokering(remus::Server::NONE);
-    remus::client::ServerConnection conn = remus::client::make_ServerConnection(serverPorts.client().endpoint());
-    conn.context(serverPorts.context());
+    valid = this->internal->Server->startBrokering(remus::Server::NONE);
+    remus::client::ServerConnection conn = remus::client::make_ServerConnection(this->internal->serverPorts.client().endpoint());
+    conn.context(this->internal->serverPorts.context());
     client = new cmbNucExporterClient(conn);
   }
   if( !valid )
@@ -877,16 +922,16 @@ bool cmbNucExport::startUpHelper()
     emit errorMessage("failed to start server");
     emit currentProcess("  failed to start server");
     emit done();
-    delete Server;
+    delete this->internal->Server;
     delete client;
-    Server = NULL;
+    this->internal->Server = NULL;
     client = NULL;
     return false;
   }
 
   {
     QMutexLocker locker(&ServerProtect);
-    Server->waitForBrokeringToStart();
+    this->internal->Server->waitForBrokeringToStart();
   }
   emit progress(2);
 
@@ -896,6 +941,10 @@ bool cmbNucExport::startUpHelper()
 void cmbNucExport::setAssygen(QString assygenExe,QString assygenLib)
 {
   this->AssygenExe = assygenExe;
+  QFileInfo fi(assygenExe);
+  QString path = fi.absolutePath();
+  this->CylinderCoregenExe =  path + "/coregen";
+  qDebug() << "=========>" <<this->CylinderCoregenExe;
   this->AssygenLib = assygenLib;
 }
 
@@ -907,7 +956,7 @@ void cmbNucExport::setCoregen(QString coregenExe,QString coregenLib)
 
 void cmbNucExport::setNumberOfProcessors(int v)
 {
-  this->factory->setMaxThreadCount(v);
+  this->internal->factory->setMaxThreadCount(v);
 }
 
 void cmbNucExport::setCubit(QString cubitExe)
@@ -1060,10 +1109,10 @@ void cmbNucExport::processJobs()
 }
 
 remus::worker::ServerConnection
-cmbNucExport::make_ServerConnection()
+cmbNucExportInternal::make_ServerConnection()
 {
-  remus::worker::ServerConnection conn = remus::worker::make_ServerConnection(serverPorts.worker().endpoint());
-  conn.context(serverPorts.context());
+  remus::worker::ServerConnection conn = remus::worker::make_ServerConnection(this->serverPorts.worker().endpoint());
+  conn.context(this->serverPorts.context());
   return conn;
 }
 

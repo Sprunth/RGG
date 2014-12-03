@@ -339,16 +339,29 @@ cmbNucMainWindow::cmbNucMainWindow()
     vtkRenderWindow* win = vtkRenderWindow::New();
     win->SetAlphaBitPlanes(1);
     this->ui->qvtkWidget->SetRenderWindow(win);
+    win->Delete();
     win = vtkRenderWindow::New();
     win->SetAlphaBitPlanes(1);
     this->ui->qvtkMeshWidget->SetRenderWindow(win);
+    win->Delete();
   }
   this->NuclearCore = new cmbNucCore(false);
   setTitle();
 
+  //this->ui->InputsDock->setFloating(true);
+  //this->ui->PropertyDock->setFloating(true);
+  //this->addDockWidget(Qt::RightDockWidgetArea, this->ui->InputsDock);
+  //this->addDockWidget(Qt::RightDockWidgetArea, this->ui->PropertyDock);
+
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
   this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
   this->ui->Dock3D->raise();
+  this->setCentralWidget(0);
+
+  this->splitDockWidget(this->ui->InputsDock, this->ui->PropertyDock, Qt::Vertical);
+
+  //this->addDockWidget(Qt::LeftDockWidgetArea, this->ui->InputsDock);
+  //this->addDockWidget(Qt::LeftDockWidgetArea, this->ui->PropertyDock);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
   LatticeDraw->setObjectName("LatticeDrawWidget");
@@ -496,7 +509,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
   connect(this->ui->actionClear_Mesh, SIGNAL(triggered()), this, SLOT(onClearMesh()));
 
-  //this->centralWidget()->hide();
+  //this->setCentralWidget(0);
 
   // Initial materials and  colors
   this->MaterialColors = new cmbNucMaterialColors();
@@ -585,13 +598,23 @@ void cmbNucMainWindow::initPanels()
     QObject::connect( this, SIGNAL(checkSave()),
                       this->InputsWidget, SIGNAL(checkSavedAndGenerate()) );
     QObject::connect( this->ui->actionNew_Assembly, SIGNAL(triggered()),
-                      this->InputsWidget,           SLOT(onNewAssembly()));
+                      this->InputsWidget,           SLOT(onNewAssembly()) );
     QObject::connect( this->InputsWidget, SIGNAL(objectSelected(AssyPartObj*, const char*)),
-                      this, SLOT(onObjectSelected(AssyPartObj*, const char*)));
+                      this, SLOT(onObjectSelected(AssyPartObj*, const char*)) );
     QObject::connect( this->InputsWidget, SIGNAL(objectRemoved()),
                       this, SLOT(onObjectModified()));
     QObject::connect( this->InputsWidget, SIGNAL(deleteCore()),
-                      this, SLOT(clearCore()));
+                      this, SLOT(clearCore()) );
+    QObject::connect( this->InputsWidget, SIGNAL(raiseMeshDock()),
+                      this, SLOT(onRaiseMesh()) );
+    QObject::connect( this->InputsWidget, SIGNAL(raiseModelDock()),
+                      this, SLOT(onRaiseModel()) );
+    QObject::connect( this->ui->DockMesh, SIGNAL(visibilityChanged(bool)),
+                      this->InputsWidget, SLOT(selectMeshTab(bool)) );
+    QObject::connect( this->ui->Dock3D, SIGNAL(visibilityChanged(bool)),
+                      this->InputsWidget, SLOT(selectModelTab(bool)) );
+    QObject::connect( this->ui->Dock2D, SIGNAL(visibilityChanged(bool)),
+                      this->InputsWidget, SLOT(selectModelTab(bool)) );
   }
   this->InputsWidget->setEnabled(0);
   this->ui->actionExport->setEnabled(false);
@@ -1954,4 +1977,17 @@ void cmbNucMainWindow::playTest()
 void cmbNucMainWindow::waitForExportingToBeDone()
 {
   this->ExportDialog->waitTillDone();
+}
+
+void cmbNucMainWindow::onRaiseMesh()
+{
+  if(this->Internal->MeshOpen)
+  {
+    this->ui->DockMesh->raise();
+  }
+}
+
+void cmbNucMainWindow::onRaiseModel()
+{
+  this->ui->Dock3D->raise();
 }

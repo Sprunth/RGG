@@ -8,6 +8,8 @@
 #   ..
 # endif()
 
+get_filename_component(superbuild_top_dir "${CMAKE_SOURCE_DIR}" REALPATH)
+
 add_revision(zlib
   URL "http://www.paraview.org/files/dependencies/zlib-1.2.7.tar.gz"
   URL_MD5 60df6a37c56e7c1366cca812414f7b85)
@@ -72,18 +74,18 @@ add_revision(matplotlib
   URL_MD5 30ee59119599331bf1f3b6e838fee9a8)
 
 add_revision(boost
-  URL "http://www.paraview.org/files/dependencies/boost_1_50_0.tar.gz"
-  URL_MD5 dbc07ab0254df3dda6300fd737b3f264)
+  URL "http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.gz"
+  URL_MD5 8c54705c424513fa2be0042696a3a162 )
 
 add_revision(manta
   URL "http://paraview.org/files/dependencies/manta-r2439.tar.gz"
   URL_MD5 fbf4107fe2f6d7e8a5ae3dda71805bdc)
 
-add_revision( nuclearRGG SOURCE_DIR ${CMAKE_SOURCE_DIR}/.. )
+add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
-  GIT_TAG dccc871e6e5dfdf33745f15069073ccab6e6b8e0 )
+  GIT_TAG f62600aca3542ce3169e091ca3854eaeeb59f3d6 )
 
 if (UNIX)
   add_revision(mpi
@@ -154,10 +156,10 @@ else()
 endif()
 
 add_revision(remus
-  GIT_REPOSITORY https://github.com/robertmaynard/Remus.git
-  #GIT_REPOSITORY http://public.kitware.com/Remus.git
-  GIT_TAG c21bfabd468a5b2f99f91184b643b5fea2645aea
-  )
+  GIT_REPOSITORY http://public.kitware.com/Remus.git
+####GIT_REPOSITORY https://github.com/robertmaynard/Remus.git
+  GIT_TAG e87bfb84434001e47deddd8e5044b84f2f293c1a
+)
 
 add_revision(kml
   URL http://vtk.org/files/support/libkml_fa6c7d8.tar.gz
@@ -189,7 +191,7 @@ add_revision(lasso
   )
 
 if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
-add_revision(meshkit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
+add_revision(meshkit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
 else()
 add_revision(meshkit
   GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
@@ -197,7 +199,7 @@ add_revision(meshkit
   )
 endif()
 
-add_revision(meshkit32bit SOURCE_DIR ${CMAKE_SOURCE_DIR}/../meshkit/ )
+add_revision(meshkit32bit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
 
 #------------------------------------------------------------------------------
 # moab versions

@@ -28,6 +28,8 @@ set (CROSS_BUILD_STAGE "HOST" CACHE STRING
 set_property(CACHE CROSS_BUILD_STAGE PROPERTY STRINGS
    "HOST" "TOOLS" "CROSS")
 
+option(BUILD_SHARED_LIBS "Whether to build shared libs by default" OFF)
+
 #-----------------------------------------------------------------------------
 # Setup CMAKE_MODULE_PATH so that platform specific configurations are processed
 # before the generic ones.
