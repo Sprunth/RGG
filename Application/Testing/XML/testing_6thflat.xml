@@ -68,133 +68,133 @@
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageAssembly/tabWidget_3/qt_tabwidget_stackedwidget/tab_6/CenterPins" command="set_boolean" arguments="true" />
   <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
   <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,305,210" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,279,90" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,323,301" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,282,214" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,340,427" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,289,346" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,314,545" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,285,446" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,434,511" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,272,543" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,437,394" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,389,171" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,445,295" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,382,285" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,422,151" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,399,401" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,320,57" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,385,513" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,529,211" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,493,228" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,548,344" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,491,343" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,541,414" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,492,459" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,204,491" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,185,165" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,211,408" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,189,288" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,205,270" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,188,408" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,209,130" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,191,519" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,89,188" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,84,460" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,108,334" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,88,345" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
   <event object="qNucMainWindow" command="contextMenu" arguments="" />
-  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,95,428" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,84,226" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QMenu0" command="activate" arguments="PinCell1" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
   <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
