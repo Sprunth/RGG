@@ -219,13 +219,13 @@ add_revision(netcdfcpp
   URL_MD5 d32b20c00f144ae6565d9e98d9f6204c
 )
 
-#if(WIN32)
-#add_revision(moab
-#  GIT_REPOSITORY https://judajake@bitbucket.org/judajake/moab.git
-#  GIT_TAG 4.6.3_cmake)
-#else()
+if(WIN32)
+add_revision(moab
+  GIT_REPOSITORY https://judajake@bitbucket.org/judajake/moab.git
+  GIT_TAG fix_windows)
+else()
 add_revision(moab
   GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-  GIT_TAG vijaysm/cmake-distcheck
+  GIT_TAG master
   )
 #endif()
