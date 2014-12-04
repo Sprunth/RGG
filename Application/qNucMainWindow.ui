@@ -148,7 +148,7 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>400</width>
+     <width>500</width>
      <height>524287</height>
     </size>
    </property>
@@ -218,7 +218,7 @@
   <widget class="QDockWidget" name="PropertyDock">
    <property name="maximumSize">
     <size>
-     <width>400</width>
+     <width>500</width>
      <height>524287</height>
     </size>
    </property>

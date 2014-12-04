@@ -86,7 +86,8 @@ private:
                                          const QString cubitOutputFile);
   std::vector<JobHolder*> runCoreHelper( const QString coregenFile,
                                          std::vector<JobHolder*> debIn,
-                                         const QString CoreGenOutputFile );
+                                         const QString CoreGenOutputFile,
+                                         bool use_cylinder_version );
   std::vector<JobHolder*> exportCylinder( const QString assygenFile,
                                           const QString cubitFile,
                                           const QString cubitOutputFile,
@@ -105,6 +106,7 @@ private:
   mutable QMutex Mutex, Memory, ServerProtect;
 
   QString AssygenExe, AssygenLib;
+  QString CylinderCoregenExe;
   QString CoregenExe, CoregenLib;
   QString CubitExe;
 

@@ -62,6 +62,16 @@ if(ENABLE_meshkit)
                         \"${install_location}/plugins\")
     "
     COMPONENT superbuild)
+    install(CODE "
+              file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES
+                   \"${install_location}/32bit/meshkit/bin/coregen\")
+              execute_process(
+                COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
+                        \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen\"
+                        \"${install_location}/32bit/meshkit/lib\"
+                        \"${install_location}/plugins\")
+    "
+    COMPONENT superbuild)
   else()
     install(CODE "
               file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES
@@ -73,6 +83,7 @@ if(ENABLE_meshkit)
                         \"${install_location}/plugins\")
     "
     COMPONENT superbuild)
+    #TODO: need better support for cylinder generation with occ.  Right now not being supported
   endif()
 endif()
 

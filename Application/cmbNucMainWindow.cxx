@@ -1651,13 +1651,13 @@ void cmbNucMainWindow::onChangeMeshColorMode()
     add_color(att, idx, color, visible);
   }
   this->MeshMapper->Modified();
-  if( isMeshTabVisible() )
+  /*if( isMeshTabVisible() )
   {
     this->MeshRenderer->Render();
     this->Renderer->Render();
     this->ui->qvtkMeshWidget->update();
     this->ui->qvtkWidget->update();
-  }
+  }*/
 }
 
 void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)

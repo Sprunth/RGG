@@ -85,7 +85,7 @@ add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
-  GIT_TAG f62600aca3542ce3169e091ca3854eaeeb59f3d6 )
+  GIT_TAG bac5c2a5293cc2da9c0b86b419ad01a7aa7b0589 )
 
 if (UNIX)
   add_revision(mpi
@@ -159,7 +159,7 @@ add_revision(remus
   GIT_REPOSITORY http://public.kitware.com/Remus.git
 ####GIT_REPOSITORY https://github.com/robertmaynard/Remus.git
   GIT_TAG e87bfb84434001e47deddd8e5044b84f2f293c1a
-  )
+)
 
 add_revision(kml
   URL http://vtk.org/files/support/libkml_fa6c7d8.tar.gz
@@ -187,7 +187,7 @@ add_revision(cgm
 
 add_revision(lasso
   GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-  GIT_TAG Version3.1
+  GIT_TAG master
   )
 
 if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
@@ -228,4 +228,4 @@ add_revision(moab
   GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
   GIT_TAG master
   )
-endif()
+#endif()
