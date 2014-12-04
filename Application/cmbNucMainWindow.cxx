@@ -1057,6 +1057,7 @@ void cmbNucMainWindow::onClearMesh()
   this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
   this->setCameras(this->Internal->IsCoreView, false);
+  this->modelControls(true);
 }
 
 void  cmbNucMainWindow::meshControls(bool v)
@@ -1081,6 +1082,7 @@ void cmbNucMainWindow::onFileOpenMoab()
   {
     return;
   }
+  Internal->MoabSource->clear();
   Internal->MoabSource->openFile(fileNames.first());
   if(!this->Internal->HasModel)
   {
@@ -1385,6 +1387,8 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   if(this->Internal->MoabSource != NULL) this->onClearMesh();
 
   this->setCameras(false, false);
+
+  this->modelControls(true);
 
   this->MaterialColors->clear();
   QString materialfile =
