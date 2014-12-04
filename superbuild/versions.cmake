@@ -228,4 +228,4 @@ add_revision(moab
   GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
   GIT_TAG master
   )
-#endif()
+endif()
