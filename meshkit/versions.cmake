@@ -45,7 +45,7 @@ add_revision(hdf5
 
 add_revision(moab
   GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-  GIT_TAG vijaysm/cmake-distcheck
+  GIT_TAG master
   )
 
 add_revision(cgm
