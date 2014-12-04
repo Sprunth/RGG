@@ -17,7 +17,9 @@ string(REPLACE " " "\\ " boost_build_dir ${CMAKE_CURRENT_BINARY_DIR}/boost/src/b
 #such a mess on support for directories with spaces in the name
 
 if(MSVC)
-  if(MSVC11)
+  if(MSVC12)
+    set(msvc_version "msvc-12.0")
+  elseif(MSVC11)
     set(msvc_version "msvc-11.0")
   elseif(MSVC10)
     set(msvc_version "msvc-10.0")
@@ -47,11 +49,11 @@ endif()
 
 #install header files
 add_external_project_step(fixBoostInstallStage1
-    COMMAND ${CMAKE_COMMAND} -E copy_directory <INSTALL_DIR>/include/boost-1_50/boost <INSTALL_DIR>/include/boost
+    COMMAND ${CMAKE_COMMAND} -E copy_directory <INSTALL_DIR>/include/boost-1_56/boost <INSTALL_DIR>/include/boost
     DEPENDEES install
     )
 add_external_project_step(fixBoostInstallStage2
-    COMMAND ${CMAKE_COMMAND} -E remove_directory <INSTALL_DIR>/include/boost-1_50
+    COMMAND ${CMAKE_COMMAND} -E remove_directory <INSTALL_DIR>/include/boost-1_56
     DEPENDEES fixBoostInstallStage1
     )
 

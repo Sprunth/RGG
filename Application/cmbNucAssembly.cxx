@@ -9,6 +9,7 @@
 #include <fstream>
 #include <limits>
 #include <cctype>
+#include <functional>
 
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
