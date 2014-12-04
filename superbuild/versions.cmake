@@ -159,7 +159,7 @@ add_revision(remus
   GIT_REPOSITORY http://public.kitware.com/Remus.git
 ####GIT_REPOSITORY https://github.com/robertmaynard/Remus.git
   GIT_TAG e87bfb84434001e47deddd8e5044b84f2f293c1a
-  )
+)
 
 add_revision(kml
   URL http://vtk.org/files/support/libkml_fa6c7d8.tar.gz
@@ -187,7 +187,7 @@ add_revision(cgm
 
 add_revision(lasso
   GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-  GIT_TAG Version3.1
+  GIT_TAG master
   )
 
 if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
@@ -219,13 +219,13 @@ add_revision(netcdfcpp
   URL_MD5 d32b20c00f144ae6565d9e98d9f6204c
 )
 
-if(WIN32)
-add_revision(moab
-  GIT_REPOSITORY https://judajake@bitbucket.org/judajake/moab.git
-  GIT_TAG 4.6.3_cmake)
-else()
+#if(WIN32)
+#add_revision(moab
+#  GIT_REPOSITORY https://judajake@bitbucket.org/judajake/moab.git
+#  GIT_TAG 4.6.3_cmake)
+#else()
 add_revision(moab
   GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-  GIT_TAG Version4.7.0
+  GIT_TAG vijaysm/cmake-distcheck
   )
-endif()
+#endif()
