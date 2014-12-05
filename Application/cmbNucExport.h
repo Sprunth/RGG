@@ -44,6 +44,35 @@ class cmbNucExport : public QObject
   Q_OBJECT
   QThread workerThread;
 public:
+  /*struct Message //Going to use this to clean up the connection
+  {
+    struct AssygenTask
+    {
+      QString assygenFile;
+      bool justRunCubit;
+      AssygenTask(QString af, bool jrc):assygenFile(af), justRunCubit(jrc)
+      {}
+    };
+
+    struct CylinderTask
+    {
+      QString assygenFile;
+      QString coregenFile;
+      QString coregenResultFile;
+      QString cubitFile;
+      QString cubitOutputFile;
+      bool valid;
+      CylinderTask(): valid(false){}
+      CylinderTask(QString af, QString cf, QString crf, QString cuf, QString cuof)
+        : assygenFile(af), coregenFile(cf), coregenResultFile(crf),
+          cubitFile(cuf), cubitOutputFile(cuof)
+      {}
+    };
+    std::vector<AssygenTask> assemblyTasks;
+    CylinderTask cylinderTask;
+    QString coregenFile;
+  };*/
+
   friend class cmbNucExportWorkerRunner;
   cmbNucExport();
   ~cmbNucExport();
@@ -61,7 +90,8 @@ public slots:
             const QString cubitFileCylinder,
             const QString cubitOutputFileCylinder,
             const QString coregenFileCylinder,
-            const QString coregenResultFileCylinder );
+            const QString coregenResultFileCylinder,
+            bool keepGoingAfterError );
   void cancel();
 signals:
   void done();
@@ -118,6 +148,7 @@ private:
   void processJobs();
   mutable QMutex end_control;
   bool isDone;
+  bool keepGoingAfterError;
 };
 
 #endif //cmbNucExport_H

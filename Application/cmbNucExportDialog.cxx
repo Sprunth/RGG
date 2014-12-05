@@ -49,9 +49,9 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
           this, SLOT(GetRunnableCoreFile(bool)));
 
   connect( this, SIGNAL(process( const QStringList &, const QString, const QString,
-                                 const QString, const QString, const QString, const QString, const QString)),
+                                 const QString, const QString, const QString, const QString, const QString, bool)),
           this->Exporter, SLOT(run( const QStringList &, const QString, const QString,
-                                    const QString, const QString, const QString, const QString, const QString)));
+                                    const QString, const QString, const QString, const QString, const QString, bool)));
   connect( this->Exporter, SIGNAL(fileDone()), this, SIGNAL(fileFinish()));
   Thread.start();
 }
@@ -145,12 +145,14 @@ void cmbNucExportDialog::sendSignalToProcess()
     emit process(this->AssygenFileList, CoregenFile, outputMesh,
                  OuterCylinder->getAssygenFileName(), OuterCylinder->getCubitFileName(),
                  this->Core->Params.BackgroundFullPath.c_str(),
-                 OuterCylinder->getCoreGenFileName(), OuterCylinder->getSATFileName());
+                 OuterCylinder->getCoreGenFileName(), OuterCylinder->getSATFileName(),
+                 this->ui->keepGoingOnError->isChecked());
                  
   }
   else
   {
-    emit process(this->AssygenFileList, CoregenFile, outputMesh, QString(), QString(), QString(), QString(), QString());
+    emit process(this->AssygenFileList, CoregenFile, outputMesh, QString(), QString(), QString(), QString(), QString(),
+                 this->ui->keepGoingOnError->isChecked());
   }
 }
 
@@ -177,7 +179,8 @@ void cmbNucExportDialog::runAssygen()
 
   this->Progress->show();
   send_core_mesh = false;
-  emit process(this->AssygenFileList, QString(), QString(), QString(), QString(), QString(), QString(), QString());
+  emit process(this->AssygenFileList, QString(), QString(), QString(), QString(), QString(), QString(), QString(),
+               this->ui->keepGoingOnError->isChecked());
 }
 
 void cmbNucExportDialog::runSelectedAssygen()
@@ -240,12 +243,14 @@ void cmbNucExportDialog::runCoregen()
     emit process(QStringList(), CoregenFile, outputMesh,
                  OuterCylinder->getAssygenFileName(), OuterCylinder->getCubitFileName(),
                  this->Core->Params.BackgroundFullPath.c_str(),
-                 OuterCylinder->getCoreGenFileName(), OuterCylinder->getSATFileName());
+                 OuterCylinder->getCoreGenFileName(), OuterCylinder->getSATFileName(),
+                 this->ui->keepGoingOnError->isChecked());
 
   }
   else
   {
-    emit process( QStringList(), CoregenFile, outputMesh, QString(), QString(), QString(), QString(), QString());
+    emit process( QStringList(), CoregenFile, outputMesh, QString(), QString(), QString(), QString(), QString(),
+                  this->ui->keepGoingOnError->isChecked());
   }
 }
 
