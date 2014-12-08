@@ -421,6 +421,7 @@ cmbNucExporterWorker
 #else
     QProcess ep;
     ep.start(input.Function.c_str(), qargs);
+    QThread::yieldCurrentThread();
 #endif
 
     //Wait for finish
@@ -437,12 +438,12 @@ cmbNucExporterWorker
         }
       case RETRY:
         QThread::yieldCurrentThread();
-        Thread::msleep(30);
-        if(numberOfTries++ < 10)
+        if(numberOfTries++ < 3)
         {
-          //At times the exectuable crashes, we retry it 10 times.
+          Thread::msleep(30);
+          //At times the exectuable crashes, we retry it 3 times.
           qDebug() << "Done waiting.  Crashed, retrying: " << this->label.c_str();
-          //continue;
+          continue;
         }
       case FAILED:
       {
