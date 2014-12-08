@@ -46,6 +46,7 @@ set (patch_location "${CMAKE_CURRENT_SOURCE_DIR}/patches")
 set (prefix_path "${install_location}")
 
 option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
+option ( BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF )
 
 find_package(Autotools REQUIRED)
 

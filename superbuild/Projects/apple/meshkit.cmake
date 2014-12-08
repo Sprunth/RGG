@@ -11,23 +11,43 @@ set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 set(junk_output "&> /dev/null")
 endif()
 
-add_external_project(meshkit
-  DEPENDS moab cgm lasso
-  BUILD_IN_SOURCE 1
-  ${suppress_build_out}
-  BUILD_COMMAND "make -j5 install"
-  INSTALL_COMMAND ""
-  #PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_make_watertight.txt
-  CONFIGURE_COMMAND  <SOURCE_DIR>/configure
-  --prefix=<INSTALL_DIR>
-  --with-itaps=<INSTALL_DIR>
-  --enable-algs
-  --enable-optimize
-  --disable-src
-  --enable-utils
-  --enable-rgg
-  --enable-shared
-)
+if(BUILD_MESHKIT_MASTER)
+  add_external_project(meshkit
+    DEPENDS moab cgm lasso
+    BUILD_IN_SOURCE 1
+    ${suppress_build_out}
+    BUILD_COMMAND "make -j5 install"
+    INSTALL_COMMAND ""
+    #PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_make_watertight.txt
+    CONFIGURE_COMMAND  <SOURCE_DIR>/configure
+      --prefix=<INSTALL_DIR>
+      --with-itaps=<INSTALL_DIR>
+      --enable-algs
+      --enable-optimize
+      --disable-src
+      --enable-utils
+      --enable-rgg
+    --enable-shared
+  )
+else()
+  add_external_project(meshkit
+    DEPENDS moab cgm lasso
+    BUILD_IN_SOURCE 1
+    ${suppress_build_out}
+    BUILD_COMMAND "make -j5 install"
+    INSTALL_COMMAND ""
+    PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_make_watertight.txt
+    CONFIGURE_COMMAND  <SOURCE_DIR>/configure
+      --prefix=<INSTALL_DIR>
+      --with-itaps=<INSTALL_DIR>
+      --enable-algs
+      --enable-optimize
+      --disable-src
+      --enable-utils
+      --enable-rgg
+      --enable-shared
+  )
+endif()
 
 if(ENABLE_meshkit)
   find_package(Autotools REQUIRED)
