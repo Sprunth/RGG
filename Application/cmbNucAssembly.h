@@ -233,6 +233,8 @@ public:
   bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
 
+  bool needsBothAssygenCubit() const;
+
   void GetDuctWidthHeight(double r[2]);
 
   void getZRange(double & z1, double & z2);
@@ -320,6 +322,7 @@ private:
 
   bool DifferentFromFile;
   bool DifferentFromCub;
+  bool DifferentFromJournel;
 
   cmbNucAssemblyConnection * Connection;
 

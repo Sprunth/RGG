@@ -300,13 +300,13 @@ private:
 struct JobHolder
 {
   JobHolder(QString exeDir, QString fun, QString file, QString of)
-  : running(false), done(false), job(remus::proto::make_invalidJob()), in(exeDir, fun, file, of)
+  : running(false), done(false), error(false), job(remus::proto::make_invalidJob()), in(exeDir, fun, file, of)
   {
   }
   ~JobHolder()
   {
   }
-  bool running, done;
+  bool running, done, error;
   std::vector<JobHolder*> dependencies;
   std::string label, itype, otype;
   remus::proto::Job job;
@@ -421,6 +421,7 @@ cmbNucExporterWorker
 #else
     QProcess ep;
     ep.start(input.Function.c_str(), qargs);
+    QThread::yieldCurrentThread();
 #endif
 
     //Wait for finish
@@ -437,10 +438,10 @@ cmbNucExporterWorker
         }
       case RETRY:
         QThread::yieldCurrentThread();
-        Thread::msleep(30);
-        if(numberOfTries++ < 10)
+        if(numberOfTries++ < 3)
         {
-          //At times the exectuable crashes, we retry it 10 times.
+          Thread::msleep(30);
+          //At times the exectuable crashes, we retry it 3 times.
           qDebug() << "Done waiting.  Crashed, retrying: " << this->label.c_str();
           continue;
         }
@@ -631,6 +632,7 @@ cmbNucExport::cmbNucExport()
 {
   internal = new cmbNucExportInternal(this);
   this->isDone = false;
+  this->keepGoingAfterError = false;
 }
 
 cmbNucExport::~cmbNucExport()
@@ -648,11 +650,13 @@ cmbNucExport::run( const QStringList &assygenFile,
                    const QString cubitFileCylinder,
                    const QString cubitOutputFileCylinder,
                    const QString coregenFileCylinder,
-                   const QString coregenResultFileCylinder )
+                   const QString coregenResultFileCylinder,
+                   bool kgae )
 {
   {
     QMutexLocker locker(&end_control);
     this->isDone = false;
+    this->keepGoingAfterError = kgae;
   }
   this->clearJobs();
   if(!this->startUpHelper()) return;
@@ -685,9 +689,12 @@ void cmbNucExport::failedHelper(QString msg, QString pmsg)
 {
   emit errorMessage("ERROR: " + msg );
   emit currentProcess(pmsg + " FAILED");
-  emit done();
-  clearJobs();
-  this->deleteServer();
+  if(!keepGoingAfterError)
+  {
+    emit done();
+    clearJobs();
+    this->deleteServer();
+  }
 }
 
 JobHolder* cmbNucExport::makeAssyJob(const QString assygenFile)
@@ -989,6 +996,7 @@ void cmbNucExport::stopJobs()
 void cmbNucExport::processJobs()
 {
   QEventLoop el;
+  bool inErrorState = false;
   emit currentProcess("  Generating Mesh");
   double count = 2;
   while(true)
@@ -1003,6 +1011,7 @@ void cmbNucExport::processJobs()
     bool all_finish = true;
     for(unsigned int i = 0; i < jobs_to_do.size(); ++i)
     {
+      bool error_occured = false;
       if(jobs_to_do[i]->done) continue;
       else if(jobs_to_do[i]->running )
       {
@@ -1038,19 +1047,16 @@ void cmbNucExport::processJobs()
         else if(jobState.status() == remus::INVALID_STATUS)
         {
           failedHelper("Remus ERROR", " Remus Invalid Status");
-          this->stopJobs();
-          return;
+          error_occured = inErrorState = true;
         }
         else if(jobState.status() == remus::FAILED)
         {
           failedHelper("Remus ERROR", " Failed to mesh");
-          this->stopJobs();
-          return;
+          error_occured = inErrorState = true;
         }
         else if(jobState.status() == remus::EXPIRED)
         {
           all_finish = false;
-          //failedHelper("Remus ERROR", " Remus Expired");
           qDebug() << "REMUS EXPIRED resubmit job";
           bool r = client->getOutput( jobs_to_do[i]->label, jobs_to_do[i]->itype,
                                       jobs_to_do[i]->otype, jobs_to_do[i]->in,
@@ -1058,27 +1064,48 @@ void cmbNucExport::processJobs()
           if(!r)
           {
             failedHelper("Remus ERROR", " Remus does not support the job");
-            this->stopJobs();
-            return;
+            inErrorState = true;
           }
-          continue;
+          else
+          {
+            continue;
+          }
         }
         else
         {
           failedHelper("Remus ERROR", " Remus did not finish but was not good");
-          this->stopJobs();
+          error_occured = inErrorState = true;
+        }
+        if(error_occured && !keepGoingAfterError)
+        {
           return;
+        }
+        else if(error_occured)
+        {
+          this->jobs_to_do[i]->error = true;
+          jobs_to_do[i]->done = true;
         }
       }
       else
       {
         all_finish = false;
         bool taf = true;
+        bool error = false;
         for(unsigned int j = 0; j < this->jobs_to_do[i]->dependencies.size(); ++j)
         {
           taf = taf && this->jobs_to_do[i]->dependencies[j]->done;
+          error = error || this->jobs_to_do[i]->dependencies[j]->error;
         }
-        if(taf)
+        if(error)
+        {
+          if(!this->jobs_to_do[i]->error)
+          {
+            qDebug() << i << "One or more the the dependencies had an error";
+            this->jobs_to_do[i]->error = true;
+            this->jobs_to_do[i]->done = true;
+          }
+        }
+        else if(taf)
         {
           QMutexLocker locker(&ServerProtect);
           this->jobs_to_do[i]->running = true;
@@ -1089,8 +1116,16 @@ void cmbNucExport::processJobs()
           if(!r)
           {
             failedHelper("Remus ERROR", " Remus does not support the job");
-            this->stopJobs();
-            return;
+            inErrorState = true;
+            if(!keepGoingAfterError)
+            {
+              return;
+            }
+            else
+            {
+              this->jobs_to_do[i]->error = true;
+              jobs_to_do[i]->done = true;
+            }
           }
         }
       }
@@ -1101,11 +1136,16 @@ void cmbNucExport::processJobs()
     }
   }
   qDebug() << "All jobs have been finished";
-  for(unsigned int i = 0; i < jobs_to_do.size(); ++i)
+  if(inErrorState)
   {
-    qDebug() << jobs_to_do[i]->label.c_str() << jobs_to_do[i]->in.FileArg.c_str() << " " << jobs_to_do[i]->done;
+    emit done();
+    clearJobs();
+    this->deleteServer();
   }
-  this->finish();
+  else
+  {
+    this->finish();
+  }
 }
 
 remus::worker::ServerConnection

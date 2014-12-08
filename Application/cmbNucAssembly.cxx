@@ -122,6 +122,7 @@ cmbNucAssembly::cmbNucAssembly()
   this->LegendColor = Qt::white;
   this->Parameters = new cmbAssyParameters;
   this->DifferentFromFile = true;
+  this->DifferentFromJournel = true;
   this->DifferentFromCub = true;
   this->Connection = new cmbNucAssemblyConnection();
   this->Connection->v = this;
@@ -430,6 +431,7 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
   {
     this->DifferentFromFile = true;
     this->DifferentFromCub = true;
+    this->DifferentFromJournel = true;
     return;
   }
   //make sure file exits
@@ -439,10 +441,28 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
   {
     this->DifferentFromFile = true;
     this->DifferentFromCub = true;
+    DifferentFromJournel = true;
     return;
   }
   this->DifferentFromFile = false;
   QDateTime inpLM = inpInfo.lastModified();
+  QFileInfo jrlInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".jou");
+  if(jrlInfo.exists())
+  {
+    QDateTime jrlLM = jrlInfo.lastModified();
+    DifferentFromJournel = jrlLM < inpLM;
+    if(DifferentFromJournel)
+    {
+      this->DifferentFromCub = true;
+      return;
+    }
+  }
+  else
+  {
+    DifferentFromJournel = true;
+    this->DifferentFromCub = true;
+    return;
+  }
   QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".cub");
   if(!cubInfo.exists())
   {
@@ -450,7 +470,7 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
     return;
   }
   QDateTime cubLM = cubInfo.lastModified();
-  this->DifferentFromCub = cubLM < inpLM;
+  this->DifferentFromCub = cubLM < jrlInfo.lastModified();;
 }
 
 bool cmbNucAssembly::changeSinceLastSave() const
@@ -460,7 +480,12 @@ bool cmbNucAssembly::changeSinceLastSave() const
 
 bool cmbNucAssembly::changeSinceLastGenerate() const
 {
-  return this->DifferentFromCub;
+  return this->DifferentFromCub || this->DifferentFromJournel;
+}
+
+bool cmbNucAssembly::needsBothAssygenCubit() const
+{
+  return this->DifferentFromJournel;
 }
 
 void cmbNucAssembly::clear()

@@ -59,7 +59,7 @@ protected slots:
 
 signals:
   void process( const QStringList assyFile, const QString coregenFile, const QString CoreGenOutputFile,
-                const QString, const QString, const QString, const QString, const QString );
+                const QString, const QString, const QString, const QString, const QString, bool keepGoingAfterError );
 public:
 signals:
   void error(QString);
