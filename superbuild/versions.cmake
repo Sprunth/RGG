@@ -221,7 +221,7 @@ add_revision(netcdfcpp
 
 if(WIN32)
 add_revision(moab
-  GIT_REPOSITORY https://judajake@bitbucket.org/judajake/moab.git
+  GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
   GIT_TAG fix_windows)
 else()
 add_revision(moab
