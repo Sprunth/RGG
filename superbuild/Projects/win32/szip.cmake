@@ -9,7 +9,13 @@ add_external_project(szip
 		                                      <SOURCE_DIR>/src/CMakeLists.txt
 )
 
+set(szip_debug_suffix)
+# FIXME: What to do for Visual Studio?
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  set(szip_debug_suffix _D)
+endif ()
+
 # any project depending on szip, inherits these cmake variables
 add_extra_cmake_args(
-    -DSZIP_LIBRARY:FILEPATH=<INSTALL_DIR>/lib/libszip.lib
+    -DSZIP_LIBRARY:FILEPATH=<INSTALL_DIR>/lib/libszip${szip_debug_suffix}.lib
     -DSZIP_INCLUDE_DIR:FILEPATH=<INSTALL_DIR>/include)
