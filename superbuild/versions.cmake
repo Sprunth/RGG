@@ -85,7 +85,7 @@ add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
-  GIT_TAG bac5c2a5293cc2da9c0b86b419ad01a7aa7b0589 )
+  GIT_TAG 758c71bae1b4b244e72279d032c7b57081bf30e8 )
 
 if (UNIX)
   add_revision(mpi
@@ -221,7 +221,7 @@ add_revision(netcdfcpp
 
 if(WIN32)
 add_revision(moab
-  GIT_REPOSITORY https://judajake@bitbucket.org/judajake/moab.git
+  GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
   GIT_TAG fix_windows)
 else()
 add_revision(moab
