@@ -50,8 +50,8 @@ add_revision(cgm
 
 if(BUILD_MESHKIT_MASTER)
   add_revision(moab
-    GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-    GIT_TAG master
+    GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
+    GIT_TAG fix_windows
   )
 
   add_revision(lasso

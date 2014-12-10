@@ -237,8 +237,8 @@ if(BUILD_MESHKIT_MASTER)
                  GIT_TAG fix_windows)
   else(WIN32)
     add_revision(moab
-                 GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-                 GIT_TAG master )
+                 GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
+                 GIT_TAG fix_windows )
   endif(WIN32)
 else()
   if(WIN32)
