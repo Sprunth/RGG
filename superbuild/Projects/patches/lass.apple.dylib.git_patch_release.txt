@@ -1,0 +1,13 @@
+diff --git a/Makefile.am b/Makefile.am
+index 4be8c47..4a17400 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -67,7 +67,7 @@ if ENABLE_IMESH
+         MeshAssocPairSide.cpp \
+         MeshAssocPairSide.hpp
+     libiRel_la_LIBADD += \
+-        ${IMESH_LTFLAGS} ${IMESH_LDFLAGS} ${IMESH_DIR}/lib/libiMesh.la
++        ${IMESH_LTFLAGS} ${IMESH_LDFLAGS} ${IMESH_DIR}/lib/libiMesh.dylib
+     LIBS += ${IMESH_LIBS}
+ endif
+ 

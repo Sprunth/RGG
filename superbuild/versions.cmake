@@ -180,23 +180,36 @@ add_revision(OCE
   GIT_REPOSITORY "https://github.com/robertmaynard/oce.git"
   GIT_TAG "cgm_support"
   )
+
 add_revision(cgm
   GIT_REPOSITORY "https://bitbucket.org/fathomteam/cgm.git"
   GIT_TAG 13.1.1
   )
 
-add_revision(lasso
-  GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-  GIT_TAG master
+if(BUILD_MESHKIT_MASTER)
+  add_revision(lasso
+    GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
+    GIT_TAG master
   )
+else(BUILD_MESHKIT_MASTER)
+  add_revision(lasso
+    GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
+    GIT_TAG Version3.1
+  )
+endif(BUILD_MESHKIT_MASTER)
 
 if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
-add_revision(meshkit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
+ add_revision(meshkit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
 else()
-add_revision(meshkit
-  GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-  GIT_TAG MeshKitv1.2
-  )
+  if(BUILD_MESHKIT_MASTER)
+    add_revision(meshkit
+                 GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
+                 GIT_TAG master)
+  else(BUILD_MESHKIT_MASTER)
+    add_revision(meshkit
+                 GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
+                 GIT_TAG MeshKitv1.2)
+  endif(BUILD_MESHKIT_MASTER)
 endif()
 
 add_revision(meshkit32bit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
@@ -211,21 +224,30 @@ add_revision(ftgl
 
 add_revision(netcdf
   URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.0.tar.gz"
-  URL_MD5 40c0e53433fc5dc59296ee257ff4a813
-  )
+  URL_MD5 40c0e53433fc5dc59296ee257ff4a813)
 
 add_revision(netcdfcpp
   URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx-4.2.tar.gz"
-  URL_MD5 d32b20c00f144ae6565d9e98d9f6204c
-)
+  URL_MD5 d32b20c00f144ae6565d9e98d9f6204c)
 
-if(WIN32)
-add_revision(moab
-  GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
-  GIT_TAG fix_windows)
+if(BUILD_MESHKIT_MASTER)
+  if(WIN32)
+    add_revision(moab
+                 GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
+                 GIT_TAG fix_windows)
+  else(WIN32)
+    add_revision(moab
+                 GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
+                 GIT_TAG fix_windows )
+  endif(WIN32)
 else()
-add_revision(moab
-  GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-  GIT_TAG master
-  )
+  if(WIN32)
+    add_revision(moab
+                 GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
+                 GIT_TAG 4.6.3_cmake)
+  else(WIN32)
+    add_revision(moab
+                 GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
+                 GIT_TAG Version4.7.0)
+  endif(WIN32)
 endif()

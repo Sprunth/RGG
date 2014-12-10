@@ -43,22 +43,39 @@ add_revision(hdf5
   URL "http://paraview.org/files/dependencies/hdf5-1.8.9.tar.gz"
   URL_MD5 d1266bb7416ef089400a15cc7c963218)
 
-add_revision(moab
-  GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-  GIT_TAG master
-  )
-
 add_revision(cgm
   GIT_REPOSITORY "https://bitbucket.org/fathomteam/cgm.git"
   GIT_TAG 13.1.1
   )
 
-add_revision(lasso
-  GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-  GIT_TAG master
+if(BUILD_MESHKIT_MASTER)
+  add_revision(moab
+    GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
+    GIT_TAG fix_windows
   )
 
-add_revision(meshkit
-  GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-  GIT_TAG master
+  add_revision(lasso
+    GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
+    GIT_TAG master
   )
+
+  add_revision(meshkit
+    GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
+    GIT_TAG master
+  )
+else()
+  add_revision(moab
+    GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
+    GIT_TAG Version4.7.0
+  )
+
+  add_revision(lasso
+    GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
+    GIT_TAG Version3.1
+  )
+
+  add_revision(meshkit
+    GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
+    GIT_TAG MeshKitv1.2
+  )
+endif()
