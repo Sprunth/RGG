@@ -10,33 +10,41 @@ First, create a new rectilinear core, and add a new duct to the assembly by foll
 \end{center}
 \end{figure}
 
-Next, right-click on the assembly and choose ``Create Duct''.
+This results in a core with a single assembly with a duct of unknown material shown in ~\ref{fig:NewRect}.
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=0.5\linewidth]{Images/rect-2e1.png}
-\caption{Create a new duct.}
-\label{fig:Rect2}
+\includegraphics[width=0.5\linewidth]{Images/rect-init-model.png}
+\caption{The initial rectangular core.}
+\label{fig:NewRect}
 \end{center}
 \end{figure}
 
-Tweak the dimensions of the duct, and choose ``water'' as its material.  The settings are shown in ~\ref{fig:Rect3}.
+Now, to adjust the size of the duct, select the "Assembly Defaults" tab in Core's Properties Panel.  In this example, we are going to set the "Duct Thickness" to 15 (~\ref{fig:SetRectDuctDem}).
 
-The result should look like ~\ref{fig:Rect4}.  Try manipulating the duct in the render window to verify its dimensions.
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.5\linewidth]{Images/rect-set-dim.png}
+\caption{The initial rectangular core.}
+\label{fig:SetRectDuctDem}
+\end{center}
+\end{figure}
+
+Next adjust the material of the Duct.  In the Inputs Panel, select the Duct.  Then, in the Duct's Properties Panel, select the first Duct Segment.  This populates Material Layers with the Duct Segments materials.  Now, select water in the material drop down box drop (~\ref{fig:rectSetMaterial}).  Then press Apply.  The result should look like ~\ref{fig:rectDuctResult}.
 
 \begin{figure}
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=0.7\linewidth]{Images/rect-3e1.png}
-  \caption{Parameters for the duct.}
-  \label{fig:Rect3}
+  \includegraphics[width=0.7\linewidth]{Images/rect-set-material.png}
+  \caption{Setting material of the duct.}
+  \label{fig:rectSetMaterial}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=0.9\linewidth]{Images/rect-4.png}
+  \includegraphics[width=0.9\linewidth]{Images/rect-duct-result.png}
   \caption{The final product.}
-  \label{fig:Rect4}
+  \label{fig:rectDuctResult}
 \end{subfigure}
 \caption{Finished water duct.}
 \label{fig:test}
