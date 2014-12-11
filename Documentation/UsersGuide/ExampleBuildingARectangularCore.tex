@@ -22,13 +22,13 @@ This results in a core with a single assembly with a duct of unknown material sh
 
 Now, to adjust the size of the duct, select the "Assembly Defaults" tab in Core's Properties Panel.  In this example, we are going to set the "Duct Thickness" to 15 (~\ref{fig:SetRectDuctDem}).
 
-\begin{figure}[htb]
-\begin{center}
-\includegraphics[width=0.5\linewidth]{Images/rect-set-dim.png}
-\caption{The initial rectangular core.}
+\begin{wrapfigure}{r}{0.6\textwidth}
+  \begin{center}
+    \includegraphics[width=0.25\textwidth]{Images/rect-set-dim.png}
+  \end{center}
+ \caption{Setting the global duct parameters.}
 \label{fig:SetRectDuctDem}
-\end{center}
-\end{figure}
+\end{wrapfigure}
 
 Next adjust the material of the Duct.  In the Inputs Panel, select the Duct.  Then, in the Duct's Properties Panel, select the first Duct Segment.  This populates Material Layers with the Duct Segments materials.  Now, select water in the material drop down box drop (~\ref{fig:rectSetMaterial}).  Then press Apply.  The result should look like ~\ref{fig:rectDuctResult}.
 
@@ -54,15 +54,23 @@ Next adjust the material of the Duct.  In the Inputs Panel, select the Duct.  Th
 
 \subsection{Creating a Fuel Pin}
 
-Right-click on the assembly and this time choose ``Create Pin''.
-
-\subsubsection{Changing the Parameters}
-
-Choose the dimensions of the pin to correspond to the dimensions of your duct.  In our case we have used a length of 4, corresponding to the height of the duct.
+Right-click on the assembly and choose ``Create Pin'' (~\ref{fig:rectCreatePin}).
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=0.4\linewidth]{Images/rect-5.png}
+\includegraphics[width=0.5\linewidth]{Images/rect-create-pin-option.png}
+\caption{Create pin option.}
+\label{fig:rectCreatePin}
+\end{center}
+\end{figure}
+
+\subsubsection{Changing the Parameters}
+
+Choose the dimensions of the pin to correspond to the dimensions of your duct.  In our case we have used a length of 10, corresponding to the height of the duct.
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.4\linewidth]{Images/rect-pin-params.png}
 \caption{Fuel pin parameters.}
 \label{fig:Rect5}
 \end{center}
@@ -72,7 +80,7 @@ Changing the key color and label is recommended, because later this will make th
 
 \begin{wrapfigure}{r}{0.5\textwidth}
   \begin{center}
-    \includegraphics[width=0.48\textwidth]{Images/rect-6}
+    \includegraphics[width=0.48\textwidth]{Images/rect-pin.png}
   \end{center}
   \caption{Final fuel pin product.}
   \label{fig:Rect6}
@@ -84,7 +92,7 @@ Note also the option to toggle the fuel pin's shape between a cylinder and a fru
 \subsection{Creating a Control Rod}
 \begin{wrapfigure}{r}{0.5\textwidth}
   \begin{center}
-    \includegraphics[width=0.48\textwidth]{Images/rect-7.png}
+    \includegraphics[width=0.48\textwidth]{Images/rect-control-rod.png}
   \end{center}
   \caption{Final control product.}
   \label{fig:Rect7}
@@ -101,7 +109,7 @@ Now we want to add the pins we've created back to the assembly.  Click back on `
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=0.4\linewidth]{Images/rect-8.png}
+\includegraphics[width=0.4\linewidth]{Images/rect-empty-assy.png}
 \caption{Empty duct in the assemblies view.}
 \label{fig:Rect8}
 \end{center}
@@ -109,7 +117,7 @@ Now we want to add the pins we've created back to the assembly.  Click back on `
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=0.4\linewidth]{Images/rect-9e1.png}
+\includegraphics[width=0.4\linewidth]{Images/rect-assign-pin.png}
 \caption{Right-click to organize the assembly.}
 \label{fig:Rect9}
 \end{center}
@@ -122,7 +130,7 @@ Remember to click ``Apply'' in order to see your changes in the render window, o
 
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=0.7\linewidth]{Images/rect-10.png}
+\includegraphics[width=0.7\linewidth]{Images/rect-final-assy1.png}
 \caption{Final assembly.}
 \label{fig:Rect10}
 \end{center}
