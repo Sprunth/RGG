@@ -1,6 +1,6 @@
 \subsection{Creating an Assembly Duct Composed of Water}
 
-First, create a new rectilinear core, and add a new duct to the assembly by following ~\ref{fig:Rect1}.
+First, create a new rectilinear core, and add a new duct to the assembly by following Figure ~\ref{fig:Rect1}.
 
 \begin{figure}[htb]
 \begin{center}
@@ -10,7 +10,7 @@ First, create a new rectilinear core, and add a new duct to the assembly by foll
 \end{center}
 \end{figure}
 
-This results in a core with a single assembly with a duct of unknown material shown in ~\ref{fig:NewRect}.
+This results in a core with a single assembly with a duct of unknown material shown in Figure ~\ref{fig:NewRect}.
 
 \begin{figure}[htb]
 \begin{center}
@@ -20,7 +20,7 @@ This results in a core with a single assembly with a duct of unknown material sh
 \end{center}
 \end{figure}
 
-Now, to adjust the size of the duct, select the "Assembly Defaults" tab in Core's Properties Panel.  In this example, we are going to set the "Duct Thickness" to 15 (~\ref{fig:SetRectDuctDem}).
+Now, to adjust the size of the duct, select the "\ui{Assembly Defaults}" tab in Core's Properties Panel.  In this example, we are going to set the ``\ui{Duct Thickness}[Assembly Defaults]" to 15 (~\ref{fig:SetRectDuctDem}).
 
 \begin{wrapfigure}{r}{0.6\textwidth}
   \begin{center}
@@ -30,19 +30,19 @@ Now, to adjust the size of the duct, select the "Assembly Defaults" tab in Core'
 \label{fig:SetRectDuctDem}
 \end{wrapfigure}
 
-Next adjust the material of the Duct.  In the Inputs Panel, select the Duct.  Then, in the Duct's Properties Panel, select the first Duct Segment.  This populates Material Layers with the Duct Segments materials.  Now, select water in the material drop down box drop (~\ref{fig:rectSetMaterial}).  Then press Apply.  The result should look like ~\ref{fig:rectDuctResult}.
+Next adjust the material of the \ui{Duct}.  In the \ui{Inputs Panel}, select the \ui{Duct}.  Then, in the Duct's \ui{Properties Panel}[Duct], select the first Duct Segment.  This populates Material Layers with the Duct Segments materials.  Now, select water in the material drop down box drop (~\ref{fig:rectSetMaterial}).  Then press Apply.  The result should look like ~\ref{fig:rectDuctResult}.
 
 \begin{figure}
 \centering
-\begin{subfigure}{.5\textwidth}
+\begin{subfigure}{.4\textwidth}
   \centering
-  \includegraphics[width=0.7\linewidth]{Images/rect-set-material.png}
+  \includegraphics[width=0.5\linewidth]{Images/rect-set-material.png}
   \caption{Setting material of the duct.}
   \label{fig:rectSetMaterial}
 \end{subfigure}%
-\begin{subfigure}{.5\textwidth}
+\begin{subfigure}{.6\textwidth}
   \centering
-  \includegraphics[width=0.9\linewidth]{Images/rect-duct-result.png}
+  \includegraphics[width=1.0\linewidth]{Images/rect-duct-result.png}
   \caption{The final product.}
   \label{fig:rectDuctResult}
 \end{subfigure}
@@ -87,7 +87,7 @@ Changing the key color and label is recommended, because later this will make th
 \end{wrapfigure}
 Using the ``Add Before'' button, you can create a fuel pin with different layers of materials.  Refer to ~\ref{fig:Rect5} for the parameters used for our example, and ~\ref{fig:Rect6} to view the final product.
 
-Note also the option to toggle the fuel pin's shape between a cylinder and a frustum.  The ``Cutaway view'' helps to view how the different materials are distributed within the fuel pin.
+Note also the option to toggle the fuel pin's shape between a cylinder and a frustum.  The ``\ui{Cutaway view}'' helps to view how the different materials are distributed within the fuel pin.
 
 \subsection{Creating a Control Rod}
 \begin{wrapfigure}{r}{0.5\textwidth}
@@ -97,6 +97,7 @@ Note also the option to toggle the fuel pin's shape between a cylinder and a fru
   \caption{Final control product.}
   \label{fig:Rect7}
 \end{wrapfigure}
+
 Control rods are used to control nuclear fission. They are made out of materials which can easily absorb neutrons without undergoing fission themselves such as certain isotopes of boron, silver, or cadmium.
 
 This is created using largely the same process as creating the fuel pin.  You can use the ``control rod'' material.  Once again, it's beneficial to change the key color to green.
@@ -107,24 +108,25 @@ Refer to ~\ref{fig:Rect7} for the final product.
 
 Now we want to add the pins we've created back to the assembly.  Click back on ``Assy 1'' in the assemblies view in order to see the assembly layout.  You should once again be able to see the water duct you created, and it should still be empty.  Compare your view with ~\ref{fig:Rect8}.
 
-\begin{figure}[htb]
-\begin{center}
-\includegraphics[width=0.4\linewidth]{Images/rect-empty-assy.png}
+\begin{figure}
+\centering
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=0.8\linewidth]{Images/rect-empty-assy.png}
 \caption{Empty duct in the assemblies view.}
 \label{fig:Rect8}
-\end{center}
-\end{figure}
-
-\begin{figure}[htb]
-\begin{center}
-\includegraphics[width=0.4\linewidth]{Images/rect-assign-pin.png}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+ \includegraphics[width=0.8\linewidth]{Images/rect-assign-pin.png}
 \caption{Right-click to organize the assembly.}
 \label{fig:Rect9}
-\end{center}
+\end{minipage}
 \end{figure}
+
 Right click on each square and choose which pin to assign to it.  Alternatively, you can drag and drop pins already placed onto new squares.
 
-In the end you should end up with something like ~\ref{fig:Rect10}.  If you find that the pins are placed in positions you didn't specify, go back to the pins and verify that the ``Pitch'' parameters are set to $X=4$ and $Y=4$ for each fuel pin and control rod.
+In the end you should end up with something like ~\ref{fig:Rect10}.
 
 Remember to click ``Apply'' in order to see your changes in the render window, or save them before navigating to another tab or pin.
 
