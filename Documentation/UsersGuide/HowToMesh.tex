@@ -12,7 +12,7 @@ Now that the system preferences have been adjusted to include AssyGen, Cubit, an
 
 You will be prompted to save changes before proceeding if what is loaded into RGG differs from its file on disk.
 
-The dialog should be populated with the assemblies that need to be re-meshed automatically.  In the example below, two assemblies need to be meshed, which also means that the core must be remeshed.
+The dialog should be populated with the assemblies that need to be re-meshed automatically.  In the example below, two assemblies need to be meshed, which also means that the core must be remeshed.  If ``Keep Going on Error" is checked, RGG will process every possible Assembly Files after an error occurs.  Any job that depends on the erred job will not be run.  If it is not checked, RGG will quite processing after the first error.  Checking ``Keep Going on Error" is advised if there are a large number of files to be processed.
 
 \begin{figure}[H]
 	\begin{center}
@@ -32,7 +32,7 @@ One can force the generation of meshes regardless of their current state by usin
 	\end{center}
 \end{figure}
 
-You can see the output of AssyGen, CoreGen, and Cubit by clicking on the \ui{view output checkbox}.  To cancel the current export, click the \ui{cancel button}, which will wait for the current export step to finish before cancelling.
+You can see the output of AssyGen, CoreGen, and Cubit by clicking on the \ui{view output checkbox}.  To cancel the current export, click the \ui{cancel button}.
 
 To verify that the assemblies and core have been meshed, confirm that the \ui{x icon}s seen previously are now \ui{green square icon}s, as shown in Figure \ref{fig:Mesh6}.
 
