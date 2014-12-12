@@ -38,15 +38,16 @@ We also can specify how many edges we'd like along an edge of a hexagonal or rec
 
 \toIndex{radial mesh size}
 \toIndex{mesh size!radial}
-Lastly, we can control how coarse or fine the mesh is by specifying the radial mesh size, or the length of the square or triangle used in the top-down projection of the 3D mesh.  In practice, it does not make sense to choose a radial mesh size larger than the size of the smallest feature you would like to preserve in an assembly, as that would mean that that is not captured in the resulting mesh.
 
-\begin{figure}[H]
+\begin{wrapfigure}{r}{0.5\textwidth}
 	\begin{center}
-		\includegraphics[width=0.5\linewidth]{Images/radial-mesh-size.png}
+		\includegraphics[width=0.8\linewidth]{Images/radial-mesh-size.png}
 		\caption{These two assemblies have two different radial mesh sizes.  The one on the left has a radial mesh size of $0.3$, while the one on the right is $0.1$.}
 		\label{fig:RadialMesh}
 	\end{center}
-\end{figure}
+\end{wrapfigure}
+
+Lastly, we can control how coarse or fine the mesh is by specifying the radial mesh size, or the length of the square or triangle used in the top-down projection of the 3D mesh.  In practice, it does not make sense to choose a radial mesh size larger than the size of the smallest feature you would like to preserve in an assembly, as that would mean that that is not captured in the resulting mesh.
 
 \toIndex{conforming meshes}
 \toIndex{meshes!conforming}
@@ -58,14 +59,14 @@ Not all meshes are created equal.  Meshes used for analysis must be conforming; 
 	\item{and faces must only contact other mesh faces.}
 \end{itemize}
 
+That means that we must ensure that the mesh type, axial mesh size, and edge interval all match in the core.  If they are different in each assembly, the resulting mesh may not always be conforming.  RGG ensures that they match by only letting you specify them at the core level, in the \ui{assembly defaults tab}.
+
 \begin{figure}[H]
 	\begin{center}
 		\includegraphics[width=\linewidth]{Images/nonconforming-mesh.png}
-		\caption{A nonconfomring mesh.  Note how vertices touch edges and edges touch vertices along the border between the blue and the hexes.}
+		\caption{A non-conforming mesh.  Note how vertices touch edges and edges touch vertices along the border between the blue and the hexes.}
 		\label{fig:NonconformingMesh}
 	\end{center}
 \end{figure}
-
-That means that we must ensure that the mesh type, axial mesh size, and edge interval all match in the core.  If they are different in each assembly, the resulting mesh may not always be conforming.  RGG ensures that they match by only letting you specify them at the core level, in the \ui{assembly defaults tab}.
 
 However, the radial mesh size is not required to be the same for each assembly.  Refer to Figure \ref{fig:RadialMesh}; even though two different assemblies side by side have different radial mesh sizes, it is still conforming. You can change the radial mesh size and specify a different level of coarseness or fineness on a per-assembly basis without suffering bad consequences.  RGG gives you this ability by making radial mesh size accessible from an assembly's \ui{configure tab}.
