@@ -42,6 +42,14 @@ add_test(NAME Test-pvbatch
                  "${CMAKE_CURRENT_SOURCE_DIR}/basic_python.py")
 set_tests_properties(Test-pvbatch PROPERTIES LABELS "PARAVIEW")
 
+if (RGG_BUILD_PACKAGE)
+  add_test(NAME package
+           COMMAND "${CMAKE_COMMAND}"
+                   "--build" "${CMAKE_BINARY_DIR}"
+                   "--target" "package"
+                   "--config" "$<CONFIGURATION>")
+endif ()
+
 if (PARAVIEW_DATA_ROOT)
   # Test to load various data files to ensure reader support.
   #----------------------------------------------------------------------------
