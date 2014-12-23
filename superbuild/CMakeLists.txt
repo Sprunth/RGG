@@ -193,7 +193,7 @@ include(CTest)
 set (CM_PROJECTS_ALL)
 
 option(BUILD_DOCUMENTATION "Build the RGG Documentation" OFF)
-option(BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF)
+option(BUILD_MESHKIT_MASTER "Build Meshkit Master" ON)
 
 #must before any including of projects
 SetupCMBSuperBuild()
