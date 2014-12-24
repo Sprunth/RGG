@@ -189,7 +189,7 @@ void cmbNucAssembly::RemovePinCell(const std::string label_in)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
-    if(this->PinCells[i]->label == label_in)
+    if(this->PinCells[i]->getLabel() == label_in)
       {
       delete this->PinCells[i];
       this->PinCells.erase(this->PinCells.begin() + i);
@@ -208,7 +208,8 @@ void cmbNucAssembly::fillList(QStringList & l)
   for(size_t i = 0; i < this->GetNumberOfPinCells(); i++)
   {
     PinCell *pincell = this->GetPinCell(i);
-    l.append(pincell->label.c_str());
+    std::string tmp = pincell->getLabel(); //pincell->getName() + "(" + pincell->getLabel() + ")";
+    l.append(tmp.c_str());
   }
 }
 
@@ -216,7 +217,9 @@ PinCell* cmbNucAssembly::GetPinCell(const std::string &label_in)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
     {
-    if(this->PinCells[i]->label == label_in)
+    PinCell *pincell = this->GetPinCell(i);
+    std::string tmp = pincell->getLabel(); //pincell->getName() + "(" + pincell->getLabel() + ")";
+    if(tmp == label_in)
       {
       return this->PinCells[i];
       }

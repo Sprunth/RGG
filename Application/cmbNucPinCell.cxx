@@ -255,7 +255,7 @@ PinCell::PinCell(double px, double py)
   pitchX=px;
   pitchY=py;
   pitchZ=0.0;
-  name=label="p1";
+  Name=Label="p1";
   legendColor = Qt::white;
   cutaway = false;
   Connection = new PinConnection();
@@ -479,8 +479,8 @@ QSet< cmbNucMaterial* > PinCell::getMaterials()
 bool PinCell::fill(PinCell const* other)
 {
   bool changed = false;
-  changed |= setIfDifferent(other->name, this->name);
-  changed |= setIfDifferent(other->label, this->label);
+  changed |= setIfDifferent(other->Name, this->Name);
+  changed |= setIfDifferent(other->Label, this->Label);
   changed |= setIfDifferent(other->pitchX, this->pitchX);
   changed |= setIfDifferent(other->pitchY, this->pitchY);
   changed |= setIfDifferent(other->pitchZ, this->pitchZ);

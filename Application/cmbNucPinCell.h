@@ -209,8 +209,7 @@ public:
   PinConnection* GetConnection() const;
   QSet< cmbNucMaterial* > getMaterials();
 
-  std::string getLabel(){return label;}
-  virtual std::string getTitle(){ return "PinCell: " + name + " (" + label + ")"; }
+  virtual std::string getTitle(){ return "PinCell: " + AssyPartObj::getTitle(); }
 
   QPointer<cmbNucMaterial> getCellMaterial();
   void setCellMaterial(QPointer<cmbNucMaterial> material);
@@ -218,8 +217,6 @@ public:
 
   vtkBoundingBox computeBounds(bool isHex );
 
-  std::string name;
-  std::string label;
   double pitchX;
   double pitchY;
   double pitchZ;

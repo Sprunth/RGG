@@ -275,6 +275,17 @@ cmbNucDuctCellEditor
 {
   if(this->ExternalDuctCell != NULL)
   {
+    QString newlabel = this->Ui->Label->text();
+    newlabel = newlabel.trimmed().replace(' ', "_");
+    this->Ui->Label->setText(newlabel);
+    this->ExternalDuctCell->setLabel(newlabel.toStdString());
+
+    QString newName = this->Ui->Name->text();
+    newName = newName.trimmed().replace(' ', "_");
+    this->Ui->Name->setText(newName);
+
+    this->ExternalDuctCell->setName(newName.toStdString());
+
     if(!(*this->ExternalDuctCell == *this->InternalDuctCell))
     {
       this->ExternalDuctCell->fill(this->InternalDuctCell);
@@ -331,6 +342,8 @@ cmbNucDuctCellEditor
   if(this->ExternalDuctCell != NULL)
   {
     this->InternalDuctCell->fill(this->ExternalDuctCell);
+    this->Ui->Name->setText(this->InternalDuctCell->getName().c_str());
+    this->Ui->Label->setText(this->InternalDuctCell->getLabel().c_str());
     tmpTable->setRowCount(this->InternalDuctCell->numberOfDucts());
     for(unsigned int i = 0; i < this->InternalDuctCell->numberOfDucts(); ++i)
     {

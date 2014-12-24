@@ -312,7 +312,7 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
     PinCell * tpc = this->Assembly->GetPinCell(i);
     if(tpc != NULL && pincell != tpc)
     {
-      if(tpc->label == current.toStdString())
+      if(tpc->getLabel() == current.toStdString())
       {
         //ERROR!  Should be unique, revert
         QMessageBox msgBox;
@@ -379,7 +379,7 @@ void cmbNucInputPropertiesWidget::pinNameChanged(PinCell* pincell,
     PinCell * tpc = this->Assembly->GetPinCell(i);
     if(tpc != NULL && pincell != tpc)
     {
-      if(tpc->name == current.toStdString())
+      if(tpc->getName() == current.toStdString())
       {
         //ERROR!  Should be unique, revert
         QMessageBox msgBox;
@@ -441,7 +441,7 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     for(size_t i = 0; i < this->Assembly->GetNumberOfPinCells(); i++)
       {
       PinCell *pincell = this->Assembly->GetPinCell(i);
-      actionList.append(pincell->label.c_str());
+      actionList.append(pincell->getLabel().c_str());
       }
     }
 }

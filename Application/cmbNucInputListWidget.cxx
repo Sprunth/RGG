@@ -422,7 +422,11 @@ void cmbNucInputListWidget::onNewPin()
   newpin->AddCylinder(new Cylinder(r, 0, h));
   QString pinname = QString("PinCell").append(
     QString::number(this->getCurrentAssembly()->GetNumberOfPinCells()+1));
-  newpin->name = newpin->label = pinname.toStdString();
+  {
+    std::string tmp = pinname.toStdString();
+    newpin->setName(tmp);
+    newpin->setLabel(tmp);
+  }
   assy->AddPinCell(newpin);
   QTreeWidgetItem* partsRoot = this->getCurrentAssemblyNode();
   if(!partsRoot)
@@ -430,7 +434,7 @@ void cmbNucInputListWidget::onNewPin()
     return;
     }
   cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, newpin);
-  pinNode->setText(0, newpin->name.c_str());
+  pinNode->setText(0, newpin->getName().c_str());
   Qt::ItemFlags itemFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   pinNode->setFlags(itemFlags); // not editable
@@ -479,7 +483,7 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
       QTreeWidgetItem * p = selItem->parent();
       delete selItem;
       this->Internal->PartsList->setCurrentItem(p);
-      assem->RemovePinCell(pincell->label);
+      assem->RemovePinCell(pincell->getLabel());
       emit pincellDeleted();
       emit pinsModified(assem);
       this->Internal->PartsList->blockSignals(false);
@@ -679,7 +683,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     {
     PinCell *pincell = assy->GetPinCell(i);
     cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, pincell);
-    pinNode->setText(0, QString::fromStdString(pincell->label));
+    pinNode->setText(0, QString::fromStdString(pincell->getLabel()));
     pinNode->setFlags(itemFlags); // not editable
     pinNode->setChildIndicatorPolicy(
       QTreeWidgetItem::DontShowIndicatorWhenChildless);

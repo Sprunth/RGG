@@ -39,42 +39,53 @@ enum enumGeometryControls
   JUST_ANGLE = 0x0FF00,
 };
 
-  class AssyPartObj
+class AssyPartObj
+{
+public:
+  AssyPartObj(){}
+  virtual enumNucPartsType GetType() const {return CMBNUC_ASSY_BASEOBJ;}
+  bool operator==(const AssyPartObj&){return false;}
+  template<class T> static void removeObj(T* obj, std::vector<T*>& objs)
   {
-  public:
-    AssyPartObj(){}
-    virtual enumNucPartsType GetType() const {return CMBNUC_ASSY_BASEOBJ;}
-    bool operator==(const AssyPartObj&){return false;}
-    template<class T> static void removeObj(T* obj, std::vector<T*>& objs)
-      {
-      for(typename std::vector<T*>::iterator fit=objs.begin();
+    for(typename std::vector<T*>::iterator fit=objs.begin();
         fit!=objs.end(); ++fit)
-        {
-        if(*fit == obj)
-          {
-          delete obj;
-          objs.erase(fit);
-          break;
-          }
-        }
-      }
-    template<class T> static void deleteObjs(std::vector<T*>& objs)
+    {
+      if(*fit == obj)
       {
-      for(typename std::vector<T*>::iterator fit=objs.begin();
-        fit!=objs.end(); ++fit)
-        {
-        if(*fit)
-          {
-          delete *fit;
-          }
-        }
-      objs.clear();
+        delete obj;
+        objs.erase(fit);
+        break;
       }
-    virtual std::string getLabel() = 0;
-    virtual std::string getTitle() = 0;
-    virtual std::string getFileName(){return "";}
-    virtual QColor GetLegendColor() const
-    { return Qt::white; }
-  };
+    }
+  }
+  template<class T> static void deleteObjs(std::vector<T*>& objs)
+  {
+    for(typename std::vector<T*>::iterator fit=objs.begin();
+        fit!=objs.end(); ++fit)
+    {
+      if(*fit)
+      {
+        delete *fit;
+      }
+    }
+    objs.clear();
+  }
+  virtual std::string const& getLabel() const
+  { return this->Label; }
+  virtual std::string getTitle()
+  { return this->Name + " (" + this->Label + ")"; }
+  virtual std::string const& getName() const
+  { return this->Name; }
+  virtual void setLabel(std::string l)
+  { this->Label = l; }
+  virtual void setName(std::string n)
+  { this->Name = n; }
+  virtual std::string getFileName(){return "";}
+  virtual QColor GetLegendColor() const
+  { return Qt::white; }
+protected:
+  std::string Label;
+  std::string Name;
+};
 
 #endif

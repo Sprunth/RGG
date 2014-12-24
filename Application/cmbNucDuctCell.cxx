@@ -191,6 +191,8 @@ QSet< cmbNucMaterial* > Duct::getMaterials()
 DuctCell::DuctCell()
 {
   Connection = new DuctConnection();
+  this->Label = "D1";
+  this->Name = "Duct1";
 }
 
 DuctCell::~DuctCell()
@@ -258,6 +260,8 @@ Duct * DuctCell::getDuct(int i)
 
 void DuctCell::fill(DuctCell* other)
 {
+  this->Label = other->Label;
+  this->Name = other->Name;
   for(unsigned int i = 0; i < this->Ducts.size(); ++i)
   {
     delete(this->Ducts[i]);

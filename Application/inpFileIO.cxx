@@ -1013,7 +1013,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     size_t count = pincell->NumberOfCylinders() + pincell->NumberOfFrustums() + 1;
     if(pincell->cellMaterialSet()) count++;
 
-    output << pincell->name << " " << pincell->label << " " << count << "\n";
+    output << pincell->getName() << " " << pincell->getLabel() << " " << count << "\n";
 
     output << "pitch " << pincell->pitchX;
     if(!assembly.IsHexType())
@@ -1108,9 +1108,13 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
     PinCell* pincell = new PinCell(0,0);
     QPointer<cmbNucMaterial> firstMaterial = NULL;
     int attribute_count = 0;
-    input >> pincell->name;
+    std::string tmp;
+    input >> tmp;
+    pincell->setName(tmp);
 
-    input >> pincell->label >> attribute_count;
+    input >> tmp;
+    pincell->setLabel(tmp);
+    input >> attribute_count;
 
     // initialize for HEX pincell pitch
     if(hexPicth >= 0.0)
