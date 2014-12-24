@@ -4,7 +4,6 @@ if(64bit_build)
 else()
   set(am 32)
 endif()
-
 set(boost_with_args --with-date_time --with-filesystem --with-system --with-thread)
 
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -37,8 +36,8 @@ endif()
 add_external_project(boost
   DEPENDS zlib
   CONFIGURE_COMMAND ./bootstrap.sh ${boost_toolset} --prefix=${boost_install_dir}
-  BUILD_COMMAND ./b2 ${boost_toolset} ${boost_lib} --build-dir=${boost_build_dir} address-model=${am} ${boost_with_args}
-  INSTALL_COMMAND ./b2 ${boost_toolset} ${boost_lib} address-model=${am} ${boost_with_args} install
+  BUILD_COMMAND ./b2 ${boost_toolset} ${boost_lib} --build-dir=${boost_build_dir} address-model=${am} ${boost_with_args} install
+  INSTALL_COMMAND ""
   BUILD_IN_SOURCE 1
   ${suppress_build_out}
   )

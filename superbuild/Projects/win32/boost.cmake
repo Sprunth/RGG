@@ -4,6 +4,17 @@ else()
   set(am 32)
 endif()
 
+option(SUPPRESS_BOOST_BUILD_OUTPUT
+"Suppress boost build output"
+ON)
+mark_as_advanced(SUPPRESS_BOOST_BUILD_OUTPUT)
+
+set(suppress_build_out)
+
+if(SUPPRESS_BOOST_BUILD_OUTPUT)
+set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+endif()
+
 set(boost_with_args --with-date_time --with-filesystem --with-system --with-thread)
 
 #since we don't specify a prefix for the superbuild,
@@ -35,6 +46,7 @@ if(MSVC)
     BUILD_COMMAND b2 --build-dir=${boost_build_dir} toolset=${msvc_version} address-model=${am} ${boost_with_args}
     INSTALL_COMMAND b2 toolset=${msvc_version} address-model=${am} ${boost_with_args} --prefix=${install_location} install
     BUILD_IN_SOURCE 1
+    ${suppress_build_out}
     )
 else()
   #ninja / mingw has been launched from a shell with the toolset properly specified
@@ -44,6 +56,7 @@ else()
     BUILD_COMMAND b2 --build-dir=${boost_build_dir} address-model=${am} ${boost_with_args}
     INSTALL_COMMAND b2 address-model=${am} ${boost_with_args} --prefix=${install_location} install
     BUILD_IN_SOURCE 1
+    ${suppress_build_out}
     )
 endif()
 
