@@ -66,6 +66,7 @@ public slots:
   void onExit();
   void onNewCore();
   void onFileOpen();
+  void onImportINPFile();
   void onFileOpenMoab();
   void onSaveSelected();
   void onSaveAll();

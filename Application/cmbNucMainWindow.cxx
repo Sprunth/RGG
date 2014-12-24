@@ -473,6 +473,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
+  connect(this->ui->importINPFile, SIGNAL(triggered()), this, SLOT(onImportINPFile()));
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
   connect(this->ui->actionSaveSelected,   SIGNAL(triggered()), this, SLOT(onSaveSelected()));
   connect(this->ui->actionSaveSelectedAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
@@ -909,6 +910,11 @@ void cmbNucMainWindow::onNewCore()
 }
 
 void cmbNucMainWindow::onFileOpen()
+{
+  //TODO the new File format
+}
+
+void cmbNucMainWindow::onImportINPFile()
 {
   // Use cached value for last used directory if there is one,
   // or default to the user's home dir if not.

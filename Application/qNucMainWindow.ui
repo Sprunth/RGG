@@ -83,7 +83,14 @@
      <addaction name="actionNew_Rectilinear_Core"/>
      <addaction name="actionNew_Assembly"/>
     </widget>
+    <widget class="QMenu" name="menuImport">
+     <property name="title">
+      <string>Import</string>
+     </property>
+     <addaction name="importINPFile"/>
+    </widget>
     <addaction name="menuNew"/>
+    <addaction name="menuImport"/>
     <addaction name="actionOpenFile"/>
     <addaction name="actionOpenMOABFile"/>
     <addaction name="separator"/>
@@ -590,6 +597,11 @@
   <action name="actionExport_Visible_Mesh">
    <property name="text">
     <string>Export Visible Mesh</string>
+   </property>
+  </action>
+  <action name="importINPFile">
+   <property name="text">
+    <string>INP File</string>
    </property>
   </action>
  </widget>
