@@ -14,6 +14,7 @@
 class cmbNucAssembly;
 class cmbNucCore;
 class cmbNucDefaults;
+class cmbNucPinLibrary;
 
 class inpFileReader
 {
@@ -22,7 +23,7 @@ public:
   enum FileType{ERROR_TYPE, UNKNOWN_TYPE, ASSEMBLY_TYPE, CORE_TYPE};
   FileType open(std::string fname);
   void close();
-  bool read(cmbNucAssembly & assembly);
+  bool read(cmbNucAssembly & assembly, cmbNucPinLibrary * pl);
   bool read(cmbNucCore & core, bool read_assemblies = true);
   bool read_defaults(cmbNucDefaults & defaults);
   bool read_defaults(cmbNucAssembly & assembly);

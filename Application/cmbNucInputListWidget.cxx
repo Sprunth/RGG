@@ -7,6 +7,7 @@
 #include "cmbNucPartsTreeItem.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
+#include "cmbNucPinLibrary.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -409,15 +410,10 @@ void cmbNucInputListWidget::onNewPin()
   matColorMap->CalcRGB(rgb[0],rgb[1],rgb[2]);
 
   cmbNucAssembly * assy = this->getCurrentAssembly();
-  double px, py, h, r;
-  if(!assy->getDefaults()->getPitch(px,py))
-  {
-    assy->calculatePitch(px,py);
-  }
-  assy->calculatePitch(px, py);
+  double h, r;
   assy->getDefaults()->getHeight(h);
   assy->calculateRadius(r);
-  PinCell* newpin = new PinCell(px,py);
+  PinCell* newpin = new PinCell();
   newpin->SetLegendColor(QColor::fromRgbF(rgb[0],rgb[1],rgb[2]));
   newpin->AddCylinder(new Cylinder(r, 0, h));
   QString pinname = QString("PinCell").append(
@@ -427,6 +423,7 @@ void cmbNucInputListWidget::onNewPin()
     newpin->setName(tmp);
     newpin->setLabel(tmp);
   }
+  this->NuclearCore->getPinLibrary()->addPin(newpin);
   assy->AddPinCell(newpin);
   QTreeWidgetItem* partsRoot = this->getCurrentAssemblyNode();
   if(!partsRoot)
@@ -618,6 +615,8 @@ void cmbNucInputListWidget::updateUI(bool selCore)
       (!selCore && i == (this->NuclearCore->GetNumberOfAssemblies()-1)));
     }
 
+  this->updateWithPinLibrary(this->NuclearCore->getPinLibrary());
+
   if(selCore)
     {
     this->Internal->RootCoreNode->setSelected(true);
@@ -679,7 +678,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     QTreeWidgetItem::DontShowIndicatorWhenChildless);
 
   // pincells
-  for(size_t i = 0; i < assy->GetNumberOfPinCells(); i++)
+  /*for(size_t i = 0; i < assy->GetNumberOfPinCells(); i++)
     {
     PinCell *pincell = assy->GetPinCell(i);
     cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, pincell);
@@ -687,7 +686,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     pinNode->setFlags(itemFlags); // not editable
     pinNode->setChildIndicatorPolicy(
       QTreeWidgetItem::DontShowIndicatorWhenChildless);
-    }
+    }*/
 
   this->Internal->PartsList->blockSignals(false);
 
@@ -698,11 +697,28 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
     }
 }
 
+void cmbNucInputListWidget::updateWithPinLibrary(cmbNucPinLibrary * pl)
+{
+  this->Internal->PartsList->blockSignals(true);
+  Qt::ItemFlags itemFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+  cmbNucPartsTreeItem* node = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, pl);
+  node->setText(0, "Pin Library");
+  for(size_t i = 0; i < pl->GetNumberOfPinCells(); i++)
+  {
+    PinCell *pincell = pl->GetPinCell(i);
+    cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(node, pincell);
+    std::string label = pincell->getName() + " (" + pincell->getLabel() + ")";
+    pinNode->setText(0, QString::fromStdString(label));
+    pinNode->setFlags(itemFlags); // not editable
+    pinNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
+  }
+  this->Internal->PartsList->blockSignals(false);
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputListWidget::onPartsSelectionChanged()
 {
-  cmbNucPartsTreeItem* selItem = this->getSelectedItem(
-    this->Internal->PartsList);
+  cmbNucPartsTreeItem* selItem = this->getSelectedItem(this->Internal->PartsList);
   this->updateContextMenu(selItem ? selItem->getPartObject() : NULL);
   this->fireObjectSelectedSignal(selItem);
 }
@@ -844,7 +860,6 @@ void cmbNucInputListWidget::coreModified()
   if(selItem && NuclearCore)
   {
     NuclearCore->setAndTestDiffFromFiles(true);
-    NuclearCore->clearOldGeometry();
     selItem->setHightlights(NuclearCore->changeSinceLastSave(),
                             NuclearCore->changeSinceLastGenerate());
     this->Internal->PartsList->repaint();

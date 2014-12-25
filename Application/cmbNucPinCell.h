@@ -159,7 +159,7 @@ public:
 class PinCell : public AssyPartObj
 {
 public:
-  PinCell(double px, double py);
+  PinCell();
 
   ~PinCell();
 
@@ -215,11 +215,8 @@ public:
   void setCellMaterial(QPointer<cmbNucMaterial> material);
   bool cellMaterialSet() const;
 
-  vtkBoundingBox computeBounds(bool isHex );
+  vtkBoundingBox computeBounds( bool isHex );
 
-  double pitchX;
-  double pitchY;
-  double pitchZ;
   QColor legendColor;
   vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
   bool cutaway;

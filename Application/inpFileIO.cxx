@@ -3,6 +3,7 @@
 #include "cmbNucCore.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
+#include "cmbNucPinLibrary.h"
 
 #include <iostream>
 #include <sstream>
@@ -41,7 +42,7 @@ public:
   bool readLattice( std::stringstream & input, Lattice &lat);
   bool readMaterials( std::stringstream & input, cmbNucAssembly &assembly );
   bool readDuct( std::stringstream & input, cmbNucAssembly &assembly );
-  bool readPincell( std::stringstream & input, cmbNucAssembly &assembly );
+  bool readPincell( std::stringstream & input, cmbNucAssembly &assembly, cmbNucPinLibrary * pl );
   bool readAssemblies( std::stringstream & input, cmbNucCore &core,
                        std::string strPath, bool readAssemblies );
   template<class TYPE> bool read( std::stringstream & input,
@@ -256,7 +257,7 @@ void inpFileReader
 }
 
 bool inpFileReader
-::read(cmbNucAssembly & assembly)
+::read(cmbNucAssembly & assembly, cmbNucPinLibrary * pl)
 {
   if(Type != ASSEMBLY_TYPE)
     return false;
@@ -309,7 +310,7 @@ bool inpFileReader
       }
     else if(value == "pincells")
       {
-      if(!helper.readPincell( input, assembly )) return false;
+      if(!helper.readPincell( input, assembly, pl )) return false;
       }
     else if(value == "assembly")
       {
@@ -1002,6 +1003,8 @@ bool inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
 void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
 {
   output << "pincells " << assembly.PinCells.size() << "\n";
+  double pitchX = assembly.getPinPitchX();
+  double pitchY = assembly.getPinPitchY();
 
   for(size_t i = 0; i < assembly.PinCells.size(); i++)
     {
@@ -1015,14 +1018,14 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
 
     output << pincell->getName() << " " << pincell->getLabel() << " " << count << "\n";
 
-    output << "pitch " << pincell->pitchX;
+    output << "pitch " << pitchX;
     if(!assembly.IsHexType())
       {
-      output << " " << pincell->pitchY << " " << pincell->pitchZ;
+      output << " " << pitchY << " " << 0;
       }
     else
       {
-      output << " " << pincell->pitchZ;
+      output << " " << 0;
       }
     output << "\n";
 
@@ -1081,7 +1084,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     }
 }
 
-bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & assembly )
+bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & assembly, cmbNucPinLibrary * pl )
 {
   if(!input) return false;
   std::string value;
@@ -1090,6 +1093,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
   input >> count;
   // for Hex type, the pitch is next input.
   double hexPicth = -1.0;
+  bool pitchSet = false;
   if(assembly.IsHexType())
     {
     std::string hexPicthStr;
@@ -1098,6 +1102,8 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
     if(!hexPicthStr.empty())
       {
       hexPicth = atof(hexPicthStr.c_str());
+      assembly.setPitch(hexPicth, hexPicth, false);
+      pitchSet = true;
       }
     }
 
@@ -1105,7 +1111,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 
   for(int i = 0; i < count; i++)
     {
-    PinCell* pincell = new PinCell(0,0);
+    PinCell* pincell = new PinCell();
     QPointer<cmbNucMaterial> firstMaterial = NULL;
     int attribute_count = 0;
     std::string tmp;
@@ -1117,10 +1123,6 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
     input >> attribute_count;
 
     // initialize for HEX pincell pitch
-    if(hexPicth >= 0.0)
-      {
-      pincell->pitchX=pincell->pitchY=pincell->pitchZ = hexPicth;
-      }
 
     for(int j = 0; j < attribute_count; j++)
       {
@@ -1132,15 +1134,17 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         // only one field for HEX type
         if(assembly.IsHexType())
           {
-          double dHexPinPitch;
-          input >> dHexPinPitch >> pincell->pitchZ;
-          pincell->pitchX = pincell->pitchY = dHexPinPitch;
+          double dHexPinPitch, junk;
+          input >> dHexPinPitch >> junk;
+          assembly.setPitch(dHexPinPitch, dHexPinPitch, pitchSet);
+          pitchSet = true;
           }
         else
           {
-          input >> pincell->pitchX
-                >> pincell->pitchY
-                >> pincell->pitchZ;
+          double tx,ty,junk;
+          input >> tx >> ty >> junk;
+          assembly.setPitch(tx, ty, pitchSet);
+          pitchSet = true;
           }
         }
       else if(value == "cylinder")
@@ -1253,6 +1257,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
       {
       pincell->SetLegendColor(firstMaterial->getColor());
       }
+    std::string oldLabel = pl->addPin(pincell);
     assembly.AddPinCell(pincell);
     }
   return true;
@@ -1556,7 +1561,7 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
 
   // read in assembly files
   for(int i = 0; i < count; i++)
-    {
+  {
 
     std::string assyfilename, assylabel, tmpPath = strPath;
     QString assyQString;
@@ -1565,15 +1570,23 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
     assyQString.replace(".cub",".inp");
     QFileInfo assyInfo(assyQString);
     if(!assyInfo.exists())
-      {
+    {
       //relative path
       assyInfo = QFileInfo(QString(tmpPath.c_str()) + "/" + assyQString);
-      }
-    if(assyInfo.exists() && readAssy)
-      {
-      if(core.loadAssemblyFromFile(assyInfo.absoluteFilePath().toStdString(), assylabel) == NULL) return false;
-      }
     }
+    if(assyInfo.exists() && readAssy)
+    {
+        cmbNucAssembly* assembly = new cmbNucAssembly;
+        assembly->label = assylabel;
+        inpFileReader freader;
+        if(!freader.open(assyInfo.absoluteFilePath().toStdString()))
+        {
+          return false;
+        }
+        if(!freader.read(*assembly, core.getPinLibrary())) return false;
+        core.AddAssembly(assembly);
+    }
+  }
   QDir::setCurrent( current );
   return true;
 }

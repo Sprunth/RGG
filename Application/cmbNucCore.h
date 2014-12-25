@@ -17,6 +17,7 @@
 #include "vtkBoundingBox.h"
 
 class cmbNucAssembly;
+class cmbNucPinLibrary;
 class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
@@ -149,8 +150,6 @@ public:
   // Destroys the Core.
   ~cmbNucCore();
 
-  void clearOldGeometry();
-
   vtkBoundingBox computeBounds();
 
   cmbNucCoreConnection* GetConnection(){return this->Connection;}
@@ -204,10 +203,6 @@ public:
 
   // Check if GeometryType is Hexagonal
   bool IsHexType();
-
-  // read file and return a new Assembly
-  cmbNucAssembly* loadAssemblyFromFile(
-     const std::string &fileName, const std::string &assyLabel);
 
   void computePitch();
 
@@ -276,12 +271,18 @@ public:
     return hasCylinder;
   }
 
+  cmbNucPinLibrary * getPinLibrary()
+  {
+    return this->PinLibrary;
+  }
+
 private:
   bool hasCylinder;
   double cylinderRadius;
   int cylinderOuterSpacing;
 
   std::vector<cmbNucAssembly*> Assemblies;
+  cmbNucPinLibrary * PinLibrary;
   cmbNucCoreConnection * Connection;
 
   QPointer<cmbNucDefaults> Defaults;

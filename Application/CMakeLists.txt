@@ -40,6 +40,7 @@ SET(RGGNuclear_Srcs
   vtkCmbLayeredConeSource.cxx
   cmbNucPartsTreeItem.cxx
   cmbNucMaterialTreeItem.cxx
+  cmbNucPinLibrary.cxx
   cmbNucPinCell.cxx
   cmbNucPinCellEditor.cxx
   cmbNucDuctCell.cxx
@@ -85,6 +86,7 @@ SET(RGGNuclear_Headers
   cmbNucMaterialColors.h
   cmbNucPartsTreeItem.h
   cmbNucMaterialTreeItem.h
+  cmbNucPinLibrary.h
   cmbNucPinCell.h
   cmbNucPinCellEditor.h
   cmbNucDuctCell.h

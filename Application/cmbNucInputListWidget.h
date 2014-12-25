@@ -7,6 +7,7 @@
 
 class cmbNucAssembly;
 class cmbNucCore;
+class cmbNucPinLibrary;
 class AssyPartObj;
 class cmbNucInputListWidgetInternal;
 class QTreeWidget;
@@ -86,6 +87,7 @@ protected:
   void updateContextMenu(AssyPartObj* selObj);
   void setActionsEnabled(bool val);
   void updateWithAssembly(cmbNucAssembly* assy, bool select=true);
+  void updateWithPinLibrary(cmbNucPinLibrary * pl);
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
   void initCoreRootNode();
   void createMaterialItem( const QString& name, const QString& label,

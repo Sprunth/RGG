@@ -215,6 +215,8 @@ public:
     extraYTrans = 0;
     Duct *hexDuct = input->AssyDuct.getDuct(0);
     Lattice & lat = input->getLattice();
+    double pitchX = input->getPinPitchX();
+    double pitchY = input->getPinPitchY();
 
     for(size_t i = 0; i < lat.Grid.size(); i++)
     {
@@ -228,7 +230,7 @@ public:
           PinCell* pincell = input->GetPinCell(type);
           if(pincell && (pincell->GetNumberOfParts())>0)
           {
-            double pinDistFromCenter = pincell->pitchX * (i);
+            double pinDistFromCenter = pitchX * (i);
             double tX=hexDuct->x, tY=hexDuct->y;
             int cornerIdx;
             if(i == 1)
@@ -354,7 +356,8 @@ public:
   }
 
   static void createGeo(PinCell* pincell, bool isHex,
-                        std::map<key,GeoToPoints> & geometry)
+                        std::map<key,GeoToPoints> & geometry,
+                        double pitchX = -1, double pitchY = -1 )
   {
     if(pincell == NULL) return;
     size_t numParts = pincell->GetNumberOfParts();
@@ -363,7 +366,7 @@ public:
     for(size_t j = 0; j < numParts; ++j)
     {
       PinSubPart* part = pincell->GetPart(j);
-      vtkSmartPointer<vtkCmbLayeredConeSource> manager = cmbNucRender::CreateLayerManager(pincell, isHex, j);
+      vtkSmartPointer<vtkCmbLayeredConeSource> manager = cmbNucRender::CreateLayerManager(pincell, isHex, j, pitchX, pitchY);
       if(manager == NULL) continue;
       //inner cylinder/frustum
       {
@@ -420,6 +423,8 @@ public:
     std::map< std::string, std::vector<point> > idToPoint;
     double extraXTrans = 0;
     double extraYTrans = 0;
+    double pitchX = input->getPinPitchX();
+    double pitchY = input->getPinPitchY();
     calculatePoints(input, extraXTrans, extraYTrans, idToPoint);
     point xformR;
     point xformS;
@@ -494,7 +499,7 @@ public:
         tmpGeo[i->first].geo = i->second.geo;
       }
 
-      createGeo(input->GetPinCell(iter->first), input->IsHexType(), tmpGeo);
+      createGeo(input->GetPinCell(iter->first), input->IsHexType(), tmpGeo, pitchX, pitchY);
 
       std::vector<point> const& points = iter->second;
       if(hasSectioning)
@@ -1080,7 +1085,11 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
   BoundingBox.AddBounds(polydata->GetBounds());
 }
 
-vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCell* pincell, bool isHex, size_t j)
+vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCell* pincell,
+                                                                          bool isHex,
+                                                                          size_t j,
+                                                                          double pitchX,
+                                                                          double pitchY)
 {
   PinSubPart* part = pincell->GetPart(j);
   
@@ -1088,16 +1097,30 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
   coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
   coneSource->SetBaseCenter(0, 0, part->z1);
   coneSource->SetHeight(part->z2 - part->z1);
+  double largestRadius = 0;
 
   for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
   {
     coneSource->SetBaseRadius(k, part->getRadius(k,Frustum::BOTTOM));
     coneSource->SetTopRadius(k, part->getRadius(k,Frustum::TOP));
     coneSource->SetResolution(k, PinCellResolution);
+    if(largestRadius < part->getRadius(k,Frustum::BOTTOM))
+    {
+      largestRadius = part->getRadius(k,Frustum::BOTTOM);
+    }
+    if(largestRadius < part->getRadius(k,Frustum::TOP))
+    {
+      largestRadius = part->getRadius(k,Frustum::TOP);
+    }
   }
   if(pincell->cellMaterialSet())
   {
-    double r[] = {pincell->pitchX*0.5, pincell->pitchY*0.5};
+    largestRadius *= 2.50;
+    if(pitchX == -1 || pitchY == -1)
+    {
+      pitchX = pitchY = largestRadius;
+    }
+    double r[] = {pitchX*0.5, pitchY*0.5};
     int res = 4;
     if(isHex)
     {

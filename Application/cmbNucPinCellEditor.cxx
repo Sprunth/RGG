@@ -11,7 +11,6 @@
 
 #include "cmbNucPartDefinition.h"
 #include "cmbNucPinCell.h"
-#include "cmbNucAssembly.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
 
@@ -200,11 +199,10 @@ bool sort_by_z1(const PinSubPart * a, const PinSubPart * b)
 
 cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
   : QWidget(p),
-    Ui(new Ui::cmbNucPinCellEditor),
-    AssemblyObject(0)
+    Ui(new Ui::cmbNucPinCellEditor)
 {
   isHex = false;
-  InternalPinCell = new PinCell(0,0);
+  InternalPinCell = new PinCell;
   ExternalPinCell = NULL;
   this->Ui->setupUi(this);
 
@@ -236,9 +234,6 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
           this, SLOT(UpdateData()));
   connect(this->Ui->cutAwayViewCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(UpdateData()));
-
-  connect(this->Ui->CalculatePitch, SIGNAL(clicked()),
-          this, SLOT(calculatePitch()));
 
   connect(this->Ui->CellMaterial, SIGNAL(currentIndexChanged(const QString &)),
           this,                   SLOT(onUpdateCellMaterial(const QString &)));
@@ -293,10 +288,6 @@ void cmbNucPinCellEditor::Reset()
   this->Ui->cutAwayViewCheckBox->setChecked(this->InternalPinCell->cutaway);
   this->Ui->label_7->setVisible(!isHex);
   this->Ui->label_8->setVisible(!isHex);
-  this->Ui->pitchY->setVisible(!isHex);
-
-  this->Ui->pitchX->setText(QString::number(this->InternalPinCell->pitchX));
-  this->Ui->pitchY->setText(QString::number(this->InternalPinCell->pitchY));
 
   this->Ui->piecesTable->blockSignals(true);
 
@@ -343,7 +334,7 @@ PinCell* cmbNucPinCellEditor::GetPinCell()
 void cmbNucPinCellEditor::clear()
 {
   delete(InternalPinCell);
-  InternalPinCell = new PinCell(0,0);
+  InternalPinCell = new PinCell();
   ExternalPinCell = NULL;
 }
 
@@ -378,10 +369,6 @@ void cmbNucPinCellEditor::Apply()
     emit labelChanged(this->ExternalPinCell, prevlabel, newlabel);
     change |= this->ExternalPinCell->getLabel() != prevlabel.toStdString();
   }
-
-  set_and_test(this->ExternalPinCell->pitchX, this->Ui->pitchX->text().toDouble());
-  set_and_test(this->ExternalPinCell->pitchY, this->Ui->pitchY->text().toDouble());
-  this->ExternalPinCell->pitchZ = 0;
 
   this->Reset();
   if(change) emit valueChange();
@@ -842,26 +829,3 @@ void cmbNucPinCellEditor::rebuildLayersFromTable()
   this->setButtons();
 }
 
-//-----------------------------------------------------------------------------
-void cmbNucPinCellEditor::calculatePitch()
-{
-  if(this->AssemblyObject != NULL)
-  {
-    double tmpx, tmpy;
-    this->AssemblyObject->calculatePitch(tmpx,tmpy);
-    this->Ui->pitchX->setText(QString::number(tmpx));
-    this->Ui->pitchY->setText(QString::number(tmpy));
-  }
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucPinCellEditor::SetAssembly(cmbNucAssembly *assembly)
-{
-  if(assembly)
-  {
-    this->Ui->pitchX->setEnabled(!assembly->isPinsAutoCentered());
-    this->Ui->pitchY->setEnabled(!assembly->isPinsAutoCentered());
-    this->Ui->CalculatePitch->setEnabled(!assembly->isPinsAutoCentered());
-  }
-  this->AssemblyObject = assembly;
-}

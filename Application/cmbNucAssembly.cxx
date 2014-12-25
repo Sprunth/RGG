@@ -128,6 +128,8 @@ cmbNucAssembly::cmbNucAssembly()
   this->Connection->v = this;
   this->Defaults = new cmbNucDefaults();
 
+  this->calculatePitch(pinPitchX, pinPitchY);
+
   QObject::connect(AssyDuct.GetConnection(), SIGNAL(Changed()),
                    this->Connection, SLOT(dataChanged()));
 
@@ -139,7 +141,6 @@ cmbNucAssembly::cmbNucAssembly()
 
 cmbNucAssembly::~cmbNucAssembly()
 {
-  AssyPartObj::deleteObjs(this->PinCells);
   for(unsigned int i = 0; i < this->Transforms.size(); ++i)
   {
     delete this->Transforms[i];
@@ -267,16 +268,6 @@ bool cmbNucAssembly::IsHexType()
   return this->lattice.GetGeometryType() == HEXAGONAL;
 }
 
-bool cmbNucAssembly::ReadFile(const std::string &fname)
-{
-  inpFileReader freader;
-  if(!freader.open(fname))
-  {
-    return false;
-  }
-  return freader.read(*this);
-}
-
 void cmbNucAssembly::WriteFile(const std::string &fname)
 {
   inpFileWriter::write(fname, *this, true);
@@ -286,25 +277,8 @@ void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,
                                      double pt[2])
 {
   std::string const& l = this->lattice.Grid[i][j].label;
-  double pitch_ij[2] = {0,0};
+  double pitch_ij[2] = {this->pinPitchX,this->pinPitchY};
   PinCell* pincell = NULL;
-  if(!l.empty() && l != "xx" && l != "XX" && (pincell = this->GetPinCell(l)) != NULL )
-  {
-    pitch_ij[0] = pincell->pitchX;
-    pitch_ij[1] = pincell->pitchY;
-  }
-  else
-  {
-    for(unsigned int at = 0; at < PinCells.size(); ++at)
-    {
-      if(PinCells[at] != NULL)
-      {
-        pitch_ij[0] = PinCells[at]->pitchX;
-        pitch_ij[1] = PinCells[at]->pitchY;
-        break;
-      }
-    }
-  }
 
   if(i==0)
   {
@@ -312,15 +286,7 @@ void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,
   }
   else if(j == 0)
   {
-    std::string const& l2 = this->lattice.Grid[i-1][j].label;
-    if(!l2.empty() && l2 != "xx" && l2 != "XX" && (pincell = this->GetPinCell(l2)) != NULL)
-    {
-      pt[1] += (pitch_ij[1] + pincell->pitchY) * 0.5;
-    }
-    else
-    {
-      pt[1] += pitch_ij[1];
-    }
+    pt[1] += pitch_ij[1];
   }
 
   if(j==0)
@@ -329,28 +295,16 @@ void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,
   }
   else
   {
-    std::string const& l2 = this->lattice.Grid[i][j-1].label;
-    if(!l2.empty() && l2 != "xx" && l2 != "XX" && (pincell = this->GetPinCell(l2)) != NULL)
-    {
-      pt[0] += (pitch_ij[0] + pincell->pitchX) * 0.5;
-    }
-    else
-    {
-      pt[0] += pitch_ij[0];
-    }
+    pt[0] += pitch_ij[0];
   }
 }
 
-void cmbNucAssembly::setPitch(double x, double y)
+void cmbNucAssembly::setPitch(double x, double y, bool testDiff)
 {
-  bool changed = false;
-  for(unsigned int i = 0; i < PinCells.size(); ++i)
-  {
-    changed |= PinCells[i]->pitchX != x || PinCells[i]->pitchY != y;
-    PinCells[i]->pitchX = x;
-    PinCells[i]->pitchY = y;
-  }
-  if(changed) this->Connection->dataChanged();
+  bool changed = pinPitchX != x || pinPitchY != y;
+  this->pinPitchX = x;
+  this->pinPitchY = y;
+  if(testDiff && changed) this->Connection->dataChanged();
 }
 
 void cmbNucAssembly::GetDuctWidthHeight(double r[2])
@@ -579,22 +533,10 @@ void cmbNucAssembly::centerPins()
   bool change = false;
   double px, py;
   calculatePitch(px,py);
-  for(unsigned int i = 0; i < PinCells.size(); ++i)
+  if(px != pinPitchX || py != pinPitchY)
   {
-    bool regen = false;
-    PinCell * pc = PinCells[i];
-    regen |= pc->pitchX != px;
-    pc->pitchX = px;
-    regen |= pc->pitchY != py;
-    pc->pitchY = py;
-    if(regen)
-    {
-      change = true;
-      pc->CachedData = NULL; //will be filled in create data
-    }
-  }
-  if(change)
-  {
+    pinPitchX = px;
+    pinPitchY = py;
     this->Connection->dataChanged();
   }
 }

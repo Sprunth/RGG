@@ -9,6 +9,7 @@
 #include <set>
 #include <cmath>
 
+#include "cmbNucPinLibrary.h"
 #include "cmbNucAssembly.h"
 
 #include "vtkTransform.h"
@@ -31,13 +32,11 @@
 void cmbNucCoreConnection::dataChanged()
 {
   v->setAndTestDiffFromFiles(true);
-  v->clearOldGeometry();
   emit dataChangedSig();
 }
 
 void cmbNucCoreConnection::clearData()
 {
-  v->clearOldGeometry();
 }
 
 void cmbNucCoreConnection::assemblyChanged()
@@ -62,7 +61,7 @@ const double cmbNucCore::CosSinAngles[6][2] =
 
 cmbNucCore::cmbNucCore(bool needSaved)
 {
-  clearOldGeometry();
+  PinLibrary = new cmbNucPinLibrary;
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
@@ -86,11 +85,8 @@ cmbNucCore::~cmbNucCore()
     }
   this->Assemblies.clear();
   delete this->Defaults;
+  delete this->PinLibrary;
   delete this->Connection;
-}
-
-void cmbNucCore::clearOldGeometry()
-{
 }
 
 vtkBoundingBox cmbNucCore::computeBounds()
@@ -183,7 +179,6 @@ void cmbNucCore::SetDimensions(int i, int j)
 
 void cmbNucCore::clearExceptAssembliesAndGeom()
 {
-  clearOldGeometry();
   this->lattice.SetDimensions(1, 1, true);
   this->setAndTestDiffFromFiles(true);
   FileName = "";
@@ -233,7 +228,6 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
   if(this->lattice.ClearCell(label))
   {
     this->setAndTestDiffFromFiles(true);
-    clearOldGeometry();
   }
 }
 
@@ -354,17 +348,6 @@ void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultCol
         }
     }
   this->RebuildGrid();
-}
-
-cmbNucAssembly* cmbNucCore::loadAssemblyFromFile(
-  const std::string &fileName, const std::string &assyLabel)
-{
-  // read file and create new assembly
-  cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->label = assyLabel;
-  if(!assembly->ReadFile(fileName)) return NULL;
-  this->AddAssembly(assembly);
-  return assembly;
 }
 
 void cmbNucCore::RebuildGrid()

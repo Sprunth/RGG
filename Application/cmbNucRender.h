@@ -93,7 +93,8 @@ public:
 
   void setZScale(double v);
 
-  static vtkSmartPointer<vtkCmbLayeredConeSource> CreateLayerManager(PinCell* pincell, bool isHex, size_t j);
+  static vtkSmartPointer<vtkCmbLayeredConeSource> CreateLayerManager(PinCell* pincell, bool isHex, size_t j,
+                                                                     double pitchX = -1, double pitchY = -1);
   static vtkSmartPointer<vtkCmbLayeredConeSource> CreateLayerManager(DuctCell* ductCell, bool isHex, size_t j);
 
   void debug();

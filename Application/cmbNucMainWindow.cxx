@@ -952,7 +952,7 @@ void cmbNucMainWindow::onImportINPFile()
         std::string label = finfo.completeBaseName().toStdString();
         cmbNucAssembly *assembly = new cmbNucAssembly();
         assembly->label = label;
-        if(!freader.read(*assembly))
+        if(!freader.read(*assembly, NuclearCore->getPinLibrary()))
         {
           QMessageBox msgBox;
           msgBox.setText("Invalid INP file");

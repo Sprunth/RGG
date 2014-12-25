@@ -520,7 +520,6 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
   nucCore->sendDefaults();
   if(changed)
   {
-    nucCore->clearOldGeometry();
     emit valuesChanged();
   }
   emit this->objGeometryChanged(nucCore);
@@ -590,8 +589,7 @@ void cmbNucInputPropertiesWidget::showDuctCellEditor()
                      SIGNAL(ductcellModified(AssyPartObj*)),
                      this, SIGNAL(objGeometryChanged(AssyPartObj*)));
   }
-  this->Internal->DuctCellEditor->SetDuctCell(ductcell, this->getAssembly()->IsHexType());
-  this->Internal->DuctCellEditor->SetAssembly(this->getAssembly());
+  this->Internal->DuctCellEditor->SetDuctCell(ductcell, this->Core->IsHexType());
 }
 
 void cmbNucInputPropertiesWidget::showPinCellEditor()
@@ -630,8 +628,7 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
     QObject::connect( this->Internal->PinCellEditor, SIGNAL(valueChange()),
                       this, SIGNAL(valuesChanged()) );
     }
-  this->Internal->PinCellEditor->SetPinCell(pincell, this->getAssembly()->IsHexType());
-  this->Internal->PinCellEditor->SetAssembly(this->getAssembly());
+  this->Internal->PinCellEditor->SetPinCell(pincell, this->Core->IsHexType());
 }
 
 void cmbNucInputPropertiesWidget::choosePinLegendColor()

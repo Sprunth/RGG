@@ -250,11 +250,8 @@ PinSubPart * Frustum::clone() const
 
 //*********************************************************//
 
-PinCell::PinCell(double px, double py)
+PinCell::PinCell()
 {
-  pitchX=px;
-  pitchY=py;
-  pitchZ=0.0;
   Name=Label="p1";
   legendColor = Qt::white;
   cutaway = false;
@@ -481,9 +478,6 @@ bool PinCell::fill(PinCell const* other)
   bool changed = false;
   changed |= setIfDifferent(other->Name, this->Name);
   changed |= setIfDifferent(other->Label, this->Label);
-  changed |= setIfDifferent(other->pitchX, this->pitchX);
-  changed |= setIfDifferent(other->pitchY, this->pitchY);
-  changed |= setIfDifferent(other->pitchZ, this->pitchZ);
   if( other->CellMaterial.getMaterial() != this->CellMaterial.getMaterial())
   {
     changed = true;
@@ -617,6 +611,8 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
   double x = maxRadius, y = maxRadius;
   if(cellMaterialSet())
   {
+    double pitchX, pitchY;
+    pitchX = pitchY = maxRadius * 2.5;
     if(isHex)
     {
       x = y = std::max(maxRadius, pitchX*0.5/0.86602540378443864676372317075294);

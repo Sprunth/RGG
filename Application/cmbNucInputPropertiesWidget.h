@@ -105,6 +105,7 @@ private:
   AssyPartObj* CurrentObject;
   cmbNucAssembly *Assembly;
   cmbNucCore *Core;
+
   cmbNucMainWindow *MainWindow;
   cmbCoreParametersWidget* CoreProperties;
   cmbAssyParametersWidget* assyConf;

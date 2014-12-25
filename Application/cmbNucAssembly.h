@@ -216,9 +216,6 @@ public:
   PinCell* GetPinCell(int pc) const;
   std::size_t GetNumberOfPinCells() const;
 
-  // Reads an assembly from a ".inp" file.
-  bool ReadFile(const std::string &FileName);
-
   // Writes the assembly to a ".inp" file.
   void WriteFile(const std::string &FileName);
 
@@ -248,7 +245,7 @@ public:
 
   void calculatePitch(double & x, double & y);
   void calculateRadius(double & r);
-  void setPitch(double x, double y);
+  void setPitch(double x, double y, bool testDiff = true);
 
   void centerPins();
 
@@ -303,6 +300,9 @@ public:
     transY = -lastPt[1]*0.5;
   }
 
+  double getPinPitchX(){return this->pinPitchX;}
+  double getPinPitchY(){return this->pinPitchY;}
+
 protected:
   std::vector<PinCell*> PinCells;
 
@@ -325,6 +325,8 @@ private:
   bool DifferentFromJournel;
 
   cmbNucAssemblyConnection * Connection;
+
+  double pinPitchX, pinPitchY;
 
 };
 
