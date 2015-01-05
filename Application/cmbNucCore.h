@@ -276,6 +276,11 @@ public:
     return this->PinLibrary;
   }
 
+  virtual QString extractLabel(QString const& s)
+  {
+    return s;
+  }
+
 private:
   bool hasCylinder;
   double cylinderRadius;

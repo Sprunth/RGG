@@ -207,6 +207,8 @@ public:
     this->Pins = p;
   }
 
+  virtual QString extractLabel(QString const& s);
+
   const static double CosSinAngles[6][2];
 
   cmbNucAssemblyConnection * GetConnection() {return this->Connection; }

@@ -154,6 +154,7 @@ class LatticeContainer: public AssyPartObj
 public:
   Lattice & getLattice()
   { return this->lattice; }
+  virtual QString extractLabel(QString const&) = 0;
   virtual void fillList(QStringList & l) = 0;
   virtual AssyPartObj * getFromLabel(const std::string &) = 0;
   virtual bool IsHexType() = 0;

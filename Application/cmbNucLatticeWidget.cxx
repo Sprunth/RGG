@@ -25,7 +25,6 @@ void cmbNucLatticeWidget::setLattice(LatticeContainer * l)
 {
   lattice = l;
   QStringList actionList;
-  actionList.append("xx");
   if(lattice != NULL)
   {
     lattice->fillList(actionList);

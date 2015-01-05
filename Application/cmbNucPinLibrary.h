@@ -37,6 +37,8 @@ public:
   PinCell* GetPinCell(const std::string &label);
   PinCell* GetPinCell(int pc) const;
   std::size_t GetNumberOfPinCells() const;
+  void fillList(QStringList & l);
+  QString extractLabel(QString const& el) const;
 protected:
   std::vector<PinCell*> PinCells;
   cmbNucPinLibraryConnection * Connection;

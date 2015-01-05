@@ -67,3 +67,21 @@ std::size_t cmbNucPinLibrary::GetNumberOfPinCells() const
 {
   return this->PinCells.size();
 }
+
+void cmbNucPinLibrary::fillList(QStringList & l)
+{
+  l.append("Empty Cell (xx)");
+  for(std::vector<PinCell*>::const_iterator it = this->PinCells.begin(); it != this->PinCells.end(); ++it)
+  {
+    PinCell *pincell = *it;
+    std::string tmp = pincell->getName() + " (" + pincell->getLabel() + ")";
+    l.append(tmp.c_str());
+  }
+}
+
+QString cmbNucPinLibrary::extractLabel(QString const& el) const
+{
+  QString seperator("(");
+  QStringList ql = el.split( seperator );
+  return ql[1].left(ql[1].size() -1);
+}

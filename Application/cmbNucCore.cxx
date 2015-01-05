@@ -189,16 +189,18 @@ void cmbNucCore::clearExceptAssembliesAndGeom()
 
 void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 {
-    if(this->Assemblies.size()==0)
-    {
+  if(!assembly) return;
+  if(this->Assemblies.size()==0)
+  {
     if(assembly)
-      {
+    {
       this->lattice.SetGeometryType(
         assembly->getLattice().GetGeometryType());
-      }
-    this->SetDimensions(1, 1);
     }
+    this->SetDimensions(1, 1);
+  }
   this->Assemblies.push_back(assembly);
+  assembly->setPinLibrary(this->PinLibrary);
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SIGNAL(dataChangedSig()));
   QObject::connect(assembly->GetConnection(), SIGNAL(colorChanged()),
@@ -523,6 +525,7 @@ bool cmbNucCore::label_unique(std::string & n)
 
 void cmbNucCore::fillList(QStringList & l)
 {
+  l.append("xx");
   for(int i = 0; i < this->GetNumberOfAssemblies(); i++)
   {
     cmbNucAssembly *t = this->GetAssembly(i);

@@ -404,27 +404,28 @@ void cmbNucDraw2DLattice::showContextMenu(
   QAction* pAction = NULL;
   // available parts
   foreach(QString strAct, this->ActionList)
-    {
+  {
     pAction = new QAction(strAct, this);
     contextMenu.addAction(pAction);
-    }
+  }
 
   QAction* assignAct = contextMenu.exec(qme->globalPos());
   if(assignAct)
-    {
-    changed |= hexitem->text() != assignAct->text();
-    hexitem->setText(assignAct->text());
+  {
+    QString text = this->CurrentLattice->extractLabel(assignAct->text());
+    changed |= hexitem->text() != text;
+    hexitem->setText(text);
     QColor color(Qt::white);
     if(this->CurrentLattice)
-      {
-      AssyPartObj * obj = this->CurrentLattice->getFromLabel(hexitem->text().toStdString());
+    {
+      AssyPartObj * obj = this->CurrentLattice->getFromLabel(text.toStdString());
       color = obj ? obj->GetLegendColor() : Qt::white;
 
       hexitem->setColor(color);
-      }
-    this->Grid.SetCell(hexitem->layer(), hexitem->cellIndex(),
-      assignAct->text().toStdString(), color, true);
     }
+    this->Grid.SetCell(hexitem->layer(), hexitem->cellIndex(),
+                       text.toStdString(), color, true);
+  }
 }
 
 void cmbNucDraw2DLattice::dropEvent(QDropEvent* qde)
