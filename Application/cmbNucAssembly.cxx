@@ -181,6 +181,7 @@ void cmbNucAssembly::getZRange(double & z1, double & z2)
 
 void cmbNucAssembly::AddPinCell(PinCell *pincell)
 {
+  if(pincell == NULL) return;
   QObject::connect(pincell->GetConnection(), SIGNAL(Changed()),
                    this->Connection, SLOT(dataChanged()));
   QObject::connect(pincell->GetConnection(), SIGNAL(CellMaterialChanged()),
@@ -209,6 +210,27 @@ QString
 cmbNucAssembly::extractLabel(QString const& s)
 {
   return this->Pins->extractLabel(s);
+}
+
+void cmbNucAssembly::setUsedLabels(std::map<QString, int> const& labels)
+{
+  for(size_t i = 0; i < this->PinCells.size(); ++i)
+  {
+    PinCell *pincell = this->PinCells[i];
+    QObject::disconnect(pincell->GetConnection(), SIGNAL(Changed()),
+                        this->Connection, SLOT(dataChanged()));
+    QObject::disconnect(pincell->GetConnection(), SIGNAL(CellMaterialChanged()),
+                        this->Connection, SLOT(geometryChanged()));
+  }
+  this->PinCells.clear();
+  for(std::map<QString, int>::const_iterator it = labels.begin(); it != labels.end(); ++it)
+  {
+    if(it->second != 0)
+    {
+      QString l = it->first;
+      this->AddPinCell(this->Pins->GetPinCell(l.toStdString()));
+    }
+  }
 }
 
 void cmbNucAssembly::fillList(QStringList & l)

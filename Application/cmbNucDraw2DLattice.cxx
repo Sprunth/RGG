@@ -65,9 +65,10 @@ void cmbNucDraw2DLattice::reset()
 bool cmbNucDraw2DLattice::apply()
 {
   bool hasChanged = changed; //TODO
-  if(this->CurrentLattice)
+  if(this->CurrentLattice && changed)
   {
     this->CurrentLattice->getLattice() = this->Grid;
+    this->CurrentLattice->setUsedLabels(this->usedLabelCount);
   }
   changed = false;
   this->rebuild();
@@ -218,6 +219,8 @@ void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
     }
   // update color in hex map
   this->Grid.SetCell(layer, cellIdx, lc.label, lc.color, lc.valid);
+  QString text(lc.label.c_str());
+  usedLabelCount[text]++;
   cell->setText(lc.label.c_str());
   cell->setColor(color);
   cell->set_available(lc.valid);
@@ -229,6 +232,7 @@ void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
 void cmbNucDraw2DLattice::rebuild()
 {
   scene()->clear();
+  usedLabelCount.clear();
   int numLayers = this->layers();
   if(numLayers <= 0)
     {
@@ -414,6 +418,8 @@ void cmbNucDraw2DLattice::showContextMenu(
   {
     QString text = this->CurrentLattice->extractLabel(assignAct->text());
     changed |= hexitem->text() != text;
+    usedLabelCount[hexitem->text()]--;
+    usedLabelCount[text]++;
     hexitem->setText(text);
     QColor color(Qt::white);
     if(this->CurrentLattice)
@@ -437,6 +443,8 @@ void cmbNucDraw2DLattice::dropEvent(QDropEvent* qde)
     }
 
   changed |= dest->text() != qde->mimeData()->text();
+  usedLabelCount[dest->text()]--;
+  usedLabelCount[qde->mimeData()->text()]++;
   dest->setText(qde->mimeData()->text());
   QColor color(Qt::white);
   if(this->CurrentLattice)

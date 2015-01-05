@@ -160,6 +160,7 @@ public:
   virtual bool IsHexType() = 0;
   virtual void calculateRectPt(unsigned int i, unsigned int j, double pt[2]) = 0;
   virtual void calculateRectTranslation(double lastPt[2], double & transX, double & transY) = 0;
+  virtual void setUsedLabels(std::map<QString, int> const& labels) = 0;
 protected:
   Lattice lattice;
 };

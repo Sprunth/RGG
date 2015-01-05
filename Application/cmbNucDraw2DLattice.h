@@ -8,6 +8,8 @@
 #include "DrawLatticeItem.h"
 #include "cmbNucLattice.h"
 
+#include <map>
+
 class QMouseEvent;
 class LatticeContainer;
 
@@ -57,6 +59,8 @@ private:
   QGraphicsScene Canvas;
   Lattice Grid;
   bool changed;
+
+  std::map<QString, int> usedLabelCount;
 
   CellDrawMode FullCellMode;
 

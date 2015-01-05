@@ -281,6 +281,9 @@ public:
     return s;
   }
 
+  virtual void setUsedLabels(std::map<QString, int> const& labels)
+  {}
+
 private:
   bool hasCylinder;
   double cylinderRadius;

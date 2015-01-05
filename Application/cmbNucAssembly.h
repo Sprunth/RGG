@@ -208,6 +208,7 @@ public:
   }
 
   virtual QString extractLabel(QString const& s);
+  virtual void setUsedLabels(std::map<QString, int> const& labels);
 
   const static double CosSinAngles[6][2];
 
