@@ -84,7 +84,7 @@ cmbNucGenerateOuterCylinder
   fullPath =fi.dir().absoluteFilePath(jouname);
   std::ofstream output(fullPath.toStdString().c_str());
   output << "{include(\"" << QFileInfo(fname).completeBaseName().toStdString() << ".template.jou\")}\n";
-  output << "{rings = " << Core->getLattice().Grid.size() << "}\n";
+  output << "{rings = " << Core->getLattice().getSize() << "}\n";
   output << "#{OUTER_CYL_EDGE_INTERVAL = " << this->Core->getCylinderOuterSpacing() << "}\n";
   output << "#{rd = " << this->Core->getCylinderRadius() << "}\n";
   output << "#{tol = 1e-2}\n";

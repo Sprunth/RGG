@@ -15,6 +15,7 @@
 #include "cmbNucDefaults.h"
 #include "vtkCmbLayeredConeSource.h"
 #include "cmbNucRender.h"
+#include "cmbNucPinLibrary.h"
 
 #include <vtkClipClosedSurface.h>
 #include <vtkPlaneCollection.h>
@@ -118,6 +119,7 @@ void cmbNucAssemblyConnection::geometryChanged()
 
 cmbNucAssembly::cmbNucAssembly()
 {
+  this->Pins = NULL;
   KeepPinsCentered = false;
   this->LegendColor = Qt::white;
   this->Parameters = new cmbAssyParameters;
@@ -192,7 +194,6 @@ void cmbNucAssembly::RemovePinCell(const std::string label_in)
     {
     if(this->PinCells[i]->getLabel() == label_in)
       {
-      delete this->PinCells[i];
       this->PinCells.erase(this->PinCells.begin() + i);
       break;
       }
@@ -276,7 +277,6 @@ void cmbNucAssembly::WriteFile(const std::string &fname)
 void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,
                                      double pt[2])
 {
-  std::string const& l = this->lattice.Grid[i][j].label;
   double pitch_ij[2] = {this->pinPitchX,this->pinPitchY};
   PinCell* pincell = NULL;
 
@@ -337,18 +337,19 @@ void cmbNucAssembly::calculatePitch(double & x, double & y)
   {
     inDuctThick[0] = inDuctThick[1] = 10;
   }
+  std::pair<int, int> dim = lattice.GetDimensions();
   if(this->IsHexType())
   {
     const double d = inDuctThick[0]-inDuctThick[0]*0.035; // make it slightly smaller to make exporting happy
-    const double l = this->lattice.Grid.size();
+    const double l = dim.first;
     const double cost=0.86602540378443864676372317075294;
     const double sint=0.5;
     x = y = (cost*d)/(l+sint*(l-1));
   }
   else
   {
-    double w = lattice.Grid[0].size();
-    double h = lattice.Grid.size();
+    double w = dim.second;
+    double h = dim.first;
     x = (inDuctThick[0])/(w+0.5);
     y = (inDuctThick[1])/(h+0.5);
   }
@@ -366,16 +367,16 @@ void cmbNucAssembly::calculateRadius(double & r)
   {
     inDuctThick[0] = inDuctThick[1] = 10;
   }
+  std::pair<int, int> dim = lattice.GetDimensions();
   if(this->IsHexType())
   {
     minWidth = inDuctThick[0]/2.0;
-    maxNumber = lattice.Grid.size()-0.5;
+    maxNumber = dim.first-0.5;
   }
   else
   {
     minWidth = std::min(inDuctThick[0],inDuctThick[1]);
-    maxNumber = std::max(lattice.Grid[0].size(),
-                         lattice.Grid.size());
+    maxNumber = std::max(dim.second, dim.first);
   }
   r = (minWidth/maxNumber)*0.5;
   r = r - r*0.25;
@@ -447,7 +448,6 @@ bool cmbNucAssembly::needsBothAssygenCubit() const
 
 void cmbNucAssembly::clear()
 {
-  AssyPartObj::deleteObjs(this->PinCells);
   this->PinCells.clear();
   delete this->Parameters;
   this->Parameters = new cmbAssyParameters;

@@ -23,6 +23,7 @@ class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
 class cmbNucDefaults;
+class cmbNucPinLibrary;
 
 #define ASSY_NOT_SET_VALUE -100001
 #define ASSY_NOT_SET_KEY "NotSet"
@@ -180,6 +181,14 @@ public:
     int dir;
     double value;
   };
+
+  class PinCellUsed
+  {
+  public:
+    PinCellUsed() : count(0){}
+    int count;
+    PinCell* pincell;
+  };
 public:
 
   friend class inpFileReader;
@@ -192,6 +201,11 @@ public:
 
   // Destroys the assembly.
   virtual ~cmbNucAssembly();
+
+  void setPinLibrary(cmbNucPinLibrary * p)
+  {
+    this->Pins = p;
+  }
 
   const static double CosSinAngles[6][2];
 
@@ -305,6 +319,7 @@ public:
 
 protected:
   std::vector<PinCell*> PinCells;
+  cmbNucPinLibrary * Pins;
 
   std::vector<Transform*> Transforms;
 

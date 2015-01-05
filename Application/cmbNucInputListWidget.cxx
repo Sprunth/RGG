@@ -115,6 +115,7 @@ public:
   QPointer<QAction> Action_DeletePart;
 
   cmbNucPartsTreeItem* RootCoreNode;
+  cmbNucPartsTreeItem* AssemblyNode;
 
   PartsItemDelegate * TreeItemDelegate;
   MaterialItemDelegate * MaterialDelegate;
@@ -219,6 +220,7 @@ void cmbNucInputListWidget::clear()
   if(this->Internal->RootCoreNode)
   {
     this->Internal->RootCoreNode = NULL;
+    this->Internal->AssemblyNode = NULL;
   }
   this->modelIsLoaded(false);
   this->Internal->tabInputs->setTabEnabled(2, false);
@@ -333,7 +335,9 @@ void cmbNucInputListWidget::initUI()
   if(this->Internal->RootCoreNode)
     {
     delete this->Internal->RootCoreNode;
+    delete this->Internal->AssemblyNode;
     this->Internal->RootCoreNode = NULL;
+    this->Internal->AssemblyNode = NULL;
     }
   this->initPartsTree();
   this->initMaterialsTree();
@@ -608,14 +612,13 @@ void cmbNucInputListWidget::updateUI(bool selCore)
   this->setEnabled(1);
   // Core node
   this->initCoreRootNode();
+  this->updateWithPinLibrary(this->NuclearCore->getPinLibrary());
   // Assembly nodes
   for(int i=0; i<this->NuclearCore->GetNumberOfAssemblies(); i++)
     {
     this->updateWithAssembly(this->NuclearCore->GetAssembly(i),
       (!selCore && i == (this->NuclearCore->GetNumberOfAssemblies()-1)));
     }
-
-  this->updateWithPinLibrary(this->NuclearCore->getPinLibrary());
 
   if(selCore)
     {
@@ -627,7 +630,7 @@ void cmbNucInputListWidget::updateUI(bool selCore)
 void cmbNucInputListWidget::initCoreRootNode()
 {
   if(this->Internal->RootCoreNode == NULL)
-    {
+  {
     Qt::ItemFlags itemFlags(
       Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     this->Internal->RootCoreNode = new cmbNucPartsTreeItem(
@@ -641,7 +644,14 @@ void cmbNucInputListWidget::initCoreRootNode()
     this->Internal->RootCoreNode->setChildIndicatorPolicy(
       QTreeWidgetItem::DontShowIndicatorWhenChildless);
     this->Internal->RootCoreNode->setExpanded(true);
-    }
+
+    this->Internal->AssemblyNode = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, NULL);
+    this->Internal->AssemblyNode->setText(0, "Assemblies");
+    this->Internal->AssemblyNode->setFlags(itemFlags); // not editable
+    this->Internal->AssemblyNode->setChildIndicatorPolicy(
+                                                          QTreeWidgetItem::DontShowIndicatorWhenChildless);
+    this->Internal->AssemblyNode->setExpanded(false);
+  }
 }
 
 void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select)
@@ -651,7 +661,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   Qt::ItemFlags itemFlags(
     Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   cmbNucPartsTreeItem* assyNode = new cmbNucPartsTreeItem(
-    this->Internal->RootCoreNode, assy);
+    this->Internal->AssemblyNode, assy);
   connect(this, SIGNAL(checkSavedAndGenerate()),
           assyNode->connection, SLOT(checkSaveAndGenerate()));
   connect(assy->GetConnection(), SIGNAL(dataChangedSig()),
@@ -677,17 +687,6 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   ductsNode->setChildIndicatorPolicy(
     QTreeWidgetItem::DontShowIndicatorWhenChildless);
 
-  // pincells
-  /*for(size_t i = 0; i < assy->GetNumberOfPinCells(); i++)
-    {
-    PinCell *pincell = assy->GetPinCell(i);
-    cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, pincell);
-    pinNode->setText(0, QString::fromStdString(pincell->getLabel()));
-    pinNode->setFlags(itemFlags); // not editable
-    pinNode->setChildIndicatorPolicy(
-      QTreeWidgetItem::DontShowIndicatorWhenChildless);
-    }*/
-
   this->Internal->PartsList->blockSignals(false);
 
   if(select)
@@ -702,7 +701,7 @@ void cmbNucInputListWidget::updateWithPinLibrary(cmbNucPinLibrary * pl)
   this->Internal->PartsList->blockSignals(true);
   Qt::ItemFlags itemFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
   cmbNucPartsTreeItem* node = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, pl);
-  node->setText(0, "Pin Library");
+  node->setText(0, "Pins");
   for(size_t i = 0; i < pl->GetNumberOfPinCells(); i++)
   {
     PinCell *pincell = pl->GetPinCell(i);

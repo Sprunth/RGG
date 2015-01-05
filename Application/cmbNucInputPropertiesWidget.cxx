@@ -243,8 +243,8 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
       this->setAssembly(assy);
       this->resetAssembly(assy);
-      if( this->Core->getLattice().subType & ANGLE_60 &&
-          this->Core->getLattice().subType & VERTEX )
+      if( this->Core->getLattice().GetGeometrySubType() & ANGLE_60 &&
+          this->Core->getLattice().GetGeometrySubType() & VERTEX )
         {
         sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL);
         }

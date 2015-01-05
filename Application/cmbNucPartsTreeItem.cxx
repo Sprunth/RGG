@@ -17,7 +17,7 @@ cmbNucPartsTreeItem::cmbNucPartsTreeItem(
 {
   this->connection = new cmbNucPartsTreeItemConnection();
   this->connection->v = this;
-  std::string fname = this->PartObject->getFileName();
+  std::string fname = (this->PartObject)?this->PartObject->getFileName():"";
   if(fname.empty())
   {
     this->setText(3, "");
@@ -61,6 +61,10 @@ void cmbNucPartsTreeItemConnection::checkSaveAndGenerate()
 
 void cmbNucPartsTreeItem::checkSaveAndGenerate()
 {
+  if(!this->PartObject)
+  {
+    return;
+  }
   enumNucPartsType selType = PartObject->GetType();
   bool need_to_save = false;
   bool need_to_generate = false;
@@ -121,7 +125,7 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
     this->setText( 1, QChar(0x25FC) );
   }
 
-  std::string fname = this->PartObject->getFileName();
+  std::string fname = (this->PartObject)?this->PartObject->getFileName():"";
   if(fname.empty())
   {
     this->setText(3, "");
@@ -150,7 +154,7 @@ QVariant cmbNucPartsTreeItem::data( int index, int role ) const
 {
   if(role == Qt::ToolTipRole && index == 3)
   {
-    std::string fname = this->PartObject->getFileName();
+    std::string fname = (this->PartObject)?this->PartObject->getFileName():"";
     if(!fname.empty())
     {
       return QVariant(fname.c_str());

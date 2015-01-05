@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include "cmbNucPartDefinition.h"
 
@@ -17,7 +18,8 @@ public:
   // a label and a color.
   struct LatticeCell
   {
-    LatticeCell() : label("xx"), color(Qt::white), valid(true) {}
+    LatticeCell() : label("xx"), color(Qt::white), valid(true), count(0) {}
+    LatticeCell( LatticeCell const& other) : label(other.label), color(other.color), valid(other.valid), count(0) {}
     void setInvalid()
     {
       label = "";
@@ -31,9 +33,22 @@ public:
     std::string label;
     QColor color;
     bool valid;
+    void inc()
+    { count++; }
+    void dec()
+    { count--; }
+    unsigned int getCount() const {return count;}
+    protected:
+    unsigned int count;
   };
 
   Lattice();
+
+  Lattice( Lattice const& other );
+
+  ~Lattice();
+
+  Lattice& operator=(Lattice const& arg);
 
   std::string getLabel();
 
@@ -55,6 +70,8 @@ public:
   void SetCell(int i, int j, const std::string &name,
                const QColor& color, bool valid = true);
   void SetCell(int i, int j, const std::string &name);
+  void SetCellColor(const std::string & label, const QColor& color);
+
   void setAsInvalid(int i, int j);
 
   // Returns the contents of the cell (i, j).
@@ -85,9 +102,49 @@ public:
   enumGeometryType GetGeometryType();
 
   void SetGeometrySubType(int type);
-  int GetGeometrySubType();
+  int GetGeometrySubType() const;
 
-  std::vector<std::vector<LatticeCell> > Grid;
+  size_t getSize() const
+  {return Grid.size();}
+  size_t getSize(unsigned int i)const
+  { return Grid[i].size(); }
+
+  bool labelUsed(const std::string &l) const;
+
+protected:
+  class LatticeCellReference
+  {
+  public:
+    LatticeCellReference(): cell(NULL)
+    {}
+    LatticeCellReference(LatticeCellReference const& other)
+    : cell(other.cell)
+    {
+    }
+    ~LatticeCellReference()
+    { if(cell) cell->dec(); }
+
+    void setCell(LatticeCell * c)
+    {
+      if(c == cell) return;
+      if(cell && cell->getCount()) cell->dec();
+      if(c) c->inc();
+      cell = c;
+    }
+
+    LatticeCell * getCell() { return cell; }
+    LatticeCell const* getCell() const { return cell; }
+
+  protected:
+    LatticeCell * cell;
+  };
+
+  LatticeCell * getCell(std::string label);
+
+  void setUpGrid(Lattice const & other);
+
+  std::vector<std::vector<LatticeCellReference> > Grid;
+  std::map<std::string, LatticeCell*> LabelToCell;
   enumGeometryType enGeometryType;
   int subType;
 };

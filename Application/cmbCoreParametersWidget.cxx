@@ -505,16 +505,16 @@ void cmbCoreParametersWidget::onCalculateCylinderDefaults()
   Core->GetDefaults()->getDuctThickness(ductsize[0],ductsize[1]);
   if(Core->IsHexType())
   {
-    initRadius = Core->getLattice().Grid.size() * ductsize[0];
-    this->Internal->OuterEdgeInterval->setValue(Core->getLattice().Grid.size()*ei*12);
+    initRadius = Core->getLattice().getSize() * ductsize[0];
+    this->Internal->OuterEdgeInterval->setValue(Core->getLattice().getSize()*ei*12);
   }
   else
   {
-    double ti = Core->getLattice().Grid[0].size() * ductsize[0];
-    double tj = Core->getLattice().Grid.size() * ductsize[1];
+    double ti = Core->getLattice().getSize(0) * ductsize[0];
+    double tj = Core->getLattice().getSize() * ductsize[1];
     double tmpr = std::sqrt(ti*ti+tj*tj);
     initRadius = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
-    this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().Grid.size(),Core->getLattice().Grid[0].size())
+    this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().getSize(),Core->getLattice().getSize(0))
                                                 *ei*4);
   }
 
@@ -539,12 +539,12 @@ void cmbCoreParametersWidget::controlDisplayBackgroundControls(int index)
       double ir =0;
       if(Core->IsHexType())
       {
-        ir = Core->getLattice().Grid.size() * ductsize[0];
+        ir = Core->getLattice().getSize() * ductsize[0];
       }
       else
       {
-        double ti = Core->getLattice().Grid[0].size() * ductsize[0];
-        double tj = Core->getLattice().Grid.size() * ductsize[1];
+        double ti = Core->getLattice().getSize(0) * ductsize[0];
+        double tj = Core->getLattice().getSize() * ductsize[1];
         double tmpr = std::sqrt(ti*ti+tj*tj);
         ir = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
       }
@@ -557,11 +557,11 @@ void cmbCoreParametersWidget::controlDisplayBackgroundControls(int index)
       if(!Core->GetDefaults()->getEdgeInterval(ei)) ei = 10;
       if(Core->IsHexType())
       {
-        this->Internal->OuterEdgeInterval->setValue(Core->getLattice().Grid.size()*ei*12);
+        this->Internal->OuterEdgeInterval->setValue(Core->getLattice().getSize()*ei*12);
       }
       else
       {
-        this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().Grid.size(),Core->getLattice().Grid[0].size())
+        this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().getSize(),Core->getLattice().getSize(0))
                                                     *ei*4);
       }
     }

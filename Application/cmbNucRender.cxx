@@ -124,9 +124,9 @@ public:
       {cmbNucCore::CosSinAngles[5][0],cmbNucCore::CosSinAngles[5][1]}
     };
 
-    if( (subType & ANGLE_360) && lat.Grid.size()>=1 )
+    if( (subType & ANGLE_360) && lat.getSize()>=1 )
     {
-      double odc = outerDuctHeight*lat.Grid.size();
+      double odc = outerDuctHeight*lat.getSize();
       double tmp = odc - outerDuctHeight;
       double t2 = tmp*0.5;
       double ty = std::sqrt(tmp*tmp-t2*t2);
@@ -145,9 +145,8 @@ public:
     double hexDiameter, junkDK;
     input->GetDefaults()->getDuctThickness(hexDiameter, junkDK);
 
-    for(size_t i = 0; i < lat.Grid.size(); i++)
+    for(size_t i = 0; i < lat.getSize(); i++)
     {
-      const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
       double layerCorners[6][2], layerRadius;
       if(i>0)
       {
@@ -160,11 +159,11 @@ public:
         }
       }
 
-      for(size_t j = 0; j < row.size(); j++)
+      for(size_t j = 0; j < lat.getSize(i); j++)
       {
-        if(!row[j].isBlank())
+        if(!lat.GetCell(i,j).isBlank())
         {
-          const std::string &type = row[j].label;
+          const std::string &type = lat.GetCell(i,j).label;
           cmbNucAssembly* assembly = input->GetAssembly(type);
           if(assembly == NULL) continue;
 
@@ -218,15 +217,14 @@ public:
     double pitchX = input->getPinPitchX();
     double pitchY = input->getPinPitchY();
 
-    for(size_t i = 0; i < lat.Grid.size(); i++)
+    for(size_t i = 0; i < lat.getSize(); i++)
     {
 
-      const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
-      for(size_t j = 0; j < row.size(); j++)
+      for(size_t j = 0; j < lat.getSize(i); j++)
       {
-        if(!row[j].isBlank())
+        if(!lat.GetCell(i,j).isBlank())
         {
-          const std::string &type = row[j].label;
+          const std::string &type = lat.GetCell(i,j).label;
           PinCell* pincell = input->GetPinCell(type);
           if(pincell && (pincell->GetNumberOfParts())>0)
           {
@@ -278,16 +276,15 @@ public:
 
     Lattice & lat = input->getLattice();
 
-    for(size_t i = 0; i < lat.Grid.size(); i++)
+    for(size_t i = 0; i < lat.getSize(); i++)
     {
-      const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
-      for(size_t j = 0; j < row.size(); j++)
+      for(size_t j = 0; j < lat.getSize(i); j++)
       {
         input->calculateRectPt(i, j, currentLaticePoint);
-        if(!row[j].isBlank())
+        if(!lat.GetCell(i,j).isBlank())
         {
-          idToPoint[row[j].label].push_back(point( currentLaticePoint[0],
-                                                   currentLaticePoint[1]));
+          idToPoint[lat.GetCell(i,j).label].push_back(point( currentLaticePoint[0],
+                                                             currentLaticePoint[1]));
         }
       }
     }
@@ -743,7 +740,7 @@ public:
 
     if(core->IsHexType())
     {
-      double odc = outerDuctHeight*core->getLattice().Grid.size();
+      double odc = outerDuctHeight*core->getLattice().getSize();
       double tmp = odc - outerDuctHeight;
       double t2 = tmp*0.5;
       double ty = std::sqrt(tmp*tmp-t2*t2);
@@ -752,10 +749,10 @@ public:
     }
     else
     {
-      double tx = outerDuctWidth*(core->getLattice().Grid.size()-1)*0.5;
-      double ty = outerDuctHeight*(core->getLattice().Grid[0].size()-1)*0.5;
+      double tx = outerDuctWidth*(core->getLattice().getSize()-1)*0.5;
+      double ty = outerDuctHeight*(core->getLattice().getSize(0)-1)*0.5;
       extraXTrans = ty,
-      extraYTrans = tx-outerDuctWidth*(core->getLattice().Grid.size()-1);
+      extraYTrans = tx-outerDuctWidth*(core->getLattice().getSize()-1);
     }
 
     cylinder->SetHeight(1);
@@ -763,7 +760,7 @@ public:
     cylinder->SetTopRadius(0, r);
     cylinder->SetBaseRadius(0, r);
     cylinder->SetResolution(0, s);
-    double odc = outerDuctHeight*(core->getLattice().Grid.size()-1);
+    double odc = outerDuctHeight*(core->getLattice().getSize()-1);
     double tmp = (outerDuctHeight*0.5) / (cos(30.0 * vtkMath::Pi() / 180.0));
     double pt1[] = {odc * cmbNucCore::CosSinAngles[5][0], odc * cmbNucCore::CosSinAngles[5][1]};
     double pt2[2];
@@ -791,21 +788,21 @@ public:
         pt2[1] = odc * cmbNucCore::CosSinAngles[at][1];
         int sp1 = (i + 0)%6;
         int sp2 = (i + 1)%6;
-        if(core->getLattice().Grid.size() == 1)
+        if(core->getLattice().getSize() == 1)
         {
           cylinder->addInnerPoint(pt1[0]+tmp * AssyCosSinAngles[sp1][0],
                                   pt1[1]+tmp * AssyCosSinAngles[sp1][1]);
         }
-        else for(size_t j = 0; j < core->getLattice().Grid.size(); ++j)
+        else for(size_t j = 0; j < core->getLattice().getSize(); ++j)
         {
-          double tmps = j/(core->getLattice().Grid.size()-1.0);
+          double tmps = j/(core->getLattice().getSize()-1.0);
           double pt[] = {pt1[0]*(1.0-tmps)+pt2[0]*(tmps), pt1[1]*(1.0-tmps)+pt2[1]*(tmps)};
 
           {
             cylinder->addInnerPoint(pt[0]+tmp * AssyCosSinAngles[sp1][0],
                                     pt[1]+tmp * AssyCosSinAngles[sp1][1]);
           }
-          if(j != core->getLattice().Grid.size()-1 )
+          if(j != core->getLattice().getSize()-1 )
           {
             cylinder->addInnerPoint(pt[0]+tmp * AssyCosSinAngles[sp2][0],
                                     pt[1]+tmp * AssyCosSinAngles[sp2][1]);
@@ -818,8 +815,8 @@ public:
     }
     else
     {
-      double height = outerDuctWidth*(core->getLattice().Grid.size())*0.5;
-      double width = outerDuctHeight*(core->getLattice().Grid[0].size())*0.5;
+      double height = outerDuctWidth*(core->getLattice().getSize())*0.5;
+      double width = outerDuctHeight*(core->getLattice().getSize(0))*0.5;
 
       cylinder->addInnerPoint( width,-height);
       cylinder->addInnerPoint( width, height);
@@ -846,17 +843,11 @@ public:
 };
 
 cmbNucRender::cmbNucRender()
- :/*PolyMapper(vtkSmartPointer<vtkCompositePolyDataMapper2>::New()),
-  PolyActor(vtkSmartPointer<vtkActor>::New()),*/
-  GlyphMapper(vtkSmartPointer<vtkGlyph3DMapper>::New()),
+ :GlyphMapper(vtkSmartPointer<vtkGlyph3DMapper>::New()),
   GlyphActor(vtkSmartPointer<vtkActor>::New()),
   TransparentMapper(vtkSmartPointer<vtkGlyph3DMapper>::New()),
   TransparentActor(vtkSmartPointer<vtkActor>::New())
 {
-  /*this->PolyMapper->SetScalarVisibility(0);
-  this->PolyActor->SetMapper(this->PolyMapper.GetPointer());
-  this->PolyActor->GetProperty()->SetShading(1);
-  this->PolyActor->GetProperty()->SetInterpolationToPhong();*/
 
   this->GlyphActor->SetMapper(this->GlyphMapper.GetPointer());
   this->GlyphActor->GetProperty()->SetShading(1);

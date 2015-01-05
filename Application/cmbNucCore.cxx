@@ -96,18 +96,19 @@ vtkBoundingBox cmbNucCore::computeBounds()
   this->Assemblies[0]->getZRange(z1,z2);
   double wh[2];
   this->Assemblies[0]->GetDuctWidthHeight(wh);
-  double diameter = wh[0]*(this->lattice.Grid.size()*2-1);
+  std::pair<int, int> dim = lattice.GetDimensions();
+  double diameter = wh[0]*(dim.first*2-1);
   double radius = diameter*0.5;
   double pointDist = wh[0]*0.5/0.86602540378443864676372317075294;
-  double tmpH = (this->lattice.Grid.size() + std::floor((this->lattice.Grid.size()-1)*0.5))*pointDist;
+  double tmpH = (dim.first + std::floor((dim.first-1)*0.5))*pointDist;
   if(IsHexType())
   {
     int subType = lattice.GetGeometrySubType();
     double tx = 0, ty = 0;
     double min[2], max[2];
-    if((subType & ANGLE_360) && this->lattice.Grid.size()>=1)
+    if((subType & ANGLE_360) && dim.first>=1)
     {
-      tx = wh[0]*this->lattice.Grid.size();
+      tx = wh[0]*dim.first;
       double tmp = tx - wh[0];
       double t2 = tmp*0.5;
       ty = -std::sqrt(tmp*tmp-t2*t2);
@@ -154,7 +155,7 @@ vtkBoundingBox cmbNucCore::computeBounds()
     double transY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
     double pt[4];
     calculateRectPt( 0, 0, pt );
-    calculateRectPt(this->lattice.Grid.size()-1,this->lattice.Grid[0].size()-1, pt+2);
+    calculateRectPt(dim.first-1, dim.second-1, pt+2);
     pt[0] -= wh[0]*0.5;
     pt[1] -= wh[1]*0.5;
     pt[2] += wh[0]*0.5;
@@ -252,9 +253,9 @@ cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
 std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
 {
   std::set<std::string> usedDict;
-  for(size_t i = 0; i < this->lattice.Grid.size(); i++)
+  for(size_t i = 0; i < this->lattice.getSize(); i++)
     {
-    for(size_t j = 0; j < this->lattice.Grid[i].size(); j++)
+    for(size_t j = 0; j < this->lattice.getSize(i); j++)
       {
       usedDict.insert(this->lattice.GetCell(i, j).label);
       }
@@ -276,7 +277,7 @@ void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
   double outerDuctWidth;
   double outerDuctHeight;
   Defaults->getDuctThickness(outerDuctWidth, outerDuctHeight);
-  pt[1] = i * (outerDuctHeight)-outerDuctHeight*(this->lattice.Grid.size()-1);
+  pt[1] = i * (outerDuctHeight)-outerDuctHeight*(this->lattice.getSize()-1);
   pt[0] = j * (outerDuctWidth);
 }
 
@@ -352,23 +353,11 @@ void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultCol
 
 void cmbNucCore::RebuildGrid()
 {
-  for(size_t i = 0; i < this->lattice.Grid.size(); i++)
-    {
-    for(size_t j = 0; j < this->lattice.Grid[i].size(); j++)
-      {
-      std::string type = this->lattice.Grid[i][j].label;
-      cmbNucAssembly* assembly = NULL;
-      if(!(type.empty() || type == "xx" || type == "XX" ||
-          (assembly = this->GetAssembly(type)) == NULL))
-        {
-        this->lattice.Grid[i][j].color = assembly->GetLegendColor();
-        }
-      else
-        {
-        this->lattice.Grid[i][j].color = Qt::white;
-        }
-      }
-    }
+  for(unsigned int i = 0; i < Assemblies.size(); ++i)
+  {
+    this->lattice.SetCellColor(this->Assemblies[i]->label,
+                               this->Assemblies[i]->GetLegendColor());
+  }
 }
 
 void cmbNucCore::computePitch()

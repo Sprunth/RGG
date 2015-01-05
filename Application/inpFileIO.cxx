@@ -1268,18 +1268,19 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
 {
   enumGeometryType type = lat.GetGeometryType();
   int subType = lat.GetGeometrySubType();
+  std::pair<int, int> dim = lat.GetDimensions();
   output << key;
   if(type == RECTILINEAR)
     {
-    output  << " " << lat.Grid[0].size();
+    output  << " " << dim.second;
     }
-  output << " " << lat.Grid.size();
+  output << " " << dim.first;
   output << "\n";
   if(type == HEXAGONAL)
     {
     if(subType & ANGLE_360)
       {
-      size_t x = lat.Grid.size();
+      size_t x = dim.first;
       size_t maxN = 2*x - 1;
       std::vector<std::vector<std::string> > hexArray;
       hexArray.resize(maxN);
@@ -1287,7 +1288,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
       size_t delta=0;
       for(size_t i = 0; i < maxN; i++)
         {
-        if(i<lat.Grid.size()) // first half of HEX
+        if(i<dim.first) // first half of HEX
           {
           numCols = i+x;
           }
@@ -1312,7 +1313,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
               {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
-              std::string label = lat.Grid[k][layerIdx].label;
+              std::string label = lat.GetCell(k,layerIdx).label;
               if( !forceLabel.empty() )
                 {
                 label = forceLabel;
@@ -1324,7 +1325,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             {
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
-            std::string label =lat.Grid[k][layerIdx].label;
+            std::string label =lat.GetCell(k,layerIdx).label;
             if( !forceLabel.empty() )
             {
               label = forceLabel;
@@ -1332,7 +1333,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             hexArray[i][startCol] = label;
             layerIdx = k+(i-startRow);
             size_t colIdx = hexArray[i].size() -1 - startCol;
-            label =lat.Grid[k][layerIdx].label;
+            label =lat.GetCell(k,layerIdx).label;
             if( !forceLabel.empty() )
               {
               label = forceLabel;
@@ -1360,7 +1361,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
       }
     else if(subType & (ANGLE_60|ANGLE_30))
       {
-      size_t x = lat.Grid.size();
+      size_t x = lat.getSize();
       std::string tmpVal;
       for(size_t i = 0; i < x; i++)
         {
@@ -1373,7 +1374,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
           }
         for( size_t j = start; j < cols; j++)
           {
-          std::string label = lat.Grid[i][j].label;
+          std::string label = lat.GetCell(i,j).label;
           if( !forceLabel.empty() )
             {
             label = forceLabel;
@@ -1391,13 +1392,13 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
     }
   else
     {
-    for(size_t i = 0; i < lat.Grid.size(); i++)
+    for(size_t i = 0; i < lat.getSize(); i++)
       {
-      const size_t sizeati = lat.Grid[i].size();
-      size_t ati = lat.Grid.size() - i - 1;
+      const size_t sizeati = lat.getSize(i);
+      size_t ati = lat.getSize() - i - 1;
       for(size_t j = 0; j < sizeati; j++)
         {
-        std::string label = lat.Grid[ati][j].label;
+        std::string label = lat.GetCell(ati,j).label;
         if( !forceLabel.empty() )
           {
           label = forceLabel;
@@ -1408,7 +1409,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
           }
         output << label << " ";
         }
-      if(useAmp && i < lat.Grid.size()-1)
+      if(useAmp && i < lat.getSize()-1)
         {
         output << "&";
         }
@@ -1491,7 +1492,7 @@ bool inpFileHelper::readLattice( std::stringstream & input,
             {
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
-            lattice.Grid[k][layerIdx].label = hexArray[i][startCol];
+            lattice.SetCell(k,layerIdx, hexArray[i][startCol]);
             layerIdx = k+(i-startRow);
             size_t colIdx = hexArray[i].size() -1 - startCol;
             lattice.SetCell(k, layerIdx, hexArray[i][colIdx]);
@@ -1527,11 +1528,11 @@ bool inpFileHelper::readLattice( std::stringstream & input,
       size_t ati = rowsR-i-1;
       for(size_t j = 0; j < colsR; j++)
         {
-          assert(i < lattice.Grid.size());
-          assert(j < lattice.Grid[i].size());
+          assert(i < lattice.getSize());
+          assert(j < lattice.getSize(i));
         std::string label;
         input >> label;
-        lattice.Grid[ati][j].label = label;
+        lattice.SetCell(ati,j,label);
         }
       }
     }

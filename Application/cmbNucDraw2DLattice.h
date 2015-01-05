@@ -30,8 +30,8 @@ public:
   // build lattice with HexGrid
   void rebuild();
   // build lattice with given Grid[layer][idx]
-  void resetWithGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid, int subType);
-  bool applyToGrid(std::vector<std::vector<Lattice::LatticeCell> >& outGrid);
+  void reset();
+  bool apply();
   void showContextMenu(DrawLatticeItem* hexitem, QMouseEvent* event);
   void setActions(const QStringList& actions);
   void setItemShape(DrawLatticeItem::ShapeStyle shapetype);
@@ -49,8 +49,6 @@ protected:
 
 private slots:
   void init();
-  bool copyGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid,
-    std::vector<std::vector<Lattice::LatticeCell> >& outGrid);
 
   void addCell(double centerPos[2], double radius, int layer, int cellIdx, CellDrawMode mode);
 
@@ -58,6 +56,7 @@ private:
   LatticeContainer* CurrentLattice;
   QGraphicsScene Canvas;
   Lattice Grid;
+  bool changed;
 
   CellDrawMode FullCellMode;
 
