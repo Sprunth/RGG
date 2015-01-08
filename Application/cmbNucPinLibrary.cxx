@@ -119,3 +119,20 @@ QString cmbNucPinLibrary::extractLabel(QString const& el) const
   QStringList ql = el.split( seperator );
   return ql[1].left(ql[1].size() -1);
 }
+
+void cmbNucPinLibrary::replaceLabel(std::string oldL, std::string newL)
+{
+  std::map<std::string, size_t>::iterator li = LabelToPin.find(oldL);
+  if(li == LabelToPin.end()) return;
+  LabelToPin[newL] = li->second;
+  LabelToPin.erase(li);
+  
+}
+
+void cmbNucPinLibrary::replaceName(std::string oldN, std::string newN)
+{
+  std::map<std::string, size_t>::iterator ni = NameToPin.find(oldN);
+  if(ni == NameToPin.end()) return;
+  NameToPin[newN] = ni->second;
+  NameToPin.erase(ni);
+}

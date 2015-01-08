@@ -320,6 +320,9 @@ public:
   double getPinPitchX(){return this->pinPitchX;}
   double getPinPitchY(){return this->pinPitchY;}
 
+  cmbNucPinLibrary * getPinLibrary()
+  { return Pins; }
+
 protected:
   std::vector<PinCell*> PinCells;
   cmbNucPinLibrary * Pins;

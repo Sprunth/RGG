@@ -13,6 +13,7 @@
 #include "cmbAssyParametersWidget.h"
 #include "cmbNucDefaultWidget.h"
 #include "cmbNucDefaults.h"
+#include "cmbNucPinLibrary.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -302,37 +303,29 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
                                                   QString previous,
                                                   QString current)
 {
-  if(this->CurrentObject == NULL && this->Assembly)
+  if(this->Core->getPinLibrary()->labelConflicts(current.toStdString()))
   {
+    //ERROR!  Should be unique, revert
+    QMessageBox msgBox;
+    msgBox.setText(current +
+                   QString(" is already use as a pin label, reverting to ")+
+                   previous);
+    msgBox.exec();
+    emit(badPinLabel(previous));
     return;
   }
-  //Check to make sure new label is unique
-  for(unsigned int i = 0; i < this->Assembly->GetNumberOfPinCells(); ++i)
+
+  this->Core->getPinLibrary()->replaceLabel(previous.toStdString(), current.toStdString());
+
+  for( int i = 0; i < this->Core->GetNumberOfAssemblies(); ++i )
   {
-    PinCell * tpc = this->Assembly->GetPinCell(i);
-    if(tpc != NULL && pincell != tpc)
-    {
-      if(tpc->getLabel() == current.toStdString())
-      {
-        //ERROR!  Should be unique, revert
-        QMessageBox msgBox;
-        msgBox.setText(current +
-                       QString(" is already use as a pin label, reverting to ")+
-                       previous);
-        msgBox.exec();
-        emit(badPinLabel(previous));
-        return;
-      }
-    }
+    cmbNucAssembly * assy = this->Core->GetAssembly(i);
+    assy->getLattice().replaceLabel(previous.toStdString(),
+                                    current.toStdString());
   }
-  AssyPartObj* selObj = this->CurrentObject;
-  if(selObj->GetType() == CMBNUC_ASSY_PINCELL)
-  {
-    this->Assembly->getLattice().replaceLabel(previous.toStdString(),
-                                             current.toStdString());
-  }
-  emit currentObjectNameChanged( selObj->getTitle().c_str() );
-  emit sendLabelChange(current);
+
+  emit currentObjectNameChanged( pincell->getTitle().c_str() );
+  emit sendLabelChange((pincell->getName() + " (" + pincell->getLabel() + ")").c_str());
 }
 
 void cmbNucInputPropertiesWidget::colorChanged()
@@ -373,25 +366,18 @@ void cmbNucInputPropertiesWidget::pinNameChanged(PinCell* pincell,
   {
     return;
   }
-  //Check to make sure new label is unique
-  for(unsigned int i = 0; i < this->Assembly->GetNumberOfPinCells(); ++i)
+  if(this->Core->getPinLibrary()->nameConflicts(current.toStdString()))
   {
-    PinCell * tpc = this->Assembly->GetPinCell(i);
-    if(tpc != NULL && pincell != tpc)
-    {
-      if(tpc->getName() == current.toStdString())
-      {
-        //ERROR!  Should be unique, revert
-        QMessageBox msgBox;
-        msgBox.setText(current +
-                       QString(" is already use as a pin name, reverting to ")+
-                       previous);
-        msgBox.exec();
-        emit(badPinName(previous));
-        return;
-      }
-    }
+    QMessageBox msgBox;
+    msgBox.setText(current +
+                   QString(" is already use as a pin name, reverting to ")+
+                   previous);
+    msgBox.exec();
+    emit(badPinName(previous));
+    return;
   }
+  this->Core->getPinLibrary()->replaceName(previous.toStdString(), current.toStdString());
+  emit sendLabelChange((pincell->getName() + " (" + pincell->getLabel() + ")").c_str());
 }
 
 // reset property panel with given object

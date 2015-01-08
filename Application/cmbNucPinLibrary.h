@@ -45,6 +45,8 @@ public:
   ConflictMode testPinConflicts(PinCell* pc) const;
   bool labelConflicts(std::string l) const;
   bool nameConflicts(std::string n) const;
+  void replaceLabel(std::string oldL, std::string newL);
+  void replaceName(std::string oldN, std::string newN);
 
 protected:
   std::vector<PinCell*> PinCells;
