@@ -4,6 +4,7 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
 #include "cmbNucPinLibrary.h"
+#include "cmbNucConflictDialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -42,7 +43,9 @@ public:
   bool readLattice( std::stringstream & input, Lattice &lat);
   bool readMaterials( std::stringstream & input, cmbNucAssembly &assembly );
   bool readDuct( std::stringstream & input, cmbNucAssembly &assembly );
-  bool readPincell( std::stringstream & input, cmbNucAssembly &assembly, cmbNucPinLibrary * pl );
+  bool readPincell( std::stringstream & input, cmbNucAssembly &assembly,
+                   cmbNucPinLibrary * pl,
+                   std::map<std::string, std::string> & newLabel );
   bool readAssemblies( std::stringstream & input, cmbNucCore &core,
                        std::string strPath, bool readAssemblies );
   template<class TYPE> bool read( std::stringstream & input,
@@ -275,6 +278,7 @@ bool inpFileReader
     defaults.open(info.absoluteFilePath().toStdString());
     defaults.read_defaults(assembly);
   }
+  std::map<std::string, std::string> newLabel;
 
   while(!input.eof())
   {
@@ -310,7 +314,7 @@ bool inpFileReader
       }
     else if(value == "pincells")
       {
-      if(!helper.readPincell( input, assembly, pl )) return false;
+      if(!helper.readPincell( input, assembly, pl, newLabel )) return false;
       }
     else if(value == "assembly")
       {
@@ -380,6 +384,13 @@ bool inpFileReader
     }
   assembly.computeDefaults();
   assembly.setAndTestDiffFromFiles(helper.labelIsDifferent);
+  if(!newLabel.empty())
+  {
+    for(std::map<std::string,std::string>::const_iterator iter = newLabel.begin(); iter != newLabel.end(); ++iter)
+    {
+      assembly.getLattice().replaceLabel(iter->first, iter->second);
+    }
+  }
   return assembly.AssyDuct.getDuct(0) != NULL;
 }
 
@@ -1084,7 +1095,8 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     }
 }
 
-bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & assembly, cmbNucPinLibrary * pl )
+bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & assembly, cmbNucPinLibrary * pl,
+                                 std::map<std::string, std::string> & newLabel )
 {
   if(!input) return false;
   std::string value;
@@ -1257,7 +1269,17 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
       {
       pincell->SetLegendColor(firstMaterial->getColor());
       }
-    std::string oldLabel = pl->addPin(pincell);
+    //TODO test label for conflict
+    cmbNucPinLibrary::AddMode am = cmbNucPinLibrary::KeepOriginal;
+    if(pl->testPinConflicts(pincell))
+    {
+      std::string old_label = pincell->getLabel();
+      cmbNucConflictDialog cncd(NULL, pl, pincell);
+      am = static_cast<cmbNucPinLibrary::AddMode>(cncd.exec());
+      std::string new_label = pincell->getLabel();
+      if(new_label != old_label) newLabel[old_label] = new_label;
+    }
+    pl->addPin(&pincell, am);
     assembly.AddPinCell(pincell);
     }
   return true;

@@ -427,7 +427,7 @@ void cmbNucInputListWidget::onNewPin()
     newpin->setName(tmp);
     newpin->setLabel(tmp);
   }
-  this->NuclearCore->getPinLibrary()->addPin(newpin);
+  this->NuclearCore->getPinLibrary()->addPin(&newpin, cmbNucPinLibrary::KeepOriginal);
   assy->AddPinCell(newpin);
   QTreeWidgetItem* partsRoot = this->getCurrentAssemblyNode();
   if(!partsRoot)

@@ -12,46 +12,80 @@ cmbNucPinLibrary::~cmbNucPinLibrary()
   delete Connection;
 }
 
-std::string cmbNucPinLibrary::addPin(PinCell* pc)
+cmbNucPinLibrary::ConflictMode
+cmbNucPinLibrary::testPinConflicts(PinCell* pc) const
 {
-  if(pc == NULL) return "";
   std::string label = pc->getLabel();
-  PinCells.push_back(pc);
-  return label;
+  std::string name = pc->getName();
+  bool nc = nameConflicts(name);
+  bool lc = labelConflicts(label);
+  if(nc && lc) return Both_Conflict;
+  if(nc) return Name_Conflict;
+  if(lc) return Label_Conflict;
+  return No_Conflict;
+}
+
+bool cmbNucPinLibrary::labelConflicts(std::string l) const
+{
+  return LabelToPin.find(l) != LabelToPin.end();
+}
+
+bool cmbNucPinLibrary::nameConflicts(std::string n) const
+{
+  return NameToPin.find(n) != NameToPin.end();
+}
+
+bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
+{
+  if(in == NULL) return true;
+  PinCell * pc = *in;
+  if(pc == NULL) return true; //Ignore null
+  ConflictMode cm = this->testPinConflicts(pc);
+  if(cm == No_Conflict)
+  {
+    int loc = PinCells.size();
+    PinCells.push_back(pc);
+    std::string label = pc->getLabel();
+    std::string name = pc->getName();
+    NameToPin[name] = loc;
+    LabelToPin[label] = loc;
+    return true;
+  }
+  else if(cm == Both_Conflict)
+  {
+    switch(mode)
+    {
+      case Replace:
+        PinCells[LabelToPin.find(pc->getLabel())->second]->fill(pc);
+      case KeepOriginal:
+        delete pc;
+        *in = PinCells[LabelToPin.find(pc->getLabel())->second];
+        return true;
+    }
+  }
+  return false;
 }
 
 void cmbNucPinLibrary::removePincell(PinCell* pc)
 {
   if(pc == NULL) return;
   bool found = false;
-  for(size_t i = 0; i < this->PinCells.size(); i++)
-  {
-    if(this->PinCells[i] == pc)
-    {
-      found = true;
-      this->PinCells.erase(this->PinCells.begin() + i);
-      break;
-    }
-  }
-  if(found)
-  {
-    this->Connection->pinRemoved(pc);
-    delete pc;
-  }
+
+  std::map<std::string, size_t>::iterator ni = NameToPin.find(pc->getName());
+  std::map<std::string, size_t>::iterator li = LabelToPin.find(pc->getLabel());
+  if(ni == NameToPin.end()) return;
+  this->PinCells.erase(this->PinCells.begin() + ni->second);
+  NameToPin.erase(ni);
+  LabelToPin.erase(li);
+  this->Connection->pinRemoved(pc);
+  delete pc;
 }
 
 PinCell* cmbNucPinLibrary::GetPinCell(const std::string &l)
 {
-  for(size_t i = 0; i < this->PinCells.size(); i++)
-  {
-    PinCell *pincell = this->GetPinCell(i);
-    std::string tmp = pincell->getLabel();
-    if(tmp == l)
-    {
-      return this->PinCells[i];
-    }
-  }
-  return NULL;
+  std::map<std::string, size_t>::iterator li = LabelToPin.find(l);
+  if(li == LabelToPin.end()) return NULL;
+  return this->PinCells[li->second];
 }
 
 PinCell* cmbNucPinLibrary::GetPinCell(int pc) const

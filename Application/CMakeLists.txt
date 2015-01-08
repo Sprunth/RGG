@@ -54,6 +54,7 @@ SET(RGGNuclear_Srcs
   cmbCoreParametersWidget.cxx
   pqXMLEventObserver.cxx
   cmbNucRender.cxx
+  cmbNucConflictDialog.cxx
 )
 
 SET(RGGNuclear_UI
@@ -70,6 +71,7 @@ SET(RGGNuclear_UI
   CylinderCreateGui.ui
   qAssyParameters.ui
   qCoreParameters.ui
+  name_conflict_gui.ui
 )
 
 SET(RGGNuclear_Headers
@@ -98,6 +100,7 @@ SET(RGGNuclear_Headers
   cmbCoreParametersWidget.h
   pqXMLEventObserver.h
   cmbNucRender.h
+  cmbNucConflictDialog.h
 )
 
 SET(RGGNuclear_other_headers )
