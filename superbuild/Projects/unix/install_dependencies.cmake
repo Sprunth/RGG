@@ -4,15 +4,12 @@
 # pv_dependencies_root == directory where paraview dependencies are installed.
 # target_root == root directory where files are to be installed.
 
-#message("Cubit path: ${CUBIT_PATH}")
-
 function(gp_resolve_item_override context item exepath  dirs resolved_item resolved)
   #it seems in some version of cmake GetPrerequisites doesn't properly search all directories we pass
   #in, so instead we use override hooks to find libraries.
   #we will search where we installed the paraview libraries and in the bin directory
   #of install, since that is where some libs are placed
-  #message("Searching ${item} ${CUBIT_PATH}")
-  find_file(ri "${item}" PATHS ${pv_dependencies_root} ${CUBIT_PATH}/bin NO_DEFAULT_PATH)
+  find_file(ri "${item}" PATHS ${pv_dependencies_root} ${CUBIT_PATH} NO_DEFAULT_PATH)
   if(ri)
       set(${resolved} 1 PARENT_SCOPE)
       set(${resolved_item} "${ri}" PARENT_SCOPE)

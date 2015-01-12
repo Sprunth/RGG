@@ -29,12 +29,4 @@ if(ENABLE_meshkit )
     DEPENDEES update
     DEPENDERS configure
   )
-
-  option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
-  if(BUILD_WITH_CUBIT)
-    set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
-    if(NOT IS_DIRECTORY ${CUBIT_PATH})
-        message(SEND_ERROR "CUBIT_PATH needs to be set to a valid path")
-    endif()
-  endif()
 endif()

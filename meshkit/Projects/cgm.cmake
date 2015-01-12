@@ -6,11 +6,12 @@ if(BUILD_WITH_CUBIT)
     set(ldFlags "LDFLAGS=-L${CUBIT_PATH}")
   endif()
   message("CGM: CFLAGS=${cflags} CXXFLAGS=${cxxflags}")
+  get_filename_component(cubit_dir "${CUBIT_PATH}" DIRECTORY)
   add_external_project(cgm
     USE_AUTOCONF
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
-      --with-cubit=${CUBIT_PATH}
+      --with-cubit=${cubit_dir}
       --prefix=<INSTALL_DIR>
       --enable-shared
       ${ldFlags}

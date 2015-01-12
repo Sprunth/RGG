@@ -56,22 +56,36 @@ if(ENABLE_meshkit)
     DEPENDEES update
     DEPENDERS configure
   )
+if(APPLE OR UNIX)
+  option(CMBNuc_BUILD_MESHKIT "Build Meshkit." OFF)
+  if(CMBNuc_BUILD_MESHKIT)
+    include(ExternalProject)
+    option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
 
-  option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
-  
-  if(BUILD_WITH_CUBIT)
-    find_path( CUBIT_PATH_ROOT Cubit.app HINTS /Applications/Cubit-14.0 PATH_SUFFIXES "Contents/MacOS/" DOC "The cubit bundle name")
-    set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
-    if(CUBIT_PATH_ROOT)
-      message("${CUBIT_PATH_ROOT}/Cubit.app/Contents/MacOS/")
-      set(CUBIT_PATH "${CUBIT_PATH_ROOT}/Cubit.app/Contents/MacOS/")
-      mark_as_advanced(CUBIT_PATH)
+    if(BUILD_WITH_CUBIT)
+      find_package(CUBIT REQUIRED)
     endif()
 
-    if(NOT IS_DIRECTORY ${CUBIT_PATH})
-        message(SEND_ERROR "CUBIT_PATH needs to be set to a valid path")
+    if(APPLE)
+      if(BUILD_WITH_CUBIT)
+        message("Apple cubit currently only 32 bit, forcing to 32bit")
+        set(APPLE_OPTIONS -DCMAKE_OSX_ARCHITECTURES:STRING=i386 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET} -DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT})
+      else()
+        set(APPLE_OPTIONS -DCMAKE_OSX_ARCHITECTURES:STRING=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET} -DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT})
+      endif()
     endif()
+
+    ExternalProject_Add(meshkit SOURCE_DIR ${CMAKE_SOURCE_DIR}/meshkit
+                                BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/meshkit
+                                CMAKE_ARGS ${APPLE_OPTIONS}
+                                           -DCMAKE_BUILD_TYPE:STRING=Release
+                                           -DBUILD_WITH_CUBIT:BOOL=${BUILD_WITH_CUBIT}
+                                           -DCUBIT_DIR:PATH=${CUBIT_DIR}
+                                           -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
+
+
   endif()
+endif()
 else()
   set(ENABLE_OCE OFF FORCE)
   mark_as_advanced(ENABLE_OCE)

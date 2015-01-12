@@ -27,16 +27,7 @@ add_external_project(meshkit
       -DAUTOM4TE_EXECUTABLE:path=${AUTOM4TE_EXECUTABLE}
       -DAUTORECONF_EXECUTABLE:path=${AUTORECONF_EXECUTABLE}
       -DAUTOUPDATE_EXECUTABLE:path=${AUTOUPDATE_EXECUTABLE}
-      -DCUBIT_PATH:PATH=${CUBIT_PATH})
-
-  if(BUILD_WITH_CUBIT)
-    message("BUILD WITH CUBIT")
-    set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
-    if(NOT IS_DIRECTORY ${CUBIT_PATH})
-        message(SEND_ERROR "CUBIT_PATH needs to be set to a valid path")
-    endif()
-  endif()
-
+      -DCUBIT_DIR:PATH=${CUBIT_DIR})
 else()
 
 find_package(Autotools REQUIRED)
