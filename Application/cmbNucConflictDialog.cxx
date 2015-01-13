@@ -4,7 +4,7 @@
 #include <QMainWindow>
 
 cmbNucConflictDialog::cmbNucConflictDialog(QMainWindow* mainWindow, cmbNucPinLibrary * lib, PinCell * p)
-: QDialog(mainWindow,  Qt::CustomizeWindowHint), pinLibrary(lib), pin(p)
+: QDialog(mainWindow,  Qt::CustomizeWindowHint | Qt::WindowTitleHint ), pinLibrary(lib), pin(p)
 {
   this->ui = new Ui_name_conflict_gui;
 
