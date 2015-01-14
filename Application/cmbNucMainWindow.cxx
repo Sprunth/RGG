@@ -882,6 +882,7 @@ void cmbNucMainWindow::onNewCore()
     this->PropertyWidget->resetCore(this->NuclearCore);
     this->PropertyWidget->setObject(NULL, NULL);
     this->PropertyWidget->setAssembly(NULL);
+    this->InputsWidget->onNewDuct();
     this->InputsWidget->onNewAssembly();
     this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);

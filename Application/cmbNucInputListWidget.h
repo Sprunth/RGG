@@ -83,6 +83,7 @@ public slots:
   void selectModelTab(bool);
   void updateMainMeshComponents(QStringList parts, int select);
   void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
+  void onNewDuct();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -116,7 +117,6 @@ private slots:
   void onNewPin();
   void onImportMaterial();
   void onSaveMaterial();
-  void onNewDuct();
 
   void repaintList();
   void hideLabels(bool);

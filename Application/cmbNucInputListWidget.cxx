@@ -436,7 +436,7 @@ void cmbNucInputListWidget::onNewDuct()
   QString ductname = QString("Duct_").append(QString::number(i));
   while(this->NuclearCore->getDuctLibrary()->nameConflicts(ductname.toStdString()))
   {
-    QString ductname = QString("Duct_").append(QString::number(++i));
+    ductname = QString("Duct_").append(QString::number(++i));
   }
   cd->setName(ductname.toStdString());
   this->NuclearCore->getDuctLibrary()->addDuct(cd);
@@ -464,7 +464,7 @@ void cmbNucInputListWidget::onNewPin()
   while(this->NuclearCore->getPinLibrary()->labelConflicts(pinname.toStdString()) ||
         this->NuclearCore->getPinLibrary()->nameConflicts(pinname.toStdString()))
   {
-    QString pinname = QString("PinCell").append(QString::number(++i));
+    pinname = QString("PinCell").append(QString::number(++i));
   }
   {
     std::string tmp = pinname.toStdString();

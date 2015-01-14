@@ -681,3 +681,13 @@ bool cmbNucAssembly::setDuctCell(DuctCell * ad, bool resetPitch)
   }
   return true;
 }
+
+void cmbNucAssembly::setDuctLibrary(cmbNucDuctLibrary * d)
+{
+  this->Ducts = d;
+  if(this->AssyDuct == NULL)
+  {
+    int at = 0;
+    this->setDuctCell(d->GetDuctCell(at));
+  }
+}

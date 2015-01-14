@@ -211,10 +211,7 @@ public:
     this->Pins = p;
   }
 
-  void setDuctLibrary(cmbNucDuctLibrary * d)
-  {
-    this->Ducts = d;
-  }
+  void setDuctLibrary(cmbNucDuctLibrary * d);
 
   virtual QString extractLabel(QString const& s);
   virtual void setUsedLabels(std::map<QString, int> const& labels);
