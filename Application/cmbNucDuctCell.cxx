@@ -198,6 +198,7 @@ DuctCell::DuctCell()
   Connection = new DuctConnection();
   this->Label = "D1";
   this->Name = "Duct1";
+  this->useCount = 0;
 }
 
 DuctCell::~DuctCell()
@@ -397,4 +398,20 @@ bool DuctCell::setDuctThickness(double t1, double t2)
     duct->thickness[1] = t2;
   }
   return change;
+}
+
+bool DuctCell::isUsed()
+{
+  return this->useCount != 0;
+}
+
+void DuctCell::used()
+{
+  this->useCount++;
+}
+
+void DuctCell::freed()
+{
+  if(this->useCount > 0)
+    this->useCount--;
 }

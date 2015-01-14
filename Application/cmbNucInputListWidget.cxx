@@ -831,7 +831,11 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_DUCTCELL:
-    this->Internal->Action_DeletePart->setEnabled(this->NuclearCore->getDuctLibrary()->GetNumberOfDuctCells() > 1);
+    {
+      DuctCell * dc = static_cast<DuctCell *>(selObj);
+      this->Internal->Action_DeletePart->setEnabled(!dc->isUsed());
+    }
+    break;
   default:
     break;
   }

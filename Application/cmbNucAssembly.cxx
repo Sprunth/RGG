@@ -666,6 +666,7 @@ bool cmbNucAssembly::setDuctCell(DuctCell * ad, bool resetPitch)
                         this->Connection, SLOT(dataChanged()));
     QObject::disconnect(AssyDuct->GetConnection(), SIGNAL(Deleted()),
                         this->Connection, SLOT(ductDeleted()));
+    this->AssyDuct->freed();
   }
   this->AssyDuct = ad;
   if(ad != NULL)
@@ -675,6 +676,7 @@ bool cmbNucAssembly::setDuctCell(DuctCell * ad, bool resetPitch)
                      this->Connection, SLOT(dataChanged()));
     QObject::connect(ad->GetConnection(), SIGNAL(Deleted()),
                      this->Connection, SLOT(ductDeleted()));
+    this->AssyDuct->used();
 
   }
   return true;

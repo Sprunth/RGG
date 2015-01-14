@@ -86,7 +86,7 @@ bool cmbNucDuctLibrary
 {
   if(this->nameConflicts(newN)) return false;
   std::map<std::string, size_t>::iterator iter = this->NameToDuct.find(oldN);
-  if(iter != this->NameToDuct.end()) return false;
+  if(iter == this->NameToDuct.end()) return false;
 
   this->NameToDuct[newN] = iter->second;
   this->NameToDuct.erase(iter);

@@ -105,9 +105,13 @@ public:
   bool operator==(const DuctCell& obj);
   void sort();
   bool setDuctThickness(double t1, double t2);
+  bool isUsed();
+  void used();
+  void freed();
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;
+  int useCount;
 };
 
 
