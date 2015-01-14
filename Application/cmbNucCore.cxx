@@ -515,6 +515,20 @@ void cmbNucCore::sendDefaults()
   {
     assys[i]->setFromDefaults(this->Defaults);
   }
+
+  double dt1, dt2, l;
+  this->Defaults->getDuctThickness(dt1,dt2);
+  this->Defaults->getHeight(l);
+
+  for(size_t i = 0; i < this->DuctLibrary->GetNumberOfDuctCells(); ++i)
+  {
+    DuctCell * dc = this->DuctLibrary->GetDuctCell(i);
+    if(!dc->isUsed())
+    {
+      dc->setDuctThickness(dt1,dt2);
+      dc->setLength(l);
+    }
+  }
 }
 
 bool cmbNucCore::label_unique(std::string & n)

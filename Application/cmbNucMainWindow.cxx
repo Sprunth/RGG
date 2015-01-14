@@ -323,8 +323,6 @@ int defaultAssemblyColors[][3] =
 // Constructor
 cmbNucMainWindow::cmbNucMainWindow()
 {
-//  vtkNew<vtkCompositeDataPipeline> compositeExec;
-//  vtkAlgorithm::SetDefaultExecutivePrototype(compositeExec.GetPointer());
   isCameraIsMoving = false;
 
   this->TestUtility = NULL;
@@ -348,20 +346,12 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->NuclearCore = new cmbNucCore(false);
   setTitle();
 
-  //this->ui->InputsDock->setFloating(true);
-  //this->ui->PropertyDock->setFloating(true);
-  //this->addDockWidget(Qt::RightDockWidgetArea, this->ui->InputsDock);
-  //this->addDockWidget(Qt::RightDockWidgetArea, this->ui->PropertyDock);
-
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
   this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
   this->ui->Dock3D->raise();
   this->setCentralWidget(0);
 
   this->splitDockWidget(this->ui->InputsDock, this->ui->PropertyDock, Qt::Vertical);
-
-  //this->addDockWidget(Qt::LeftDockWidgetArea, this->ui->InputsDock);
-  //this->addDockWidget(Qt::LeftDockWidgetArea, this->ui->PropertyDock);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
   LatticeDraw->setObjectName("LatticeDrawWidget");
