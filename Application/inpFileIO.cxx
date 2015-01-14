@@ -4,6 +4,7 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
 #include "cmbNucPinLibrary.h"
+#include "cmbNucDuctLibrary.h"
 #include "cmbNucConflictDialog.h"
 
 #include <iostream>
@@ -42,7 +43,7 @@ public:
 
   bool readLattice( std::stringstream & input, Lattice &lat);
   bool readMaterials( std::stringstream & input, cmbNucAssembly &assembly );
-  bool readDuct( std::stringstream & input, cmbNucAssembly &assembly );
+  bool readDuct( std::stringstream & input, bool is_hex, DuctCell * dc );
   bool readPincell( std::stringstream & input, cmbNucAssembly &assembly,
                    cmbNucPinLibrary * pl,
                    std::map<std::string, std::string> & newLabel );
@@ -260,7 +261,7 @@ void inpFileReader
 }
 
 bool inpFileReader
-::read(cmbNucAssembly & assembly, cmbNucPinLibrary * pl)
+::read(cmbNucAssembly & assembly, cmbNucPinLibrary * pl, cmbNucDuctLibrary * dl)
 {
   if(Type != ASSEMBLY_TYPE)
     return false;
@@ -279,6 +280,9 @@ bool inpFileReader
     defaults.read_defaults(assembly);
   }
   std::map<std::string, std::string> newLabel;
+  DuctCell * dc = new DuctCell;
+  dc->setName(assembly.getLabel() + "_Duct");
+  assembly.setDuctCell(dc);
 
   while(!input.eof())
   {
@@ -310,7 +314,7 @@ bool inpFileReader
       }
     else if(value == "duct" || value == "dimensions")
       {
-      if(!helper.readDuct( input, assembly )) return false;
+      if(!helper.readDuct( input, assembly.IsHexType(), dc )) return false;
       }
     else if(value == "pincells")
       {
@@ -391,7 +395,8 @@ bool inpFileReader
       assembly.getLattice().replaceLabel(iter->first, iter->second);
     }
   }
-  return assembly.AssyDuct.getDuct(0) != NULL;
+  dl->addDuct(dc);
+  return dc->getDuct(0) != NULL;
 }
 
 bool inpFileReader
@@ -931,9 +936,9 @@ bool inpFileHelper::readMaterials( std::stringstream & input,
 
 void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly, bool limited )
 {
-  for(size_t ad = 0; ad < assembly.AssyDuct.numberOfDucts(); ad++)
+  for(size_t ad = 0; ad < assembly.getAssyDuct().numberOfDucts(); ad++)
   {
-    Duct *duct = assembly.AssyDuct.getDuct(ad);
+    Duct *duct = assembly.getAssyDuct().getDuct(ad);
     int nl = duct->NumberOfLayers();
 
     output << "duct " << (limited?1:nl) << " ";
@@ -954,7 +959,7 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
   }
 }
 
-bool inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assembly )
+bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell * dc )
 {
   if(!input) return false;
   Duct* duct = new Duct(0,0,0);
@@ -971,7 +976,7 @@ bool inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
   for(int i = 0; i < materials; i++)
   {
     double tmpD[2];
-    if(assembly.IsHexType())
+    if(is_hex)
     {
       input >> tmpD[0];
       tmpD[1] = tmpD[0];
@@ -1007,7 +1012,7 @@ bool inpFileHelper::readDuct( std::stringstream & input, cmbNucAssembly & assemb
     duct->getNormThick(i)[1] /= maxV[1];
     }
 
-  assembly.AssyDuct.AddDuct(duct);
+  dc->AddDuct(duct);
   return true;
 }
 
@@ -1606,7 +1611,7 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
         {
           return false;
         }
-        if(!freader.read(*assembly, core.getPinLibrary())) return false;
+        if(!freader.read(*assembly, core.getPinLibrary(), core.getDuctLibrary())) return false;
         core.AddAssembly(assembly);
     }
   }

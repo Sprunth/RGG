@@ -8,6 +8,7 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
 #include "cmbNucPinLibrary.h"
+#include "cmbNucDuctLibrary.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -94,28 +95,34 @@ public:
   }
   virtual ~cmbNucInputListWidgetInternal()
   {
-    delete Action_NewAssembly;
-    delete Action_NewPin;
-    delete Action_DeletePart;
-    delete TreeItemDelegate;
-    delete MaterialDelegate;
+    delete this->Action_NewAssembly;
+    delete this->Action_NewPin;
+    delete this->Action_NewDuct;
+    delete this->Action_DeletePart;
+    delete this->TreeItemDelegate;
+    delete this->MaterialDelegate;
   }
   void initActions()
-    {
+  {
     this->Action_NewAssembly = new QAction("Create Assembly", this->PartsList);
     this->Action_NewPin = new QAction("Create Pin", this->PartsList);
+    this->Action_NewDuct = new QAction("Create Duct", this->PartsList);
     this->Action_DeletePart = new QAction("Delete Selected", this->PartsList);
     this->PartsList->addAction(this->Action_NewAssembly);
     this->PartsList->addAction(this->Action_NewPin);
+    this->PartsList->addAction(this->Action_NewDuct);
     this->PartsList->addAction(this->Action_DeletePart);
-    }
+  }
 
   QPointer<QAction> Action_NewAssembly;
   QPointer<QAction> Action_NewPin;
+  QPointer<QAction> Action_NewDuct;
   QPointer<QAction> Action_DeletePart;
 
   cmbNucPartsTreeItem* RootCoreNode;
   cmbNucPartsTreeItem* AssemblyNode;
+  cmbNucPartsTreeItem* PinsNode;
+  cmbNucPartsTreeItem* DuctsNode;
 
   PartsItemDelegate * TreeItemDelegate;
   MaterialItemDelegate * MaterialDelegate;
@@ -149,6 +156,8 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
     this, SLOT(onNewAssembly()));
   QObject::connect(this->Internal->Action_NewPin, SIGNAL(triggered()),
     this, SLOT(onNewPin()));
+  QObject::connect(this->Internal->Action_NewDuct, SIGNAL(triggered()),
+                   this, SLOT(onNewDuct()));
   QObject::connect(this->Internal->Action_DeletePart, SIGNAL(triggered()),
     this, SLOT(onRemoveSelectedPart()));
 
@@ -208,6 +217,7 @@ void cmbNucInputListWidget::setPartOptions(QMenu * qm) const
   qm->clear();
   qm->addAction(this->Internal->Action_NewAssembly);
   qm->addAction(this->Internal->Action_NewPin);
+  qm->addAction(this->Internal->Action_NewDuct);
   qm->addAction(this->Internal->Action_DeletePart);
 }
 
@@ -221,6 +231,8 @@ void cmbNucInputListWidget::clear()
   {
     this->Internal->RootCoreNode = NULL;
     this->Internal->AssemblyNode = NULL;
+    this->Internal->PinsNode = NULL;
+    this->Internal->DuctsNode = NULL;
   }
   this->modelIsLoaded(false);
   this->Internal->tabInputs->setTabEnabled(2, false);
@@ -336,8 +348,12 @@ void cmbNucInputListWidget::initUI()
     {
     delete this->Internal->RootCoreNode;
     delete this->Internal->AssemblyNode;
+    delete this->Internal->DuctsNode;
+    delete this->Internal->PinsNode;
     this->Internal->RootCoreNode = NULL;
     this->Internal->AssemblyNode = NULL;
+    this->Internal->DuctsNode = NULL;
+    this->Internal->PinsNode = NULL;
     }
   this->initPartsTree();
   this->initMaterialsTree();
@@ -366,6 +382,7 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
 {
   this->Internal->Action_NewAssembly->setEnabled(val);
   this->Internal->Action_NewPin->setEnabled(val);
+  this->Internal->Action_NewDuct->setEnabled(val);
   this->Internal->Action_DeletePart->setEnabled(val);
 }
 //----------------------------------------------------------------------------
@@ -397,12 +414,34 @@ void cmbNucInputListWidget::onNewAssembly()
   double thickX, thickY, h;
   assembly->getDefaults()->getDuctThickness(thickX,thickY);
   assembly->getDefaults()->getHeight(h);
-  Duct * newduct = new Duct(h, thickX, thickY);
+  //TODO:
+  //Duct * newduct = new Duct(h, thickX, thickY);
 
-  assembly->AssyDuct.AddDuct(newduct);
+  //assembly->AssyDuct.AddDuct(newduct);
 
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
+  emit assembliesModified(this->NuclearCore);
+}
+
+void cmbNucInputListWidget::onNewDuct()
+{
+  DuctCell * cd = new DuctCell();
+  QPointer<cmbNucDefaults> defaults = this->NuclearCore->GetDefaults();
+  double d1,d2, h;
+  defaults->getDuctThickness(d1,d2);
+  defaults->getHeight(h);
+  cd->AddDuct(new Duct(h, d1, d2));
+  int i = this->NuclearCore->getDuctLibrary()->GetNumberOfDuctCells()+1;
+  QString ductname = QString("Duct_").append(QString::number(i));
+  while(this->NuclearCore->getDuctLibrary()->nameConflicts(ductname.toStdString()))
+  {
+    QString ductname = QString("Duct_").append(QString::number(++i));
+  }
+  cd->setName(ductname.toStdString());
+  this->NuclearCore->getDuctLibrary()->addDuct(cd);
+  this->initCoreRootNode();
+  this->updateWithDuct(cd);
   emit assembliesModified(this->NuclearCore);
 }
 
@@ -414,42 +453,28 @@ void cmbNucInputListWidget::onNewPin()
   matColorMap->CalcRGB(rgb[0],rgb[1],rgb[2]);
 
   cmbNucAssembly * assy = this->getCurrentAssembly();
-  double h, r;
-  assy->getDefaults()->getHeight(h);
-  assy->calculateRadius(r);
+  double h, r = 0.5;
+  this->NuclearCore->GetDefaults()->getHeight(h);
+  if(assy != NULL) assy->calculateRadius(r);
   PinCell* newpin = new PinCell();
   newpin->SetLegendColor(QColor::fromRgbF(rgb[0],rgb[1],rgb[2]));
   newpin->AddCylinder(new Cylinder(r, 0, h));
-  QString pinname = QString("PinCell").append(
-    QString::number(this->getCurrentAssembly()->GetNumberOfPinCells()+1));
+  int i = this->NuclearCore->getPinLibrary()->GetNumberOfPinCells()+1;
+  QString pinname = QString("PinCell").append(QString::number(i));
+  while(this->NuclearCore->getPinLibrary()->labelConflicts(pinname.toStdString()) ||
+        this->NuclearCore->getPinLibrary()->nameConflicts(pinname.toStdString()))
+  {
+    QString pinname = QString("PinCell").append(QString::number(++i));
+  }
   {
     std::string tmp = pinname.toStdString();
     newpin->setName(tmp);
     newpin->setLabel(tmp);
   }
   this->NuclearCore->getPinLibrary()->addPin(&newpin, cmbNucPinLibrary::KeepOriginal);
-  assy->AddPinCell(newpin);
-  QTreeWidgetItem* partsRoot = this->getCurrentAssemblyNode();
-  if(!partsRoot)
-    {
-    return;
-    }
-  cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(partsRoot, newpin);
-  pinNode->setText(0, newpin->getName().c_str());
-  Qt::ItemFlags itemFlags(
-    Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-  pinNode->setFlags(itemFlags); // not editable
-  pinNode->setChildIndicatorPolicy(
-    QTreeWidgetItem::DontShowIndicatorWhenChildless);
-  cmbNucPartsTreeItem* selItem = this->getSelectedItem(
-    this->Internal->PartsList);
-  if(selItem)
-    {
-    selItem->setSelected(false);
-    }
-  pinNode->setSelected(true);
-  this->onPartsSelectionChanged();
-  emit pinsModified(this->getCurrentAssembly());
+  this->initCoreRootNode();
+  this->updateWithPin(newpin);
+  emit assembliesModified(this->NuclearCore);
 }
 
 //----------------------------------------------------------------------------
@@ -463,6 +488,7 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
     }
   AssyPartObj* selObj = selItem->getPartObject();
   PinCell* pincell = NULL;
+  DuctCell* ductcell = NULL;
 
   enumNucPartsType selType = selObj->GetType();
   std::string selText = selItem->text(0).toStdString();
@@ -484,12 +510,28 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
       QTreeWidgetItem * p = selItem->parent();
       delete selItem;
       this->Internal->PartsList->setCurrentItem(p);
-      assem->RemovePinCell(pincell->getLabel());
+      assem->RemovePinCell(pincell->getLabel()); //TODO Look at this
       emit pincellDeleted();
       emit pinsModified(assem);
       this->Internal->PartsList->blockSignals(false);
       this->onPartsSelectionChanged();
       }
+    break;
+  case CMBNUC_ASSY_DUCTCELL:
+    ductcell = dynamic_cast<DuctCell*>(selObj);
+    if(ductcell)
+    {
+      this->setCursor(Qt::BusyCursor);
+      this->Internal->PartsList->blockSignals(true);
+      this->NuclearCore->getDuctLibrary()->removeDuctcell(ductcell);
+      delete selItem;
+      this->Internal->PartsList->setCurrentItem(this->Internal->DuctsNode);
+      emit assembliesModified(this->NuclearCore);
+      this->Internal->PartsList->blockSignals(false);
+      this->Internal->DuctsNode->setSelected(true);
+      this->onPartsSelectionChanged();
+      this->unsetCursor();
+    }
     break;
   case CMBNUC_ASSY_DUCT:
   case CMBNUC_ASSY_CYLINDER_PIN:
@@ -613,6 +655,7 @@ void cmbNucInputListWidget::updateUI(bool selCore)
   // Core node
   this->initCoreRootNode();
   this->updateWithPinLibrary(this->NuclearCore->getPinLibrary());
+  this->updateWithDuctLibrary(this->NuclearCore->getDuctLibrary());
   // Assembly nodes
   for(int i=0; i<this->NuclearCore->GetNumberOfAssemblies(); i++)
     {
@@ -645,6 +688,16 @@ void cmbNucInputListWidget::initCoreRootNode()
       QTreeWidgetItem::DontShowIndicatorWhenChildless);
     this->Internal->RootCoreNode->setExpanded(true);
 
+    this->Internal->PinsNode = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, NULL);
+    this->Internal->PinsNode->setText(0, "Pins");
+    this->Internal->PinsNode->setFlags(itemFlags); // not editable
+    this->Internal->PinsNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
+
+    this->Internal->DuctsNode = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, NULL);
+    this->Internal->DuctsNode->setText(0, "Ducts");
+    this->Internal->DuctsNode->setFlags(itemFlags); // not editable
+    this->Internal->DuctsNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
+
     this->Internal->AssemblyNode = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, NULL);
     this->Internal->AssemblyNode->setText(0, "Assemblies");
     this->Internal->AssemblyNode->setFlags(itemFlags); // not editable
@@ -676,42 +729,65 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   assyNode->setHightlights(assy->changeSinceLastSave(),
                            assy->changeSinceLastGenerate());
 
-  /// ******** populate parts tree ********
-  QTreeWidgetItem* partsRoot = assyNode;
-
-  // ducts
-  cmbNucPartsTreeItem* ductsNode = new cmbNucPartsTreeItem(partsRoot,
-    &assy->AssyDuct);
-  ductsNode->setText(0, "Duct");
-  ductsNode->setFlags(itemFlags); // not editable
-  ductsNode->setChildIndicatorPolicy(
-    QTreeWidgetItem::DontShowIndicatorWhenChildless);
-
   this->Internal->PartsList->blockSignals(false);
 
   if(select)
     {
-    this->Internal->PartsList->setCurrentItem(partsRoot);
+    this->Internal->PartsList->setCurrentItem(assyNode);
     this->onPartsSelectionChanged();
     }
 }
 
-void cmbNucInputListWidget::updateWithPinLibrary(cmbNucPinLibrary * pl)
+void cmbNucInputListWidget::updateWithPin(PinCell * pincell, bool select)
 {
   this->Internal->PartsList->blockSignals(true);
   Qt::ItemFlags itemFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-  cmbNucPartsTreeItem* node = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, pl);
-  node->setText(0, "Pins");
+  cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(this->Internal->PinsNode, pincell);
+  std::string label = pincell->getName() + " (" + pincell->getLabel() + ")";
+  pinNode->setText(0, QString::fromStdString(label));
+  pinNode->setFlags(itemFlags); // not editable
+  pinNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
+  this->Internal->PartsList->blockSignals(false);
+
+  if(select)
+  {
+    this->Internal->PartsList->setCurrentItem(pinNode);
+    this->onPartsSelectionChanged();
+  }
+}
+
+void cmbNucInputListWidget::updateWithPinLibrary(cmbNucPinLibrary * pl)
+{
   for(size_t i = 0; i < pl->GetNumberOfPinCells(); i++)
   {
-    PinCell *pincell = pl->GetPinCell(i);
-    cmbNucPartsTreeItem* pinNode = new cmbNucPartsTreeItem(node, pincell);
-    std::string label = pincell->getName() + " (" + pincell->getLabel() + ")";
-    pinNode->setText(0, QString::fromStdString(label));
-    pinNode->setFlags(itemFlags); // not editable
-    pinNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
+    this->updateWithPin(pl->GetPinCell(i));
   }
+}
+
+void cmbNucInputListWidget::updateWithDuctLibrary(cmbNucDuctLibrary * dl)
+{
+  for(size_t i = 0; i < dl->GetNumberOfDuctCells(); i++)
+  {
+    this->updateWithDuct(dl->GetDuctCell(i));
+  }
+}
+
+void cmbNucInputListWidget::updateWithDuct(DuctCell * dc, bool select)
+{
+  this->Internal->PartsList->blockSignals(true);
+  Qt::ItemFlags itemFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+  cmbNucPartsTreeItem* ductNode = new cmbNucPartsTreeItem(this->Internal->DuctsNode, dc);
+  std::string label = dc->getName();
+  ductNode->setText(0, QString::fromStdString(label));
+  ductNode->setFlags(itemFlags); // not editable
+  ductNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
   this->Internal->PartsList->blockSignals(false);
+
+  if(select)
+  {
+    this->Internal->PartsList->setCurrentItem(ductNode);
+    this->onPartsSelectionChanged();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -733,6 +809,7 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
   this->setActionsEnabled(false);
   this->Internal->Action_NewAssembly->setEnabled(true);
   this->Internal->Action_NewPin->setEnabled(true);
+  this->Internal->Action_NewDuct->setEnabled(true);
 
   switch(selObj->GetType())
   {
@@ -741,6 +818,7 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
     break;
   case CMBNUC_CORE:
     this->Internal->Action_NewPin->setEnabled(false);
+    this->Internal->Action_NewDuct->setEnabled(false);
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
   case CMBNUC_ASSY_PINCELL:
@@ -752,6 +830,8 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
   case CMBNUC_ASSY_CYLINDER_PIN:
     this->Internal->Action_DeletePart->setEnabled(true);
     break;
+  case CMBNUC_ASSY_DUCTCELL:
+    this->Internal->Action_DeletePart->setEnabled(this->NuclearCore->getDuctLibrary()->GetNumberOfDuctCells() > 1);
   default:
     break;
   }

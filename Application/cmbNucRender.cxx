@@ -108,7 +108,7 @@ public:
     extraXTrans = 0;
     cmbNucAssembly * assy = input->GetAssembly(0);
     if(assy == NULL) return;
-    Duct * dc = assy->AssyDuct.getDuct(0);
+    Duct * dc = assy->getAssyDuct().getDuct(0);
     if(dc == NULL) return;
     double startX = dc->x;
     double startY = dc->y;
@@ -212,7 +212,7 @@ public:
   {
     extraXTrans = 0;
     extraYTrans = 0;
-    Duct *hexDuct = input->AssyDuct.getDuct(0);
+    Duct *hexDuct = input->getAssyDuct().getDuct(0);
     Lattice & lat = input->getLattice();
     double pitchX = input->getPinPitchX();
     double pitchY = input->getPinPitchY();
@@ -455,7 +455,7 @@ public:
       {
         tmpGeo[i->first].geo = i->second.geo;
       }
-      createGeo(&(input->AssyDuct), input->IsHexType(), tmpGeo);
+      createGeo(&(input->getAssyDuct()), input->IsHexType(), tmpGeo);
       std::vector<point> points(1);
 
       if(hasSectioning)
@@ -734,8 +734,8 @@ public:
     vtkSmartPointer<vtkCmbLayeredConeSource> cylinder = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
 
     cmbNucAssembly * assy = core->GetAssembly(0);
-    double outerDuctWidth = assy->AssyDuct.getDuct(0)->thickness[1];
-    double outerDuctHeight = assy->AssyDuct.getDuct(0)->thickness[0];
+    double outerDuctWidth = assy->getAssyDuct().getDuct(0)->thickness[1];
+    double outerDuctHeight = assy->getAssyDuct().getDuct(0)->thickness[0];
     double extraXTrans = 0, extraYTrans = 0;
 
     if(core->IsHexType())

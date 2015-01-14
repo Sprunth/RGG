@@ -44,6 +44,7 @@ SET(RGGNuclear_Srcs
   cmbNucPinCell.cxx
   cmbNucPinCellEditor.cxx
   cmbNucDuctCell.cxx
+  cmbNucDuctLibrary.cxx
   cmbNucDraw2DLattice.cxx
   DrawLatticeItem.cxx
   cmbNucExport.cxx
@@ -92,6 +93,7 @@ SET(RGGNuclear_Headers
   cmbNucPinCell.h
   cmbNucPinCellEditor.h
   cmbNucDuctCell.h
+  cmbNucDuctLibrary.h
   cmbNucDraw2DLattice.h
   cmbNucExport.h
   cmbNucExportDialog.h

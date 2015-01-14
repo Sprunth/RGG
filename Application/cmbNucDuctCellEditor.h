@@ -30,8 +30,6 @@ public:
 
   void SetDuctCell(DuctCell *pincell, bool hex);
 
-  void SetAssembly(cmbNucAssembly *assembly);
-
   void clear();
 
   bool isCrossSectioned();
@@ -39,6 +37,7 @@ public:
 signals:
   void ductcellModified(AssyPartObj*);
   void valueChange();
+  void nameChanged(DuctCell*, QString prev, QString current);
 
 public slots:
   void Apply();

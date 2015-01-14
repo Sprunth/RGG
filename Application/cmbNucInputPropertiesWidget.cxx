@@ -14,6 +14,7 @@
 #include "cmbNucDefaultWidget.h"
 #include "cmbNucDefaults.h"
 #include "cmbNucPinLibrary.h"
+#include "cmbNucDuctLibrary.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -229,7 +230,15 @@ void cmbNucInputPropertiesWidget::onReset()
       emit(sendLattice(nucCore));
       break;
     case CMBNUC_ASSEMBLY:
+    {
+      QStringList list;
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      QString tmp(assy->getAssyDuct().getName().c_str());
+      assy->getDuctLibrary()->fillList(list);
+      int i = list.indexOf(tmp);
+      this->Internal->Ducts->clear();
+      this->Internal->Ducts->addItems(list);
+      this->Internal->Ducts->setCurrentIndex(i);
       this->Internal->AssemblyLabelY->setVisible(!assy->IsHexType());
       this->Internal->latticeY->setVisible(!assy->IsHexType());
       this->assyDefaults->set(assy->Defaults, false, assy->IsHexType());
@@ -255,6 +264,7 @@ void cmbNucInputPropertiesWidget::onReset()
         }
       emit(sendLattice(assy));
       break;
+    }
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
       this->resetPinCell(pincell);
@@ -455,6 +465,14 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
+  std::string selected = this->Internal->Ducts->currentText().toStdString();
+  DuctCell * dc = assy->getDuctLibrary()->GetDuctCell(selected);
+  bool v = assy->setDuctCell(dc);
+  if(v)
+  {
+    assy->setAndTestDiffFromFiles(v);
+    emit checkSaveAndGenerate();
+  }
   std::string new_label = this->Internal->AssyLabel->text().toStdString();
   std::string old_label = assy->getLabel();
   std::replace(new_label.begin(), new_label.end(), ' ', '_');
@@ -574,6 +592,8 @@ void cmbNucInputPropertiesWidget::showDuctCellEditor()
     QObject::connect(this->Internal->DuctCellEditor,
                      SIGNAL(ductcellModified(AssyPartObj*)),
                      this, SIGNAL(objGeometryChanged(AssyPartObj*)));
+    QObject::connect(this->Internal->DuctCellEditor, SIGNAL(nameChanged(DuctCell*, QString, QString)),
+                     this, SLOT(ductNameChanged(DuctCell*, QString, QString)));
   }
   this->Internal->DuctCellEditor->SetDuctCell(ductcell, this->Core->IsHexType());
 }
@@ -659,4 +679,25 @@ void cmbNucInputPropertiesWidget::chooseAssyLegendColor()
     // next time we select the core
     this->RebuildCoreGrid = true;
     }
+}
+
+void cmbNucInputPropertiesWidget::ductNameChanged(DuctCell* dc, QString previous, QString current)
+{
+  if(this->CurrentObject == NULL && this->Assembly)
+  {
+    return;
+  }
+  if(this->Core->getDuctLibrary()->nameConflicts(current.toStdString()))
+  {
+    QMessageBox msgBox;
+    msgBox.setText(current +
+                   QString(" is already use as a duct name, reverting to ")+
+                   previous);
+    msgBox.exec();
+    dc->setName(previous.toStdString());
+    return;
+  }
+  this->Core->getDuctLibrary()->replaceName(previous.toStdString(), current.toStdString());
+  emit currentObjectNameChanged(current);
+  emit sendLabelChange(current);
 }

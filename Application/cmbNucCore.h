@@ -18,6 +18,7 @@
 
 class cmbNucAssembly;
 class cmbNucPinLibrary;
+class cmbNucDuctLibrary;
 class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
@@ -276,6 +277,11 @@ public:
     return this->PinLibrary;
   }
 
+  cmbNucDuctLibrary * getDuctLibrary()
+  {
+    return this->DuctLibrary;
+  }
+
   virtual QString extractLabel(QString const& s)
   {
     return s;
@@ -291,6 +297,7 @@ private:
 
   std::vector<cmbNucAssembly*> Assemblies;
   cmbNucPinLibrary * PinLibrary;
+  cmbNucDuctLibrary * DuctLibrary;
   cmbNucCoreConnection * Connection;
 
   QPointer<cmbNucDefaults> Defaults;

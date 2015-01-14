@@ -174,59 +174,17 @@
            <property name="margin">
             <number>10</number>
            </property>
-           <item row="1" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_2"/>
-           </item>
-           <item row="1" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item row="7" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
-              <widget class="QLabel" name="assyColorSwatch">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>30</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>35</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="autoFillBackground">
-                <bool>true</bool>
-               </property>
+              <widget class="QLabel" name="label">
                <property name="text">
-                <string/>
+                <string>Duct:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="assyColorSelectButton">
-               <property name="text">
-                <string>Change Key Color...</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <item>
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>Label:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="AssyLabel"/>
+              <widget class="QComboBox" name="Ducts"/>
              </item>
             </layout>
            </item>
@@ -281,7 +239,63 @@
              </item>
             </layout>
            </item>
-           <item row="7" column="0">
+           <item row="0" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>Label:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="AssyLabel"/>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QLabel" name="assyColorSwatch">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>30</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>35</width>
+                 <height>20</height>
+                </size>
+               </property>
+               <property name="autoFillBackground">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="assyColorSelectButton">
+               <property name="text">
+                <string>Change Key Color...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+           </item>
+           <item row="9" column="0">
             <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>

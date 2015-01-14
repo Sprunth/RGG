@@ -73,6 +73,7 @@ public slots:
   void clearPincellEditor();
   void pinLabelChanged(PinCell*, QString previous, QString current);
   void pinNameChanged(PinCell*, QString previous, QString current);
+  void ductNameChanged(DuctCell*, QString previous, QString current);
 
 protected slots:
   // Invoked when Apply button clicked

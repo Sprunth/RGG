@@ -253,13 +253,6 @@ cmbNucDuctCellEditor
 
 void
 cmbNucDuctCellEditor
-::SetAssembly(cmbNucAssembly *assembly)
-{
-  AssemblyObject = assembly;
-}
-
-void
-cmbNucDuctCellEditor
 ::clear()
 {
   this->Ui->MaterialLayerTable->clear();
@@ -275,21 +268,21 @@ cmbNucDuctCellEditor
 {
   if(this->ExternalDuctCell != NULL)
   {
-    QString newlabel = this->Ui->Label->text();
-    newlabel = newlabel.trimmed().replace(' ', "_");
-    this->Ui->Label->setText(newlabel);
-    this->ExternalDuctCell->setLabel(newlabel.toStdString());
-
+    QString prevName = this->InternalDuctCell->getName().c_str();
     QString newName = this->Ui->Name->text();
     newName = newName.trimmed().replace(' ', "_");
-    this->Ui->Name->setText(newName);
 
-    this->ExternalDuctCell->setName(newName.toStdString());
+    if(newName != prevName)
+    {
+      this->InternalDuctCell->setName(newName.toStdString());
+      emit nameChanged(this->InternalDuctCell, prevName, newName);
+    }
 
-    if(!(*this->ExternalDuctCell == *this->InternalDuctCell))
+    this->Ui->Name->setText(this->InternalDuctCell->getName().c_str());
+
+    if(!(*this->ExternalDuctCell == *this->InternalDuctCell) )
     {
       this->ExternalDuctCell->fill(this->InternalDuctCell);
-      AssemblyObject->geometryChanged();
       emit valueChange();
     }
   }
@@ -343,7 +336,6 @@ cmbNucDuctCellEditor
   {
     this->InternalDuctCell->fill(this->ExternalDuctCell);
     this->Ui->Name->setText(this->InternalDuctCell->getName().c_str());
-    this->Ui->Label->setText(this->InternalDuctCell->getLabel().c_str());
     tmpTable->setRowCount(this->InternalDuctCell->numberOfDucts());
     for(unsigned int i = 0; i < this->InternalDuctCell->numberOfDucts(); ++i)
     {

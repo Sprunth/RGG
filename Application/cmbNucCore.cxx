@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "cmbNucPinLibrary.h"
+#include "cmbNucDuctLibrary.h"
 #include "cmbNucAssembly.h"
 
 #include "vtkTransform.h"
@@ -61,7 +62,8 @@ const double cmbNucCore::CosSinAngles[6][2] =
 
 cmbNucCore::cmbNucCore(bool needSaved)
 {
-  PinLibrary = new cmbNucPinLibrary;
+  this->PinLibrary = new cmbNucPinLibrary;
+  this->DuctLibrary = new cmbNucDuctLibrary;
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
@@ -86,6 +88,7 @@ cmbNucCore::~cmbNucCore()
   this->Assemblies.clear();
   delete this->Defaults;
   delete this->PinLibrary;
+  delete this->DuctLibrary;
   delete this->Connection;
 }
 
@@ -151,8 +154,8 @@ vtkBoundingBox cmbNucCore::computeBounds()
   else
   {
     vtkBoundingBox b;
-    double transX = this->Assemblies[0]->AssyDuct.getDuct(0)->x;
-    double transY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
+    double transX = this->Assemblies[0]->getAssyDuct().getDuct(0)->x;
+    double transY = this->Assemblies[0]->getAssyDuct().getDuct(0)->y;
     double pt[4];
     calculateRectPt( 0, 0, pt );
     calculateRectPt(dim.first-1, dim.second-1, pt+2);
@@ -201,6 +204,7 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
   }
   this->Assemblies.push_back(assembly);
   assembly->setPinLibrary(this->PinLibrary);
+  assembly->setDuctLibrary(this->DuctLibrary);
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SIGNAL(dataChangedSig()));
   QObject::connect(assembly->GetConnection(), SIGNAL(colorChanged()),
@@ -286,8 +290,8 @@ void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
 void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY)
 {
   cmbNucAssembly * assy = this->GetAssembly(0);
-  transX = assy->AssyDuct.getDuct(0)->x;
-  transY = assy->AssyDuct.getDuct(0)->y;
+  transX = assy->getAssyDuct().getDuct(0)->x;
+  transY = assy->getAssyDuct().getDuct(0)->y;
 }
 
 void cmbNucCore::setGeometryLabel(std::string geomType)
@@ -487,7 +491,7 @@ void cmbNucCore::calculateDefaults()
     {
       MeshType = params->MeshType.c_str();
     }
-    if(length < assy->AssyDuct.getLength()) length = assy->AssyDuct.getLength();
+    if(length < assy->getAssyDuct().getLength()) length = assy->getAssyDuct().getLength();
     double r[2];
     assy->GetDuctWidthHeight(r);
     if( r[0] > DuctThickX ) DuctThickX = r[0];

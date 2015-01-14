@@ -16,6 +16,7 @@
 #include "vtkCmbLayeredConeSource.h"
 #include "cmbNucRender.h"
 #include "cmbNucPinLibrary.h"
+#include "cmbNucDuctLibrary.h"
 
 #include <vtkClipClosedSurface.h>
 #include <vtkPlaneCollection.h>
@@ -117,6 +118,20 @@ void cmbNucAssemblyConnection::geometryChanged()
   emit colorChanged();
 }
 
+void cmbNucAssemblyConnection::ductDeleted()
+{
+  for(unsigned int i = 0; i < v->Ducts->GetNumberOfDuctCells(); ++i)
+  {
+    if(v->AssyDuct != v->Ducts->GetDuctCell(i))
+    {
+      v->setDuctCell(v->Ducts->GetDuctCell(i));
+    }
+  }
+  cmbNucAssemblyConnection::dataChanged();
+}
+
+/*************************************************************************/
+
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Pins = NULL;
@@ -129,11 +144,7 @@ cmbNucAssembly::cmbNucAssembly()
   this->Connection = new cmbNucAssemblyConnection();
   this->Connection->v = this;
   this->Defaults = new cmbNucDefaults();
-
-  this->calculatePitch(pinPitchX, pinPitchY);
-
-  QObject::connect(AssyDuct.GetConnection(), SIGNAL(Changed()),
-                   this->Connection, SLOT(dataChanged()));
+  this->AssyDuct = NULL;
 
   QObject::connect(this->Defaults,   SIGNAL(calculatePitch()),
                    this->Connection, SLOT(calculatePitch()));
@@ -171,12 +182,12 @@ void cmbNucAssembly::SetLegendColor(const QColor& color)
 
 vtkBoundingBox cmbNucAssembly::computeBounds()
 {
-  return this->AssyDuct.computeBounds(this->IsHexType());
+  return this->AssyDuct->computeBounds(this->IsHexType());
 }
 
 void cmbNucAssembly::getZRange(double & z1, double & z2)
 {
-  this->AssyDuct.getZRange(z1, z2);
+  this->AssyDuct->getZRange(z1, z2);
 }
 
 void cmbNucAssembly::AddPinCell(PinCell *pincell)
@@ -324,9 +335,9 @@ void cmbNucAssembly::GetDuctWidthHeight(double r[2])
 {
   r[0] = 0;
   r[1] = 0;
-  for(unsigned int i = 0; i < this->AssyDuct.numberOfDucts(); ++i)
+  for(unsigned int i = 0; i < this->AssyDuct->numberOfDucts(); ++i)
     {
-    Duct * tmpd = this->AssyDuct.getDuct(i);
+    Duct * tmpd = this->AssyDuct->getDuct(i);
     double t =tmpd->thickness[0];
     if(t > r[0]) r[0] = t;
     t = tmpd->thickness[1];
@@ -336,7 +347,7 @@ void cmbNucAssembly::GetDuctWidthHeight(double r[2])
 
 void cmbNucAssembly::computeDefaults()
 {
-  double x, y, l = AssyDuct.getLength();
+  double x, y, l = AssyDuct->getLength();
   if(l>0) Defaults->setHeight(l);
   this->calculatePitch(x, y);
   if(x>=0 && y >= 0) Defaults->setPitch(x,y);
@@ -345,7 +356,7 @@ void cmbNucAssembly::computeDefaults()
 void cmbNucAssembly::calculatePitch(double & x, double & y)
 {
   double inDuctThick[2];
-  if(!this->AssyDuct.GetInnerDuctSize(inDuctThick[0],inDuctThick[1]) &&
+  if(!this->AssyDuct->GetInnerDuctSize(inDuctThick[0],inDuctThick[1]) &&
      !this->Defaults->getDuctThickness(inDuctThick[0],inDuctThick[1]))
   {
     inDuctThick[0] = inDuctThick[1] = 10;
@@ -375,7 +386,7 @@ void cmbNucAssembly::calculateRadius(double & r)
   double minWidth;
   double maxNumber;
   double inDuctThick[2];
-  if(!this->AssyDuct.GetInnerDuctSize(inDuctThick[0],inDuctThick[1]) &&
+  if(!this->AssyDuct->GetInnerDuctSize(inDuctThick[0],inDuctThick[1]) &&
      !this->Defaults->getDuctThickness(inDuctThick[0],inDuctThick[1]))
   {
     inDuctThick[0] = inDuctThick[1] = 10;
@@ -474,7 +485,7 @@ void cmbNucAssembly::clear()
 
 QSet< cmbNucMaterial* > cmbNucAssembly::getMaterials()
 {
-  QSet< cmbNucMaterial* > result = AssyDuct.getMaterials();
+  QSet< cmbNucMaterial* > result = AssyDuct->getMaterials();
   for(unsigned int i = 0; i < PinCells.size(); ++i)
   {
     result.unite(PinCells[i]->getMaterials());
@@ -509,23 +520,16 @@ void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
   double tmpd2;
   if(d->getDuctThickness(tmpD,tmpd2))
   {
-    for(unsigned int i = 0; i < this->AssyDuct.numberOfDucts(); ++i)
-    {
-      Duct * duct = this->AssyDuct.getDuct(i);
-      change |= tmpD != duct->thickness[0];
-      duct->thickness[0] = tmpD;
-      change |= tmpd2 != duct->thickness[1];
-      duct->thickness[1] = tmpd2;
-    }
+    change |= this->AssyDuct->setDuctThickness(tmpD,tmpd2);
     this->Defaults->setDuctThickness(tmpD,tmpd2);
     if(KeepPinsCentered) this->centerPins();
   }
   if(d->getHeight(tmpD))
   {
-    if(tmpD != AssyDuct.getLength())
+    if(tmpD != AssyDuct->getLength())
     {
       change = true;
-      AssyDuct.setLength(tmpD);
+      AssyDuct->setLength(tmpD);
     }
     this->Defaults->setHeight(tmpD);
   }
@@ -627,4 +631,42 @@ cmbNucAssembly::Transform* cmbNucAssembly::getTransform(int i) const
 size_t cmbNucAssembly::getNumberOfTransforms() const
 {
   return this->Transforms.size();
+}
+
+bool cmbNucAssembly::setDuctCell(DuctCell * ad, bool resetPitch)
+{
+  if(ad == this->AssyDuct)
+  {
+    double tmpx, tmpy;
+    if(resetPitch)
+    {
+      this->calculatePitch(tmpx, tmpy);
+      if( pinPitchX != tmpx || pinPitchY != tmpy )
+      {
+        pinPitchX = tmpx;
+        pinPitchY = tmpy;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  if(this->AssyDuct != NULL)
+  {
+    QObject::disconnect(AssyDuct->GetConnection(), SIGNAL(Changed()),
+                        this->Connection, SLOT(dataChanged()));
+    QObject::disconnect(AssyDuct->GetConnection(), SIGNAL(Deleted()),
+                        this->Connection, SLOT(ductDeleted()));
+  }
+  this->AssyDuct = ad;
+  if(ad != NULL)
+  {
+    if(resetPitch) this->calculatePitch(pinPitchX, pinPitchY);
+    QObject::connect(ad->GetConnection(), SIGNAL(Changed()),
+                     this->Connection, SLOT(dataChanged()));
+    QObject::connect(ad->GetConnection(), SIGNAL(Deleted()),
+                     this->Connection, SLOT(ductDeleted()));
+
+  }
+  return true;
 }

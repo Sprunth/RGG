@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>390</width>
-        <height>647</height>
+        <height>616</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
@@ -41,41 +41,7 @@
        <property name="bottomMargin">
         <number>2</number>
        </property>
-       <item row="6" column="0" colspan="3">
-        <widget class="QCheckBox" name="CrossSection">
-         <property name="text">
-          <string>Cross Section</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="dlLabel">
-         <property name="text">
-          <string>Duct Length:      </string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Name:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0" colspan="3">
+       <item row="3" column="0" colspan="3">
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
           <string>Duct Segments:</string>
@@ -141,90 +107,7 @@
          </layout>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="pdLabel">
-         <property name="text">
-          <string>Duct Pitch:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Z1:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="Z1">
-           <property name="minimumSize">
-            <size>
-             <width>70</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Z2:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="Z2">
-           <property name="minimumSize">
-            <size>
-             <width>70</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>0</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_5">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item row="2" column="2">
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="5" column="0" colspan="3">
+       <item row="4" column="0" colspan="3">
         <widget class="QGroupBox" name="MaterialBox">
          <property name="title">
           <string>Materials Layers:</string>
@@ -290,7 +173,127 @@
          </layout>
         </widget>
        </item>
+       <item row="2" column="2">
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Name:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="dlLabel">
+         <property name="text">
+          <string>Duct Length:      </string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="3">
+        <widget class="QCheckBox" name="CrossSection">
+         <property name="text">
+          <string>Cross Section</string>
+         </property>
+        </widget>
+       </item>
        <item row="2" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Z1:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="Z1">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Z2:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="Z2">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="pdLabel">
+         <property name="text">
+          <string>Duct Pitch:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="Name"/>
+       </item>
+       <item row="1" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QLabel" name="DuctPitchXLabel">
@@ -353,19 +356,6 @@
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Label:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="Name"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="Label"/>
-       </item>
       </layout>
      </widget>
     </widget>
@@ -374,7 +364,6 @@
  </widget>
  <tabstops>
   <tabstop>Name</tabstop>
-  <tabstop>Label</tabstop>
   <tabstop>DuctSegmentTable</tabstop>
   <tabstop>Split</tabstop>
   <tabstop>DeleteUp</tabstop>

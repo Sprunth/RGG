@@ -12,8 +12,10 @@ class DuctConnection : public QObject
   Q_OBJECT
 public:
   void sendChange();
+  void sendDelete();
 signals:
   void Changed();
+  void Deleted();
 };
 
 class DuctCell;
@@ -99,9 +101,10 @@ public:
   vtkBoundingBox computeBounds(bool hex);
   double getLength();
   void setLength(double l);
-  virtual std::string getTitle(){ return "Duct: " + AssyPartObj::getTitle(); }
+  virtual std::string getTitle(){ return "Duct: " + AssyPartObj::getName(); }
   bool operator==(const DuctCell& obj);
   void sort();
+  bool setDuctThickness(double t1, double t2);
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

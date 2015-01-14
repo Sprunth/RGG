@@ -24,6 +24,7 @@ class inpFileHelper;
 class inpFileWriter;
 class cmbNucDefaults;
 class cmbNucPinLibrary;
+class cmbNucDuctLibrary;
 
 #define ASSY_NOT_SET_VALUE -100001
 #define ASSY_NOT_SET_KEY "NotSet"
@@ -115,6 +116,7 @@ public slots:
   void dataChanged();
   void calculatePitch();
   void geometryChanged();
+  void ductDeleted();
 signals:
   void dataChangedSig();
   void colorChanged();
@@ -207,6 +209,11 @@ public:
     this->Pins = p;
   }
 
+  void setDuctLibrary(cmbNucDuctLibrary * d)
+  {
+    this->Ducts = d;
+  }
+
   virtual QString extractLabel(QString const& s);
   virtual void setUsedLabels(std::map<QString, int> const& labels);
 
@@ -279,7 +286,6 @@ public:
   virtual std::string getTitle(){ return "Assembly: " + label; }
 
   // Expose assembly parts for UI access
-  DuctCell AssyDuct;
   std::string label;
 
   std::string FileName;
@@ -323,9 +329,22 @@ public:
   cmbNucPinLibrary * getPinLibrary()
   { return Pins; }
 
+  cmbNucDuctLibrary * getDuctLibrary()
+  { return Ducts; }
+
+  DuctCell & getAssyDuct()
+  {
+    return *AssyDuct;
+  }
+
+  //return true when changed
+  bool setDuctCell(DuctCell * AssyDuct, bool resetPitch = false);
+
 protected:
   std::vector<PinCell*> PinCells;
   cmbNucPinLibrary * Pins;
+  cmbNucDuctLibrary * Ducts;
+  DuctCell * AssyDuct;
 
   std::vector<Transform*> Transforms;
 

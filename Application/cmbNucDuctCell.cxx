@@ -8,6 +8,11 @@ void DuctConnection::sendChange()
   emit Changed();
 }
 
+void DuctConnection::sendDelete()
+{
+  emit Deleted();
+}
+
 /*******************************************************************************/
 
 Duct::Duct(double height, double thickX, double thickY)
@@ -197,6 +202,7 @@ DuctCell::DuctCell()
 
 DuctCell::~DuctCell()
 {
+  Connection->sendDelete();
   this->deleteObjs(this->Ducts);
   delete Connection;
 }
@@ -376,5 +382,19 @@ bool DuctCell::operator==(const DuctCell& obj)
     Duct * d2 = obj.Ducts[i];
     if(! (*d1 == *d2) ) return false;
   }
-  return true;
+  return this->Name == obj.Name;
+}
+
+bool DuctCell::setDuctThickness(double t1, double t2)
+{
+  bool change = false;
+  for(unsigned int i = 0; i < this->numberOfDucts(); ++i)
+  {
+    Duct * duct = this->getDuct(i);
+    change |= t1 != duct->thickness[0];
+    duct->thickness[0] = t1;
+    change |= t2 != duct->thickness[1];
+    duct->thickness[1] = t2;
+  }
+  return change;
 }
