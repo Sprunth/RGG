@@ -21,11 +21,16 @@ public:
   {
     emit Changed();
   }
+  void EmitDeleted(PinCell * pc)
+  {
+    emit Deleted(pc);
+  }
 public slots:
   void clearOldData();
 signals:
   void Changed();
   void CellMaterialChanged();
+  void Deleted(PinCell*);
 private:
   PinCell * pc;
 };

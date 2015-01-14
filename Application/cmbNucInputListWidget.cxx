@@ -508,9 +508,9 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
       this->Internal->PartsList->blockSignals(true);
       cmbNucAssembly* assem = this->getCurrentAssembly();
       QTreeWidgetItem * p = selItem->parent();
+      this->NuclearCore->getPinLibrary()->removePincell(pincell);
       delete selItem;
       this->Internal->PartsList->setCurrentItem(p);
-      assem->RemovePinCell(pincell->getLabel()); //TODO Look at this
       emit pincellDeleted();
       emit pinsModified(assem);
       this->Internal->PartsList->blockSignals(false);

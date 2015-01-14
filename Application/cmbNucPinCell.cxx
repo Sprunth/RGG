@@ -265,6 +265,7 @@ PinCell::PinCell()
 
 PinCell::~PinCell()
 {
+  this->Connection->EmitDeleted(this);
   this->deleteObjs(this->Cylinders);
   this->deleteObjs(this->Frustums);
   delete Connection;

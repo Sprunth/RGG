@@ -130,6 +130,11 @@ void cmbNucAssemblyConnection::ductDeleted()
   cmbNucAssemblyConnection::dataChanged();
 }
 
+void cmbNucAssemblyConnection::pinDeleted(PinCell* pc)
+{
+  v->RemovePinCell(pc->getLabel());
+}
+
 /*************************************************************************/
 
 cmbNucAssembly::cmbNucAssembly()
@@ -197,6 +202,8 @@ void cmbNucAssembly::AddPinCell(PinCell *pincell)
                    this->Connection, SLOT(dataChanged()));
   QObject::connect(pincell->GetConnection(), SIGNAL(CellMaterialChanged()),
                    this->Connection, SLOT(geometryChanged()));
+  QObject::connect(pincell->GetConnection(), SIGNAL(Deleted(PinCell*)),
+                   this->Connection, SLOT(pinDeleted(PinCell*)));
   this->PinCells.push_back(pincell);
 }
 
@@ -232,6 +239,8 @@ void cmbNucAssembly::setUsedLabels(std::map<QString, int> const& labels)
                         this->Connection, SLOT(dataChanged()));
     QObject::disconnect(pincell->GetConnection(), SIGNAL(CellMaterialChanged()),
                         this->Connection, SLOT(geometryChanged()));
+    QObject::disconnect(pincell->GetConnection(), SIGNAL(Deleted(PinCell*)),
+                        this->Connection, SLOT(pinDeleted(PinCell*)));
   }
   this->PinCells.clear();
   for(std::map<QString, int>::const_iterator it = labels.begin(); it != labels.end(); ++it)

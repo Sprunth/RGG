@@ -75,6 +75,12 @@ void cmbNucPinLibrary::removePincell(PinCell* pc)
   std::map<std::string, size_t>::iterator li = LabelToPin.find(pc->getLabel());
   if(ni == NameToPin.end()) return;
   this->PinCells.erase(this->PinCells.begin() + ni->second);
+  for(size_t i = ni->second; i < this->PinCells.size(); ++i)
+  {
+    PinCell * pc = this->PinCells[i];
+    NameToPin[pc->getName()] = i;
+    LabelToPin[pc->getLabel()] = i;
+  }
   NameToPin.erase(ni);
   LabelToPin.erase(li);
   this->Connection->pinRemoved(pc);

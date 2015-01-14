@@ -104,6 +104,7 @@ public:
 };
 
 class cmbNucAssembly;
+class PinCell;
 
 class cmbNucAssemblyConnection: public QObject
 {
@@ -117,6 +118,7 @@ public slots:
   void calculatePitch();
   void geometryChanged();
   void ductDeleted();
+  void pinDeleted(PinCell*);
 signals:
   void dataChangedSig();
   void colorChanged();
