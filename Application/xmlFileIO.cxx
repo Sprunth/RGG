@@ -3,6 +3,7 @@
 #include "cmbNucCore.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDuctLibrary.h"
+#include "cmbNucPinLibrary.h"
 
 #define PUGIXML_HEADER_ONLY
 #include "src/pugixml.cpp"
@@ -23,6 +24,12 @@ public:
   bool write(pugi::xml_node & node, cmbNucDuctLibrary * dl);
   bool write(pugi::xml_node & node, DuctCell * dc);
   bool write(pugi::xml_node & node, Duct * dc);
+
+  bool write(pugi::xml_node & node, cmbNucPinLibrary * dl);
+  bool write(pugi::xml_node & node, PinCell * dc);
+  bool write(pugi::xml_node & node, Cylinder * dc);
+  bool write(pugi::xml_node & node, Frustum * dc);
+  bool writePSP(pugi::xml_node & node, PinSubPart * dc);
 
   bool write(pugi::xml_node & node, cmbNucMaterialLayer const& v);
 
@@ -120,6 +127,70 @@ bool xmlHelperClass::write(pugi::xml_node & node, Duct * dc)
   return r;
 }
 
+bool xmlHelperClass::write(pugi::xml_node & node, cmbNucPinLibrary * dl)
+{
+  std::size_t num = dl->GetNumberOfPinCells();
+  bool r = true;
+  for(size_t i = 0; i < num; ++i)
+  {
+    pugi::xml_node xn = node.append_child("PinCell");
+    r &= this->write(xn, dl->GetPinCell(i));
+  }
+  return r;
+}
+
+bool xmlHelperClass::write(pugi::xml_node & node, PinCell * dc)
+{
+  bool r = true;
+  r &= write(node, "Name", dc->getName());
+  r &= write(node, "Label", dc->getLabel());
+  r &= write(node, "LegendColor", dc->GetLegendColor());
+
+  size_t num = dc->NumberOfCylinders();
+  for(unsigned int i = 0; i < num; ++i)
+  {
+    pugi::xml_node xn = node.append_child("Cylinder");
+    r &= this->write(xn, dc->GetCylinder(i));
+  }
+
+  num = dc->NumberOfFrustums();
+  for(unsigned int i = 0; i < num; ++i)
+  {
+    pugi::xml_node xn = node.append_child("Frustrum");
+    r &= this->write(xn, dc->GetFrustum(i));
+  }
+  return r;
+}
+
+bool xmlHelperClass::write(pugi::xml_node & node, Cylinder * c)
+{
+  bool r = true;
+  r &= write(node, "radius", c->r);
+  r &= writePSP(node, c);
+  return r;
+}
+
+bool xmlHelperClass::write(pugi::xml_node & node, Frustum * f)
+{
+  bool r = true;
+  r &= write(node, "radius", f->r, 2);
+  r &= writePSP(node, f);
+  return r;
+}
+
+bool xmlHelperClass::writePSP(pugi::xml_node & node, PinSubPart * p)
+{
+  bool r = true;
+  r &= write(node, "Loc", QString("%1, %2, %3, %4").arg(p->x).arg(p->y).arg(p->z1).arg(p->z2));
+  size_t num = p->GetNumberOfLayers();
+  for(size_t i = 0; i < num; ++i)
+  {
+    pugi::xml_node xn = node.append_child("MaterialLayer");
+    r &= this->write(xn, p->getMaterialLayer(i));
+  }
+  return true;
+}
+
 bool xmlHelperClass::write(pugi::xml_node & node, cmbNucMaterialLayer const& v)
 {
   bool r = true;
@@ -136,6 +207,9 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
   if(!write(mnode, cmbNucMaterialColors::instance())) return false;
   pugi::xml_node dnode = rootElement.append_child("Ducts");
   if(!write(dnode, core.getDuctLibrary())) return false;
+
+  pugi::xml_node pnode = rootElement.append_child("Pins");
+  if(!write(pnode, core.getPinLibrary())) return false;
 
   std::stringstream oss;
   unsigned int flags = pugi::format_indent;

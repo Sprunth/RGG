@@ -65,6 +65,9 @@ public:
   virtual double length() const { return z2 - z1; }
   virtual void reverseRadii() {};
 
+  cmbNucMaterialLayer const& getMaterialLayer(int i) const
+  { return *Materials[i]; }
+
   double x;
   double y;
   double z1;
