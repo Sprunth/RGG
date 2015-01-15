@@ -31,6 +31,8 @@ public:
   bool write(pugi::xml_node & node, Frustum * dc);
   bool writePSP(pugi::xml_node & node, PinSubPart * dc);
 
+  bool write(pugi::xml_node & node, Lattice & lattice);
+
   bool write(pugi::xml_node & node, cmbNucMaterialLayer const& v);
 
   bool write(pugi::xml_node & node, std::string attName, QString const& v)
@@ -44,25 +46,35 @@ public:
   }
   bool write(pugi::xml_node & node, std::string attName, QColor const& v)
   {
-    QString strcolor = QString("%1, %2, %3, %4").arg(v.redF()).arg(v.greenF()).arg(v.blueF()).arg(v.alphaF());
-    return write(node, attName, strcolor);
+    QString str = QString("%1, %2, %3, %4").arg(v.redF()).arg(v.greenF()).arg(v.blueF()).arg(v.alphaF());
+    return write(node, attName, str);
   }
   bool write(pugi::xml_node & node, std::string attName, double const& v)
   {
-    QString strcolor = QString("%1").arg(v);
-    return write(node, attName, strcolor);
+    QString str = QString("%1").arg(v);
+    return write(node, attName, str);
+  }
+  bool write(pugi::xml_node & node, std::string attName, int const& v)
+  {
+    QString str = QString("%1").arg(v);
+    return write(node, attName, str);
+  }
+  bool write(pugi::xml_node & node, std::string attName, unsigned int const& v)
+  {
+    QString str = QString("%1").arg(v);
+    return write(node, attName, str);
   }
   bool write(pugi::xml_node & node, std::string attName, double const* v, int size)
   {
-    QString strcolor;
+    QString str;
     switch(size)
     {
       case 1: return write(node, attName, *v);
-      case 2: strcolor = QString("%1, %2").arg(v[0]).arg(v[1]); break;
-      case 3: strcolor = QString("%1, %2, %3").arg(v[0]).arg(v[1]).arg(v[2]); break;
-      case 4: strcolor = QString("%1, %2, %3, %4").arg(v[0]).arg(v[1]).arg(v[2]).arg(v[3]); break;
+      case 2: str = QString("%1, %2").arg(v[0]).arg(v[1]); break;
+      case 3: str = QString("%1, %2, %3").arg(v[0]).arg(v[1]).arg(v[2]); break;
+      case 4: str = QString("%1, %2, %3, %4").arg(v[0]).arg(v[1]).arg(v[2]).arg(v[3]); break;
     }
-    return write(node, attName, strcolor);
+    return write(node, attName, str);
   }
 };
 
@@ -199,6 +211,26 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucMaterialLayer const& v)
   return r;
 }
 
+bool xmlHelperClass::write(pugi::xml_node & node, Lattice & lattice)
+{
+  bool r = true;
+  r &= write(node, "Type", static_cast<unsigned int>(lattice.GetType()));
+  r &= write(node, "SubType", lattice.GetGeometrySubType());
+  std::string grid;
+  for(unsigned int i = 0; i < lattice.getSize(); ++i)
+  {
+    for(unsigned int j = 0; j < lattice.getSize(i); ++j)
+    {
+      if(j != 0) grid += ",";
+      Lattice::LatticeCell cell = lattice.GetCell(i, j);
+      grid += cell.label;
+    }
+    grid += ";";
+  }
+  r &= write(node, "Grid", grid);
+  return r;
+}
+
 bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
 {
   pugi::xml_document document;
@@ -210,6 +242,9 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
 
   pugi::xml_node pnode = rootElement.append_child("Pins");
   if(!write(pnode, core.getPinLibrary())) return false;
+
+  pugi::xml_node lnode = rootElement.append_child("Lattice");
+  if(!write(lnode, core.getLattice())) return false;
 
   std::stringstream oss;
   unsigned int flags = pugi::format_indent;
