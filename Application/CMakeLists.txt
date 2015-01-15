@@ -52,6 +52,7 @@ SET(RGGNuclear_Srcs
   cmbNucPreferencesDialog.cxx
   cmbAssyParametersWidget.cxx
   inpFileIO.cxx
+  xmlFileIO.cxx
   cmbCoreParametersWidget.cxx
   pqXMLEventObserver.cxx
   cmbNucRender.cxx

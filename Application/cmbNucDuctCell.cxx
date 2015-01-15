@@ -191,6 +191,11 @@ QSet< cmbNucMaterial* > Duct::getMaterials()
   return result;
 }
 
+cmbNucMaterialLayer const& Duct::getMaterialLayer(int i) const
+{
+  return this->Materials[i];
+}
+
 /*******************************************************************************/
 
 DuctCell::DuctCell()

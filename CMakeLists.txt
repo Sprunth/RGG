@@ -133,6 +133,11 @@ find_package(Remus REQUIRED)
 include_directories(${Remus_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------
+# pugixml
+message("${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/pugixml")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/pugixml")
+
+#-----------------------------------------------------------------------------
 # Libs
 #
 # add_subdirectory(Libs)

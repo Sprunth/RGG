@@ -650,3 +650,16 @@ cmbNucMaterialColors
   }
   return QString(&(name[2]));
 }
+
+std::vector< QPointer< cmbNucMaterial > >
+cmbNucMaterialColors
+::getMaterials() const
+{
+  std::vector< QPointer< cmbNucMaterial > > result;
+  result.push_back(UnknownMaterial);
+  foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
+  {
+    result.push_back(mat);
+  }
+  return result;
+}

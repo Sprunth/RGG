@@ -37,6 +37,7 @@ public:
   double * getNormThick(int i);
 
   QPointer<cmbNucMaterial> getMaterial(int i);
+  cmbNucMaterialLayer const& getMaterialLayer(int i) const;
 
   void setMaterial( int i, QPointer<cmbNucMaterial> mat );
 
@@ -47,8 +48,7 @@ public:
 
   QSet< cmbNucMaterial* > getMaterials();
 
-  std::string getLabel(){return label;}
-  virtual std::string getTitle(){ return "Duct: " + label; }
+  virtual std::string getTitle(){ return "Duct"; }
 
   void setZ1(double z)
   {
@@ -73,7 +73,6 @@ public:
   double x;
   double y;
   double thickness[2];
-  std::string label;
 protected:
   std::vector<cmbNucMaterialLayer> Materials;
   DuctConnection * Connection;

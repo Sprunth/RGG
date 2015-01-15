@@ -84,6 +84,8 @@ public:
 
   void buildTree(QTreeWidget * tree);
 
+  std::vector< QPointer< cmbNucMaterial > > getMaterials() const;
+
 public slots:
   void testShow();
   void controlShow(int);

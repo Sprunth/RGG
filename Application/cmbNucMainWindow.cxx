@@ -60,6 +60,7 @@
 #include "cmbNucPreferencesDialog.h"
 #include "cmbNucMaterial.h"
 #include "inpFileIO.h"
+#include "xmlFileIO.h"
 #include "cmbNucRender.h"
 
 #include "vtkCmbLayeredConeSource.h"
@@ -1155,12 +1156,13 @@ void cmbNucMainWindow::setCameras(bool coreModel, bool fullMesh)
 
 void cmbNucMainWindow::onSaveSelected()
 {
-  this->saveSelected(false, false);
+  this->saveXML(this->NuclearCore, true, true);
+  //this->saveSelected(false, false);
 }
 
 void cmbNucMainWindow::onSaveAll()
 {
-  this->saveAll(false, false);
+  //this->saveAll(false, false);
 }
 
 void cmbNucMainWindow::saveAll(bool requestFileName, bool force_save)
@@ -1197,7 +1199,7 @@ void cmbNucMainWindow::onSaveProjectAs()
 
 void cmbNucMainWindow::onSaveSelectedAs()
 {
-  this->saveSelected(true, true);
+  //this->saveSelected(true, true);
 }
 
 void cmbNucMainWindow::saveSelected(bool requestFileName, bool force_save)
@@ -1263,6 +1265,22 @@ void cmbNucMainWindow::save(cmbNucCore* core, bool request_file_name, bool force
   if(force_save || core->changeSinceLastSave())
   {
     inpFileWriter::write(fileName.toStdString(), *core);
+  }
+  setTitle();
+}
+
+void cmbNucMainWindow::saveXML(cmbNucCore* core, bool request_file_name, bool force)
+{
+  if(core == NULL) return;
+  QString fileName = core->FileName.c_str();
+  if(request_file_name || fileName.isEmpty())
+  {
+    fileName = cmbNucMainWindow::requestInpFileName("","Core");
+  }
+  if(fileName.isEmpty()) return;
+  if(force || core->changeSinceLastSave())
+  {
+    xmlFileWriter::write(fileName.toStdString(), *core);
   }
   setTitle();
 }
