@@ -40,10 +40,6 @@ void cmbNucDefaultWidget::set(QPointer<cmbNucDefaults> c, bool isCore, bool isHe
   this->Internal->ui->EdgeIntervalLayout->setVisible(isCore);
   this->Internal->ui->HeightLayout->setVisible(isCore);
   this->Internal->ui->MeshTypeLayout->setVisible(isCore);
-  this->Internal->ui->PitchLayout->setVisible(!isCore);
-  this->Internal->ui->pitchXLabel->setVisible(!isHex);
-  this->Internal->ui->pitchYLabel->setVisible(!isHex);
-  this->Internal->ui->PitchY->setVisible(!isHex);
   this->Internal->ui->UserDefinedArea->setVisible(isCore);
   this->setConnections();
   this->reset();
@@ -215,48 +211,17 @@ void cmbNucDefaultWidget::reset()
 void cmbNucDefaultWidget::setConnections()
 {
   if(this->Current == NULL) return;
-  QObject::connect(this->Internal->ui->computePitch, SIGNAL(clicked()),
-                   this->Current, SIGNAL(calculatePitch()));
-
-  QObject::connect(this->Current, SIGNAL(recieveCalculatedPitch(double, double)),
-                   this,          SLOT(recievePitch(double, double)));
 }
 
 void cmbNucDefaultWidget::disConnect()
 {
   if(this->Current == NULL) return;
-  QObject::disconnect(this->Internal->ui->computePitch, SIGNAL(clicked()),
-                      this->Current, SIGNAL(calculatePitch()));
-  QObject::disconnect(this->Current, SIGNAL(recieveCalculatedPitch(double, double)),
-                      this,          SLOT(recievePitch(double, double)));
 }
 
 void cmbNucDefaultWidget::recievePitch(double xin, double yin)
 {
-  if(xin<0||yin<0)
-  {
-    double tmpX; double tmpY;
-    if(Current->getPitch(tmpX, tmpY))
-    {
-      this->Internal->ui->PitchX->setText(QString::number(tmpX));
-      this->Internal->ui->PitchY->setText(QString::number(tmpY));
-    }
-    else
-    {
-      this->Internal->ui->PitchX->setText("");
-      this->Internal->ui->PitchY->setText("");
-    }
-  }
-  else
-  {
-    this->Internal->ui->PitchX->setText(QString::number(xin));
-    this->Internal->ui->PitchY->setText(QString::number(yin));
-  }
 }
 
 void cmbNucDefaultWidget::setPitchAvail(bool v)
 {
-  this->Internal->ui->computePitch->setEnabled(v);
-  this->Internal->ui->PitchX->setEnabled(v);
-  this->Internal->ui->PitchY->setEnabled(v);
 }

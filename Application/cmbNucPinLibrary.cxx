@@ -59,6 +59,7 @@ bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
         PinCells[LabelToPin.find(pc->getLabel())->second]->fill(pc);
       case KeepOriginal:
         delete pc;
+        *in = NULL;
         *in = PinCells[LabelToPin.find(pc->getLabel())->second];
         return true;
     }

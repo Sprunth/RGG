@@ -359,7 +359,6 @@ void cmbNucAssembly::computeDefaults()
   double x, y, l = AssyDuct->getLength();
   if(l>0) Defaults->setHeight(l);
   this->calculatePitch(x, y);
-  if(x>=0 && y >= 0) Defaults->setPitch(x,y);
 }
 
 void cmbNucAssembly::calculatePitch(double & x, double & y)

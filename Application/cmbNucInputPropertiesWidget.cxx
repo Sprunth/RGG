@@ -103,8 +103,7 @@ void cmbNucInputPropertiesWidget::initUI()
 
   connect( CoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
 
-  assyDefaults = new cmbNucDefaultWidget();
-  this->Internal->AssyDefaults->addWidget(assyDefaults);
+  connect( this->Internal->computePitch, SIGNAL(clicked()), this, SLOT(computePitch()));
 }
 
 //-----------------------------------------------------------------------------
@@ -241,15 +240,18 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->Ducts->setCurrentIndex(i);
       this->Internal->AssemblyLabelY->setVisible(!assy->IsHexType());
       this->Internal->latticeY->setVisible(!assy->IsHexType());
-      this->assyDefaults->set(assy->Defaults, false, assy->IsHexType());
+      this->Internal->pitchY->setVisible(!assy->IsHexType());
+      this->Internal->xlabel->setVisible(!assy->IsHexType());
+      this->Internal->ylabel->setVisible(!assy->IsHexType());
+
       if(assy->IsHexType())
-        {
+      {
         this->Internal->AssemblyLabelX->setText("Number Of Layers:");
-        }
+      }
       else
-        {
+      {
         this->Internal->AssemblyLabelX->setText("X:");
-        }
+      }
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
       this->setAssembly(assy);
       this->resetAssembly(assy);
@@ -497,14 +499,25 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
     }
   }
   this->assyConf->applyToAssembly(assy);
-  this->assyDefaults->apply();
   double px, py;
-  assy->Defaults->getPitch(px,py);
+  px = this->Internal->pitchX->value();
+  py = this->Internal->pitchY->value();
   bool checked = this->Internal->CenterPins->isChecked();
-  this->assyDefaults->setPitchAvail(!checked);
   if(!checked)
   {
     assy->setPitch(px,py);
+    this->Internal->pitchX->setEnabled( true );
+    this->Internal->pitchY->setEnabled( true );
+    this->Internal->computePitch->setEnabled(true);
+  }
+  else
+  {
+    assy->calculatePitch(px, py);
+    this->Internal->pitchX->setValue(px);
+    this->Internal->pitchY->setValue(py);
+    this->Internal->pitchX->setEnabled( false );
+    this->Internal->pitchY->setEnabled( false );
+    this->Internal->computePitch->setEnabled(false);
   }
   assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
@@ -535,6 +548,25 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
   this->assyConf->resetAssembly(assy);
   this->Internal->CenterPins->setChecked(assy->isPinsAutoCentered());
   this->Internal->AssyLabel->setText(assy->getLabel().c_str());
+
+  if(assy->isPinsAutoCentered())
+  {
+    double px, py;
+    assy->calculatePitch(px,py);
+    this->Internal->pitchX->setValue(px);
+    this->Internal->pitchY->setValue(py);
+    this->Internal->pitchX->setEnabled( false );
+    this->Internal->pitchY->setEnabled( false );
+    this->Internal->computePitch->setEnabled(false);
+  }
+  else
+  {
+    this->Internal->pitchX->setValue(assy->getPinPitchX());
+    this->Internal->pitchY->setValue(assy->getPinPitchY());
+    this->Internal->pitchX->setEnabled( true );
+    this->Internal->pitchY->setEnabled( true );
+    this->Internal->computePitch->setEnabled(true);
+  }
 
   // Show color swatch with legendColor
   QLabel* swatch = this->Internal->assyColorSwatch;
@@ -700,4 +732,13 @@ void cmbNucInputPropertiesWidget::ductNameChanged(DuctCell* dc, QString previous
   this->Core->getDuctLibrary()->replaceName(previous.toStdString(), current.toStdString());
   emit currentObjectNameChanged(current);
   emit sendLabelChange(current);
+}
+
+void cmbNucInputPropertiesWidget::computePitch()
+{
+  double px, py;
+  cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(this->CurrentObject);
+  assy->calculatePitch(px, py);
+  this->Internal->pitchX->setValue(px);
+  this->Internal->pitchY->setValue(py);
 }

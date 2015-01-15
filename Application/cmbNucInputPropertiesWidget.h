@@ -92,6 +92,8 @@ protected slots:
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToCore(cmbNucCore* nucCore);
 
+  void computePitch();
+
   void showPinCellEditor();
   void showDuctCellEditor();
 
@@ -111,6 +113,5 @@ private:
   cmbCoreParametersWidget* CoreProperties;
   cmbAssyParametersWidget* assyConf;
   QPointer<cmbNucDefaultWidget> CoreDefaults;
-  QPointer<cmbNucDefaultWidget> assyDefaults;
 };
 #endif

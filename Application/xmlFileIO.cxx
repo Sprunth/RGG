@@ -1,6 +1,7 @@
 #include "xmlFileIO.h"
 
 #include "cmbNucCore.h"
+#include "cmbNucAssembly.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDuctLibrary.h"
 #include "cmbNucPinLibrary.h"
@@ -17,6 +18,8 @@ class xmlHelperClass
 public:
   bool writeToString(std::string & out, cmbNucCore & core);
   bool writeStringToFile(std::string fname, std::string & out);
+
+  bool write(pugi::xml_node & node, cmbNucAssembly * assy);
 
   bool write(pugi::xml_node & materialElement, cmbNucMaterialColors * materials);
   bool write(pugi::xml_node & materialElement, QPointer< cmbNucMaterial > material);
@@ -60,6 +63,11 @@ public:
     return write(node, attName, str);
   }
   bool write(pugi::xml_node & node, std::string attName, unsigned int const& v)
+  {
+    QString str = QString("%1").arg(v);
+    return write(node, attName, str);
+  }
+  bool write(pugi::xml_node & node, std::string attName, bool const& v)
   {
     QString str = QString("%1").arg(v);
     return write(node, attName, str);
@@ -228,6 +236,21 @@ bool xmlHelperClass::write(pugi::xml_node & node, Lattice & lattice)
     grid += ";";
   }
   r &= write(node, "Grid", grid);
+  return r;
+}
+
+bool xmlHelperClass::write(pugi::xml_node & node, cmbNucAssembly * assy)
+{
+  bool r = true;
+  r &= write(node, "Label", assy->getLabel());
+  r &= write(node, "Duct", assy->getAssyDuct().getName());
+  r &= write(node, "Geometry", assy->getGeometryLabel());
+  r &= write(node, "LegendColor", assy->GetLegendColor());
+  r &= write(node, "CenterPins", assy->isPinsAutoCentered());
+
+  pugi::xml_node lnode = node.append_child("Lattice");
+  r &= write( lnode, assy->getLattice());
+
   return r;
 }
 
