@@ -51,7 +51,7 @@ class cmbAssyParameters
 public:
   cmbAssyParameters()
   {
-  this->Geometry = this->GeometryType = this->MeshType
+  this->Geometry = this->MeshType
     = this->CenterXYZ = this->HBlock
     = this->Info = this->SectionXYZ = ASSY_NOT_SET_KEY;
   this->RadialMeshSize = this->AxialMeshSize
@@ -73,8 +73,6 @@ public:
 
   // Geometry     {Volume | Surface}
   std::string Geometry;
-  // GeometryType {Hexagonal | Rectangular}
-  std::string GeometryType;
 
   // [TetMeshSize <size>]
   double TetMeshSize;

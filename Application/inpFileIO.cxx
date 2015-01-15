@@ -619,9 +619,6 @@ bool inpFileReader::read_defaults(cmbNucDefaults & defaults)
 if(params->isValueSet(params->VALUE))\
   output << #KEY << " " << params->VALUE << std::endl
 
-#define TEST_PARAM_VALUE(VALUE) \
-        params->isValueSet(params->VALUE)
-
 bool inpFileWriter::write(std::string fname,
                           cmbNucAssembly & assembly,
                           bool updateFname, bool limited)
