@@ -150,6 +150,8 @@ cmbNucAssembly::cmbNucAssembly()
   this->Connection->v = this;
   this->Defaults = new cmbNucDefaults();
   this->AssyDuct = NULL;
+  this->pinPitchX = 0;
+  this->pinPitchY = 0;
 
   QObject::connect(this->Defaults,   SIGNAL(calculatePitch()),
                    this->Connection, SLOT(calculatePitch()));

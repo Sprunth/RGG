@@ -58,10 +58,13 @@ bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
       case Replace:
         PinCells[LabelToPin.find(pc->getLabel())->second]->fill(pc);
       case KeepOriginal:
+      {
+        std::string label = pc->getLabel();
         delete pc;
         *in = NULL;
-        *in = PinCells[LabelToPin.find(pc->getLabel())->second];
+        *in = PinCells[LabelToPin.find(label)->second];
         return true;
+      }
     }
   }
   return false;

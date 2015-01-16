@@ -17,9 +17,11 @@ Lattice::Lattice( Lattice const& other )
 
 Lattice::~Lattice()
 {
+  Grid.clear();
   for(std::map<std::string, LatticeCell*>::iterator i = LabelToCell.begin(); i != LabelToCell.end(); ++i)
   {
     delete i->second;
+    i->second = NULL;
   }
   LabelToCell.clear();
 }
@@ -38,6 +40,7 @@ void Lattice::setUpGrid(Lattice const & other)
   for(std::map<std::string, LatticeCell*>::const_iterator i = other.LabelToCell.begin();
       i != other.LabelToCell.end(); ++i)
   {
+    if(LabelToCell[i->first]!= NULL) delete LabelToCell[i->first];
     LabelToCell[i->first] = new LatticeCell(*(i->second));
   }
   //TODO update grid

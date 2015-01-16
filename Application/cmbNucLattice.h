@@ -122,7 +122,7 @@ protected:
     {
     }
     ~LatticeCellReference()
-    { if(cell) cell->dec(); }
+    { if(cell) cell->dec();  }
 
     void setCell(LatticeCell * c)
     {

@@ -806,11 +806,11 @@ bool inpFileWriter::write(std::string fname,
     {
       outDef << "axialmeshsize " << vd << std::endl;
     }
-    else if(defaults->getEdgeInterval(vi))
+    if(defaults->getEdgeInterval(vi))
     {
       outDef << "edgeinterval " << vi << std::endl;
     }
-    else if(defaults->getMeshType(vs))
+    if(defaults->getMeshType(vs))
     {
       outDef << "meshtype " << vs.toStdString() << std::endl;
     }

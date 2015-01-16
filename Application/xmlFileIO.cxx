@@ -5,6 +5,7 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDuctLibrary.h"
 #include "cmbNucPinLibrary.h"
+#include "cmbNucDefaults.h"
 
 #define PUGIXML_HEADER_ONLY
 #include "src/pugixml.cpp"
@@ -37,6 +38,10 @@ public:
   bool write(pugi::xml_node & node, Lattice & lattice);
 
   bool write(pugi::xml_node & node, cmbNucMaterialLayer const& v);
+
+  bool write(pugi::xml_node & node, std::string attName, std::vector<cmbNucCoreParams::NeumannSetStruct> const&);
+
+  bool write(pugi::xml_node & node, std::string attName, cmbNucCoreParams::ExtrudeStruct const&);
 
   bool write(pugi::xml_node & node, std::string attName, QString const& v)
   {
@@ -292,7 +297,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucAssembly * assy)
 
     for(unsigned int i = 0; i < params->UnknownParams.size(); ++i)
     {
-      r &= write(paramNode, "Uknown", params->UnknownParams[i]);
+      r &= write(paramNode, "Unknown", params->UnknownParams[i]);
     }
 
   }
@@ -300,6 +305,33 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucAssembly * assy)
   pugi::xml_node lnode = node.append_child("Lattice");
   r &= write( lnode, assy->getLattice());
 
+  return r;
+}
+#undef WRITE_PARAM_VALUE
+
+bool xmlHelperClass::write(pugi::xml_node & node, std::string attName,
+                           std::vector<cmbNucCoreParams::NeumannSetStruct> const& nssv)
+{
+  bool r = true;
+  pugi::xml_node ttnode = node.append_child(attName.c_str());
+  for(size_t i = 0; i < nssv.size(); ++i)
+  {
+    pugi::xml_node nssnode = ttnode.append_child("NeumannValue");
+    cmbNucCoreParams::NeumannSetStruct const& nss = nssv[i];
+    r &= write(nssnode, "Side", nss.Side);
+    r &= write(nssnode, "Id", nss.Id);
+    r &= write(nssnode, "Equation", nss.Equation);
+  }
+  return r;
+}
+
+bool xmlHelperClass::write(pugi::xml_node & node, std::string attName,
+                           cmbNucCoreParams::ExtrudeStruct const& es)
+{
+  bool r = true;
+  pugi::xml_node ttnode = node.append_child(attName.c_str());
+  r &= write(ttnode, "Size", es.Size);
+  r &= write(ttnode, "Divisions", es.Divisions);
   return r;
 }
 
@@ -315,8 +347,27 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
   pugi::xml_node pnode = rootElement.append_child("Pins");
   if(!write(pnode, core.getPinLibrary())) return false;
 
-  pugi::xml_node lnode = rootElement.append_child("Lattice");
-  if(!write(lnode, core.getLattice())) return false;
+  //Write defaults
+  {
+    QPointer<cmbNucDefaults> defaults = core.GetDefaults();
+    pugi::xml_node node = rootElement.append_child("Defaults");
+
+    double vd;
+    int vi;
+    QString vs;
+    if(defaults->getAxialMeshSize(vd))
+    {
+      if(!write( node, "AxialMeshSize", vd)) return false;
+    }
+    if(defaults->getEdgeInterval(vi))
+    {
+      if(!write( node, "EdgeInterval", vi)) return false;
+    }
+    if(defaults->getMeshType(vs))
+    {
+      if(!write( node, "MeshType", vs)) return false;
+    }
+  }
 
   int num = core.GetNumberOfAssemblies();
 
@@ -326,6 +377,38 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
     pugi::xml_node assyNode = rootElement.append_child("Assembly");
     if(!write(assyNode, assy)) return false;
   }
+
+  //write the background
+  {
+    pugi::xml_node node = rootElement.append_child("Background");
+    if(!write(node, "Mode", static_cast<unsigned int>(core.Params.BackgroundMode))) return false;
+    if(!write(node, "Generate", core.getHasCylinder())) return false;
+    if(!write(node, "CylinderRadius", core.getCylinderRadius())) return false;
+    if(!write(node, "CylinderOuterSpacing", core.getCylinderOuterSpacing())) return false;
+    if(!write(node, "BackgroundFileName", core.Params.Background)) return false;
+  }
+
+  //Write parameters
+  {
+    pugi::xml_node node = rootElement.append_child("Parameters");
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
+    if( core.Params.Var##IsSet() ) \
+    {\
+      if(!write(node, #Key, core.Params.Var)) return false; \
+    }
+#define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
+
+    EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+#undef FUN_STRUCT
+    for(unsigned int i = 0; i < core.Params.UnknownKeyWords.size(); ++i)
+    {
+      if(!write(node, "Unknown", core.Params.UnknownKeyWords[i])) return false;
+    }
+  }
+
+  pugi::xml_node lnode = rootElement.append_child("Lattice");
+  if(!write(lnode, core.getLattice())) return false;
 
   std::stringstream oss;
   unsigned int flags = pugi::format_indent;
