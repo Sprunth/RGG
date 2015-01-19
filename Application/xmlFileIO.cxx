@@ -109,6 +109,10 @@ public:
 
   bool read(pugi::xml_node & node, cmbNucMaterialLayer * ml);
 
+  bool read(pugi::xml_node & node, cmbNucDuctLibrary * dl);
+  bool read(pugi::xml_node & node, DuctCell * dc);
+  bool read(pugi::xml_node & node, Duct * dc);
+
   bool read(pugi::xml_node & node, std::string attName, QColor & v)
   {
     pugi::xml_attribute att = node.attribute(attName.c_str());
@@ -626,7 +630,7 @@ bool xmlHelperClass::readPSP(pugi::xml_node & node, PinSubPart * dc)
   dc->x = l.value(0).toDouble();
   dc->y = l.value(1).toDouble();
   dc->z1 = l.value(2).toDouble();
-  dc->z2 = l.value(2).toDouble();
+  dc->z2 = l.value(3).toDouble();
   for(pugi::xml_node tnode = node.child("MaterialLayer"); tnode;
       tnode = node.next_sibling("MaterialLayer"))
   {
@@ -647,6 +651,70 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucMaterialLayer * ml)
   ml->changeMaterial(cnm);
 
   return r;
+}
+
+bool xmlHelperClass::read(pugi::xml_node & node, cmbNucDuctLibrary * dl)
+{
+  if(dl == NULL) return false;
+
+  for(pugi::xml_node tnode = node.child("DuctCell"); tnode;
+      tnode = node.next_sibling("DuctCell"))
+  {
+    DuctCell * dc  = new DuctCell();
+    if(!this->read(tnode, dc)) return false;
+    std::string name = dc->getName();
+    int count = 0;
+    while(dl->nameConflicts(name))
+    {
+      name = (QString(name.c_str()) + QString::number(count++)).toStdString();
+    }
+    dc->setName(name);
+    dl->addDuct(dc);
+  }
+
+  return true;
+}
+
+bool xmlHelperClass::read(pugi::xml_node & node, DuctCell * dc)
+{
+  if(dc == NULL) return false;
+  std::string name;
+  if(!this->read(node, "Name", name)) return false;
+  dc->setName(name);
+  for(pugi::xml_node tnode = node.child("DuctLayer"); tnode;
+      tnode = node.next_sibling("DuctLayer"))
+  {
+    Duct * d = new Duct(0,0,0);
+    if(!read(tnode, d)) return false;
+    dc->AddDuct(d);
+  }
+  return true;
+}
+
+bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc)
+{
+  if(dc == NULL) return false;
+  QString str;
+  if(!read(node, "loc", str)) return false;
+  QStringList l = str.split(",");
+
+  dc->x = l.value(0).toDouble();
+  dc->y = l.value(1).toDouble();
+
+  dc->setZ1(l.value(2).toDouble());
+  dc->setZ2(l.value(3).toDouble());
+
+  if(!read(node, "Thickness", dc->thickness, 2)) return false;
+
+  for(pugi::xml_node tnode = node.child("MaterialLayer"); tnode;
+      tnode = node.next_sibling("MaterialLayer"))
+  {
+    cmbNucMaterialLayer * ml = new cmbNucMaterialLayer();
+    if(!read(tnode, ml)) return false;
+    dc->addMaterialLayer(ml);
+  }
+
+  return true;
 }
 
 //////////////////////////////////read write static functions////////////////////////////////
