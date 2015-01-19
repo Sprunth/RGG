@@ -73,6 +73,13 @@ void PinSubPart::SetNumberOfLayers(int numLayers)
   }
 }
 
+void PinSubPart::addMaterialLayer(cmbNucMaterialLayer * m)
+{
+  if(m == NULL) return;
+  this->setConnection(m);
+  this->Materials.push_back(m);
+}
+
 std::size_t PinSubPart::GetNumberOfLayers() const
 {
   return Materials.size();
@@ -83,7 +90,7 @@ void PinSubPart::setConnection(cmbNucMaterialLayer * layer)
   assert(layer != NULL);
   assert(this->Connection != NULL);
   QObject::connect(layer->GetConnection(), SIGNAL(materialChanged()),
-                   this->Connection, SIGNAL(Changed()));
+                   this->Connection, SIGNAL(Changed()), Qt::UniqueConnection);
 }
 
 QSet< cmbNucMaterial* > PinSubPart::getMaterials()

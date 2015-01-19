@@ -236,6 +236,44 @@ cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label,
                            color.blueF(), color.alphaF());
 }
 
+void cmbNucMaterialColors::AddOrUpdateMaterial(const QString& name,
+                                               const QString& label,
+                                               const QColor& color)
+{
+  if(!this->nameUsed(name) && !this->labelUsed(label))
+  {
+    this->AddMaterial(name, label, color);
+  }
+  QPointer<cmbNucMaterial> m1 = this->getMaterialByName(name);
+  QPointer<cmbNucMaterial> m2 = this->getMaterialByLabel(label);
+  if(m1 == m2)
+  {
+    m1->setColor(color);
+  }
+  else if(m1 == NULL)
+  {
+    m2->setName(name);
+    m2->setColor(color);
+  }
+  else if(m2 == NULL)
+  {
+    m1->setLabel(label);
+    m1->setColor(color);
+  }
+  else if( m1 != m2 )
+  {
+    int count = 0;
+    QString other = label + QString::number(count);
+    while(this->labelUsed(other))
+    {
+      other = label + QString::number(++count);
+    }
+    m2->setLabel(other);
+    m1->setLabel(label);
+    m1->setColor(color);
+  }
+}
+
 //-----------------------------------------------------------------------------
 QPointer<cmbNucMaterial>
 cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label,

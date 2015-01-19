@@ -44,6 +44,10 @@ public:
 
   QPointer<cmbNucMaterial> getMaterial(QComboBox *comboBox) const;
 
+  void AddOrUpdateMaterial(const QString& name,
+                           const QString& label,
+                           const QColor& color);
+
   QPointer<cmbNucMaterial> AddMaterial(const QString& name,
                                        const QString& label,
                                        const QColor& color);
