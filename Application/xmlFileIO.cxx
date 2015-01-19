@@ -113,6 +113,10 @@ public:
   bool read(pugi::xml_node & node, DuctCell * dc);
   bool read(pugi::xml_node & node, Duct * dc);
 
+  bool read(pugi::xml_node & node, cmbNucAssembly* assy);
+
+  bool read(pugi::xml_node & node, Lattice & lattice);
+
   bool read(pugi::xml_node & node, std::string attName, QColor & v)
   {
     pugi::xml_attribute att = node.attribute(attName.c_str());
@@ -155,6 +159,22 @@ public:
     QString str;
     if(!read(node, attName, str)) return false;
     v = str.toInt();
+    return true;
+  }
+
+  bool read(pugi::xml_node & node, std::string attName, unsigned int & v)
+  {
+    QString str;
+    if(!read(node, attName, str)) return false;
+    v = str.toUInt();
+    return true;
+  }
+
+  bool read(pugi::xml_node & node, std::string attName, bool & v)
+  {
+    QString str;
+    if(!read(node, attName, str)) return false;
+    v = static_cast<bool>(str.toInt());
     return true;
   }
 
@@ -363,7 +383,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucAssembly * assy)
     WRITE_PARAM_VALUE(RadialMeshSize, RadialMeshSize);
     if(params->MoveXYZ[0]!=0 || params->MoveXYZ[1]!=0 || params->MoveXYZ[2]!=0)
     {
-      r &= write(paramNode, "Move", params->MoveXYZ);
+      r &= write(paramNode, "Move", params->MoveXYZ, 3);
     }
     r &= write(paramNode, "Center", params->CenterXYZ);
 
@@ -377,7 +397,8 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucAssembly * assy)
 
     for(unsigned int i = 0; i < params->UnknownParams.size(); ++i)
     {
-      r &= write(paramNode, "Unknown", params->UnknownParams[i]);
+      pugi::xml_node tn = node.append_child("Unknown");
+      r &= write(tn, "Str", params->UnknownParams[i]);
     }
 
   }
@@ -555,7 +576,14 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
     }
   }
 
-
+  //read assemblies
+  for(pugi::xml_node tnode = rootElement.child("Assembly"); tnode;
+      tnode = rootElement.next_sibling("Assembly"))
+  {
+    cmbNucAssembly* assy = new cmbNucAssembly;
+    core.AddAssembly(assy);
+    if(read(tnode, assy)) return false;
+  }
 
   return true;
 }
@@ -753,6 +781,139 @@ bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc)
     cmbNucMaterialLayer * ml = new cmbNucMaterialLayer();
     if(!read(tnode, ml)) return false;
     dc->addMaterialLayer(ml);
+  }
+
+  return true;
+}
+
+#define READ_PARAM_VALUE(KEY, VALUE)\
+read(paramNode, #KEY, params->VALUE)
+
+bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
+{
+  bool r = true;
+  std::string tmp;
+  if(!read(node, "Label", tmp)) return false;
+  assy->setLabel(tmp);
+  if(!read(node, "Duct", tmp)) return false;
+  cmbNucDuctLibrary * dl = assy->getDuctLibrary();
+  DuctCell * d = dl->GetDuctCell(tmp);
+  assy->setDuctCell(d);
+  if(!read(node, "Geometry", tmp)) return false;
+  assy->setGeometryLabel(tmp);
+  QColor color;
+  if(!read(node, "LegendColor", color)) return false;
+  assy->SetLegendColor(color);
+  bool iac;
+  if(!read(node, "CenterPins", iac)) return false;
+  assy->setCenterPins(iac);
+  double pitch[2];
+  if(!read(node, "Pitch", pitch, 2)) return false;
+  assy->setPitch(pitch[0], pitch[1], false);
+
+  for(pugi::xml_node tnode = node.child("Transformations"); tnode;
+      tnode = node.next_sibling("Transformations"))
+  {
+    //TODO: read in transforms
+  }
+
+#if 0
+  pugi::xml_node transNodeRoot = node.append_child("Transformations");
+  {
+    size_t num = assy->getNumberOfTransforms();
+    for(size_t i = 0; i < num; ++i)
+    {
+      pugi::xml_node tnode = transNodeRoot.append_child("Transform");
+      cmbNucAssembly::Transform* x = assy->getTransform(i);
+      //virtual bool reverse() const = 0;
+      r &= write(tnode, "Type", x->getLabel());
+      r &= write(tnode, "Value", x->getValue());
+      r &= write(tnode, "Axis", static_cast<unsigned int>(x->getAxis()));
+      r &= write(tnode, "Direction", x->reverse());
+    }
+  }
+#endif
+
+  {
+    pugi::xml_node paramNode = node.child("Parameters");
+
+  }
+
+  pugi::xml_node paramNode = node.append_child("Parameters");
+  {
+    cmbAssyParameters * params = assy->GetParameters();
+
+    //Other Parameters
+    READ_PARAM_VALUE(Geometry, Geometry);
+    READ_PARAM_VALUE(TetMeshSize, TetMeshSize);
+    READ_PARAM_VALUE(RadialMeshSize, RadialMeshSize);
+    read(paramNode, "Move", params->MoveXYZ, 3);
+    READ_PARAM_VALUE(Center, CenterXYZ);
+
+
+    READ_PARAM_VALUE(AxialMeshSize, AxialMeshSize);
+    READ_PARAM_VALUE(HBlock, HBlock);
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK)\
+    read(paramNode, #Key, params->Var);
+    ASSYGEN_EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+
+
+    for(pugi::xml_node tnode = node.child("Unknown"); tnode;
+        tnode = node.next_sibling("Unknown"))
+    {
+      std::string tmp;
+      r &= write(tnode, "Str", tmp);
+      params->UnknownParams.push_back(tmp);
+    }
+  }
+
+  pugi::xml_node lnode = node.child("Lattice");
+  if(!read( lnode, assy->getLattice() )) return false;
+
+  return true;
+}
+#undef READ_PARAM_VALUE
+
+bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice)
+{
+  unsigned int type;
+  if(!read(node, "Type", type)) return false;
+  int subtype;
+  if(!read(node, "SubType", subtype)) return false;
+
+  lattice.SetGeometryType(static_cast<enumGeometryType>(type));
+  lattice.SetGeometrySubType(subtype);
+
+  std::vector< std::vector< std::string > > grid;
+  QString sgrid;
+  if(!read(node, "Grid", sgrid)) return false;
+  QStringList rs = sgrid.split(";");
+
+  for(unsigned int i = 0; i < rs.size(); ++i)
+  {
+    QString & t = rs[i];
+    if(t.isEmpty()) continue;
+    size_t at = grid.size();
+    grid.resize(grid.size() + 1);
+    std::vector<std::string> & v = grid[at];
+    QStringList tl = t.split(",");
+    for(unsigned int j = 0; j < tl.size(); ++j)
+    {
+      v.push_back(tl[j].toStdString());
+    }
+  }
+
+  size_t xs = grid.size();
+  if(xs == 0) return false;
+  size_t ys = grid[0].size();
+  lattice.SetDimensions(xs, ys, true);
+  for(unsigned int i = 0; i < grid.size(); ++i)
+  {
+    for(unsigned int j = 0; j < grid[i].size(); ++j)
+    {
+      lattice.SetCell( i, j, grid[i][j]);
+    }
   }
 
   return true;
