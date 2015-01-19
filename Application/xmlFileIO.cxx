@@ -150,6 +150,14 @@ public:
     return true;
   }
 
+  bool read(pugi::xml_node & node, std::string attName, int & v)
+  {
+    QString str;
+    if(!read(node, attName, str)) return false;
+    v = str.toInt();
+    return true;
+  }
+
   bool read(pugi::xml_node & node, std::string attName, double * v, int size)
   {
     QString str;
@@ -516,6 +524,39 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
     pugi::xml_node node = rootElement.child(MATERIAL_TAG.c_str());
     if(!read(node, cmbNucMaterialColors::instance())) return false;
   }
+  {
+    pugi::xml_node node = rootElement.child(DUCTS_TAG.c_str());
+    if(!read(node, core.getDuctLibrary())) return false;
+  }
+  {
+    pugi::xml_node node = rootElement.child(PINS_TAG.c_str());
+    if(!read(node, core.getPinLibrary())) return false;
+  }
+
+  //read defaults
+  {
+    QPointer<cmbNucDefaults> defaults = core.GetDefaults();
+    pugi::xml_node node = rootElement.child(DEFAULTS_TAG.c_str());
+
+    double vd;
+    int vi;
+    QString vs;
+    if(read(node, "AxialMeshSize", vd))
+    {
+      defaults->setAxialMeshSize(vd);
+    }
+    if(read(node, "EdgeInterval", vi))
+    {
+      defaults->setEdgeInterval(vi);
+    }
+    if(read( node, "MeshType", vs))
+    {
+      defaults->setMeshType(vs);
+    }
+  }
+
+
+
   return true;
 }
 
