@@ -105,6 +105,7 @@ protected:
   void save(cmbNucCore*, bool request_file_name, bool force);
   void saveXML(cmbNucCore*, bool request_file_name, bool force);
   QString requestInpFileName(QString name, QString type);
+  QString requestXMLFileName(QString name, QString type);
   virtual void closeEvent(QCloseEvent *event);
   void CameraMovedHandlerMesh();
   void CameraMovedHandlerModel();

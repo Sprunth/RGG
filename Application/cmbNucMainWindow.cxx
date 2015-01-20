@@ -914,7 +914,7 @@ void cmbNucMainWindow::onFileOpen()
   QFileDialog::getOpenFileNames(this,
                                 "Open File...",
                                 dir.path(),
-                                "INP Files (*.inp)");
+                                "RGG XML File (*.RXF)");
   if(fileNames.count()==0)
   {
     return;
@@ -946,6 +946,15 @@ void cmbNucMainWindow::onFileOpen()
     emit checkSave();
     this->resetCamera();
     //this->Renderer->Render();
+  }
+  else
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Invalid RGG XML file");
+    msgBox.setInformativeText(fileNames[0]+" could not be readed.");
+    msgBox.exec();
+    this->unsetCursor();
+    return;
   }
 }
 
@@ -1318,7 +1327,7 @@ void cmbNucMainWindow::saveXML(cmbNucCore* core, bool request_file_name, bool fo
   QString fileName = core->FileName.c_str();
   if(request_file_name || fileName.isEmpty())
   {
-    fileName = cmbNucMainWindow::requestInpFileName("","Core");
+    fileName = cmbNucMainWindow::requestXMLFileName("","Core");
   }
   if(fileName.isEmpty()) return;
   if(force || core->changeSinceLastSave())
@@ -1382,6 +1391,60 @@ QString cmbNucMainWindow::requestInpFileName(QString name,
   }
   if( !fileName.endsWith(".inp") )
     fileName += ".inp";
+
+  if(!fileName.isEmpty())
+  {
+    // Cache the directory for the next time the dialog is opened
+    QFileInfo info(fileName);
+    QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir",
+                                                   info.dir().path());
+  }
+  return fileName;
+}
+
+QString cmbNucMainWindow::requestXMLFileName(QString name, QString type)
+{
+  QString defaultName("");
+  QString defaultLoc;
+  if(!name.isEmpty())
+  {
+    QFileInfo fi(name);
+    QDir dir = fi.dir();
+    if(dir.path() == ".")
+    {
+      defaultName = fi.baseName();
+      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                              QDir::homePath()).toString();
+      defaultLoc = tdir.path();
+    }
+    else
+    {
+      defaultLoc = dir.path();
+      defaultName = fi.baseName();
+    }
+  }
+  if(defaultLoc.isEmpty())
+  {
+    QDir dir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                           QDir::homePath()).toString();
+    defaultLoc = dir.path();
+  }
+
+  QFileDialog saveQD( this, "Save "+type+" File...", defaultLoc, "RGG XML Files (*.rxf)");
+  saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
+  saveQD.setAcceptMode(QFileDialog::AcceptSave);
+  saveQD.selectFile(defaultName);
+  QString fileName;
+  if(saveQD.exec()== QDialog::Accepted)
+  {
+    fileName = saveQD.selectedFiles().first();
+  }
+  else
+  {
+    return QString();
+  }
+  if( !fileName.endsWith(".rxf") )
+    fileName += ".rxf";
 
   if(!fileName.isEmpty())
   {
