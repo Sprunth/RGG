@@ -117,6 +117,11 @@ public:
 
   bool read(pugi::xml_node & node, Lattice & lattice);
 
+  bool read(pugi::xml_node & node, std::string attName,
+            std::vector<cmbNucCoreParams::NeumannSetStruct> &);
+
+  bool read(pugi::xml_node & node, std::string attName, cmbNucCoreParams::ExtrudeStruct &);
+
   bool read(pugi::xml_node & node, std::string attName, QColor & v)
   {
     pugi::xml_attribute att = node.attribute(attName.c_str());
@@ -512,7 +517,8 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
 #undef FUN_STRUCT
     for(unsigned int i = 0; i < core.Params.UnknownKeyWords.size(); ++i)
     {
-      if(!write(node, "Unknown", core.Params.UnknownKeyWords[i])) return false;
+      pugi::xml_node tn = node.append_child("Unknown");
+      if(!write(tn, "Str", core.Params.UnknownKeyWords[i])) return false;
     }
   }
 
@@ -606,24 +612,22 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
 
   //Read parameters
   //TODO: read parameters
-/*
   {
-    pugi::xml_node node = rootElement.append_child("Parameters");
+    pugi::xml_node node = rootElement.child("Parameters");
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
-    if( core.Params.Var##IsSet() ) \
-    {\
-      if(!write(node, #Key, core.Params.Var)) return false; \
-    }
+    read(node, #Key, core.Params.Var);
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
     EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
 #undef FUN_STRUCT
-    for(unsigned int i = 0; i < core.Params.UnknownKeyWords.size(); ++i)
+    for(pugi::xml_node tnode = node.child("Unknown"); tnode;
+        tnode = tnode.next_sibling("Unknown"))
     {
-      if(!write(node, "Unknown", core.Params.UnknownKeyWords[i])) return false;
+      std::string tmp;
+      if(read(tnode, "Str", tmp))
+        core.Params.UnknownKeyWords.push_back(tmp);
     }
   }
- */
 
   pugi::xml_node lnode = rootElement.child("Lattice");
   if(!read(lnode, core.getLattice())) return false;
@@ -908,8 +912,8 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
         tnode = tnode.next_sibling("Unknown"))
     {
       std::string tmp;
-      r &= write(tnode, "Str", tmp);
-      params->UnknownParams.push_back(tmp);
+      if(read(tnode, "Str", tmp))
+        params->UnknownParams.push_back(tmp);
     }
   }
 
@@ -962,6 +966,33 @@ bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice)
   }
 
   return true;
+}
+
+bool xmlHelperClass::read(pugi::xml_node & node, std::string attName,
+                          std::vector<cmbNucCoreParams::NeumannSetStruct> & out)
+{
+  bool r = true;
+  pugi::xml_node nnode = node.child(attName.c_str());
+  for(pugi::xml_node tnode = nnode.child("NeumannValue"); tnode;
+      tnode = tnode.next_sibling("NeumannValue"))
+  {
+    cmbNucCoreParams::NeumannSetStruct nss;
+    r &= read(tnode, "Side", nss.Side);
+    r &= read(tnode, "Id", nss.Id);
+    r &= read(tnode, "Equation", nss.Equation);
+    out.push_back(nss);
+  }
+  return r;
+}
+
+bool xmlHelperClass::read(pugi::xml_node & node, std::string attName,
+                           cmbNucCoreParams::ExtrudeStruct & es)
+{
+  bool r = true;
+  pugi::xml_node ttnode = node.child(attName.c_str());
+  r &= read(ttnode, "Size", es.Size);
+  r &= read(ttnode, "Divisions", es.Divisions);
+  return r;
 }
 
 //////////////////////////////////read write static functions////////////////////////////////
