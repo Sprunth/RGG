@@ -68,7 +68,7 @@ public:
   cmbNucMaterialLayer const& getMaterialLayer(int i) const
   { return *Materials[i]; }
   //Takes ownership
-  void addMaterialLayer(cmbNucMaterialLayer * m);
+  void setMaterialLayer(int i, cmbNucMaterialLayer * m);
 
   double x;
   double y;

@@ -48,6 +48,7 @@ public:
   double * getThickness();
   double const* getThickness() const;
   bool operator==( const cmbNucMaterialLayer & other ) const;
+  void operator=( const cmbNucMaterialLayer & other );
 protected:
   QPointer<cmbNucMaterial> Material;
   double Thickness[2];

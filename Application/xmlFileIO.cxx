@@ -120,7 +120,7 @@ public:
   bool read(pugi::xml_node & node, std::string attName, QColor & v)
   {
     pugi::xml_attribute att = node.attribute(attName.c_str());
-    if(att) return false;
+    if(!att) return false;
     QString ts(att.value());
     QStringList list1 = ts.split(",");
     v = QColor::fromRgbF(list1.value(0).toDouble(),
@@ -133,7 +133,7 @@ public:
   bool read(pugi::xml_node & node, std::string attName, std::string & v)
   {
     pugi::xml_attribute att = node.attribute(attName.c_str());
-    if(att) return false;
+    if(!att) return false;
     v = std::string(att.value());
     return true;
   }
@@ -141,7 +141,7 @@ public:
   bool read(pugi::xml_node & node, std::string attName, QString & v)
   {
     pugi::xml_attribute att = node.attribute(attName.c_str());
-    if(att) return false;
+    if(!att) return false;
     v = QString(att.value());
     return true;
   }
@@ -327,7 +327,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucMaterialLayer const& v)
 bool xmlHelperClass::write(pugi::xml_node & node, Lattice & lattice)
 {
   bool r = true;
-  r &= write(node, "Type", static_cast<unsigned int>(lattice.GetType()));
+  r &= write(node, "Type", static_cast<unsigned int>(lattice.GetGeometryType()));
   r &= write(node, "SubType", lattice.GetGeometrySubType());
   std::string grid;
   for(unsigned int i = 0; i < lattice.getSize(); ++i)
@@ -453,6 +453,14 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
     QPointer<cmbNucDefaults> defaults = core.GetDefaults();
     pugi::xml_node node = rootElement.append_child(DEFAULTS_TAG.c_str());
 
+    double DuctThick[2];
+    double length;
+    defaults->getHeight(length);
+    defaults->getDuctThickness(DuctThick[0], DuctThick[1]);
+
+    if(!write(node, "Length", length)) return false;
+    if(!write(node, "Thickness", DuctThick, 2)) return false;
+
     double vd;
     int vi;
     QString vs;
@@ -556,8 +564,18 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
 
   //read defaults
   {
+    core.initDefaults();
     QPointer<cmbNucDefaults> defaults = core.GetDefaults();
     pugi::xml_node node = rootElement.child(DEFAULTS_TAG.c_str());
+
+    double DuctThick[2];
+    double length;
+
+    if(!read(node, "Length", length)) return false;
+    if(!read(node, "Thickness", DuctThick, 2)) return false;
+
+    defaults->setHeight(length);
+    defaults->setDuctThickness(DuctThick[0], DuctThick[1]);
 
     double vd;
     int vi;
@@ -574,16 +592,41 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
     {
       defaults->setMeshType(vs);
     }
+    core.sendDefaults();
   }
 
   //read assemblies
   for(pugi::xml_node tnode = rootElement.child("Assembly"); tnode;
-      tnode = rootElement.next_sibling("Assembly"))
+      tnode = tnode.next_sibling("Assembly"))
   {
     cmbNucAssembly* assy = new cmbNucAssembly;
     core.AddAssembly(assy);
-    if(read(tnode, assy)) return false;
+    if(!read(tnode, assy)) return false;
   }
+
+  //Read parameters
+  //TODO: read parameters
+/*
+  {
+    pugi::xml_node node = rootElement.append_child("Parameters");
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
+    if( core.Params.Var##IsSet() ) \
+    {\
+      if(!write(node, #Key, core.Params.Var)) return false; \
+    }
+#define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
+    EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+#undef FUN_STRUCT
+    for(unsigned int i = 0; i < core.Params.UnknownKeyWords.size(); ++i)
+    {
+      if(!write(node, "Unknown", core.Params.UnknownKeyWords[i])) return false;
+    }
+  }
+ */
+
+  pugi::xml_node lnode = rootElement.child("Lattice");
+  if(!read(lnode, core.getLattice())) return false;
 
   return true;
 }
@@ -593,7 +636,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucMaterialColors * material
   if(materials == NULL) return false;
   QString name, label;
   QColor color;
-  for (pugi::xml_node material = node.child("Material"); material; material = node.next_sibling("Material"))
+  for (pugi::xml_node material = node.child("Material"); material; material = material.next_sibling("Material"))
   {
     if(!this->read(material, name, label, color)) return false;
     materials->AddOrUpdateMaterial(name, label, color);
@@ -615,7 +658,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucPinLibrary * dl)
   if(dl == NULL) return false;
 
   for (pugi::xml_node pnode = node.child(PINCELL_TAG.c_str()); pnode;
-       pnode = node.next_sibling(PINCELL_TAG.c_str()))
+       pnode = pnode.next_sibling(PINCELL_TAG.c_str()))
   {
     PinCell * pc = new PinCell();
     if(!this->read(pnode, pc)) return false;
@@ -653,7 +696,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc)
   dc ->legendColor = color;
 
   for(pugi::xml_node tnode = node.child("Cylinder"); tnode;
-      tnode = node.next_sibling("Cylinder"))
+      tnode = tnode.next_sibling("Cylinder"))
   {
     Cylinder * c = new Cylinder(0,0,0);
     r &= this->read(tnode, c);
@@ -662,7 +705,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc)
 
   double junk[2] = {0,0};
   for(pugi::xml_node tnode = node.child("Frustrum"); tnode;
-      tnode = node.next_sibling("Frustrum"))
+      tnode = tnode.next_sibling("Frustrum"))
   {
     Frustum * f = new Frustum(junk, 0, 0);
     r &= this->read(tnode, f);
@@ -700,12 +743,13 @@ bool xmlHelperClass::readPSP(pugi::xml_node & node, PinSubPart * dc)
   dc->y = l.value(1).toDouble();
   dc->z1 = l.value(2).toDouble();
   dc->z2 = l.value(3).toDouble();
+  int i = 0;
   for(pugi::xml_node tnode = node.child("MaterialLayer"); tnode;
-      tnode = node.next_sibling("MaterialLayer"))
+      tnode = tnode.next_sibling("MaterialLayer"))
   {
     cmbNucMaterialLayer * ml = new cmbNucMaterialLayer();
     if(!read(tnode, ml)) return false;
-    dc->addMaterialLayer(ml);
+    dc->setMaterialLayer(i++, ml);
   }
   return true;
 }
@@ -727,7 +771,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucDuctLibrary * dl)
   if(dl == NULL) return false;
 
   for(pugi::xml_node tnode = node.child("DuctCell"); tnode;
-      tnode = node.next_sibling("DuctCell"))
+      tnode = tnode.next_sibling("DuctCell"))
   {
     DuctCell * dc  = new DuctCell();
     if(!this->read(tnode, dc)) return false;
@@ -751,7 +795,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, DuctCell * dc)
   if(!this->read(node, "Name", name)) return false;
   dc->setName(name);
   for(pugi::xml_node tnode = node.child("DuctLayer"); tnode;
-      tnode = node.next_sibling("DuctLayer"))
+      tnode = tnode.next_sibling("DuctLayer"))
   {
     Duct * d = new Duct(0,0,0);
     if(!read(tnode, d)) return false;
@@ -764,7 +808,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc)
 {
   if(dc == NULL) return false;
   QString str;
-  if(!read(node, "loc", str)) return false;
+  if(!read(node, "Loc", str)) return false;
   QStringList l = str.split(",");
 
   dc->x = l.value(0).toDouble();
@@ -775,12 +819,13 @@ bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc)
 
   if(!read(node, "Thickness", dc->thickness, 2)) return false;
 
+  int i = 0;
   for(pugi::xml_node tnode = node.child("MaterialLayer"); tnode;
-      tnode = node.next_sibling("MaterialLayer"))
+      tnode = tnode.next_sibling("MaterialLayer"))
   {
     cmbNucMaterialLayer * ml = new cmbNucMaterialLayer();
     if(!read(tnode, ml)) return false;
-    dc->addMaterialLayer(ml);
+    dc->setMaterialLayer(i++, ml);
   }
 
   return true;
@@ -812,7 +857,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
   assy->setPitch(pitch[0], pitch[1], false);
 
   for(pugi::xml_node tnode = node.child("Transformations"); tnode;
-      tnode = node.next_sibling("Transformations"))
+      tnode = tnode.next_sibling("Transformations"))
   {
     //TODO: read in transforms
   }
@@ -860,7 +905,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
 
 
     for(pugi::xml_node tnode = node.child("Unknown"); tnode;
-        tnode = node.next_sibling("Unknown"))
+        tnode = tnode.next_sibling("Unknown"))
     {
       std::string tmp;
       r &= write(tnode, "Str", tmp);
@@ -922,7 +967,25 @@ bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice)
 //////////////////////////////////read write static functions////////////////////////////////
 bool xmlFileReader::read(std::string fname, cmbNucCore & core)
 {
-  return true;
+  std::ifstream in(fname.c_str(), std::ios::in);
+  if (!in)
+  {
+    return false;
+  }
+
+  // Allocate string
+  std::string content;
+  in.seekg(0, std::ios::end);
+  content.resize(in.tellg());
+
+  // Read file
+  in.seekg(0, std::ios::beg);
+  in.read(&content[0], content.size());
+  in.close();
+
+  xmlHelperClass helper;
+
+  return helper.read(content, core);
 }
 
 bool xmlFileWriter::write(std::string fname, cmbNucCore & core, bool /*updateFname*/) //TODO the file update

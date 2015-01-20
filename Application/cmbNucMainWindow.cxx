@@ -904,6 +904,49 @@ void cmbNucMainWindow::onNewCore()
 void cmbNucMainWindow::onFileOpen()
 {
   //TODO the new File format
+  doClearAll();
+  this->PropertyWidget->setObject(NULL, NULL);
+  this->PropertyWidget->setAssembly(NULL);
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QStringList fileNames =
+  QFileDialog::getOpenFileNames(this,
+                                "Open File...",
+                                dir.path(),
+                                "INP Files (*.inp)");
+  if(fileNames.count()==0)
+  {
+    return;
+  }
+  this->setCursor(Qt::BusyCursor);
+  // Cache the directory for the next time the dialog is opened
+  if(xmlFileReader::read(fileNames[0].toStdString(), *(this->NuclearCore)))
+  {
+    this->NuclearCore->setAndTestDiffFromFiles(false);
+    this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
+                                                  defaultAssemblyColors);
+    this->ui->actionNew_Assembly->setEnabled(true);
+    this->ui->actionExport->setEnabled(true);
+    this->ui->actionGenerate_Cylinder->setEnabled(true);
+    this->PropertyWidget->resetCore(this->NuclearCore);
+    setTitle();
+    this->Internal->HasModel = true;
+    this->modelControls(true);
+    this->InputsWidget->modelIsLoaded(true);
+    this->PropertyWidget->resetCore(this->NuclearCore);
+    // update data colors
+    this->updateCoreMaterialColors();
+
+    // In case the loaded core adds new materials
+    this->InputsWidget->updateUI(true);
+    this->unsetCursor();
+
+    // update render view
+    emit checkSave();
+    this->resetCamera();
+    //this->Renderer->Render();
+  }
 }
 
 void cmbNucMainWindow::onImportINPFile()

@@ -196,13 +196,10 @@ cmbNucMaterialLayer const& Duct::getMaterialLayer(int i) const
   return this->Materials[i];
 }
 
-void Duct::addMaterialLayer(cmbNucMaterialLayer * ml)
+void Duct::setMaterialLayer(int i, cmbNucMaterialLayer * ml)
 {
-  size_t at = Materials.size();
-  this->SetNumberOfLayers(at+1);
-  Materials[at].getThickness()[0] = ml->getThickness()[0];
-  Materials[at].getThickness()[1] = ml->getThickness()[1];
-  Materials[at].changeMaterial(ml->getMaterial());
+  if(i >= this->Materials.size()) this->SetNumberOfLayers(i+1);
+  Materials[i] = *ml;
   delete ml;
 }
 

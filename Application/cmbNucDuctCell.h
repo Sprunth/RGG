@@ -39,7 +39,7 @@ public:
   QPointer<cmbNucMaterial> getMaterial(int i);
   cmbNucMaterialLayer const& getMaterialLayer(int i) const;
   //takes ownership
-  void addMaterialLayer(cmbNucMaterialLayer * ml);
+  void setMaterialLayer(int i, cmbNucMaterialLayer * ml);
 
   void setMaterial( int i, QPointer<cmbNucMaterial> mat );
 
