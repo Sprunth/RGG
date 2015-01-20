@@ -161,6 +161,7 @@ public:
   public:
     Rotate(): angle(0) {}
     Rotate(std::string a, double delta);
+    Rotate(AXIS a, double delta);
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const {return angle;}
     virtual bool reverse() const {return false;}
@@ -174,6 +175,7 @@ public:
   public:
     Section(): dir(1), value(0){}
     Section(std::string a, double v, std::string dir);
+    Section(AXIS a, double v, int dir);
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const { return value; }
     virtual bool reverse() const {return dir == -1;}

@@ -856,28 +856,28 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
   if(!read(node, "Pitch", pitch, 2)) return false;
   assy->setPitch(pitch[0], pitch[1], false);
 
-  for(pugi::xml_node tnode = node.child("Transformations"); tnode;
-      tnode = tnode.next_sibling("Transformations"))
-  {
-    //TODO: read in transforms
-  }
+  pugi::xml_node transnode = node.child("Transformations");
 
-#if 0
-  pugi::xml_node transNodeRoot = node.append_child("Transformations");
+  for(pugi::xml_node tnode = transnode.child("Transform"); tnode;
+      tnode = tnode.next_sibling("Transform"))
   {
-    size_t num = assy->getNumberOfTransforms();
-    for(size_t i = 0; i < num; ++i)
+    std::string type;
+    double value;
+    unsigned int axis;
+    int dir;
+    if(!read(tnode, "Type", type)) return false;
+    if(!read(tnode, "Value", value)) return false;
+    if(!read(tnode, "Axis", axis)) return false;
+    if(!read(tnode, "Direction", dir)) return false;
+    if(type == "Rotate")
     {
-      pugi::xml_node tnode = transNodeRoot.append_child("Transform");
-      cmbNucAssembly::Transform* x = assy->getTransform(i);
-      //virtual bool reverse() const = 0;
-      r &= write(tnode, "Type", x->getLabel());
-      r &= write(tnode, "Value", x->getValue());
-      r &= write(tnode, "Axis", static_cast<unsigned int>(x->getAxis()));
-      r &= write(tnode, "Direction", x->reverse());
+      assy->addTransform(new cmbNucAssembly::Rotate(static_cast<cmbNucAssembly::Transform::AXIS>(axis), value));
+    }
+    else
+    {
+      assy->addTransform(new cmbNucAssembly::Section(static_cast<cmbNucAssembly::Transform::AXIS>(axis), value, dir));
     }
   }
-#endif
 
   {
     pugi::xml_node paramNode = node.child("Parameters");

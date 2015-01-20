@@ -71,11 +71,25 @@ cmbNucAssembly::Rotate::Rotate( std::string a, double delta )
   this->angle = delta;
 }
 
+cmbNucAssembly::Rotate::Rotate(AXIS a, double delta)
+{
+  Valid = true;
+  axis = a;
+  this->angle = delta;
+}
+
 std::ostream&
 cmbNucAssembly::Rotate::write(std::ostream& os) const
 {
   os << "Rotate " << TO_AXIS_STRING[this->axis] << " " << this->angle;
   return os;
+}
+
+cmbNucAssembly::Section::Section(AXIS a, double v, int d)
+{
+  axis = a;
+  value = v;
+  dir = d;
 }
 
 cmbNucAssembly::Section::Section( std::string a, double v, std::string d )
