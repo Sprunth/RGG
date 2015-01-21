@@ -6,6 +6,7 @@ option(SUPPRESS_meshkit_BUILD_OUTPUT
 ON)
 mark_as_advanced(SUPPRESS_meshkit_BUILD_OUTPUT)
 
+set(suppress_build_out)
 if(SUPPRESS_meshkit_BUILD_OUTPUT)
 set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 set(junk_output "&> /dev/null")

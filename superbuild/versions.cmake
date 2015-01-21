@@ -195,8 +195,8 @@ if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
 else()
   if(BUILD_MESHKIT_MASTER)
     add_revision(meshkit
-                 GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-                 GIT_TAG master)
+                 GIT_REPOSITORY https://bitbucket.org/mathstuf/meshkit.git
+                 GIT_TAG cmake)
   else(BUILD_MESHKIT_MASTER)
     add_revision(meshkit
                  #GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git

@@ -10,6 +10,7 @@ option(SUPPRESS_meshkit32bit_BUILD_OUTPUT
 ON)
 mark_as_advanced(SUPPRESS_meshkit32bit_BUILD_OUTPUT)
 
+set(suppress_build_out)
 if(SUPPRESS_meshkit32bit_BUILD_OUTPUT)
 set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
