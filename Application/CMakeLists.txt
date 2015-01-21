@@ -14,6 +14,8 @@ FIND_PACKAGE(Remus REQUIRED)
 INCLUDE_DIRECTORIES(${Remus_INCLUDE_DIR})
 message("${Remus_INCLUDE_DIR}")
 
+find_package(MOAB REQUIRED)
+
 # support for out-of-source build
 INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_BINARY_DIR} #this is where ui_qNucMainWindow.h is generated
@@ -111,8 +113,6 @@ SET(RGGNuclear_Headers
 SET(RGGNuclear_other_headers )
 
 FIND_PACKAGE(MOAB)
-message(${MOAB_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(moab_wrapper)
 SET(RGGNuclear_Headers ${RGGNuclear_Headers} cmbNucCoregen.h)
 SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
