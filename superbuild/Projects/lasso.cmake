@@ -3,25 +3,14 @@ option(SUPPRESS_LASSO_BUILD_OUTPUT
 ON)
 mark_as_advanced(SUPPRESS_LASSO_BUILD_OUTPUT)
 
+set(suppress_build_out)
 if(SUPPRESS_LASSO_BUILD_OUTPUT)
 set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
 add_external_project(lasso
-  DEPENDS moab cgm
-  BUILD_IN_SOURCE 1
   ${suppress_build_out}
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --enable-shared
-    --with-imesh=<INSTALL_DIR>
-    --with-igeom=<INSTALL_DIR>
-    --prefix=<INSTALL_DIR>
-)
-
-if(ENABLE_meshkit)
-  add_external_project_step(lasso-autoconf
-    COMMAND ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR> &> <SOURCE_DIR>/AUTOTOOLS_MESSAGES.txt
-    DEPENDEES update
-    DEPENDERS configure
-  )
-endif()
+  DEPENDS moab cgm
+  CMAKE_ARGS
+    -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+    -DLASSO_ENABLE_FORTRAN:BOOL=FALSE)

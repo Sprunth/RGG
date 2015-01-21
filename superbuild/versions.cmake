@@ -180,8 +180,8 @@ add_revision(cgm
 
 if(BUILD_MESHKIT_MASTER)
   add_revision(lasso
-    GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-    GIT_TAG master
+    GIT_REPOSITORY https://bitbucket.org/mathstuf/lasso.git
+    GIT_TAG cmake
   )
 else(BUILD_MESHKIT_MASTER)
   add_revision(lasso
