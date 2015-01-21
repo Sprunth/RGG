@@ -23,8 +23,8 @@ add_revision(ftgl
   )
 
 add_revision(OCE
-  GIT_REPOSITORY "https://github.com/robertmaynard/oce.git"
-  GIT_TAG "cgm_support"
+  GIT_REPOSITORY "https://github.com/mathstuf/oce.git"
+  GIT_TAG "next"
   )
 
 add_revision(zlib
