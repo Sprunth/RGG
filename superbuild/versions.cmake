@@ -174,8 +174,8 @@ add_revision(OCE
   )
 
 add_revision(cgm
-  GIT_REPOSITORY "https://bitbucket.org/fathomteam/cgm.git"
-  GIT_TAG 14.1
+  GIT_REPOSITORY "https://bitbucket.org/mathstuf/cgm.git"
+  GIT_TAG next
   )
 
 if(BUILD_MESHKIT_MASTER)
