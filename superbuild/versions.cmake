@@ -225,15 +225,9 @@ add_revision(netcdfcpp
   URL_MD5 d32b20c00f144ae6565d9e98d9f6204c)
 
 if(BUILD_MESHKIT_MASTER)
-  if(WIN32)
-    add_revision(moab
-                 GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
-                 GIT_TAG fix_windows)
-  else(WIN32)
-    add_revision(moab
-                 GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
-                 GIT_TAG fix_windows )
-  endif(WIN32)
+  add_revision(moab
+               GIT_REPOSITORY https://bitbucket.org/mathstuf/moab.git
+               GIT_TAG next)
 else()
   if(WIN32)
     add_revision( moab
