@@ -125,7 +125,7 @@ macro(cmb_process_dependencies)
       # user.
       set_property(CACHE USE_SYSTEM_${cm-project} PROPERTY TYPE BOOL)
       if (USE_SYSTEM_${cm-project})
-        message(STATUS "usig system ${cm-project}")
+        message(STATUS "using system ${cm-project}")
         add_external_dummy_project_internal(${cm-project})
         include(${cm-project}.use.system OPTIONAL RESULT_VARIABLE rv)
         if (rv STREQUAL "NOTFOUND")
