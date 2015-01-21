@@ -31,7 +31,7 @@ add_external_project(moab
     -DMOAB_USE_NETCDF:BOOL=ON
     -DMOAB_USE_HDF:BOOL=ON
     -DNetCDF_DIR:path=<INSTALL_DIR>
-    -DCGM_CFG:path=<INSTALL_DIR>/lib/cgm.make
+    "-DCUBIT_DIR:PATH=${CUBIT_DIR}"
     ${suppress_build_out}
 )
 

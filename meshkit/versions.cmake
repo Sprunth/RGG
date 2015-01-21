@@ -44,24 +44,24 @@ add_revision(hdf5
   URL_MD5 d1266bb7416ef089400a15cc7c963218)
 
 add_revision(cgm
-  GIT_REPOSITORY "https://bitbucket.org/fathomteam/cgm.git"
-  GIT_TAG 14.1
+  GIT_REPOSITORY "https://bitbucket.org/mathstuf/cgm.git"
+  GIT_TAG next
   )
 
 if(BUILD_MESHKIT_MASTER)
   add_revision(moab
-    GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
-    GIT_TAG fix_windows
+    GIT_REPOSITORY https://bitbucket.org/mathstuf/moab.git
+    GIT_TAG next
   )
 
   add_revision(lasso
-    GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-    GIT_TAG master
+    GIT_REPOSITORY https://bitbucket.org/mathstuf/lasso.git
+    GIT_TAG cmake
   )
 
   add_revision(meshkit
-    GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-    GIT_TAG master
+    GIT_REPOSITORY https://bitbucket.org/mathstuf/meshkit.git
+    GIT_TAG cmake
   )
 else()
   add_revision( moab

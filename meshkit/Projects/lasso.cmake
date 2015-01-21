@@ -1,10 +1,5 @@
 add_external_project(lasso
   DEPENDS moab cgm
-  USE_AUTOCONF
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --enable-encoding
-    --enable-shared
-    --with-imesh=<INSTALL_DIR>
-    --with-igeom=<INSTALL_DIR>
-    --prefix=<INSTALL_DIR>
-)
+  CMAKE_ARGS
+    -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+    -DLASSO_ENABLE_FORTRAN:BOOL=FALSE)
