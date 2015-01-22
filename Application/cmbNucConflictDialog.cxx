@@ -12,6 +12,8 @@ cmbNucConflictDialog::cmbNucConflictDialog(QMainWindow* mainWindow, cmbNucPinLib
 
   this->ui->NewName->setText(pin->getName().c_str());
   this->ui->NewLabel->setText(pin->getLabel().c_str());
+  this->ui->name_label->setText(pin->getName().c_str());
+  this->ui->label_label->setText(pin->getName().c_str());
   checkLabels();
 
   connect( this->ui->Ignore, SIGNAL(toggled(bool)), this, SLOT( selectedIgnore(bool) ) );
@@ -92,6 +94,7 @@ void cmbNucConflictDialog::apply()
       pin->setName(this->ui->NewName->text().toStdString());
       break;
   }
+  this->mKeepGoing = this->ui->applyToAll->isChecked();
   this->done( rt );
 }
 

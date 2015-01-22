@@ -1,7 +1,6 @@
 
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
-#include "inpFileIO.h"
 
 #include <iostream>
 #include <sstream>
@@ -315,11 +314,6 @@ void cmbNucAssembly::setGeometryLabel(std::string geomType)
 bool cmbNucAssembly::IsHexType()
 {
   return this->lattice.GetGeometryType() == HEXAGONAL;
-}
-
-void cmbNucAssembly::WriteINPFile(const std::string &fname)
-{
-  inpFileWriter::write(fname, *this, true);
 }
 
 void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,

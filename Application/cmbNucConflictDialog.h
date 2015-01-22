@@ -20,6 +20,15 @@ public:
   enum modeType {REPLACE, RENAME, IGNORE};
   cmbNucConflictDialog(QMainWindow* mainWindow, cmbNucPinLibrary * lib, PinCell * p);
   ~cmbNucConflictDialog();
+  bool rename()
+  {
+    return mode == RENAME;
+  }
+
+  bool keepGoing()
+  {
+    return mKeepGoing;
+  }
 
 protected slots:
   void labelChanged(QString);
@@ -35,6 +44,8 @@ private:
   Ui_name_conflict_gui *ui;
   cmbNucPinLibrary * pinLibrary;
   PinCell * pin;
+
+  bool mKeepGoing;
 
   bool checkLabels();
 

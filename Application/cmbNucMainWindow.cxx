@@ -1238,7 +1238,7 @@ bool cmbNucMainWindow::exportINPs()
 
     if(assembly->changeSinceLastGenerate())
     {
-      assembly->WriteINPFile(fileName.toStdString());
+      inpFileWriter::write(fileName.toStdString(), *assembly, true);
     }
   }
   if(this->NuclearCore->changeSinceLastGenerate())

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>237</height>
+    <height>260</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,6 +23,38 @@
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Pin uses a name or label already in use.</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Name:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="name_label">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Label:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_label">
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>
@@ -49,14 +81,14 @@
        <item>
         <widget class="QRadioButton" name="OverWrite">
          <property name="text">
-          <string>Replace</string>
+          <string>Keep New</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QRadioButton" name="Rename">
          <property name="text">
-          <string>Rename</string>
+          <string>Keep Both</string>
          </property>
         </widget>
        </item>
@@ -104,6 +136,13 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
+      <widget class="QCheckBox" name="applyToAll">
+       <property name="text">
+        <string>Apply To All</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -120,6 +159,9 @@
       <widget class="QDialogButtonBox" name="Apply">
        <property name="enabled">
         <bool>false</bool>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
        </property>
        <property name="standardButtons">
         <set>QDialogButtonBox::Apply</set>

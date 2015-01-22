@@ -239,9 +239,6 @@ public:
   PinCell* GetPinCell(int pc) const;
   std::size_t GetNumberOfPinCells() const;
 
-  // Writes the assembly to a ".inp" file.
-  void WriteINPFile(const std::string &FileName);
-
   // The color to use to represent this assembly type in the lattice editor
   QColor GetLegendColor() const;
   void SetLegendColor(const QColor& color);

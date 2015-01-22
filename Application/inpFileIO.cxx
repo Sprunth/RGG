@@ -27,9 +27,15 @@ typedef std::vector<NeumannSetType> NeumannSetTypeVec;
 class inpFileHelper
 {
 public:
+  inpFileHelper() : keepGoing(false), renamePin(false)
+  {
+  }
   std::map<std::string, QPointer<cmbNucMaterial> > materialLabelMap;
   typedef std::map<std::string, QPointer<cmbNucMaterial> >::iterator map_iter;
   bool labelIsDifferent;
+  bool keepGoing;
+  bool renamePin;
+  cmbNucPinLibrary::AddMode pinAddMode;
   template <typename TYPE>
   bool readGeometryType( std::stringstream & input,
                          TYPE &v, Lattice &lat)
@@ -186,6 +192,8 @@ inpFileReader
 ::inpFileReader()
 :Type(UNKNOWN_TYPE)
 {
+  keepGoing = false;
+  renamePin = false;
 }
 
 inpFileReader::FileType
@@ -266,6 +274,9 @@ bool inpFileReader
   if(Type != ASSEMBLY_TYPE)
     return false;
   inpFileHelper helper;
+  helper.keepGoing = this->keepGoing;
+  helper.renamePin = this->renamePin;
+  helper.pinAddMode = this->pinAddMode;
   helper.labelIsDifferent = false;
   assembly.ExportFileName = FileName;
   assembly.clear();
@@ -396,6 +407,9 @@ bool inpFileReader
     }
   }
   dl->addDuct(dc);
+  this->keepGoing  = helper.keepGoing;
+  this->renamePin  = helper.renamePin;
+  this->pinAddMode = helper.pinAddMode;
   return dc->getDuct(0) != NULL;
 }
 
@@ -1109,22 +1123,22 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
   double hexPicth = -1.0;
   bool pitchSet = false;
   if(assembly.IsHexType())
-    {
+  {
     std::string hexPicthStr;
     std::getline(input, hexPicthStr);
     remove_if(hexPicthStr.begin(), hexPicthStr.end(), isspace);
     if(!hexPicthStr.empty())
-      {
+    {
       hexPicth = atof(hexPicthStr.c_str());
       assembly.setPitch(hexPicth, hexPicth, false);
       pitchSet = true;
-      }
     }
+  }
 
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
 
   for(int i = 0; i < count; i++)
-    {
+  {
     PinCell* pincell = new PinCell();
     QPointer<cmbNucMaterial> firstMaterial = NULL;
     int attribute_count = 0;
@@ -1139,30 +1153,30 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
     // initialize for HEX pincell pitch
 
     for(int j = 0; j < attribute_count; j++)
-      {
+    {
       input >> value;
       std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
       if(value == "pitch")
-        {
+      {
         // only one field for HEX type
         if(assembly.IsHexType())
-          {
+        {
           double dHexPinPitch, junk;
           input >> dHexPinPitch >> junk;
           assembly.setPitch(dHexPinPitch, dHexPinPitch, pitchSet);
           pitchSet = true;
-          }
+        }
         else
-          {
+        {
           double tx,ty,junk;
           input >> tx >> ty >> junk;
           assembly.setPitch(tx, ty, pitchSet);
           pitchSet = true;
-          }
         }
+      }
       else if(value == "cylinder")
-        {
+      {
         int layers;
         input >> layers;
         Cylinder* cylinder = new Cylinder(0,0,0);
@@ -1174,9 +1188,9 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
               >> cylinder->z1
               >> cylinder->z2;
         for(int c=0; c < layers; c++)
-          {
+        {
           input >> radii[c];
-          }
+        }
 
         cylinder->r = radii.back();
         pincell->AddCylinder(cylinder);
@@ -1184,7 +1198,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         // let alpha be the normalization factor for the layers (outer most would be 1.0)
         double alpha = 1.0 / cylinder->r;
         for(int c=0; c < layers; c++)
-          {
+        {
           // Get the material of the layer - note that we read in the material label that
           // maps to the actual material
           input >> mlabel;
@@ -1197,15 +1211,15 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
             labelIsDifferent = true;
           // Lets save the first material to use to set the pin's color legend
           if (firstMaterial == NULL)
-            {
+          {
             firstMaterial = tmp;
-            }
+          }
           cylinder->SetMaterial(c,tmp);
           cylinder->setNormalizedThickness(c, radii[c] * alpha);
-          }
         }
+      }
       else if(value == "cellmaterial")
-        {
+      {
         double tmp;
         double v;
         std::string material;
@@ -1218,9 +1232,9 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         else
           labelIsDifferent = true;
         pincell->setCellMaterial(mat);
-        }
+      }
       else if(value == "frustum")
-        {
+      {
         int layers;
         input >> layers;
         double t[] = {0,0};
@@ -1234,10 +1248,10 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
               >> frustum->z2;
 
         for(int c=0; c < layers; c++)
-          {
+        {
           input >> radii[c*2+Frustum::TOP];
           input >> radii[c*2+Frustum::BOTTOM];
-          }
+        }
 
         frustum->r[Frustum::TOP]    = radii[(2*layers) - Frustum::TOP - 1];
         frustum->r[Frustum::BOTTOM] = radii[(2*layers) - Frustum::BOTTOM - 1];
@@ -1248,7 +1262,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         double normF[2] = {1.0 / frustum->r[Frustum::TOP],
                            1.0 / frustum->r[Frustum::BOTTOM]};
         for(int c=0; c < layers; c++)
-          {
+        {
           // Get the material of the layer - note that we read in the material label that
           // maps to the actual material
           std::string mname;
@@ -1256,34 +1270,63 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           QPointer<cmbNucMaterial> tmp = matColorMap->getMaterialByLabel(mlabel.c_str());
           // Lets save the first material to use to set the pin's color legend
           if (firstMaterial == NULL)
-            {
+          {
             firstMaterial = tmp;
-            }
+          }
           frustum->SetMaterial(c,tmp);
           frustum->setNormalizedThickness( c, Frustum::TOP,
                                            radii[2*c+Frustum::TOP]*normF[Frustum::TOP]);
           frustum->setNormalizedThickness( c, Frustum::BOTTOM,
                                            radii[(2*c)+Frustum::BOTTOM]*normF[Frustum::BOTTOM]);
-          }
         }
       }
+    }
     if(firstMaterial != NULL)
-      {
-      pincell->SetLegendColor(firstMaterial->getColor());
-      }
-    //TODO test label for conflict
-    cmbNucPinLibrary::AddMode am = cmbNucPinLibrary::KeepOriginal;
-    if(pl->testPinConflicts(pincell))
     {
-      std::string old_label = pincell->getLabel();
-      cmbNucConflictDialog cncd(NULL, pl, pincell);
-      am = static_cast<cmbNucPinLibrary::AddMode>(cncd.exec());
-      std::string new_label = pincell->getLabel();
-      if(new_label != old_label) newLabel[old_label] = new_label;
+      pincell->SetLegendColor(firstMaterial->getColor());
     }
-    pl->addPin(&pincell, am);
+
+    if(this->keepGoing)
+    {
+      if(pl->testPinConflicts(pincell) && this->renamePin)
+      {
+        //TODO
+        //rename loop
+        std::string n = pincell->getName();
+        int count = 0;
+        while(pl->nameConflicts(n))
+        {
+          n = (QString(n.c_str()) + QString::number(count++)).toStdString();
+        }
+        //relabel loop
+        std::string l = pincell->getLabel();
+        count = 0;
+        while(pl->labelConflicts(l))
+        {
+          l = (QString(l.c_str()) + QString::number(count++)).toStdString();
+        }
+        pincell->setName(n);
+        if(pincell->getLabel() != l) newLabel[pincell->getLabel()] = l;
+        pincell->setLabel(l);
+      }
+    }
+    else
+    {
+      pinAddMode = cmbNucPinLibrary::KeepOriginal;
+      if(pl->testPinConflicts(pincell))
+      {
+        std::string old_label = pincell->getLabel();
+        cmbNucConflictDialog cncd(NULL, pl, pincell);
+        pinAddMode = static_cast<cmbNucPinLibrary::AddMode>(cncd.exec());
+        this->renamePin = cncd.rename();
+        this->keepGoing = cncd.keepGoing();
+        std::string new_label = pincell->getLabel();
+        if(new_label != old_label) newLabel[old_label] = new_label;
+      }
+    }
+    pl->addPin(&pincell, pinAddMode);
     assembly.AddPinCell(pincell);
-    }
+  }
   return true;
 }
 
@@ -1601,15 +1644,21 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
     }
     if(assyInfo.exists() && readAssy)
     {
-        cmbNucAssembly* assembly = new cmbNucAssembly;
-        assembly->label = assylabel;
-        inpFileReader freader;
-        if(!freader.open(assyInfo.absoluteFilePath().toStdString()))
-        {
-          return false;
-        }
-        if(!freader.read(*assembly, core.getPinLibrary(), core.getDuctLibrary())) return false;
-        core.AddAssembly(assembly);
+      cmbNucAssembly* assembly = new cmbNucAssembly;
+      assembly->label = assylabel;
+      inpFileReader freader;
+      freader.keepGoing = this->keepGoing;
+      freader.pinAddMode = this->pinAddMode;
+      freader.renamePin = this->renamePin;
+      if(!freader.open(assyInfo.absoluteFilePath().toStdString()))
+      {
+        return false;
+      }
+      if(!freader.read(*assembly, core.getPinLibrary(), core.getDuctLibrary())) return false;
+      this->keepGoing = freader.keepGoing;
+      this->pinAddMode = freader.pinAddMode;
+      this->renamePin = freader.renamePin;
+      core.AddAssembly(assembly);
     }
   }
   QDir::setCurrent( current );

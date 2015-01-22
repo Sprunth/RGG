@@ -10,6 +10,7 @@
 #include <fstream>
 
 #include "cmbNucPartDefinition.h"
+#include "cmbNucPinLibrary.h"
 
 class cmbNucAssembly;
 class cmbNucCore;
@@ -21,6 +22,9 @@ class inpFileReader
 {
 public:
   inpFileReader();
+  bool keepGoing;
+  bool renamePin;
+  cmbNucPinLibrary::AddMode pinAddMode;
   enum FileType{ERROR_TYPE, UNKNOWN_TYPE, ASSEMBLY_TYPE, CORE_TYPE};
   FileType open(std::string fname);
   void close();
