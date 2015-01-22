@@ -23,6 +23,7 @@
 #include "cmbNucDefaults.h"
 #include "vtkCmbLayeredConeSource.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucPartDefinition.h"
 
 typedef cmbNucRender::point point;
 typedef cmbNucRender::GeoToPoints GeoToPoints;
@@ -415,7 +416,7 @@ public:
     }
   }
 
-  static void createGeo(cmbNucAssembly * input, std::map<key,GeoToPoints> & geometry)
+  static void createGeo(cmbNucAssembly * input, bool rotate_30, std::map<key,GeoToPoints> & geometry)
   {
     std::map< std::string, std::vector<point> > idToPoint;
     double extraXTrans = 0;
@@ -428,6 +429,11 @@ public:
     bool hasSectioning = false;
     std::vector<point> sectioningPlanes;
     static int sectionedCount = 0;
+    if(rotate_30)
+    {
+      xformR.xyz[2] += 30;
+      xformS.xyz[2] -= 30;
+    }
     for(unsigned int i = 0; i < input->getNumberOfTransforms(); ++i)
     {
       cmbNucAssembly::Transform* tmpxf = input->getTransform(i);
@@ -578,6 +584,7 @@ public:
     double extraXTrans;
     double extraYTrans;
     calculatePoints(input, extraXTrans, extraYTrans, idToPoint);
+    bool rotate_30 = input->IsHexType() && !(input->getLattice().GetGeometrySubType()&VERTEX);
     for( std::map< std::string, std::vector<point> >::const_iterator iter = idToPoint.begin();
         iter != idToPoint.end(); ++iter)
     {
@@ -593,7 +600,7 @@ public:
         tmpGeo[i->first].geo = i->second.geo;
       }
 
-      createGeo(assembly, tmpGeo);
+      createGeo(assembly, rotate_30, tmpGeo);
       std::vector<point> const& points = iter->second;
       mergeGeometry(tmpGeo, points, extraXTrans, extraYTrans, geometry);
     }
@@ -886,10 +893,10 @@ void cmbNucRender::render(cmbNucCore * core)
   sendToGlyphMappers(geometry);
 }
 
-void cmbNucRender::render(cmbNucAssembly * assy)
+void cmbNucRender::render(cmbNucAssembly * assy, bool rotate_30)
 {
   std::map<key, GeoToPoints> geometry;
-  cmbNucRenderHelper::createGeo(assy, geometry);
+  cmbNucRenderHelper::createGeo(assy, rotate_30, geometry);
   BoundingBox = assy->computeBounds();
   sendToGlyphMappers(geometry);
 }

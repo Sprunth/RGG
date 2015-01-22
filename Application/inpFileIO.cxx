@@ -635,6 +635,7 @@ if(params->isValueSet(params->VALUE))\
 
 bool inpFileWriter::write(std::string fname,
                           cmbNucAssembly & assembly,
+                          bool rotate,
                           bool updateFname, bool limited)
 {
   inpFileHelper helper;
@@ -690,6 +691,12 @@ bool inpFileWriter::write(std::string fname,
     output << " " << params->CenterXYZ;
   }
   output << "\n";
+
+  if(rotate)
+  {
+    cmbNucAssembly::Rotate r("Z",30);
+    r.write(output) << "\n";
+  }
 
   for( unsigned int i = 0; i < assembly.getNumberOfTransforms(); ++i)
   {

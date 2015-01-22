@@ -1025,14 +1025,33 @@ void cmbNucMainWindow::onImportINPFile()
         assembly->SetLegendColor(acolor);
         bool need_to_calc_defaults = this->NuclearCore->GetNumberOfAssemblies() == 0;
         this->NuclearCore->AddAssembly(assembly);
-        if(need_to_calc_defaults) this->NuclearCore->calculateDefaults();
-        else assembly->setFromDefaults( this->NuclearCore->GetDefaults() );
+        if(need_to_calc_defaults)
+        {
+          this->NuclearCore->calculateDefaults();
+          switch(assembly->getLattice().GetGeometryType())
+          {
+            case RECTILINEAR:
+              NuclearCore->setGeometryLabel("Rectangular");
+              break;
+            case HEXAGONAL:
+              NuclearCore->setGeometryLabel("HexFlat");
+              break;
+          }
+        }
+        else
+        {
+          assembly->setFromDefaults( this->NuclearCore->GetDefaults() );
+        }
         need_to_use_assem = true;
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
         this->ui->actionGenerate_Cylinder->setEnabled(true);
         this->Internal->HasModel = true;
         this->modelControls(true);
+
+        if(this->NuclearCore->IsHexType() &&
+           !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX))
+          assembly->adjustRotation();
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -1060,6 +1079,14 @@ void cmbNucMainWindow::onImportINPFile()
         setTitle();
         this->Internal->HasModel = true;
         this->modelControls(true);
+        if( this->NuclearCore->IsHexType() &&
+           !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX))
+        {
+          for(unsigned int i = 0; i < this->NuclearCore->GetNumberOfAssemblies(); ++i)
+          {
+            this->NuclearCore->GetAssembly(i)->adjustRotation();
+          }
+        }
         break;
       default:
         qDebug() << "could not open" << fileNames[i];
@@ -1068,25 +1095,11 @@ void cmbNucMainWindow::onImportINPFile()
   this->InputsWidget->modelIsLoaded(true);
 
   int numNewAssy = this->NuclearCore->GetNumberOfAssemblies() - numExistingAssy;
-  if(numNewAssy && !need_to_use_assem)
+  if(numNewAssy)
   {
     this->PropertyWidget->resetCore(this->NuclearCore);
   }
-  else if(numNewAssy)
-  {
-    enumGeometryType geoType =
-        this->NuclearCore->GetAssembly(int(0))->getLattice().GetGeometryType();
-    this->PropertyWidget->resetCore(this->NuclearCore);
-    switch(geoType)
-    {
-      case RECTILINEAR:
-        NuclearCore->setGeometryLabel("Rectangular");
-        break;
-      case HEXAGONAL:
-        NuclearCore->setGeometryLabel("HexFlat");
-        break;
-    }
-  }
+
   // update data colors
   this->updateCoreMaterialColors();
 
@@ -1238,7 +1251,9 @@ bool cmbNucMainWindow::exportINPs()
 
     if(assembly->changeSinceLastGenerate())
     {
-      inpFileWriter::write(fileName.toStdString(), *assembly, true);
+      bool rotate_30 = this->NuclearCore->IsHexType() &&
+                       !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX);
+      inpFileWriter::write(fileName.toStdString(), *assembly, rotate_30, true);
     }
   }
   if(this->NuclearCore->changeSinceLastGenerate())
@@ -1552,11 +1567,13 @@ void cmbNucMainWindow::updateDuctCellMaterialColors(DuctCell* dc)
 void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
 {
   if(!assy)
-    {
+  {
     return;
-    }
+  }
   cmbNucMaterialColors::instance()->clearDisplayed();
-  this->NucMappers->render(assy);
+  bool t = this->NuclearCore->IsHexType() &&
+           !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX);
+  this->NucMappers->render(assy, t);
   vtkBoundingBox box;
   this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);

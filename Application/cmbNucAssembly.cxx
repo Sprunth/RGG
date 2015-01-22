@@ -692,3 +692,29 @@ void cmbNucAssembly::setDuctLibrary(cmbNucDuctLibrary * d)
     this->setDuctCell(d->GetDuctCell(at));
   }
 }
+
+//Used when importing inp file to take into account the auto rotation of 30 degrees
+void cmbNucAssembly::adjustRotation()
+{
+  if(this->Transforms.empty()) return;
+  if(this->Transforms[0]->getLabel() == "Rotate")
+  {
+    double v = this->Transforms[0]->getValue()-30;
+    if(v != 0)
+    {
+      Transform * t = new Rotate(this->Transforms[0]->getAxis(),
+                                 this->Transforms[0]->getValue()-30);
+      updateTransform(0,t);
+    }
+    else
+    {
+      delete this->Transforms[0];
+      this->Transforms.erase(this->Transforms.begin());
+    }
+  }
+  else
+  {
+    Transform * t = new Rotate("Z",-30);
+    this->Transforms.insert(this->Transforms.begin(),t);
+  }
+}

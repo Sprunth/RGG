@@ -335,6 +335,8 @@ public:
   //return true when changed
   bool setDuctCell(DuctCell * AssyDuct, bool resetPitch = false);
 
+  void adjustRotation();
+
 protected:
   std::vector<PinCell*> PinCells;
   cmbNucPinLibrary * Pins;
