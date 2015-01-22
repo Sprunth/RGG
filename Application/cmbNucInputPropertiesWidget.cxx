@@ -13,6 +13,8 @@
 #include "cmbAssyParametersWidget.h"
 #include "cmbNucDefaultWidget.h"
 #include "cmbNucDefaults.h"
+#include "cmbNucPinLibrary.h"
+#include "cmbNucDuctLibrary.h"
 
 #include <QLabel>
 #include <QPointer>
@@ -101,8 +103,7 @@ void cmbNucInputPropertiesWidget::initUI()
 
   connect( CoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
 
-  assyDefaults = new cmbNucDefaultWidget();
-  this->Internal->AssyDefaults->addWidget(assyDefaults);
+  connect( this->Internal->computePitch, SIGNAL(clicked()), this, SLOT(computePitch()));
 }
 
 //-----------------------------------------------------------------------------
@@ -228,23 +229,34 @@ void cmbNucInputPropertiesWidget::onReset()
       emit(sendLattice(nucCore));
       break;
     case CMBNUC_ASSEMBLY:
+    {
+      QStringList list;
       assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      QString tmp(assy->getAssyDuct().getName().c_str());
+      assy->getDuctLibrary()->fillList(list);
+      int i = list.indexOf(tmp);
+      this->Internal->Ducts->clear();
+      this->Internal->Ducts->addItems(list);
+      this->Internal->Ducts->setCurrentIndex(i);
       this->Internal->AssemblyLabelY->setVisible(!assy->IsHexType());
       this->Internal->latticeY->setVisible(!assy->IsHexType());
-      this->assyDefaults->set(assy->Defaults, false, assy->IsHexType());
+      this->Internal->pitchY->setVisible(!assy->IsHexType());
+      this->Internal->xlabel->setVisible(!assy->IsHexType());
+      this->Internal->ylabel->setVisible(!assy->IsHexType());
+
       if(assy->IsHexType())
-        {
+      {
         this->Internal->AssemblyLabelX->setText("Number Of Layers:");
-        }
+      }
       else
-        {
+      {
         this->Internal->AssemblyLabelX->setText("X:");
-        }
+      }
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
       this->setAssembly(assy);
       this->resetAssembly(assy);
-      if( this->Core->getLattice().subType & ANGLE_60 &&
-          this->Core->getLattice().subType & VERTEX )
+      if( this->Core->getLattice().GetGeometrySubType() & ANGLE_60 &&
+          this->Core->getLattice().GetGeometrySubType() & VERTEX )
         {
         sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL);
         }
@@ -254,6 +266,7 @@ void cmbNucInputPropertiesWidget::onReset()
         }
       emit(sendLattice(assy));
       break;
+    }
     case CMBNUC_ASSY_PINCELL:
       pincell = dynamic_cast<PinCell*>(selObj);
       this->resetPinCell(pincell);
@@ -302,37 +315,29 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
                                                   QString previous,
                                                   QString current)
 {
-  if(this->CurrentObject == NULL && this->Assembly)
+  if(this->Core->getPinLibrary()->labelConflicts(current.toStdString()))
   {
+    //ERROR!  Should be unique, revert
+    QMessageBox msgBox;
+    msgBox.setText(current +
+                   QString(" is already use as a pin label, reverting to ")+
+                   previous);
+    msgBox.exec();
+    emit(badPinLabel(previous));
     return;
   }
-  //Check to make sure new label is unique
-  for(unsigned int i = 0; i < this->Assembly->GetNumberOfPinCells(); ++i)
+
+  this->Core->getPinLibrary()->replaceLabel(previous.toStdString(), current.toStdString());
+
+  for( int i = 0; i < this->Core->GetNumberOfAssemblies(); ++i )
   {
-    PinCell * tpc = this->Assembly->GetPinCell(i);
-    if(tpc != NULL && pincell != tpc)
-    {
-      if(tpc->label == current.toStdString())
-      {
-        //ERROR!  Should be unique, revert
-        QMessageBox msgBox;
-        msgBox.setText(current +
-                       QString(" is already use as a pin label, reverting to ")+
-                       previous);
-        msgBox.exec();
-        emit(badPinLabel(previous));
-        return;
-      }
-    }
+    cmbNucAssembly * assy = this->Core->GetAssembly(i);
+    assy->getLattice().replaceLabel(previous.toStdString(),
+                                    current.toStdString());
   }
-  AssyPartObj* selObj = this->CurrentObject;
-  if(selObj->GetType() == CMBNUC_ASSY_PINCELL)
-  {
-    this->Assembly->getLattice().replaceLabel(previous.toStdString(),
-                                             current.toStdString());
-  }
-  emit currentObjectNameChanged( selObj->getTitle().c_str() );
-  emit sendLabelChange(current);
+
+  emit currentObjectNameChanged( pincell->getTitle().c_str() );
+  emit sendLabelChange((pincell->getName() + " (" + pincell->getLabel() + ")").c_str());
 }
 
 void cmbNucInputPropertiesWidget::colorChanged()
@@ -373,25 +378,18 @@ void cmbNucInputPropertiesWidget::pinNameChanged(PinCell* pincell,
   {
     return;
   }
-  //Check to make sure new label is unique
-  for(unsigned int i = 0; i < this->Assembly->GetNumberOfPinCells(); ++i)
+  if(this->Core->getPinLibrary()->nameConflicts(current.toStdString()))
   {
-    PinCell * tpc = this->Assembly->GetPinCell(i);
-    if(tpc != NULL && pincell != tpc)
-    {
-      if(tpc->name == current.toStdString())
-      {
-        //ERROR!  Should be unique, revert
-        QMessageBox msgBox;
-        msgBox.setText(current +
-                       QString(" is already use as a pin name, reverting to ")+
-                       previous);
-        msgBox.exec();
-        emit(badPinName(previous));
-        return;
-      }
-    }
+    QMessageBox msgBox;
+    msgBox.setText(current +
+                   QString(" is already use as a pin name, reverting to ")+
+                   previous);
+    msgBox.exec();
+    emit(badPinName(previous));
+    return;
   }
+  this->Core->getPinLibrary()->replaceName(previous.toStdString(), current.toStdString());
+  emit sendLabelChange((pincell->getName() + " (" + pincell->getLabel() + ")").c_str());
 }
 
 // reset property panel with given object
@@ -441,7 +439,7 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     for(size_t i = 0; i < this->Assembly->GetNumberOfPinCells(); i++)
       {
       PinCell *pincell = this->Assembly->GetPinCell(i);
-      actionList.append(pincell->label.c_str());
+      actionList.append(pincell->getLabel().c_str());
       }
     }
 }
@@ -469,6 +467,14 @@ void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
+  std::string selected = this->Internal->Ducts->currentText().toStdString();
+  DuctCell * dc = assy->getDuctLibrary()->GetDuctCell(selected);
+  bool v = assy->setDuctCell(dc);
+  if(v)
+  {
+    assy->setAndTestDiffFromFiles(v);
+    emit checkSaveAndGenerate();
+  }
   std::string new_label = this->Internal->AssyLabel->text().toStdString();
   std::string old_label = assy->getLabel();
   std::replace(new_label.begin(), new_label.end(), ' ', '_');
@@ -493,14 +499,25 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
     }
   }
   this->assyConf->applyToAssembly(assy);
-  this->assyDefaults->apply();
   double px, py;
-  assy->Defaults->getPitch(px,py);
+  px = this->Internal->pitchX->value();
+  py = this->Internal->pitchY->value();
   bool checked = this->Internal->CenterPins->isChecked();
-  this->assyDefaults->setPitchAvail(!checked);
   if(!checked)
   {
     assy->setPitch(px,py);
+    this->Internal->pitchX->setEnabled( true );
+    this->Internal->pitchY->setEnabled( true );
+    this->Internal->computePitch->setEnabled(true);
+  }
+  else
+  {
+    assy->calculatePitch(px, py);
+    this->Internal->pitchX->setValue(px);
+    this->Internal->pitchY->setValue(py);
+    this->Internal->pitchX->setEnabled( false );
+    this->Internal->pitchY->setEnabled( false );
+    this->Internal->computePitch->setEnabled(false);
   }
   assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
@@ -520,7 +537,6 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
   nucCore->sendDefaults();
   if(changed)
   {
-    nucCore->clearOldGeometry();
     emit valuesChanged();
   }
   emit this->objGeometryChanged(nucCore);
@@ -532,6 +548,25 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
   this->assyConf->resetAssembly(assy);
   this->Internal->CenterPins->setChecked(assy->isPinsAutoCentered());
   this->Internal->AssyLabel->setText(assy->getLabel().c_str());
+
+  if(assy->isPinsAutoCentered())
+  {
+    double px, py;
+    assy->calculatePitch(px,py);
+    this->Internal->pitchX->setValue(px);
+    this->Internal->pitchY->setValue(py);
+    this->Internal->pitchX->setEnabled( false );
+    this->Internal->pitchY->setEnabled( false );
+    this->Internal->computePitch->setEnabled(false);
+  }
+  else
+  {
+    this->Internal->pitchX->setValue(assy->getPinPitchX());
+    this->Internal->pitchY->setValue(assy->getPinPitchY());
+    this->Internal->pitchX->setEnabled( true );
+    this->Internal->pitchY->setEnabled( true );
+    this->Internal->computePitch->setEnabled(true);
+  }
 
   // Show color swatch with legendColor
   QLabel* swatch = this->Internal->assyColorSwatch;
@@ -589,9 +624,10 @@ void cmbNucInputPropertiesWidget::showDuctCellEditor()
     QObject::connect(this->Internal->DuctCellEditor,
                      SIGNAL(ductcellModified(AssyPartObj*)),
                      this, SIGNAL(objGeometryChanged(AssyPartObj*)));
+    QObject::connect(this->Internal->DuctCellEditor, SIGNAL(nameChanged(DuctCell*, QString, QString)),
+                     this, SLOT(ductNameChanged(DuctCell*, QString, QString)));
   }
-  this->Internal->DuctCellEditor->SetDuctCell(ductcell, this->getAssembly()->IsHexType());
-  this->Internal->DuctCellEditor->SetAssembly(this->getAssembly());
+  this->Internal->DuctCellEditor->SetDuctCell(ductcell, this->Core->IsHexType());
 }
 
 void cmbNucInputPropertiesWidget::showPinCellEditor()
@@ -630,8 +666,7 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
     QObject::connect( this->Internal->PinCellEditor, SIGNAL(valueChange()),
                       this, SIGNAL(valuesChanged()) );
     }
-  this->Internal->PinCellEditor->SetPinCell(pincell, this->getAssembly()->IsHexType());
-  this->Internal->PinCellEditor->SetAssembly(this->getAssembly());
+  this->Internal->PinCellEditor->SetPinCell(pincell, this->Core->IsHexType());
 }
 
 void cmbNucInputPropertiesWidget::choosePinLegendColor()
@@ -676,4 +711,34 @@ void cmbNucInputPropertiesWidget::chooseAssyLegendColor()
     // next time we select the core
     this->RebuildCoreGrid = true;
     }
+}
+
+void cmbNucInputPropertiesWidget::ductNameChanged(DuctCell* dc, QString previous, QString current)
+{
+  if(this->CurrentObject == NULL && this->Assembly)
+  {
+    return;
+  }
+  if(this->Core->getDuctLibrary()->nameConflicts(current.toStdString()))
+  {
+    QMessageBox msgBox;
+    msgBox.setText(current +
+                   QString(" is already use as a duct name, reverting to ")+
+                   previous);
+    msgBox.exec();
+    dc->setName(previous.toStdString());
+    return;
+  }
+  this->Core->getDuctLibrary()->replaceName(previous.toStdString(), current.toStdString());
+  emit currentObjectNameChanged(current);
+  emit sendLabelChange(current);
+}
+
+void cmbNucInputPropertiesWidget::computePitch()
+{
+  double px, py;
+  cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(this->CurrentObject);
+  assy->calculatePitch(px, py);
+  this->Internal->pitchX->setValue(px);
+  this->Internal->pitchY->setValue(py);
 }

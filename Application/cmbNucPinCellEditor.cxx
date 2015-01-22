@@ -11,7 +11,6 @@
 
 #include "cmbNucPartDefinition.h"
 #include "cmbNucPinCell.h"
-#include "cmbNucAssembly.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
 
@@ -200,11 +199,10 @@ bool sort_by_z1(const PinSubPart * a, const PinSubPart * b)
 
 cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
   : QWidget(p),
-    Ui(new Ui::cmbNucPinCellEditor),
-    AssemblyObject(0)
+    Ui(new Ui::cmbNucPinCellEditor)
 {
   isHex = false;
-  InternalPinCell = new PinCell(0,0);
+  InternalPinCell = new PinCell;
   ExternalPinCell = NULL;
   this->Ui->setupUi(this);
 
@@ -236,9 +234,6 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
           this, SLOT(UpdateData()));
   connect(this->Ui->cutAwayViewCheckBox, SIGNAL(toggled(bool)),
           this, SLOT(UpdateData()));
-
-  connect(this->Ui->CalculatePitch, SIGNAL(clicked()),
-          this, SLOT(calculatePitch()));
 
   connect(this->Ui->CellMaterial, SIGNAL(currentIndexChanged(const QString &)),
           this,                   SLOT(onUpdateCellMaterial(const QString &)));
@@ -288,15 +283,11 @@ void cmbNucPinCellEditor::Reset()
   cmbNucMaterialColors::instance()->selectIndex(this->Ui->CellMaterial,
                                                 this->InternalPinCell->getCellMaterial());
 
-  this->Ui->nameLineEdit->setText(this->InternalPinCell->name.c_str());
-  this->Ui->labelLineEdit->setText(this->InternalPinCell->label.c_str());
+  this->Ui->nameLineEdit->setText(this->InternalPinCell->getName().c_str());
+  this->Ui->labelLineEdit->setText(this->InternalPinCell->getLabel().c_str());
   this->Ui->cutAwayViewCheckBox->setChecked(this->InternalPinCell->cutaway);
   this->Ui->label_7->setVisible(!isHex);
   this->Ui->label_8->setVisible(!isHex);
-  this->Ui->pitchY->setVisible(!isHex);
-
-  this->Ui->pitchX->setText(QString::number(this->InternalPinCell->pitchX));
-  this->Ui->pitchY->setText(QString::number(this->InternalPinCell->pitchY));
 
   this->Ui->piecesTable->blockSignals(true);
 
@@ -343,7 +334,7 @@ PinCell* cmbNucPinCellEditor::GetPinCell()
 void cmbNucPinCellEditor::clear()
 {
   delete(InternalPinCell);
-  InternalPinCell = new PinCell(0,0);
+  InternalPinCell = new PinCell();
   ExternalPinCell = NULL;
 }
 
@@ -360,28 +351,24 @@ void cmbNucPinCellEditor::Apply()
   newName = newName.trimmed().replace(' ', "_");
   this->Ui->nameLineEdit->setText(newName);
 
-  QString prevName = QString(this->ExternalPinCell->name.c_str());
-  this->ExternalPinCell->name = newName.toStdString();
+  QString prevName = QString(this->ExternalPinCell->getName().c_str());
+  this->ExternalPinCell->setName(newName.toStdString());
   if(newName != prevName)
   {
     emit nameChanged(this->ExternalPinCell, prevName, newName);
-    change |= this->ExternalPinCell->name != prevName.toStdString();
+    change |= this->ExternalPinCell->getName() != prevName.toStdString();
   }
 
   QString newlabel = this->Ui->labelLineEdit->text();
   newlabel = newlabel.trimmed().replace(' ', "_");
   this->Ui->labelLineEdit->setText(newlabel);
-  QString prevlabel = QString(this->ExternalPinCell->label.c_str());
-  this->ExternalPinCell->label = newlabel.toStdString();
+  QString prevlabel = QString(this->ExternalPinCell->getLabel().c_str());
+  this->ExternalPinCell->setLabel(newlabel.toStdString());
   if(newlabel != prevlabel)
   {
     emit labelChanged(this->ExternalPinCell, prevlabel, newlabel);
-    change |= this->ExternalPinCell->label != prevlabel.toStdString();
+    change |= this->ExternalPinCell->getLabel() != prevlabel.toStdString();
   }
-
-  set_and_test(this->ExternalPinCell->pitchX, this->Ui->pitchX->text().toDouble());
-  set_and_test(this->ExternalPinCell->pitchY, this->Ui->pitchY->text().toDouble());
-  this->ExternalPinCell->pitchZ = 0;
 
   this->Reset();
   if(change) emit valueChange();
@@ -422,13 +409,13 @@ void cmbNucPinCellEditor::UpdatePinCell()
 
 void cmbNucPinCellEditor::badLabel(QString label)
 {
-  this->ExternalPinCell->label = label.toStdString();
+  this->ExternalPinCell->setLabel(label.toStdString());
   this->Ui->labelLineEdit->setText(label);
 }
 
 void cmbNucPinCellEditor::badName(QString name)
 {
-  this->ExternalPinCell->name = name.toStdString();
+  this->ExternalPinCell->setName(name.toStdString());
   this->Ui->nameLineEdit->setText(name);
 }
 
@@ -842,26 +829,3 @@ void cmbNucPinCellEditor::rebuildLayersFromTable()
   this->setButtons();
 }
 
-//-----------------------------------------------------------------------------
-void cmbNucPinCellEditor::calculatePitch()
-{
-  if(this->AssemblyObject != NULL)
-  {
-    double tmpx, tmpy;
-    this->AssemblyObject->calculatePitch(tmpx,tmpy);
-    this->Ui->pitchX->setText(QString::number(tmpx));
-    this->Ui->pitchY->setText(QString::number(tmpy));
-  }
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucPinCellEditor::SetAssembly(cmbNucAssembly *assembly)
-{
-  if(assembly)
-  {
-    this->Ui->pitchX->setEnabled(!assembly->isPinsAutoCentered());
-    this->Ui->pitchY->setEnabled(!assembly->isPinsAutoCentered());
-    this->Ui->CalculatePitch->setEnabled(!assembly->isPinsAutoCentered());
-  }
-  this->AssemblyObject = assembly;
-}

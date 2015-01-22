@@ -40,9 +40,11 @@ SET(RGGNuclear_Srcs
   vtkCmbLayeredConeSource.cxx
   cmbNucPartsTreeItem.cxx
   cmbNucMaterialTreeItem.cxx
+  cmbNucPinLibrary.cxx
   cmbNucPinCell.cxx
   cmbNucPinCellEditor.cxx
   cmbNucDuctCell.cxx
+  cmbNucDuctLibrary.cxx
   cmbNucDraw2DLattice.cxx
   DrawLatticeItem.cxx
   cmbNucExport.cxx
@@ -50,9 +52,11 @@ SET(RGGNuclear_Srcs
   cmbNucPreferencesDialog.cxx
   cmbAssyParametersWidget.cxx
   inpFileIO.cxx
+  xmlFileIO.cxx
   cmbCoreParametersWidget.cxx
   pqXMLEventObserver.cxx
   cmbNucRender.cxx
+  cmbNucConflictDialog.cxx
 )
 
 SET(RGGNuclear_UI
@@ -69,6 +73,7 @@ SET(RGGNuclear_UI
   CylinderCreateGui.ui
   qAssyParameters.ui
   qCoreParameters.ui
+  name_conflict_gui.ui
 )
 
 SET(RGGNuclear_Headers
@@ -85,9 +90,11 @@ SET(RGGNuclear_Headers
   cmbNucMaterialColors.h
   cmbNucPartsTreeItem.h
   cmbNucMaterialTreeItem.h
+  cmbNucPinLibrary.h
   cmbNucPinCell.h
   cmbNucPinCellEditor.h
   cmbNucDuctCell.h
+  cmbNucDuctLibrary.h
   cmbNucDraw2DLattice.h
   cmbNucExport.h
   cmbNucExportDialog.h
@@ -96,6 +103,7 @@ SET(RGGNuclear_Headers
   cmbCoreParametersWidget.h
   pqXMLEventObserver.h
   cmbNucRender.h
+  cmbNucConflictDialog.h
 )
 
 SET(RGGNuclear_other_headers )

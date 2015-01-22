@@ -21,11 +21,16 @@ public:
   {
     emit Changed();
   }
+  void EmitDeleted(PinCell * pc)
+  {
+    emit Deleted(pc);
+  }
 public slots:
   void clearOldData();
 signals:
   void Changed();
   void CellMaterialChanged();
+  void Deleted(PinCell*);
 private:
   PinCell * pc;
 };
@@ -59,6 +64,11 @@ public:
   virtual void setRadius(PinSubPart::End end, double r) = 0;
   virtual double length() const { return z2 - z1; }
   virtual void reverseRadii() {};
+
+  cmbNucMaterialLayer const& getMaterialLayer(int i) const
+  { return *Materials[i]; }
+  //Takes ownership
+  void setMaterialLayer(int i, cmbNucMaterialLayer * m);
 
   double x;
   double y;
@@ -159,7 +169,7 @@ public:
 class PinCell : public AssyPartObj
 {
 public:
-  PinCell(double px, double py);
+  PinCell();
 
   ~PinCell();
 
@@ -209,20 +219,14 @@ public:
   PinConnection* GetConnection() const;
   QSet< cmbNucMaterial* > getMaterials();
 
-  std::string getLabel(){return label;}
-  virtual std::string getTitle(){ return "PinCell: " + name + " (" + label + ")"; }
+  virtual std::string getTitle(){ return "PinCell: " + AssyPartObj::getTitle(); }
 
   QPointer<cmbNucMaterial> getCellMaterial();
   void setCellMaterial(QPointer<cmbNucMaterial> material);
   bool cellMaterialSet() const;
 
-  vtkBoundingBox computeBounds(bool isHex );
+  vtkBoundingBox computeBounds( bool isHex );
 
-  std::string name;
-  std::string label;
-  double pitchX;
-  double pitchY;
-  double pitchZ;
   QColor legendColor;
   vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
   bool cutaway;

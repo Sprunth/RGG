@@ -14,7 +14,6 @@
   FUN1(double, Height) \
   FUN1(QString, UserDefined) \
   FUN2(double, DuctThickX, double, DuctThickY, DuctThickness) \
-  FUN2(double, PitchX, double, PitchY, Pitch) \
 
 class cmbNucDefaults : public QObject
 {

@@ -66,17 +66,17 @@ public slots:
   void onExit();
   void onNewCore();
   void onFileOpen();
+  void onImportINPFile();
   void onFileOpenMoab();
   void onSaveSelected();
   void onSaveAll();
-  void onSaveProjectAs();
   void onSaveSelectedAs();
+  void onExportINPFiles();
+  void onUpdateINPFiles();
   void clearAll();
   void clearCore();
-  void saveFile(cmbNucAssembly*);
-  void saveFile(cmbNucCore*);
-  void saveFile(const QString &fileName);
-  void saveCoreFile(const QString &fileName);
+  //void saveFile(const QString &fileName);
+  //void saveCoreFile(const QString &fileName);
   void ResetView();
   void Render();
   void onInteractionTransition(vtkObject *, unsigned long event);
@@ -99,10 +99,10 @@ signals:
 protected:
   void initPanels();
   void saveSelected(bool requestFileName, bool force);
-  void saveAll(bool requestFileName, bool force);
-  void save(cmbNucAssembly*, bool request_file_name, bool force);
-  void save(cmbNucCore*, bool request_file_name, bool force);
+  bool exportINPs();
+  void saveXML(cmbNucCore*, bool request_file_name, bool force);
   QString requestInpFileName(QString name, QString type);
+  QString requestXMLFileName(QString name, QString type);
   virtual void closeEvent(QCloseEvent *event);
   void CameraMovedHandlerMesh();
   void CameraMovedHandlerModel();

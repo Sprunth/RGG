@@ -60,6 +60,7 @@
 #include "cmbNucPreferencesDialog.h"
 #include "cmbNucMaterial.h"
 #include "inpFileIO.h"
+#include "xmlFileIO.h"
 #include "cmbNucRender.h"
 
 #include "vtkCmbLayeredConeSource.h"
@@ -323,8 +324,6 @@ int defaultAssemblyColors[][3] =
 // Constructor
 cmbNucMainWindow::cmbNucMainWindow()
 {
-//  vtkNew<vtkCompositeDataPipeline> compositeExec;
-//  vtkAlgorithm::SetDefaultExecutivePrototype(compositeExec.GetPointer());
   isCameraIsMoving = false;
 
   this->TestUtility = NULL;
@@ -348,20 +347,12 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->NuclearCore = new cmbNucCore(false);
   setTitle();
 
-  //this->ui->InputsDock->setFloating(true);
-  //this->ui->PropertyDock->setFloating(true);
-  //this->addDockWidget(Qt::RightDockWidgetArea, this->ui->InputsDock);
-  //this->addDockWidget(Qt::RightDockWidgetArea, this->ui->PropertyDock);
-
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
   this->tabifyDockWidget(this->ui->Dock3D, this->ui->DockMesh);
   this->ui->Dock3D->raise();
   this->setCentralWidget(0);
 
   this->splitDockWidget(this->ui->InputsDock, this->ui->PropertyDock, Qt::Vertical);
-
-  //this->addDockWidget(Qt::LeftDockWidgetArea, this->ui->InputsDock);
-  //this->addDockWidget(Qt::LeftDockWidgetArea, this->ui->PropertyDock);
 
   LatticeDraw = new cmbNucLatticeWidget(this);
   LatticeDraw->setObjectName("LatticeDrawWidget");
@@ -473,10 +464,10 @@ cmbNucMainWindow::cmbNucMainWindow()
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
+  connect(this->ui->importINPFile, SIGNAL(triggered()), this, SLOT(onImportINPFile()));
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
   connect(this->ui->actionSaveSelected,   SIGNAL(triggered()), this, SLOT(onSaveSelected()));
   connect(this->ui->actionSaveSelectedAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
-  connect(this->ui->actionSaveProjectAs,  SIGNAL(triggered()), this, SLOT(onSaveProjectAs()));
   connect(this->ui->actionSaveAll,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
 
   connect(this->ui->actionExport_Visible_Mesh, SIGNAL(triggered()), this, SLOT(onExportVisibleMesh()));
@@ -891,6 +882,7 @@ void cmbNucMainWindow::onNewCore()
     this->PropertyWidget->resetCore(this->NuclearCore);
     this->PropertyWidget->setObject(NULL, NULL);
     this->PropertyWidget->setAssembly(NULL);
+    this->InputsWidget->onNewDuct();
     this->InputsWidget->onNewAssembly();
     this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);
@@ -909,6 +901,63 @@ void cmbNucMainWindow::onNewCore()
 }
 
 void cmbNucMainWindow::onFileOpen()
+{
+  //TODO the new File format
+  doClearAll();
+  this->PropertyWidget->setObject(NULL, NULL);
+  this->PropertyWidget->setAssembly(NULL);
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QStringList fileNames =
+  QFileDialog::getOpenFileNames(this,
+                                "Open File...",
+                                dir.path(),
+                                "RGG XML File (*.RXF)");
+  if(fileNames.count()==0)
+  {
+    return;
+  }
+  this->setCursor(Qt::BusyCursor);
+  // Cache the directory for the next time the dialog is opened
+  if(xmlFileReader::read(fileNames[0].toStdString(), *(this->NuclearCore)))
+  {
+    this->NuclearCore->setAndTestDiffFromFiles(false);
+    this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
+                                                  defaultAssemblyColors);
+    this->ui->actionNew_Assembly->setEnabled(true);
+    this->ui->actionExport->setEnabled(true);
+    this->ui->actionGenerate_Cylinder->setEnabled(true);
+    this->PropertyWidget->resetCore(this->NuclearCore);
+    setTitle();
+    this->Internal->HasModel = true;
+    this->modelControls(true);
+    this->InputsWidget->modelIsLoaded(true);
+    this->PropertyWidget->resetCore(this->NuclearCore);
+    // update data colors
+    this->updateCoreMaterialColors();
+
+    // In case the loaded core adds new materials
+    this->InputsWidget->updateUI(true);
+    this->unsetCursor();
+
+    // update render view
+    emit checkSave();
+    this->resetCamera();
+    //this->Renderer->Render();
+  }
+  else
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Invalid RGG XML file");
+    msgBox.setInformativeText(fileNames[0]+" could not be readed.");
+    msgBox.exec();
+    this->unsetCursor();
+    return;
+  }
+}
+
+void cmbNucMainWindow::onImportINPFile()
 {
   // Use cached value for last used directory if there is one,
   // or default to the user's home dir if not.
@@ -946,7 +995,7 @@ void cmbNucMainWindow::onFileOpen()
         std::string label = finfo.completeBaseName().toStdString();
         cmbNucAssembly *assembly = new cmbNucAssembly();
         assembly->label = label;
-        if(!freader.read(*assembly))
+        if(!freader.read(*assembly, NuclearCore->getPinLibrary(), NuclearCore->getDuctLibrary()))
         {
           QMessageBox msgBox;
           msgBox.setText("Invalid INP file");
@@ -1158,123 +1207,75 @@ void cmbNucMainWindow::setCameras(bool coreModel, bool fullMesh)
 
 void cmbNucMainWindow::onSaveSelected()
 {
-  this->saveSelected(false, false);
+  this->saveXML(this->NuclearCore, true, true);
 }
 
 void cmbNucMainWindow::onSaveAll()
 {
-  this->saveAll(false, false);
+  this->saveXML(this->NuclearCore, false, false);
 }
 
-void cmbNucMainWindow::saveAll(bool requestFileName, bool force_save)
+bool cmbNucMainWindow::exportINPs()
 {
-  for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
-    {
-    this->save(NuclearCore->GetAssembly(i), requestFileName, force_save);
-    }
-  this->save(NuclearCore, requestFileName, force_save);
-  emit checkSave();
-}
+  QString coreName = this->NuclearCore->ExportFileName.c_str();
+  if(coreName.isEmpty())
+  {
+    coreName = cmbNucMainWindow::requestInpFileName("","Core");
+  }
+  if(coreName.isEmpty()) return false;
 
-void cmbNucMainWindow::onSaveProjectAs()
-{
-  QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                          QDir::homePath()).toString();
-  QString	dir = QFileDialog::getExistingDirectory( this,
-                                                   "Save Project To Single Directory",
-                                                   tdir.path() );
+  QFileInfo coreinfo(coreName);
 
-  if(dir.isEmpty()) return;
-  QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
   for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
-    QString label(NuclearCore->GetAssembly(i)->label.c_str());
-    std::string tmpl = label.toLower().toStdString();
-    NuclearCore->GetAssembly(i)->FileName = dir.toStdString() +
-                                            "/assembly_" + tmpl + ".inp";
+    cmbNucAssembly* assembly = NuclearCore->GetAssembly(i);
+    if(assembly == NULL) continue;
+    QString fileName = assembly->ExportFileName.c_str();
+    if(fileName.isEmpty())
+    {
+      fileName = coreinfo.dir().path() + (std::string("assembly_") + assembly->getLabel() + ".inp").c_str();
+    }
+
+    if(assembly->changeSinceLastGenerate())
+    {
+      inpFileWriter::write(fileName.toStdString(), *assembly, true);
+    }
   }
-  NuclearCore->FileName =dir.toStdString() + "/core.inp";
-  this->saveAll(false, true);
-  emit checkSave();
+  if(this->NuclearCore->changeSinceLastGenerate())
+  {
+    inpFileWriter::write(coreName.toStdString(), *(this->NuclearCore));
+  }
+  return false;
 }
 
 void cmbNucMainWindow::onSaveSelectedAs()
 {
-  this->saveSelected(true, true);
+  this->saveXML(this->NuclearCore, true, true);
 }
 
-void cmbNucMainWindow::saveSelected(bool requestFileName, bool force_save)
-{
-  //Get the selected core or assembly.
-  AssyPartObj* part = InputsWidget->getSelectedCoreOrAssembly();
-  if(part == NULL) return;
-  //check for type
-  switch(part->GetType())
-  {
-    case CMBNUC_ASSEMBLY:
-      this->save(dynamic_cast<cmbNucAssembly*>(part), requestFileName, force_save);
-      break;
-    case CMBNUC_CORE:
-      this->save(dynamic_cast<cmbNucCore*>(part), requestFileName, force_save);
-      break;
-    default:
-      return;
-  }
-  emit checkSave();
-}
-
-void cmbNucMainWindow::saveFile(cmbNucAssembly* a)
-{
-  save(a, false, false);
-  emit checkSave();
-}
-
-void cmbNucMainWindow::saveFile(cmbNucCore* c)
-{
-  save(c, false, false);
-  emit checkSave();
-}
-
-void cmbNucMainWindow::save(cmbNucAssembly* assembly, bool request_file_name, bool force_save)
-{
-  if(assembly == NULL) return;
-  QString fileName = assembly->FileName.c_str();
-  if(request_file_name || fileName.isEmpty())
-  {
-    QString label(assembly->label.c_str());
-    std::string tmpl = label.toLower().toStdString();
-    QString defaultName = (fileName.isEmpty())?(std::string("assembly_") + tmpl + ".inp").c_str():fileName;
-    fileName = cmbNucMainWindow::requestInpFileName(defaultName, "Assembly");
-  }
-  if(fileName.isEmpty()) return;
-
-  if(force_save || assembly->changeSinceLastSave())
-  {
-    assembly->WriteFile(fileName.toStdString());
-  }
-}
-
-void cmbNucMainWindow::save(cmbNucCore* core, bool request_file_name, bool force_save)
+void cmbNucMainWindow::saveXML(cmbNucCore* core, bool request_file_name, bool force)
 {
   if(core == NULL) return;
-  QString fileName = core->FileName.c_str();
+  QString fileName = core->CurrentFileName.c_str();
   if(request_file_name || fileName.isEmpty())
   {
-    fileName = cmbNucMainWindow::requestInpFileName("","Core");
+    fileName = cmbNucMainWindow::requestXMLFileName("","Core");
   }
   if(fileName.isEmpty()) return;
-  if(force_save || core->changeSinceLastSave())
+  core->CurrentFileName = fileName.toStdString();
+  if(force || core->changeSinceLastSave())
   {
-    inpFileWriter::write(fileName.toStdString(), *core);
+    xmlFileWriter::write(fileName.toStdString(), *core);
   }
   setTitle();
+  emit checkSave();
 }
 
 void cmbNucMainWindow::checkForNewCUBH5MFiles()
 {
   for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
-    NuclearCore->GetAssembly(i)->setAndTestDiffFromFiles(NuclearCore->GetAssembly(i)->changeSinceLastSave());
+    NuclearCore->GetAssembly(i)->setAndTestDiffFromFiles(NuclearCore->changeSinceLastSave());
   }
   NuclearCore->setAndTestDiffFromFiles(NuclearCore->changeSinceLastSave());
   emit checkSave();
@@ -1335,21 +1336,95 @@ QString cmbNucMainWindow::requestInpFileName(QString name,
   return fileName;
 }
 
-void cmbNucMainWindow::saveFile(const QString &fileName)
+QString cmbNucMainWindow::requestXMLFileName(QString name, QString type)
 {
-  if(!this->InputsWidget->getCurrentAssembly())
+  QString defaultName("");
+  QString defaultLoc;
+  if(!name.isEmpty())
+  {
+    QFileInfo fi(name);
+    QDir dir = fi.dir();
+    if(dir.path() == ".")
     {
-    qDebug() << "no assembly to save";
-    return;
+      defaultName = fi.baseName();
+      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                              QDir::homePath()).toString();
+      defaultLoc = tdir.path();
     }
+    else
+    {
+      defaultLoc = dir.path();
+      defaultName = fi.baseName();
+    }
+  }
+  if(defaultLoc.isEmpty())
+  {
+    QDir dir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                           QDir::homePath()).toString();
+    defaultLoc = dir.path();
+  }
 
-  emit checkSave();
-  this->InputsWidget->getCurrentAssembly()->WriteFile(fileName.toStdString());
+  QFileDialog saveQD( this, "Save "+type+" File...", defaultLoc, "RGG XML Files (*.rxf)");
+  saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
+  saveQD.setAcceptMode(QFileDialog::AcceptSave);
+  saveQD.selectFile(defaultName);
+  QString fileName;
+  if(saveQD.exec()== QDialog::Accepted)
+  {
+    fileName = saveQD.selectedFiles().first();
+  }
+  else
+  {
+    return QString();
+  }
+  if( !fileName.endsWith(".rxf") )
+    fileName += ".rxf";
+
+  if(!fileName.isEmpty())
+  {
+    // Cache the directory for the next time the dialog is opened
+    QFileInfo info(fileName);
+    QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir",
+                                                   info.dir().path());
+  }
+  return fileName;
 }
 
-void cmbNucMainWindow::saveCoreFile(const QString &fileName)
+void cmbNucMainWindow::onExportINPFiles()
 {
-  inpFileWriter::write(fileName.toStdString(), *NuclearCore);
+  QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                          QDir::homePath()).toString();
+  QString	dir = QFileDialog::getExistingDirectory( this,
+                                                  "Save Project To Single Directory",
+                                                  tdir.path() );
+
+  if(dir.isEmpty()) return;
+  QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
+  for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  {
+    QString label(NuclearCore->GetAssembly(i)->label.c_str());
+    std::string tmpl = label.toLower().toStdString();
+    NuclearCore->GetAssembly(i)->ExportFileName = dir.toStdString() +
+    "/assembly_" + tmpl + ".inp";
+  }
+  NuclearCore->ExportFileName =dir.toStdString() + "/core.inp";
+  if( this->NuclearCore->Params.BackgroundMode == cmbNucCoreParams::External  &&
+      QFileInfo(this->NuclearCore->Params.BackgroundFullPath.c_str()).exists() )
+  {
+    QFile::copy(this->NuclearCore->Params.BackgroundFullPath.c_str(),
+                (dir.toStdString() + "/" + this->NuclearCore->Params.Background).c_str());
+  }
+  this->exportINPs();
+}
+
+void cmbNucMainWindow::onUpdateINPFiles()
+{
+  if(this->NuclearCore->ExportFileName.empty())
+  {
+    this->onExportINPFiles();
+    return;
+  }
+  this->exportINPs();
 }
 
 void cmbNucMainWindow::clearAll()
@@ -1767,15 +1842,6 @@ bool cmbNucMainWindow::checkFilesBeforePreceeding()
   if(!this->InputsWidget->isEnabled()) return true;
   bool changed = false;
   changed |= NuclearCore->changeSinceLastSave();
-
-  for(int i = 0; !changed && i < NuclearCore->GetNumberOfAssemblies(); ++i)
-  {
-    cmbNucAssembly* assy = NuclearCore->GetAssembly(i);
-    if(assy && assy->changeSinceLastSave())
-    {
-      changed = true;
-    }
-  }
   if(!changed) return true;
 
   QMessageBox msgBox;

@@ -25,14 +25,12 @@ void cmbNucLatticeWidget::setLattice(LatticeContainer * l)
 {
   lattice = l;
   QStringList actionList;
-  actionList.append("xx");
   if(lattice != NULL)
   {
     lattice->fillList(actionList);
     draw_control->setActions(actionList);
     draw_control->setLatticeContainer(lattice);
-    draw_control->resetWithGrid(this->lattice->getLattice().Grid,
-                                this->lattice->getLattice().subType);
+    draw_control->reset();
   }
   else
   {
@@ -69,7 +67,7 @@ cmbNucLatticeWidget::apply()
   bool change = false;
   if(lattice != NULL)
   {
-    change = this->draw_control->applyToGrid(lattice->getLattice().Grid);
+    change = this->draw_control->apply();
   }
   if(change)
   {

@@ -12,8 +12,10 @@ class DuctConnection : public QObject
   Q_OBJECT
 public:
   void sendChange();
+  void sendDelete();
 signals:
   void Changed();
+  void Deleted();
 };
 
 class DuctCell;
@@ -35,6 +37,9 @@ public:
   double * getNormThick(int i);
 
   QPointer<cmbNucMaterial> getMaterial(int i);
+  cmbNucMaterialLayer const& getMaterialLayer(int i) const;
+  //takes ownership
+  void setMaterialLayer(int i, cmbNucMaterialLayer * ml);
 
   void setMaterial( int i, QPointer<cmbNucMaterial> mat );
 
@@ -45,8 +50,7 @@ public:
 
   QSet< cmbNucMaterial* > getMaterials();
 
-  std::string getLabel(){return label;}
-  virtual std::string getTitle(){ return "Duct: " + label; }
+  virtual std::string getTitle(){ return "Duct"; }
 
   void setZ1(double z)
   {
@@ -71,7 +75,6 @@ public:
   double x;
   double y;
   double thickness[2];
-  std::string label;
 protected:
   std::vector<cmbNucMaterialLayer> Materials;
   DuctConnection * Connection;
@@ -99,13 +102,17 @@ public:
   vtkBoundingBox computeBounds(bool hex);
   double getLength();
   void setLength(double l);
-  std::string getLabel(){return "Duct";}
-  virtual std::string getTitle(){ return "Duct"; }
+  virtual std::string getTitle(){ return "Duct: " + AssyPartObj::getName(); }
   bool operator==(const DuctCell& obj);
   void sort();
+  bool setDuctThickness(double t1, double t2);
+  bool isUsed();
+  void used();
+  void freed();
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;
+  int useCount;
 };
 
 

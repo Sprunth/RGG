@@ -16,11 +16,14 @@
 #include "cmbNucAssembly.h"
 #include "cmbNucCore.h"
 
+#include <set>
+
 cmbNucDraw2DLattice::cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape,
     QWidget* p, Qt::WindowFlags f)
       : QGraphicsView(p), CurrentLattice(NULL),
         FullCellMode(HEX_FULL), ItemShape(shape)
 {
+  changed = false;
   setScene(&this->Canvas);
   setInteractive(true);
   setResizeAnchor(QGraphicsView::AnchorViewCenter);
@@ -49,34 +52,27 @@ void cmbNucDraw2DLattice::init()
   this->rebuild();
 }
 
-void cmbNucDraw2DLattice::resetWithGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid, int type)
+void cmbNucDraw2DLattice::reset()
 {
-  this->Grid.subType = type;
-  this->copyGrid(inGrid, this->Grid.Grid);
+  changed = false;
+  if(this->CurrentLattice)
+  {
+    this->Grid = this->CurrentLattice->getLattice();
+  }
   this->rebuild();
 }
 
-bool cmbNucDraw2DLattice::applyToGrid(std::vector<std::vector<Lattice::LatticeCell> >& outGrid)
+bool cmbNucDraw2DLattice::apply()
 {
-  return this->copyGrid(this->Grid.Grid, outGrid);
-}
-
-bool cmbNucDraw2DLattice::copyGrid(std::vector<std::vector<Lattice::LatticeCell> >& inGrid,
-  std::vector<std::vector<Lattice::LatticeCell> >& outGrid)
-{
-  bool change = outGrid.size() != inGrid.size();
-  outGrid.resize(inGrid.size());
-  for(size_t i = 0; i < inGrid.size(); i++)
-    {
-    change |= outGrid[i].size() != inGrid[i].size();
-    outGrid[i].resize(inGrid[i].size());
-    for(size_t j = 0; j < inGrid[i].size(); j++)
-      {
-      change |= outGrid[i][j].label != inGrid[i][j].label;
-      outGrid[i][j] = inGrid[i][j];
-      }
-    }
-  return change;
+  bool hasChanged = changed; //TODO
+  if(this->CurrentLattice && changed)
+  {
+    this->CurrentLattice->getLattice() = this->Grid;
+    this->CurrentLattice->setUsedLabels(this->usedLabelCount);
+  }
+  changed = false;
+  this->rebuild();
+  return hasChanged;
 }
 
 void cmbNucDraw2DLattice::setActions(const QStringList& acts)
@@ -93,6 +89,7 @@ void cmbNucDraw2DLattice::setLayers(int val)
 {
   std::pair<int, int> wh =Grid.GetDimensions();
   if(val == wh.first) return;
+  changed = true;
   Grid.SetDimensions(val, wh.second);
   this->rebuild();
 }
@@ -101,6 +98,7 @@ void cmbNucDraw2DLattice::setHeight(int val)
 {
   std::pair<int, int> wh =Grid.GetDimensions();
   if(val == wh.second) return;
+  changed = true;
   Grid.SetDimensions(wh.first,val);
   this->rebuild();
 }
@@ -113,7 +111,11 @@ void cmbNucDraw2DLattice::setItemShape(DrawLatticeItem::ShapeStyle shapetype)
 void cmbNucDraw2DLattice::setLatticeContainer(LatticeContainer* l)
 {
   this->CurrentLattice = l;
-  if(l) this->Grid.enGeometryType = l->getLattice().enGeometryType;
+  if(l)
+  {
+    changed = false;
+    this->Grid = l->getLattice();
+  }
 }
 
 void cmbNucDraw2DLattice::setFullCellMode(CellDrawMode m)
@@ -121,8 +123,8 @@ void cmbNucDraw2DLattice::setFullCellMode(CellDrawMode m)
   FullCellMode = m;
 }
 
-void cmbNucDraw2DLattice::addCell(
-  double centerPos[2], double radius, int layer, int cellIdx, CellDrawMode mode)
+void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
+                                  int layer, int cellIdx, CellDrawMode mode)
 {
   Lattice::LatticeCell lc = Grid.GetCell(layer, cellIdx);
   if(!lc.valid) return;
@@ -217,6 +219,8 @@ void cmbNucDraw2DLattice::addCell(
     }
   // update color in hex map
   this->Grid.SetCell(layer, cellIdx, lc.label, lc.color, lc.valid);
+  QString text(lc.label.c_str());
+  usedLabelCount[text]++;
   cell->setText(lc.label.c_str());
   cell->setColor(color);
   cell->set_available(lc.valid);
@@ -228,6 +232,7 @@ void cmbNucDraw2DLattice::addCell(
 void cmbNucDraw2DLattice::rebuild()
 {
   scene()->clear();
+  usedLabelCount.clear();
   int numLayers = this->layers();
   if(numLayers <= 0)
     {
@@ -241,17 +246,17 @@ void cmbNucDraw2DLattice::rebuild()
 
   if(CurrentLattice->IsHexType())
   {
-    if(this->Grid.subType & ANGLE_60)
+    if(this->Grid.GetGeometrySubType() & ANGLE_60)
     {
       squareLength = std::min(this->width(), static_cast<int>(this->height()*1.3));
     }
-    else if(this->Grid.subType & ANGLE_30)
+    else if(this->Grid.GetGeometrySubType() & ANGLE_30)
     {
       squareLength = std::min(this->width(), static_cast<int>(this->height()*1.6));
     }
     double hexRadius, hexDiameter, layerRadius;
     hexDiameter = squareLength / static_cast<double>(3 * numLayers + 1);
-    if(!(this->Grid.subType & ANGLE_360))
+    if(!(this->Grid.GetGeometrySubType() & ANGLE_360))
     {
       hexDiameter *= 1.8;
     }
@@ -266,21 +271,21 @@ void cmbNucDraw2DLattice::rebuild()
         {
         centerPos[0] = 0;
         centerPos[1] = 0;
-        if(this->Grid.subType & ANGLE_360)
+        if(this->Grid.GetGeometrySubType() & ANGLE_360)
           {
           this->addCell(centerPos, hexRadius, i, 0, FullCellMode);
           }
-        else if(this->Grid.subType & ANGLE_60 &&
-                this->Grid.subType & FLAT)
+        else if(this->Grid.GetGeometrySubType() & ANGLE_60 &&
+                this->Grid.GetGeometrySubType() & FLAT)
           {
           this->addCell(centerPos, hexRadius, i, 0, HEX_SIXTH_FLAT_CENTER);
           }
-        else if(this->Grid.subType & ANGLE_60 &&
-                this->Grid.subType & VERTEX)
+        else if(this->Grid.GetGeometrySubType() & ANGLE_60 &&
+                this->Grid.GetGeometrySubType() & VERTEX)
           {
           this->addCell(centerPos, hexRadius, i, 0, HEX_SIXTH_VERT_CENTER);
           }
-        else if(this->Grid.subType & ANGLE_30)
+        else if(this->Grid.GetGeometrySubType() & ANGLE_30)
           {
             this->addCell(centerPos, hexRadius, i, 0, HEX_TWELFTH_CENTER);
           }
@@ -295,9 +300,9 @@ void cmbNucDraw2DLattice::rebuild()
           double angle = 60.0*((c+4)%6)*vtkMath::Pi()/180.0;
           // draw the corner hex
 
-          if(( this->Grid.subType & ANGLE_60 &&
-               this->Grid.subType & VERTEX ) ||
-             ( this->Grid.subType & ANGLE_360 && FullCellMode == HEX_FULL_30 ) )
+          if(( this->Grid.GetGeometrySubType() & ANGLE_60 &&
+               this->Grid.GetGeometrySubType() & VERTEX ) ||
+             ( this->Grid.GetGeometrySubType() & ANGLE_360 && FullCellMode == HEX_FULL_30 ) )
             {
             angle = 2 * (vtkMath::Pi() / 6.0) * ((c+1)%6 + 3.5);
             }
@@ -356,12 +361,12 @@ void cmbNucDraw2DLattice::rebuild()
 
 cmbNucDraw2DLattice::CellDrawMode cmbNucDraw2DLattice::getHexDrawMode(int index, int layer, int start, int end) const
 {
-  if(this->Grid.subType & ANGLE_360)
+  if(this->Grid.GetGeometrySubType() & ANGLE_360)
   {
     return FullCellMode;
   }
-  else if( this->Grid.subType & ANGLE_60 &&
-           this->Grid.subType & FLAT )
+  else if( this->Grid.GetGeometrySubType() & ANGLE_60 &&
+           this->Grid.GetGeometrySubType() & FLAT )
   {
     if(index == start)
     {
@@ -376,14 +381,14 @@ cmbNucDraw2DLattice::CellDrawMode cmbNucDraw2DLattice::getHexDrawMode(int index,
       return HEX_FULL;
     }
   }
-  else if( this->Grid.subType & ANGLE_60 &&
-           this->Grid.subType & VERTEX )
+  else if( this->Grid.GetGeometrySubType() & ANGLE_60 &&
+           this->Grid.GetGeometrySubType() & VERTEX )
   {
     if(index == start && layer % 2 == 0) return HEX_SIXTH_VERT_TOP;
     else if(index == end && layer % 2 == 0) return HEX_SIXTH_VERT_BOTTOM;
     return HEX_FULL_30;
   }
-  else if(this->Grid.subType & ANGLE_30)
+  else if(this->Grid.GetGeometrySubType() & ANGLE_30)
   {
     if(index == end) return HEX_TWELFTH_BOTTOM;
     else if(index == start && layer % 2 == 0) return HEX_TWELFTH_TOP;
@@ -403,26 +408,30 @@ void cmbNucDraw2DLattice::showContextMenu(
   QAction* pAction = NULL;
   // available parts
   foreach(QString strAct, this->ActionList)
-    {
+  {
     pAction = new QAction(strAct, this);
     contextMenu.addAction(pAction);
-    }
+  }
 
   QAction* assignAct = contextMenu.exec(qme->globalPos());
   if(assignAct)
-    {
-    hexitem->setText(assignAct->text());
+  {
+    QString text = this->CurrentLattice->extractLabel(assignAct->text());
+    changed |= hexitem->text() != text;
+    usedLabelCount[hexitem->text()]--;
+    usedLabelCount[text]++;
+    hexitem->setText(text);
     QColor color(Qt::white);
     if(this->CurrentLattice)
-      {
-      AssyPartObj * obj = this->CurrentLattice->getFromLabel(hexitem->text().toStdString());
+    {
+      AssyPartObj * obj = this->CurrentLattice->getFromLabel(text.toStdString());
       color = obj ? obj->GetLegendColor() : Qt::white;
 
       hexitem->setColor(color);
-      }
-    this->Grid.SetCell(hexitem->layer(), hexitem->cellIndex(),
-      assignAct->text().toStdString(), color, true);
     }
+    this->Grid.SetCell(hexitem->layer(), hexitem->cellIndex(),
+                       text.toStdString(), color, true);
+  }
 }
 
 void cmbNucDraw2DLattice::dropEvent(QDropEvent* qde)
@@ -433,6 +442,9 @@ void cmbNucDraw2DLattice::dropEvent(QDropEvent* qde)
     return;
     }
 
+  changed |= dest->text() != qde->mimeData()->text();
+  usedLabelCount[dest->text()]--;
+  usedLabelCount[qde->mimeData()->text()]++;
   dest->setText(qde->mimeData()->text());
   QColor color(Qt::white);
   if(this->CurrentLattice)

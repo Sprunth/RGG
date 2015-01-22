@@ -44,6 +44,10 @@ public:
 
   QPointer<cmbNucMaterial> getMaterial(QComboBox *comboBox) const;
 
+  void AddOrUpdateMaterial(const QString& name,
+                           const QString& label,
+                           const QColor& color);
+
   QPointer<cmbNucMaterial> AddMaterial(const QString& name,
                                        const QString& label,
                                        const QColor& color);
@@ -83,6 +87,8 @@ public:
   void CalcRGB(double &r, double &g, double &b);
 
   void buildTree(QTreeWidget * tree);
+
+  std::vector< QPointer< cmbNucMaterial > > getMaterials() const;
 
 public slots:
   void testShow();

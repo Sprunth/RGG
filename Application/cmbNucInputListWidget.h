@@ -7,11 +7,15 @@
 
 class cmbNucAssembly;
 class cmbNucCore;
+class cmbNucPinLibrary;
+class cmbNucDuctLibrary;
 class AssyPartObj;
 class cmbNucInputListWidgetInternal;
 class QTreeWidget;
 class QTreeWidgetItem;
 class cmbNucPartsTreeItem;
+class PinCell;
+class DuctCell;
 class QMenu;
 
 class cmbNucInputListWidget : public QWidget
@@ -79,6 +83,7 @@ public slots:
   void selectModelTab(bool);
   void updateMainMeshComponents(QStringList parts, int select);
   void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
+  void onNewDuct();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -86,6 +91,10 @@ protected:
   void updateContextMenu(AssyPartObj* selObj);
   void setActionsEnabled(bool val);
   void updateWithAssembly(cmbNucAssembly* assy, bool select=true);
+  void updateWithPinLibrary(cmbNucPinLibrary * pl);
+  void updateWithPin(PinCell * pc, bool select=false);
+  void updateWithDuctLibrary(cmbNucDuctLibrary * dl);
+  void updateWithDuct(DuctCell * dc, bool select=false);
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
   void initCoreRootNode();
   void createMaterialItem( const QString& name, const QString& label,

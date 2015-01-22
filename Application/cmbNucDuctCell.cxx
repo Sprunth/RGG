@@ -8,6 +8,11 @@ void DuctConnection::sendChange()
   emit Changed();
 }
 
+void DuctConnection::sendDelete()
+{
+  emit Deleted();
+}
+
 /*******************************************************************************/
 
 Duct::Duct(double height, double thickX, double thickY)
@@ -186,15 +191,31 @@ QSet< cmbNucMaterial* > Duct::getMaterials()
   return result;
 }
 
+cmbNucMaterialLayer const& Duct::getMaterialLayer(int i) const
+{
+  return this->Materials[i];
+}
+
+void Duct::setMaterialLayer(int i, cmbNucMaterialLayer * ml)
+{
+  if(i >= this->Materials.size()) this->SetNumberOfLayers(i+1);
+  Materials[i] = *ml;
+  delete ml;
+}
+
 /*******************************************************************************/
 
 DuctCell::DuctCell()
 {
   Connection = new DuctConnection();
+  this->Label = "D1";
+  this->Name = "Duct1";
+  this->useCount = 0;
 }
 
 DuctCell::~DuctCell()
 {
+  Connection->sendDelete();
   this->deleteObjs(this->Ducts);
   delete Connection;
 }
@@ -258,6 +279,8 @@ Duct * DuctCell::getDuct(int i)
 
 void DuctCell::fill(DuctCell* other)
 {
+  this->Label = other->Label;
+  this->Name = other->Name;
   for(unsigned int i = 0; i < this->Ducts.size(); ++i)
   {
     delete(this->Ducts[i]);
@@ -372,5 +395,35 @@ bool DuctCell::operator==(const DuctCell& obj)
     Duct * d2 = obj.Ducts[i];
     if(! (*d1 == *d2) ) return false;
   }
-  return true;
+  return this->Name == obj.Name;
+}
+
+bool DuctCell::setDuctThickness(double t1, double t2)
+{
+  bool change = false;
+  for(unsigned int i = 0; i < this->numberOfDucts(); ++i)
+  {
+    Duct * duct = this->getDuct(i);
+    change |= t1 != duct->thickness[0];
+    duct->thickness[0] = t1;
+    change |= t2 != duct->thickness[1];
+    duct->thickness[1] = t2;
+  }
+  return change;
+}
+
+bool DuctCell::isUsed()
+{
+  return this->useCount != 0;
+}
+
+void DuctCell::used()
+{
+  this->useCount++;
+}
+
+void DuctCell::freed()
+{
+  if(this->useCount > 0)
+    this->useCount--;
 }

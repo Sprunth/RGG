@@ -17,6 +17,8 @@
 #include "vtkBoundingBox.h"
 
 class cmbNucAssembly;
+class cmbNucPinLibrary;
+class cmbNucDuctLibrary;
 class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
@@ -124,7 +126,6 @@ private:
 public slots:
   void dataChanged();
   void assemblyChanged();
-  void clearData();
 signals:
   void dataChangedSig();
   void colorChanged();
@@ -148,8 +149,6 @@ public:
 
   // Destroys the Core.
   ~cmbNucCore();
-
-  void clearOldGeometry();
 
   vtkBoundingBox computeBounds();
 
@@ -205,10 +204,6 @@ public:
   // Check if GeometryType is Hexagonal
   bool IsHexType();
 
-  // read file and return a new Assembly
-  cmbNucAssembly* loadAssemblyFromFile(
-     const std::string &fileName, const std::string &assyLabel);
-
   void computePitch();
 
   virtual void calculateRectPt(unsigned int i, unsigned int j, double pt[2]);
@@ -221,7 +216,7 @@ public:
   bool changeSinceLastGenerate() const;
 
   std::string getLabel(){return "Core";}
-  std::string getFileName(){return FileName;}
+  std::string getFileName(){return CurrentFileName;}
   virtual std::string getTitle(){ return "Core"; }
 
   // Get/Set Assembly pitch
@@ -230,7 +225,9 @@ public:
 
   void setGeometryLabel(std::string geomType);
 
-  std::string FileName;
+  std::string CurrentFileName;
+  std::string ExportFileName;
+  std::string GenerateDirectory;
   std::string h5mFile;
   void setHexSymmetry(int sym);
 
@@ -247,7 +244,6 @@ public:
 
   void drawCylinder(double r, int i);
   void clearCylinder();
-
 
   void checkUsedAssembliesForGen();
 
@@ -276,12 +272,32 @@ public:
     return hasCylinder;
   }
 
+  cmbNucPinLibrary * getPinLibrary()
+  {
+    return this->PinLibrary;
+  }
+
+  cmbNucDuctLibrary * getDuctLibrary()
+  {
+    return this->DuctLibrary;
+  }
+
+  virtual QString extractLabel(QString const& s)
+  {
+    return s;
+  }
+
+  virtual void setUsedLabels(std::map<QString, int> const& labels)
+  {}
+
 private:
   bool hasCylinder;
   double cylinderRadius;
   int cylinderOuterSpacing;
 
   std::vector<cmbNucAssembly*> Assemblies;
+  cmbNucPinLibrary * PinLibrary;
+  cmbNucDuctLibrary * DuctLibrary;
   cmbNucCoreConnection * Connection;
 
   QPointer<cmbNucDefaults> Defaults;

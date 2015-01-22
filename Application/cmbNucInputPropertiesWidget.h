@@ -73,6 +73,7 @@ public slots:
   void clearPincellEditor();
   void pinLabelChanged(PinCell*, QString previous, QString current);
   void pinNameChanged(PinCell*, QString previous, QString current);
+  void ductNameChanged(DuctCell*, QString previous, QString current);
 
 protected slots:
   // Invoked when Apply button clicked
@@ -91,6 +92,8 @@ protected slots:
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToCore(cmbNucCore* nucCore);
 
+  void computePitch();
+
   void showPinCellEditor();
   void showDuctCellEditor();
 
@@ -105,10 +108,10 @@ private:
   AssyPartObj* CurrentObject;
   cmbNucAssembly *Assembly;
   cmbNucCore *Core;
+
   cmbNucMainWindow *MainWindow;
   cmbCoreParametersWidget* CoreProperties;
   cmbAssyParametersWidget* assyConf;
   QPointer<cmbNucDefaultWidget> CoreDefaults;
-  QPointer<cmbNucDefaultWidget> assyDefaults;
 };
 #endif

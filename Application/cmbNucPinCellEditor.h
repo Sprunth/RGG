@@ -10,11 +10,11 @@
 class QComboBox;
 class PinCell;
 class PinSubPart;
-class cmbNucAssembly;
+class cmbNucPinLibrary;
 class AssyPartObj;
 
 // the pin cell editor widget. this dialog allows the user to modify a
-// single pin cell in an assembly. the sections (cylinders/frustums) can
+// single pin cell. the sections (cylinders/frustums) can
 // be added/removed/modifed as well as the layers. materials can be assigned
 // to each layer via the materials table.
 class cmbNucPinCellEditor : public QWidget
@@ -27,8 +27,6 @@ public:
 
   void SetPinCell(PinCell *pincell, bool hex);
   PinCell* GetPinCell();
-
-  void SetAssembly(cmbNucAssembly *assembly);
 
   void clear();
 
@@ -50,7 +48,6 @@ public slots:
   void onUpdateCellMaterial( const QString & text );
   void badLabel(QString);
   void badName(QString);
-  void calculatePitch();
 
 private slots:
   void tableCellChanged();
@@ -76,7 +73,7 @@ private:
   Ui::cmbNucPinCellEditor *Ui;
   PinCell *InternalPinCell;
   PinCell *ExternalPinCell;
-  cmbNucAssembly *AssemblyObject;
+  cmbNucPinLibrary *PinLibrary;
   bool isHex;
 };
 

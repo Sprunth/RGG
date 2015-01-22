@@ -8,6 +8,54 @@ Lattice::Lattice()
   subType = FLAT | ANGLE_360;
 }
 
+Lattice::Lattice( Lattice const& other )
+{
+  setUpGrid(other);
+  this->subType = other.subType;
+  this->enGeometryType = other.enGeometryType;
+}
+
+Lattice::~Lattice()
+{
+  Grid.clear();
+  for(std::map<std::string, LatticeCell*>::iterator i = LabelToCell.begin(); i != LabelToCell.end(); ++i)
+  {
+    delete i->second;
+    i->second = NULL;
+  }
+  LabelToCell.clear();
+}
+
+Lattice& Lattice::operator=(Lattice const& other)
+{
+  //TODO update grid
+  setUpGrid(other);
+  this->subType = other.subType;
+  this->enGeometryType = other.enGeometryType;
+  return *this;
+}
+
+void Lattice::setUpGrid(Lattice const & other)
+{
+  for(std::map<std::string, LatticeCell*>::const_iterator i = other.LabelToCell.begin();
+      i != other.LabelToCell.end(); ++i)
+  {
+    if(LabelToCell[i->first]!= NULL) delete LabelToCell[i->first];
+    LabelToCell[i->first] = new LatticeCell(*(i->second));
+  }
+  //TODO update grid
+  this->Grid.resize(other.Grid.size());
+  for(unsigned int i = 0; i < other.Grid.size(); ++i)
+  {
+    this->Grid[i].resize(other.Grid[i].size());
+    for(unsigned j = 0; j < other.Grid[i].size(); ++j)
+    {
+      this->Grid[i][j].setCell(this->getCell(other.Grid[i][j].getCell()->label));
+    }
+  }
+}
+
+
 std::string Lattice::getLabel()
 { return "Lattice"; }
 
@@ -15,6 +63,8 @@ std::string Lattice::getTitle(){ return "Lattice"; }
 
 void Lattice::setInvalidCells()
 {
+  LatticeCell * invalid = this->getCell("");
+  invalid->setInvalid();
   for(size_t i = 0; i < this->Grid.size(); i++)
   {
     size_t start = (subType & FLAT)?(i):(i-(i)/2);
@@ -26,23 +76,32 @@ void Lattice::setInvalidCells()
     }
     for(unsigned int j = 0; j < start; ++j)
     {
-      this->Grid[i][j].setInvalid();
+      this->Grid[i][j].setCell(invalid);
     }
     for( size_t j = cols; j < this->Grid[i].size(); j++)
     {
-      this->Grid[i][j].setInvalid();
+      this->Grid[i][j].setCell(invalid);
     }
   }
 }
 
 void Lattice::SetDimensions(int iin, int jin, bool reset)
 {
+  LatticeCell * invalid = this->getCell("");
+  invalid->setInvalid();
+  LatticeCell * XX = this->getCell("xx");
+  XX->color = Qt::white;
+  XX->valid = true;
   if(this->enGeometryType == RECTILINEAR)
   {
     this->Grid.resize(iin);
     for(int k = 0; k < iin; k++)
     {
       this->Grid[k].resize(jin);
+      for(int r = 0; r < jin; ++r)
+      {
+        this->Grid[k][r].setCell(XX);
+      }
     }
   }
   else if(this->enGeometryType == HEXAGONAL)
@@ -62,9 +121,7 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
         if(k == 0)
         {
           this->Grid[k].resize(1);
-          this->Grid[k][0].label = "xx";
-          this->Grid[k][0].color = Qt::white;
-          this->Grid[k][0].valid = true;
+          this->Grid[k][0].setCell(XX);
         }
         else
         {
@@ -77,15 +134,11 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
           {
             if(start <= c && c <= end)
             {
-              this->Grid[k][c].label = "xx";
-              this->Grid[k][c].color = Qt::white;
-              this->Grid[k][c].valid = true;
+              this->Grid[k][c].setCell(XX);
             }
             else
             {
-              this->Grid[k][c].label = "";
-              this->Grid[k][c].color = Qt::black;
-              this->Grid[k][c].valid = false;
+              this->Grid[k][c].setCell(invalid);
             }
           }
         }
@@ -132,25 +185,34 @@ std::pair<int, int> Lattice::GetDimensions() const
 void Lattice::SetCell(int i, int j, const std::string &name,
                       const QColor& color, bool valid)
 {
-  this->Grid[i][j].label = name;
-  this->Grid[i][j].color = color;
-  this->Grid[i][j].valid = valid;
+  LatticeCell * cr = this->getCell(name);
+  cr->color = color;
+  cr->valid = valid;
+  this->Grid[i][j].setCell(cr);
 }
 
 void Lattice::SetCell(int i, int j, const std::string &name)
 {
-  this->Grid[i][j].label = name;
-  this->Grid[i][j].color = Qt::white;
+  LatticeCell * cr = this->getCell(name);
+  this->Grid[i][j].setCell(cr);
+}
+
+void Lattice::SetCellColor(const std::string &name, const QColor& color)
+{
+  LatticeCell * cr = this->getCell(name);
+  cr->color = color;
 }
 
 void Lattice::setAsInvalid(int i, int j)
 {
-  this->Grid[i][j].setInvalid();
+  LatticeCell * cr = this->getCell("");
+  cr->setInvalid();
+  this->Grid[i][j].setCell(cr);
 }
 
 Lattice::LatticeCell Lattice::GetCell(int i, int j) const
 {
-  return this->Grid[i][j];
+  return *(this->Grid[i][j].getCell());
 }
 
 Lattice::LatticeCell Lattice::GetCell(int i) const
@@ -174,7 +236,7 @@ Lattice::LatticeCell Lattice::GetCell(int i) const
         break;
       }
     }
-    return this->Grid[j][k];
+    return this->GetCell(j,k);
   }
   else
   {
@@ -184,13 +246,14 @@ Lattice::LatticeCell Lattice::GetCell(int i) const
     assert(j < static_cast<int>(this->Grid.size()));
     assert(k < static_cast<int>(this->Grid[j].size()));
 
-    return this->Grid[j][k];
+    return this->GetCell(j,k);
   }
 }
 
 void Lattice::ClearCell(int i, int j)
 {
-  this->SetCell(i, j, "xx", Qt::white);
+  LatticeCell * cr = this->getCell("xx");
+  this->Grid[i][j].setCell(cr);
 }
 
 bool Lattice::ClearCell(const std::string &label)
@@ -212,19 +275,31 @@ bool Lattice::ClearCell(const std::string &label)
 
 bool Lattice::replaceLabel(const std::string &oldL, const std::string &newL)
 {
-  bool result = false;
+  std::map<std::string, LatticeCell *>::iterator iter = LabelToCell.find(oldL);
+  if(iter == LabelToCell.end() || iter->second->getCount() == 0)
+  {
+    return false;
+  }
+  std::map<std::string, LatticeCell *>::iterator newI = LabelToCell.find(newL);
+  if(newI == LabelToCell.end()) //easy
+  {
+    iter->second->label = newL;
+    LabelToCell[newL] = iter->second;
+    LabelToCell.erase(iter);
+    return true;
+  }
+  //harder
   for(size_t i = 0; i < this->Grid.size(); i++)
   {
     for(size_t j = 0; j < this->Grid[i].size(); j++)
     {
-      if(this->GetCell(i, j).label == oldL)
+      if(this->Grid[i][j].getCell() == iter->second)
       {
-        result = true;
-        this->SetCell(i, j, newL, Qt::white);
+        this->Grid[i][j].setCell(newI->second);
       }
     }
   }
-  return result;
+  return true;
 }
 
 enumNucPartsType Lattice::GetType() const
@@ -261,5 +336,32 @@ enumGeometryType Lattice::GetGeometryType()
 void Lattice::SetGeometrySubType(int type)
 {subType = type;}
 
-int Lattice::GetGeometrySubType()
-{ return subType;}
+int Lattice::GetGeometrySubType() const
+{ return subType; }
+
+bool Lattice::labelUsed(const std::string &l) const
+{
+  std::map<std::string, LatticeCell *>::const_iterator iter = LabelToCell.find(l);
+  if(iter == LabelToCell.end())
+  {
+    return false;
+  }
+  return iter->second->getCount() != 0;
+}
+
+Lattice::LatticeCell * Lattice::getCell(std::string label)
+{
+  LatticeCell * result = NULL;
+  std::map<std::string, LatticeCell *>::iterator iter = LabelToCell.find(label);
+  if(iter == LabelToCell.end())
+  {
+    result = new LatticeCell;
+    result->label = label;
+    LabelToCell[label] = result;
+  }
+  else
+  {
+    result = iter->second;
+  }
+  return result;
+}

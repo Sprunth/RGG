@@ -17,7 +17,7 @@ cmbNucPartsTreeItem::cmbNucPartsTreeItem(
 {
   this->connection = new cmbNucPartsTreeItemConnection();
   this->connection->v = this;
-  std::string fname = this->PartObject->getFileName();
+  std::string fname = (this->PartObject)?this->PartObject->getFileName():"";
   if(fname.empty())
   {
     this->setText(3, "");
@@ -61,29 +61,32 @@ void cmbNucPartsTreeItemConnection::checkSaveAndGenerate()
 
 void cmbNucPartsTreeItem::checkSaveAndGenerate()
 {
+  if(!this->PartObject)
+  {
+    return;
+  }
   enumNucPartsType selType = PartObject->GetType();
   bool need_to_save = false;
   bool need_to_generate = false;
   switch(selType)
     {
     case CMBNUC_CORE:
-      {
+    {
       cmbNucCore * core = dynamic_cast<cmbNucCore*>(PartObject);
-      need_to_save = core->changeSinceLastSave();
-      need_to_generate = core->changeSinceLastGenerate();
-      }
+      this->setHighlights(core->changeSinceLastSave(),
+                          core->changeSinceLastGenerate());
       break;
+    }
     case CMBNUC_ASSEMBLY:
-      {
+    {
       cmbNucAssembly * assy = dynamic_cast<cmbNucAssembly*>(PartObject);
-      need_to_save = assy->changeSinceLastSave();
-      need_to_generate = assy->changeSinceLastGenerate();
-      }
+      this->setHighlights( assy->changeSinceLastGenerate() );
       break;
+    }
     default:
       return;
     }
-  this->setHightlights(need_to_save, need_to_generate);
+
 }
 
 bool cmbNucPartsTreeItem::fileChanged() const
@@ -96,7 +99,7 @@ bool cmbNucPartsTreeItem::needGeneration() const
   return NeedGeneration;
 }
 
-void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
+void cmbNucPartsTreeItem::setHighlights(bool fc, bool ng)
 {
   FileChanged = fc;
   NeedGeneration = ng;
@@ -121,7 +124,7 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
     this->setText( 1, QChar(0x25FC) );
   }
 
-  std::string fname = this->PartObject->getFileName();
+  std::string fname = (this->PartObject)?this->PartObject->getFileName():"";
   if(fname.empty())
   {
     this->setText(3, "");
@@ -132,6 +135,11 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
     this->setText(3, fi.fileName());
   }
 
+  this->setHighlights(NeedGeneration);
+}
+
+void cmbNucPartsTreeItem::setHighlights(bool NeedGeneration)
+{
   if(NeedGeneration)
   {
     QBrush b;
@@ -150,7 +158,7 @@ QVariant cmbNucPartsTreeItem::data( int index, int role ) const
 {
   if(role == Qt::ToolTipRole && index == 3)
   {
-    std::string fname = this->PartObject->getFileName();
+    std::string fname = (this->PartObject)?this->PartObject->getFileName():"";
     if(!fname.empty())
     {
       return QVariant(fname.c_str());

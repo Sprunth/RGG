@@ -9,6 +9,8 @@
 #include <set>
 #include <cmath>
 
+#include "cmbNucPinLibrary.h"
+#include "cmbNucDuctLibrary.h"
 #include "cmbNucAssembly.h"
 
 #include "vtkTransform.h"
@@ -31,18 +33,12 @@
 void cmbNucCoreConnection::dataChanged()
 {
   v->setAndTestDiffFromFiles(true);
-  v->clearOldGeometry();
   emit dataChangedSig();
-}
-
-void cmbNucCoreConnection::clearData()
-{
-  v->clearOldGeometry();
 }
 
 void cmbNucCoreConnection::assemblyChanged()
 {
-  v->checkUsedAssembliesForGen();
+  v->setAndTestDiffFromFiles(true);
   emit dataChangedSig();
 }
 
@@ -62,7 +58,8 @@ const double cmbNucCore::CosSinAngles[6][2] =
 
 cmbNucCore::cmbNucCore(bool needSaved)
 {
-  clearOldGeometry();
+  this->PinLibrary = new cmbNucPinLibrary;
+  this->DuctLibrary = new cmbNucDuctLibrary;
   this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
@@ -86,11 +83,9 @@ cmbNucCore::~cmbNucCore()
     }
   this->Assemblies.clear();
   delete this->Defaults;
+  delete this->PinLibrary;
+  delete this->DuctLibrary;
   delete this->Connection;
-}
-
-void cmbNucCore::clearOldGeometry()
-{
 }
 
 vtkBoundingBox cmbNucCore::computeBounds()
@@ -100,18 +95,19 @@ vtkBoundingBox cmbNucCore::computeBounds()
   this->Assemblies[0]->getZRange(z1,z2);
   double wh[2];
   this->Assemblies[0]->GetDuctWidthHeight(wh);
-  double diameter = wh[0]*(this->lattice.Grid.size()*2-1);
+  std::pair<int, int> dim = lattice.GetDimensions();
+  double diameter = wh[0]*(dim.first*2-1);
   double radius = diameter*0.5;
   double pointDist = wh[0]*0.5/0.86602540378443864676372317075294;
-  double tmpH = (this->lattice.Grid.size() + std::floor((this->lattice.Grid.size()-1)*0.5))*pointDist;
+  double tmpH = (dim.first + std::floor((dim.first-1)*0.5))*pointDist;
   if(IsHexType())
   {
     int subType = lattice.GetGeometrySubType();
     double tx = 0, ty = 0;
     double min[2], max[2];
-    if((subType & ANGLE_360) && this->lattice.Grid.size()>=1)
+    if((subType & ANGLE_360) && dim.first>=1)
     {
-      tx = wh[0]*this->lattice.Grid.size();
+      tx = wh[0]*dim.first;
       double tmp = tx - wh[0];
       double t2 = tmp*0.5;
       ty = -std::sqrt(tmp*tmp-t2*t2);
@@ -154,11 +150,11 @@ vtkBoundingBox cmbNucCore::computeBounds()
   else
   {
     vtkBoundingBox b;
-    double transX = this->Assemblies[0]->AssyDuct.getDuct(0)->x;
-    double transY = this->Assemblies[0]->AssyDuct.getDuct(0)->y;
+    double transX = this->Assemblies[0]->getAssyDuct().getDuct(0)->x;
+    double transY = this->Assemblies[0]->getAssyDuct().getDuct(0)->y;
     double pt[4];
     calculateRectPt( 0, 0, pt );
-    calculateRectPt(this->lattice.Grid.size()-1,this->lattice.Grid[0].size()-1, pt+2);
+    calculateRectPt(dim.first-1, dim.second-1, pt+2);
     pt[0] -= wh[0]*0.5;
     pt[1] -= wh[1]*0.5;
     pt[2] += wh[0]*0.5;
@@ -183,38 +179,39 @@ void cmbNucCore::SetDimensions(int i, int j)
 
 void cmbNucCore::clearExceptAssembliesAndGeom()
 {
-  clearOldGeometry();
   this->lattice.SetDimensions(1, 1, true);
   this->setAndTestDiffFromFiles(true);
-  FileName = "";
+  CurrentFileName = "";
+  ExportFileName = "";
   h5mFile = "";
   Params.clear();
 }
 
 void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 {
-    if(this->Assemblies.size()==0)
-    {
+  if(!assembly) return;
+  if(this->Assemblies.size()==0)
+  {
     if(assembly)
-      {
+    {
       this->lattice.SetGeometryType(
         assembly->getLattice().GetGeometryType());
-      }
-    this->SetDimensions(1, 1);
     }
+    this->SetDimensions(1, 1);
+  }
   this->Assemblies.push_back(assembly);
+  assembly->setPinLibrary(this->PinLibrary);
+  assembly->setDuctLibrary(this->DuctLibrary);
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SIGNAL(dataChangedSig()));
   QObject::connect(assembly->GetConnection(), SIGNAL(colorChanged()),
                    this->Connection, SIGNAL(colorChanged()));
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SLOT(assemblyChanged()));
-  QObject::connect(this->Connection, SIGNAL(dataChangedSig()),
-                   this->Connection, SLOT(clearData()));
   if(this->Assemblies.size() == 1)
-    {
+  {
     this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
-    }
+  }
   // the new assembly need to be in the grid
 }
 
@@ -233,7 +230,6 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
   if(this->lattice.ClearCell(label))
   {
     this->setAndTestDiffFromFiles(true);
-    clearOldGeometry();
   }
 }
 
@@ -258,9 +254,9 @@ cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
 std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
 {
   std::set<std::string> usedDict;
-  for(size_t i = 0; i < this->lattice.Grid.size(); i++)
+  for(size_t i = 0; i < this->lattice.getSize(); i++)
     {
-    for(size_t j = 0; j < this->lattice.Grid[i].size(); j++)
+    for(size_t j = 0; j < this->lattice.getSize(i); j++)
       {
       usedDict.insert(this->lattice.GetCell(i, j).label);
       }
@@ -282,15 +278,15 @@ void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
   double outerDuctWidth;
   double outerDuctHeight;
   Defaults->getDuctThickness(outerDuctWidth, outerDuctHeight);
-  pt[1] = i * (outerDuctHeight)-outerDuctHeight*(this->lattice.Grid.size()-1);
+  pt[1] = i * (outerDuctHeight)-outerDuctHeight*(this->lattice.getSize()-1);
   pt[0] = j * (outerDuctWidth);
 }
 
 void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY)
 {
   cmbNucAssembly * assy = this->GetAssembly(0);
-  transX = assy->AssyDuct.getDuct(0)->x;
-  transY = assy->AssyDuct.getDuct(0)->y;
+  transX = assy->getAssyDuct().getDuct(0)->x;
+  transY = assy->getAssyDuct().getDuct(0)->y;
 }
 
 void cmbNucCore::setGeometryLabel(std::string geomType)
@@ -356,36 +352,13 @@ void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultCol
   this->RebuildGrid();
 }
 
-cmbNucAssembly* cmbNucCore::loadAssemblyFromFile(
-  const std::string &fileName, const std::string &assyLabel)
-{
-  // read file and create new assembly
-  cmbNucAssembly* assembly = new cmbNucAssembly;
-  assembly->label = assyLabel;
-  if(!assembly->ReadFile(fileName)) return NULL;
-  this->AddAssembly(assembly);
-  return assembly;
-}
-
 void cmbNucCore::RebuildGrid()
 {
-  for(size_t i = 0; i < this->lattice.Grid.size(); i++)
-    {
-    for(size_t j = 0; j < this->lattice.Grid[i].size(); j++)
-      {
-      std::string type = this->lattice.Grid[i][j].label;
-      cmbNucAssembly* assembly = NULL;
-      if(!(type.empty() || type == "xx" || type == "XX" ||
-          (assembly = this->GetAssembly(type)) == NULL))
-        {
-        this->lattice.Grid[i][j].color = assembly->GetLegendColor();
-        }
-      else
-        {
-        this->lattice.Grid[i][j].color = Qt::white;
-        }
-      }
-    }
+  for(unsigned int i = 0; i < Assemblies.size(); ++i)
+  {
+    this->lattice.SetCellColor(this->Assemblies[i]->label,
+                               this->Assemblies[i]->GetLegendColor());
+  }
 }
 
 void cmbNucCore::computePitch()
@@ -418,7 +391,7 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   }
   //make sure file exits
   //check to see if a h5m file has been generate and is older than this file
-  QFileInfo inpInfo(this->FileName.c_str());
+  QFileInfo inpInfo(this->CurrentFileName.c_str());
   if(!inpInfo.exists())
   {
     this->DifferentFromFile = true;
@@ -426,9 +399,15 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
     return;
   }
   this->DifferentFromFile = false;
+  if(this->ExportFileName.empty())
+  {
+    this->DifferentFromH5M = true;
+    return;
+  }
   //QFileInfo h5mFI();
   QDateTime inpLM = inpInfo.lastModified();
-  QFileInfo h5mInfo(inpInfo.dir(), h5mFile.c_str());
+  QFileInfo exportInfo(this->ExportFileName.c_str());
+  QFileInfo h5mInfo(exportInfo.dir(), h5mFile.c_str());
   if(!h5mInfo.exists())
   {
     this->DifferentFromH5M = true;
@@ -442,12 +421,12 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
 void cmbNucCore::checkUsedAssembliesForGen()
 {
   if(this->DifferentFromH5M) return;
-  QFileInfo h5mInfo(QFileInfo(this->FileName.c_str()).dir(), this->h5mFile.c_str());
+  QFileInfo h5mInfo(QFileInfo(this->ExportFileName.c_str()).dir(), this->h5mFile.c_str());
   std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
   for(unsigned int i = 0; i < assy.size() && !this->DifferentFromH5M; ++i)
   {
     this->DifferentFromH5M |= assy[i]->changeSinceLastGenerate();
-    QFileInfo inpInfo(assy[i]->FileName.c_str());
+    QFileInfo inpInfo(assy[i]->ExportFileName.c_str());
     QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName() + ".cub");
     this->DifferentFromH5M |= !cubInfo.exists() || h5mInfo.lastModified() < cubInfo.lastModified();
   }
@@ -513,7 +492,7 @@ void cmbNucCore::calculateDefaults()
     {
       MeshType = params->MeshType.c_str();
     }
-    if(length < assy->AssyDuct.getLength()) length = assy->AssyDuct.getLength();
+    if(length < assy->getAssyDuct().getLength()) length = assy->getAssyDuct().getLength();
     double r[2];
     assy->GetDuctWidthHeight(r);
     if( r[0] > DuctThickX ) DuctThickX = r[0];
@@ -537,6 +516,20 @@ void cmbNucCore::sendDefaults()
   {
     assys[i]->setFromDefaults(this->Defaults);
   }
+
+  double dt1, dt2, l;
+  this->Defaults->getDuctThickness(dt1,dt2);
+  this->Defaults->getHeight(l);
+
+  for(size_t i = 0; i < this->DuctLibrary->GetNumberOfDuctCells(); ++i)
+  {
+    DuctCell * dc = this->DuctLibrary->GetDuctCell(i);
+    if(!dc->isUsed())
+    {
+      dc->setDuctThickness(dt1,dt2);
+      dc->setLength(l);
+    }
+  }
 }
 
 bool cmbNucCore::label_unique(std::string & n)
@@ -551,6 +544,7 @@ bool cmbNucCore::label_unique(std::string & n)
 
 void cmbNucCore::fillList(QStringList & l)
 {
+  l.append("xx");
   for(int i = 0; i < this->GetNumberOfAssemblies(); i++)
   {
     cmbNucAssembly *t = this->GetAssembly(i);

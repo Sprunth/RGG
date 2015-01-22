@@ -108,7 +108,7 @@ public:
     extraXTrans = 0;
     cmbNucAssembly * assy = input->GetAssembly(0);
     if(assy == NULL) return;
-    Duct * dc = assy->AssyDuct.getDuct(0);
+    Duct * dc = assy->getAssyDuct().getDuct(0);
     if(dc == NULL) return;
     double startX = dc->x;
     double startY = dc->y;
@@ -124,9 +124,9 @@ public:
       {cmbNucCore::CosSinAngles[5][0],cmbNucCore::CosSinAngles[5][1]}
     };
 
-    if( (subType & ANGLE_360) && lat.Grid.size()>=1 )
+    if( (subType & ANGLE_360) && lat.getSize()>=1 )
     {
-      double odc = outerDuctHeight*lat.Grid.size();
+      double odc = outerDuctHeight*lat.getSize();
       double tmp = odc - outerDuctHeight;
       double t2 = tmp*0.5;
       double ty = std::sqrt(tmp*tmp-t2*t2);
@@ -145,9 +145,8 @@ public:
     double hexDiameter, junkDK;
     input->GetDefaults()->getDuctThickness(hexDiameter, junkDK);
 
-    for(size_t i = 0; i < lat.Grid.size(); i++)
+    for(size_t i = 0; i < lat.getSize(); i++)
     {
-      const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
       double layerCorners[6][2], layerRadius;
       if(i>0)
       {
@@ -160,11 +159,11 @@ public:
         }
       }
 
-      for(size_t j = 0; j < row.size(); j++)
+      for(size_t j = 0; j < lat.getSize(i); j++)
       {
-        if(!row[j].isBlank())
+        if(!lat.GetCell(i,j).isBlank())
         {
-          const std::string &type = row[j].label;
+          const std::string &type = lat.GetCell(i,j).label;
           cmbNucAssembly* assembly = input->GetAssembly(type);
           if(assembly == NULL) continue;
 
@@ -213,22 +212,23 @@ public:
   {
     extraXTrans = 0;
     extraYTrans = 0;
-    Duct *hexDuct = input->AssyDuct.getDuct(0);
+    Duct *hexDuct = input->getAssyDuct().getDuct(0);
     Lattice & lat = input->getLattice();
+    double pitchX = input->getPinPitchX();
+    double pitchY = input->getPinPitchY();
 
-    for(size_t i = 0; i < lat.Grid.size(); i++)
+    for(size_t i = 0; i < lat.getSize(); i++)
     {
 
-      const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
-      for(size_t j = 0; j < row.size(); j++)
+      for(size_t j = 0; j < lat.getSize(i); j++)
       {
-        if(!row[j].isBlank())
+        if(!lat.GetCell(i,j).isBlank())
         {
-          const std::string &type = row[j].label;
+          const std::string &type = lat.GetCell(i,j).label;
           PinCell* pincell = input->GetPinCell(type);
           if(pincell && (pincell->GetNumberOfParts())>0)
           {
-            double pinDistFromCenter = pincell->pitchX * (i);
+            double pinDistFromCenter = pitchX * (i);
             double tX=hexDuct->x, tY=hexDuct->y;
             int cornerIdx;
             if(i == 1)
@@ -276,16 +276,15 @@ public:
 
     Lattice & lat = input->getLattice();
 
-    for(size_t i = 0; i < lat.Grid.size(); i++)
+    for(size_t i = 0; i < lat.getSize(); i++)
     {
-      const std::vector<Lattice::LatticeCell> &row = lat.Grid[i];
-      for(size_t j = 0; j < row.size(); j++)
+      for(size_t j = 0; j < lat.getSize(i); j++)
       {
         input->calculateRectPt(i, j, currentLaticePoint);
-        if(!row[j].isBlank())
+        if(!lat.GetCell(i,j).isBlank())
         {
-          idToPoint[row[j].label].push_back(point( currentLaticePoint[0],
-                                                   currentLaticePoint[1]));
+          idToPoint[lat.GetCell(i,j).label].push_back(point( currentLaticePoint[0],
+                                                             currentLaticePoint[1]));
         }
       }
     }
@@ -354,7 +353,8 @@ public:
   }
 
   static void createGeo(PinCell* pincell, bool isHex,
-                        std::map<key,GeoToPoints> & geometry)
+                        std::map<key,GeoToPoints> & geometry,
+                        double pitchX = -1, double pitchY = -1 )
   {
     if(pincell == NULL) return;
     size_t numParts = pincell->GetNumberOfParts();
@@ -363,7 +363,7 @@ public:
     for(size_t j = 0; j < numParts; ++j)
     {
       PinSubPart* part = pincell->GetPart(j);
-      vtkSmartPointer<vtkCmbLayeredConeSource> manager = cmbNucRender::CreateLayerManager(pincell, isHex, j);
+      vtkSmartPointer<vtkCmbLayeredConeSource> manager = cmbNucRender::CreateLayerManager(pincell, isHex, j, pitchX, pitchY);
       if(manager == NULL) continue;
       //inner cylinder/frustum
       {
@@ -420,6 +420,8 @@ public:
     std::map< std::string, std::vector<point> > idToPoint;
     double extraXTrans = 0;
     double extraYTrans = 0;
+    double pitchX = input->getPinPitchX();
+    double pitchY = input->getPinPitchY();
     calculatePoints(input, extraXTrans, extraYTrans, idToPoint);
     point xformR;
     point xformS;
@@ -453,7 +455,7 @@ public:
       {
         tmpGeo[i->first].geo = i->second.geo;
       }
-      createGeo(&(input->AssyDuct), input->IsHexType(), tmpGeo);
+      createGeo(&(input->getAssyDuct()), input->IsHexType(), tmpGeo);
       std::vector<point> points(1);
 
       if(hasSectioning)
@@ -494,7 +496,7 @@ public:
         tmpGeo[i->first].geo = i->second.geo;
       }
 
-      createGeo(input->GetPinCell(iter->first), input->IsHexType(), tmpGeo);
+      createGeo(input->GetPinCell(iter->first), input->IsHexType(), tmpGeo, pitchX, pitchY);
 
       std::vector<point> const& points = iter->second;
       if(hasSectioning)
@@ -732,13 +734,13 @@ public:
     vtkSmartPointer<vtkCmbLayeredConeSource> cylinder = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
 
     cmbNucAssembly * assy = core->GetAssembly(0);
-    double outerDuctWidth = assy->AssyDuct.getDuct(0)->thickness[1];
-    double outerDuctHeight = assy->AssyDuct.getDuct(0)->thickness[0];
+    double outerDuctWidth = assy->getAssyDuct().getDuct(0)->thickness[1];
+    double outerDuctHeight = assy->getAssyDuct().getDuct(0)->thickness[0];
     double extraXTrans = 0, extraYTrans = 0;
 
     if(core->IsHexType())
     {
-      double odc = outerDuctHeight*core->getLattice().Grid.size();
+      double odc = outerDuctHeight*core->getLattice().getSize();
       double tmp = odc - outerDuctHeight;
       double t2 = tmp*0.5;
       double ty = std::sqrt(tmp*tmp-t2*t2);
@@ -747,10 +749,10 @@ public:
     }
     else
     {
-      double tx = outerDuctWidth*(core->getLattice().Grid.size()-1)*0.5;
-      double ty = outerDuctHeight*(core->getLattice().Grid[0].size()-1)*0.5;
+      double tx = outerDuctWidth*(core->getLattice().getSize()-1)*0.5;
+      double ty = outerDuctHeight*(core->getLattice().getSize(0)-1)*0.5;
       extraXTrans = ty,
-      extraYTrans = tx-outerDuctWidth*(core->getLattice().Grid.size()-1);
+      extraYTrans = tx-outerDuctWidth*(core->getLattice().getSize()-1);
     }
 
     cylinder->SetHeight(1);
@@ -758,7 +760,7 @@ public:
     cylinder->SetTopRadius(0, r);
     cylinder->SetBaseRadius(0, r);
     cylinder->SetResolution(0, s);
-    double odc = outerDuctHeight*(core->getLattice().Grid.size()-1);
+    double odc = outerDuctHeight*(core->getLattice().getSize()-1);
     double tmp = (outerDuctHeight*0.5) / (cos(30.0 * vtkMath::Pi() / 180.0));
     double pt1[] = {odc * cmbNucCore::CosSinAngles[5][0], odc * cmbNucCore::CosSinAngles[5][1]};
     double pt2[2];
@@ -786,21 +788,21 @@ public:
         pt2[1] = odc * cmbNucCore::CosSinAngles[at][1];
         int sp1 = (i + 0)%6;
         int sp2 = (i + 1)%6;
-        if(core->getLattice().Grid.size() == 1)
+        if(core->getLattice().getSize() == 1)
         {
           cylinder->addInnerPoint(pt1[0]+tmp * AssyCosSinAngles[sp1][0],
                                   pt1[1]+tmp * AssyCosSinAngles[sp1][1]);
         }
-        else for(size_t j = 0; j < core->getLattice().Grid.size(); ++j)
+        else for(size_t j = 0; j < core->getLattice().getSize(); ++j)
         {
-          double tmps = j/(core->getLattice().Grid.size()-1.0);
+          double tmps = j/(core->getLattice().getSize()-1.0);
           double pt[] = {pt1[0]*(1.0-tmps)+pt2[0]*(tmps), pt1[1]*(1.0-tmps)+pt2[1]*(tmps)};
 
           {
             cylinder->addInnerPoint(pt[0]+tmp * AssyCosSinAngles[sp1][0],
                                     pt[1]+tmp * AssyCosSinAngles[sp1][1]);
           }
-          if(j != core->getLattice().Grid.size()-1 )
+          if(j != core->getLattice().getSize()-1 )
           {
             cylinder->addInnerPoint(pt[0]+tmp * AssyCosSinAngles[sp2][0],
                                     pt[1]+tmp * AssyCosSinAngles[sp2][1]);
@@ -813,8 +815,8 @@ public:
     }
     else
     {
-      double height = outerDuctWidth*(core->getLattice().Grid.size())*0.5;
-      double width = outerDuctHeight*(core->getLattice().Grid[0].size())*0.5;
+      double height = outerDuctWidth*(core->getLattice().getSize())*0.5;
+      double width = outerDuctHeight*(core->getLattice().getSize(0))*0.5;
 
       cylinder->addInnerPoint( width,-height);
       cylinder->addInnerPoint( width, height);
@@ -841,17 +843,11 @@ public:
 };
 
 cmbNucRender::cmbNucRender()
- :/*PolyMapper(vtkSmartPointer<vtkCompositePolyDataMapper2>::New()),
-  PolyActor(vtkSmartPointer<vtkActor>::New()),*/
-  GlyphMapper(vtkSmartPointer<vtkGlyph3DMapper>::New()),
+ :GlyphMapper(vtkSmartPointer<vtkGlyph3DMapper>::New()),
   GlyphActor(vtkSmartPointer<vtkActor>::New()),
   TransparentMapper(vtkSmartPointer<vtkGlyph3DMapper>::New()),
   TransparentActor(vtkSmartPointer<vtkActor>::New())
 {
-  /*this->PolyMapper->SetScalarVisibility(0);
-  this->PolyActor->SetMapper(this->PolyMapper.GetPointer());
-  this->PolyActor->GetProperty()->SetShading(1);
-  this->PolyActor->GetProperty()->SetInterpolationToPhong();*/
 
   this->GlyphActor->SetMapper(this->GlyphMapper.GetPointer());
   this->GlyphActor->GetProperty()->SetShading(1);
@@ -1080,7 +1076,11 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
   BoundingBox.AddBounds(polydata->GetBounds());
 }
 
-vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCell* pincell, bool isHex, size_t j)
+vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCell* pincell,
+                                                                          bool isHex,
+                                                                          size_t j,
+                                                                          double pitchX,
+                                                                          double pitchY)
 {
   PinSubPart* part = pincell->GetPart(j);
   
@@ -1088,16 +1088,30 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
   coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
   coneSource->SetBaseCenter(0, 0, part->z1);
   coneSource->SetHeight(part->z2 - part->z1);
+  double largestRadius = 0;
 
   for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
   {
     coneSource->SetBaseRadius(k, part->getRadius(k,Frustum::BOTTOM));
     coneSource->SetTopRadius(k, part->getRadius(k,Frustum::TOP));
     coneSource->SetResolution(k, PinCellResolution);
+    if(largestRadius < part->getRadius(k,Frustum::BOTTOM))
+    {
+      largestRadius = part->getRadius(k,Frustum::BOTTOM);
+    }
+    if(largestRadius < part->getRadius(k,Frustum::TOP))
+    {
+      largestRadius = part->getRadius(k,Frustum::TOP);
+    }
   }
   if(pincell->cellMaterialSet())
   {
-    double r[] = {pincell->pitchX*0.5, pincell->pitchY*0.5};
+    largestRadius *= 2.50;
+    if(pitchX == -1 || pitchY == -1)
+    {
+      pitchX = pitchY = largestRadius;
+    }
+    double r[] = {pitchX*0.5, pitchY*0.5};
     int res = 4;
     if(isHex)
     {

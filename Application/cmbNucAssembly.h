@@ -23,6 +23,8 @@ class inpFileReader;
 class inpFileHelper;
 class inpFileWriter;
 class cmbNucDefaults;
+class cmbNucPinLibrary;
+class cmbNucDuctLibrary;
 
 #define ASSY_NOT_SET_VALUE -100001
 #define ASSY_NOT_SET_KEY "NotSet"
@@ -49,7 +51,7 @@ class cmbAssyParameters
 public:
   cmbAssyParameters()
   {
-  this->Geometry = this->GeometryType = this->MeshType
+  this->Geometry = this->MeshType
     = this->CenterXYZ = this->HBlock
     = this->Info = this->SectionXYZ = ASSY_NOT_SET_KEY;
   this->RadialMeshSize = this->AxialMeshSize
@@ -71,8 +73,6 @@ public:
 
   // Geometry     {Volume | Surface}
   std::string Geometry;
-  // GeometryType {Hexagonal | Rectangular}
-  std::string GeometryType;
 
   // [TetMeshSize <size>]
   double TetMeshSize;
@@ -102,6 +102,7 @@ public:
 };
 
 class cmbNucAssembly;
+class PinCell;
 
 class cmbNucAssemblyConnection: public QObject
 {
@@ -114,6 +115,8 @@ public slots:
   void dataChanged();
   void calculatePitch();
   void geometryChanged();
+  void ductDeleted();
+  void pinDeleted(PinCell*);
 signals:
   void dataChangedSig();
   void colorChanged();
@@ -158,6 +161,7 @@ public:
   public:
     Rotate(): angle(0) {}
     Rotate(std::string a, double delta);
+    Rotate(AXIS a, double delta);
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const {return angle;}
     virtual bool reverse() const {return false;}
@@ -171,6 +175,7 @@ public:
   public:
     Section(): dir(1), value(0){}
     Section(std::string a, double v, std::string dir);
+    Section(AXIS a, double v, int dir);
     std::ostream& write(std::ostream& os) const;
     virtual double getValue() const { return value; }
     virtual bool reverse() const {return dir == -1;}
@@ -179,6 +184,14 @@ public:
   private:
     int dir;
     double value;
+  };
+
+  class PinCellUsed
+  {
+  public:
+    PinCellUsed() : count(0){}
+    int count;
+    PinCell* pincell;
   };
 public:
 
@@ -192,6 +205,16 @@ public:
 
   // Destroys the assembly.
   virtual ~cmbNucAssembly();
+
+  void setPinLibrary(cmbNucPinLibrary * p)
+  {
+    this->Pins = p;
+  }
+
+  void setDuctLibrary(cmbNucDuctLibrary * d);
+
+  virtual QString extractLabel(QString const& s);
+  virtual void setUsedLabels(std::map<QString, int> const& labels);
 
   const static double CosSinAngles[6][2];
 
@@ -216,12 +239,6 @@ public:
   PinCell* GetPinCell(int pc) const;
   std::size_t GetNumberOfPinCells() const;
 
-  // Reads an assembly from a ".inp" file.
-  bool ReadFile(const std::string &FileName);
-
-  // Writes the assembly to a ".inp" file.
-  void WriteFile(const std::string &FileName);
-
   // The color to use to represent this assembly type in the lattice editor
   QColor GetLegendColor() const;
   void SetLegendColor(const QColor& color);
@@ -230,7 +247,6 @@ public:
 
   //Set the different from file and tests the cub file;
   void setAndTestDiffFromFiles(bool diffFromFile);
-  bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
 
   bool needsBothAssygenCubit() const;
@@ -248,7 +264,7 @@ public:
 
   void calculatePitch(double & x, double & y);
   void calculateRadius(double & r);
-  void setPitch(double x, double y);
+  void setPitch(double x, double y, bool testDiff = true);
 
   void centerPins();
 
@@ -261,14 +277,13 @@ public:
 
   std::string getLabel(){return label;}
   void setLabel(std::string & n);
-  std::string getFileName(){return FileName;}
+  //std::string getFileName(){return "";}
   virtual std::string getTitle(){ return "Assembly: " + label; }
 
   // Expose assembly parts for UI access
-  DuctCell AssyDuct;
   std::string label;
 
-  std::string FileName;
+  std::string ExportFileName;
 
   std::string getGeometryLabel() const;
   void setGeometryLabel(std::string geomType);
@@ -303,8 +318,28 @@ public:
     transY = -lastPt[1]*0.5;
   }
 
+  double getPinPitchX(){return this->pinPitchX;}
+  double getPinPitchY(){return this->pinPitchY;}
+
+  cmbNucPinLibrary * getPinLibrary()
+  { return Pins; }
+
+  cmbNucDuctLibrary * getDuctLibrary()
+  { return Ducts; }
+
+  DuctCell & getAssyDuct()
+  {
+    return *AssyDuct;
+  }
+
+  //return true when changed
+  bool setDuctCell(DuctCell * AssyDuct, bool resetPitch = false);
+
 protected:
   std::vector<PinCell*> PinCells;
+  cmbNucPinLibrary * Pins;
+  cmbNucDuctLibrary * Ducts;
+  DuctCell * AssyDuct;
 
   std::vector<Transform*> Transforms;
 
@@ -319,12 +354,12 @@ protected:
 private:
   QColor LegendColor;
 
-
-  bool DifferentFromFile;
   bool DifferentFromCub;
   bool DifferentFromJournel;
 
   cmbNucAssemblyConnection * Connection;
+
+  double pinPitchX, pinPitchY;
 
 };
 

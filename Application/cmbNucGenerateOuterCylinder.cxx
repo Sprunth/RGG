@@ -47,8 +47,9 @@ cmbNucGenerateOuterCylinder
   deleteTempFiles();
   if(this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate)
   {
-    FileName = this->Core->Params.BackgroundFullPath.c_str();
-    if(FileName.isEmpty())
+    QFileInfo qi(this->Core->ExportFileName.c_str());
+    std::string tmp = this->Core->Params.Background;
+    if(tmp.empty())
     {
       QMessageBox msgBox;
       msgBox.setText(QString("Could not generate a file outer jacket file, skipping"));
@@ -56,6 +57,7 @@ cmbNucGenerateOuterCylinder
     }
     else
     {
+      FileName = qi.dir().absolutePath()+tmp.c_str();
       random = GetRandomString(8);
       Generate();
     }
@@ -84,7 +86,7 @@ cmbNucGenerateOuterCylinder
   fullPath =fi.dir().absoluteFilePath(jouname);
   std::ofstream output(fullPath.toStdString().c_str());
   output << "{include(\"" << QFileInfo(fname).completeBaseName().toStdString() << ".template.jou\")}\n";
-  output << "{rings = " << Core->getLattice().Grid.size() << "}\n";
+  output << "{rings = " << Core->getLattice().getSize() << "}\n";
   output << "#{OUTER_CYL_EDGE_INTERVAL = " << this->Core->getCylinderOuterSpacing() << "}\n";
   output << "#{rd = " << this->Core->getCylinderRadius() << "}\n";
   output << "#{tol = 1e-2}\n";

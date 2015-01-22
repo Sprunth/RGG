@@ -419,6 +419,7 @@ cmbNucExporterWorker
     //actually launch the new process
     ep->execute(remus::common::ExecuteProcess::Attached);
 #else
+    qDebug() << qargs;
     QProcess ep;
     ep.start(input.Function.c_str(), qargs);
     QThread::yieldCurrentThread();

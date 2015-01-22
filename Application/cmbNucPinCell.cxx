@@ -73,6 +73,14 @@ void PinSubPart::SetNumberOfLayers(int numLayers)
   }
 }
 
+void PinSubPart::setMaterialLayer(int i, cmbNucMaterialLayer * m)
+{
+  if(m == NULL) return;
+  if(i >= this->Materials.size()) this->SetNumberOfLayers(i+1);
+  *(this->Materials[i]) = *m;
+  delete m;
+}
+
 std::size_t PinSubPart::GetNumberOfLayers() const
 {
   return Materials.size();
@@ -250,12 +258,9 @@ PinSubPart * Frustum::clone() const
 
 //*********************************************************//
 
-PinCell::PinCell(double px, double py)
+PinCell::PinCell()
 {
-  pitchX=px;
-  pitchY=py;
-  pitchZ=0.0;
-  name=label="p1";
+  Name=Label="p1";
   legendColor = Qt::white;
   cutaway = false;
   Connection = new PinConnection();
@@ -268,6 +273,7 @@ PinCell::PinCell(double px, double py)
 
 PinCell::~PinCell()
 {
+  this->Connection->EmitDeleted(this);
   this->deleteObjs(this->Cylinders);
   this->deleteObjs(this->Frustums);
   delete Connection;
@@ -479,11 +485,8 @@ QSet< cmbNucMaterial* > PinCell::getMaterials()
 bool PinCell::fill(PinCell const* other)
 {
   bool changed = false;
-  changed |= setIfDifferent(other->name, this->name);
-  changed |= setIfDifferent(other->label, this->label);
-  changed |= setIfDifferent(other->pitchX, this->pitchX);
-  changed |= setIfDifferent(other->pitchY, this->pitchY);
-  changed |= setIfDifferent(other->pitchZ, this->pitchZ);
+  changed |= setIfDifferent(other->Name, this->Name);
+  changed |= setIfDifferent(other->Label, this->Label);
   if( other->CellMaterial.getMaterial() != this->CellMaterial.getMaterial())
   {
     changed = true;
@@ -617,6 +620,8 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
   double x = maxRadius, y = maxRadius;
   if(cellMaterialSet())
   {
+    double pitchX, pitchY;
+    pitchX = pitchY = maxRadius * 2.5;
     if(isHex)
     {
       x = y = std::max(maxRadius, pitchX*0.5/0.86602540378443864676372317075294);

@@ -94,6 +94,13 @@ bool cmbNucMaterialLayer::operator==( const cmbNucMaterialLayer & other ) const
           this->Thickness[1] == other.Thickness[1];
 }
 
+void cmbNucMaterialLayer::operator=( const cmbNucMaterialLayer & other )
+{
+  this->Thickness[0] = other.Thickness[0];
+  this->Thickness[1] = other.Thickness[1];
+  this->changeMaterial(other.Material);
+}
+
 cmbNucMaterial::cmbNucMaterial()
 : Visible(true), NumberReferenced(0)
 {
