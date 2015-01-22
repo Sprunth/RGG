@@ -86,6 +86,7 @@ cmbNucAssembly::Rotate::write(std::ostream& os) const
 
 cmbNucAssembly::Section::Section(AXIS a, double v, int d)
 {
+  Valid = true;
   axis = a;
   value = v;
   dir = d;
