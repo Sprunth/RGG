@@ -47,8 +47,9 @@ cmbNucGenerateOuterCylinder
   deleteTempFiles();
   if(this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate)
   {
-    FileName = this->Core->Params.BackgroundFullPath.c_str();
-    if(FileName.isEmpty())
+    QFileInfo qi(this->Core->ExportFileName.c_str());
+    std::string tmp = this->Core->Params.Background;
+    if(tmp.empty())
     {
       QMessageBox msgBox;
       msgBox.setText(QString("Could not generate a file outer jacket file, skipping"));
@@ -56,6 +57,7 @@ cmbNucGenerateOuterCylinder
     }
     else
     {
+      FileName = qi.dir().absolutePath()+tmp.c_str();
       random = GetRandomString(8);
       Generate();
     }

@@ -126,7 +126,6 @@ private:
 public slots:
   void dataChanged();
   void assemblyChanged();
-  void clearData();
 signals:
   void dataChangedSig();
   void colorChanged();
@@ -217,7 +216,7 @@ public:
   bool changeSinceLastGenerate() const;
 
   std::string getLabel(){return "Core";}
-  std::string getFileName(){return FileName;}
+  std::string getFileName(){return CurrentFileName;}
   virtual std::string getTitle(){ return "Core"; }
 
   // Get/Set Assembly pitch
@@ -226,7 +225,9 @@ public:
 
   void setGeometryLabel(std::string geomType);
 
-  std::string FileName;
+  std::string CurrentFileName;
+  std::string ExportFileName;
+  std::string GenerateDirectory;
   std::string h5mFile;
   void setHexSymmetry(int sym);
 
@@ -243,7 +244,6 @@ public:
 
   void drawCylinder(double r, int i);
   void clearCylinder();
-
 
   void checkUsedAssembliesForGen();
 

@@ -41,7 +41,8 @@ public:
   virtual void setData ( int column, int role, const QVariant & value );
   void setText ( int column, const QString & text );
   const QString& previousText() const{return this->PreviousText;}
-  void setHightlights(bool fileChange, bool needGeneration);
+  void setHighlights(bool fileChange, bool needGeneration);
+  void setHighlights(bool needGeneration);
 
   void checkSaveAndGenerate();
 

@@ -114,7 +114,8 @@ void cmbCoreParametersWidget::onSetBackgroundMesh()
   if(this->Internal->JacketMode->currentIndex() == cmbNucCoreParams::Generate)
   {
     QString defaultLoc;
-    QString name(Core->FileName.c_str());
+    QString name(Core->ExportFileName.c_str());
+    if(name.isEmpty()) name = QString(Core->CurrentFileName.c_str());
     if(!name.isEmpty())
     {
       QFileInfo fi(name);

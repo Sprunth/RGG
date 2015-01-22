@@ -71,23 +71,22 @@ void cmbNucPartsTreeItem::checkSaveAndGenerate()
   switch(selType)
     {
     case CMBNUC_CORE:
-      {
+    {
       cmbNucCore * core = dynamic_cast<cmbNucCore*>(PartObject);
-      need_to_save = core->changeSinceLastSave();
-      need_to_generate = core->changeSinceLastGenerate();
-      }
+      this->setHighlights(core->changeSinceLastSave(),
+                          core->changeSinceLastGenerate());
       break;
+    }
     case CMBNUC_ASSEMBLY:
-      {
+    {
       cmbNucAssembly * assy = dynamic_cast<cmbNucAssembly*>(PartObject);
-      need_to_save = assy->changeSinceLastSave();
-      need_to_generate = assy->changeSinceLastGenerate();
-      }
+      this->setHighlights( assy->changeSinceLastGenerate() );
       break;
+    }
     default:
       return;
     }
-  this->setHightlights(need_to_save, need_to_generate);
+
 }
 
 bool cmbNucPartsTreeItem::fileChanged() const
@@ -100,7 +99,7 @@ bool cmbNucPartsTreeItem::needGeneration() const
   return NeedGeneration;
 }
 
-void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
+void cmbNucPartsTreeItem::setHighlights(bool fc, bool ng)
 {
   FileChanged = fc;
   NeedGeneration = ng;
@@ -136,6 +135,11 @@ void cmbNucPartsTreeItem::setHightlights(bool fc, bool ng)
     this->setText(3, fi.fileName());
   }
 
+  this->setHighlights(NeedGeneration);
+}
+
+void cmbNucPartsTreeItem::setHighlights(bool NeedGeneration)
+{
   if(NeedGeneration)
   {
     QBrush b;

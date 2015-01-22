@@ -73,6 +73,7 @@ cmbNucExportDialog::~cmbNucExportDialog()
 void cmbNucExportDialog::exportFile(cmbNucCore * core)
 {
   this->hide();
+  MainWindow->onUpdateINPFiles();
   this->Progress->ui->OutputArea->clear();
   if (core == NULL)
   {
@@ -263,24 +264,7 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
     cmbNucAssembly * assy = this->Core->GetAssembly(i);
     if(force || assy->changeSinceLastGenerate())
     {
-      if(assy->changeSinceLastSave())
-      {
-        QMessageBox msgBox;
-        msgBox.setText(("Assembly " + assy->label + " has change since last.").c_str());
-        msgBox.setInformativeText("Do you want to save your changes?");
-        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard );
-        msgBox.setDefaultButton(QMessageBox::Save);
-        int ret = msgBox.exec();
-        switch (ret) {
-          case QMessageBox::Save:
-            MainWindow->saveFile(assy);
-            break;
-          default:
-            // should never be reached
-            break;
-        }
-      }
-      this->AssygenFileList.append(QString(assy->FileName.c_str()));
+      this->AssygenFileList.append(QString(assy->ExportFileName.c_str()));
     }
   }
   this->ui->assygenFileList->clear();
@@ -293,24 +277,7 @@ void cmbNucExportDialog::GetRunnableCoreFile(bool force)
   MainWindow->checkForNewCUBH5MFiles();
   if(force || Core->changeSinceLastGenerate())
   {
-    if(Core->changeSinceLastSave())
-    {
-      QMessageBox msgBox;
-      msgBox.setText("Core has change since last.");
-      msgBox.setInformativeText("Do you want to save your changes?");
-      msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard );
-      msgBox.setDefaultButton(QMessageBox::Save);
-      int ret = msgBox.exec();
-      switch (ret) {
-        case QMessageBox::Save:
-          MainWindow->saveFile(Core);
-          break;
-        default:
-          // should never be reached
-          break;
-      }
-    }
-    CoregenFile = Core->FileName.c_str();
+    CoregenFile = Core->ExportFileName.c_str();
   }
   this->ui->coregenInputFile->setText(CoregenFile);
 }

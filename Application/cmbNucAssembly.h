@@ -240,7 +240,7 @@ public:
   std::size_t GetNumberOfPinCells() const;
 
   // Writes the assembly to a ".inp" file.
-  void WriteFile(const std::string &FileName);
+  void WriteINPFile(const std::string &FileName);
 
   // The color to use to represent this assembly type in the lattice editor
   QColor GetLegendColor() const;
@@ -250,7 +250,6 @@ public:
 
   //Set the different from file and tests the cub file;
   void setAndTestDiffFromFiles(bool diffFromFile);
-  bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
 
   bool needsBothAssygenCubit() const;
@@ -281,13 +280,13 @@ public:
 
   std::string getLabel(){return label;}
   void setLabel(std::string & n);
-  std::string getFileName(){return FileName;}
+  //std::string getFileName(){return "";}
   virtual std::string getTitle(){ return "Assembly: " + label; }
 
   // Expose assembly parts for UI access
   std::string label;
 
-  std::string FileName;
+  std::string ExportFileName;
 
   std::string getGeometryLabel() const;
   void setGeometryLabel(std::string geomType);
@@ -358,8 +357,6 @@ protected:
 private:
   QColor LegendColor;
 
-
-  bool DifferentFromFile;
   bool DifferentFromCub;
   bool DifferentFromJournel;
 

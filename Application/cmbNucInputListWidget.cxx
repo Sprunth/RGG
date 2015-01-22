@@ -678,8 +678,8 @@ void cmbNucInputListWidget::initCoreRootNode()
       Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     this->Internal->RootCoreNode = new cmbNucPartsTreeItem(
       this->Internal->PartsList->invisibleRootItem(), this->NuclearCore);
-    this->Internal->RootCoreNode->setHightlights( this->NuclearCore->changeSinceLastSave(),
-                                                  this->NuclearCore->changeSinceLastGenerate());
+    this->Internal->RootCoreNode->setHighlights( this->NuclearCore->changeSinceLastSave(),
+                                                 this->NuclearCore->changeSinceLastGenerate());
     connect(this, SIGNAL(checkSavedAndGenerate()),
             this->Internal->RootCoreNode->connection, SLOT(checkSaveAndGenerate()));
     this->Internal->RootCoreNode->setText(0, "Core");
@@ -726,8 +726,7 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
   assyNode->setChildIndicatorPolicy(
     QTreeWidgetItem::DontShowIndicatorWhenChildless);
 
-  assyNode->setHightlights(assy->changeSinceLastSave(),
-                           assy->changeSinceLastGenerate());
+  assyNode->setHighlights(assy->changeSinceLastGenerate());
 
   this->Internal->PartsList->blockSignals(false);
 
@@ -920,10 +919,9 @@ void cmbNucInputListWidget::assemblyModified(cmbNucPartsTreeItem* assyNode)
   if(assem)
   {
     assem->setAndTestDiffFromFiles(true);
-    NuclearCore->checkUsedAssembliesForGen();
-    assyNode->setHightlights(assem->changeSinceLastSave(),
-                             assem->changeSinceLastGenerate());
-    Internal->RootCoreNode->setHightlights(NuclearCore->changeSinceLastSave(),
+    NuclearCore->setAndTestDiffFromFiles(true);
+    assyNode->setHighlights(assem->changeSinceLastGenerate());
+    Internal->RootCoreNode->setHighlights( NuclearCore->changeSinceLastSave(),
                                            NuclearCore->changeSinceLastGenerate());
     this->Internal->PartsList->repaint();
   }
@@ -932,8 +930,8 @@ void cmbNucInputListWidget::assemblyModified(cmbNucPartsTreeItem* assyNode)
 void cmbNucInputListWidget::repaintList()
 {
   if(Internal->RootCoreNode != NULL)
-    Internal->RootCoreNode->setHightlights(NuclearCore->changeSinceLastSave(),
-                                           NuclearCore->changeSinceLastGenerate());
+    Internal->RootCoreNode->setHighlights( NuclearCore->changeSinceLastSave(),
+                                           NuclearCore->changeSinceLastGenerate() );
   this->Internal->PartsList->repaint();
 }
 
@@ -943,7 +941,7 @@ void cmbNucInputListWidget::coreModified()
   if(selItem && NuclearCore)
   {
     NuclearCore->setAndTestDiffFromFiles(true);
-    selItem->setHightlights(NuclearCore->changeSinceLastSave(),
+    selItem->setHighlights( NuclearCore->changeSinceLastSave(),
                             NuclearCore->changeSinceLastGenerate());
     this->Internal->PartsList->repaint();
   }

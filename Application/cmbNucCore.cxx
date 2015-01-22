@@ -36,13 +36,9 @@ void cmbNucCoreConnection::dataChanged()
   emit dataChangedSig();
 }
 
-void cmbNucCoreConnection::clearData()
-{
-}
-
 void cmbNucCoreConnection::assemblyChanged()
 {
-  v->checkUsedAssembliesForGen();
+  v->setAndTestDiffFromFiles(true);
   emit dataChangedSig();
 }
 
@@ -185,7 +181,8 @@ void cmbNucCore::clearExceptAssembliesAndGeom()
 {
   this->lattice.SetDimensions(1, 1, true);
   this->setAndTestDiffFromFiles(true);
-  FileName = "";
+  CurrentFileName = "";
+  ExportFileName = "";
   h5mFile = "";
   Params.clear();
 }
@@ -211,12 +208,10 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
                    this->Connection, SIGNAL(colorChanged()));
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SLOT(assemblyChanged()));
-  QObject::connect(this->Connection, SIGNAL(dataChangedSig()),
-                   this->Connection, SLOT(clearData()));
   if(this->Assemblies.size() == 1)
-    {
+  {
     this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
-    }
+  }
   // the new assembly need to be in the grid
 }
 
@@ -396,7 +391,7 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   }
   //make sure file exits
   //check to see if a h5m file has been generate and is older than this file
-  QFileInfo inpInfo(this->FileName.c_str());
+  QFileInfo inpInfo(this->CurrentFileName.c_str());
   if(!inpInfo.exists())
   {
     this->DifferentFromFile = true;
@@ -404,9 +399,15 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
     return;
   }
   this->DifferentFromFile = false;
+  if(this->ExportFileName.empty())
+  {
+    this->DifferentFromH5M = true;
+    return;
+  }
   //QFileInfo h5mFI();
   QDateTime inpLM = inpInfo.lastModified();
-  QFileInfo h5mInfo(inpInfo.dir(), h5mFile.c_str());
+  QFileInfo exportInfo(this->ExportFileName.c_str());
+  QFileInfo h5mInfo(exportInfo.dir(), h5mFile.c_str());
   if(!h5mInfo.exists())
   {
     this->DifferentFromH5M = true;
@@ -420,12 +421,12 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
 void cmbNucCore::checkUsedAssembliesForGen()
 {
   if(this->DifferentFromH5M) return;
-  QFileInfo h5mInfo(QFileInfo(this->FileName.c_str()).dir(), this->h5mFile.c_str());
+  QFileInfo h5mInfo(QFileInfo(this->ExportFileName.c_str()).dir(), this->h5mFile.c_str());
   std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
   for(unsigned int i = 0; i < assy.size() && !this->DifferentFromH5M; ++i)
   {
     this->DifferentFromH5M |= assy[i]->changeSinceLastGenerate();
-    QFileInfo inpInfo(assy[i]->FileName.c_str());
+    QFileInfo inpInfo(assy[i]->ExportFileName.c_str());
     QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName() + ".cub");
     this->DifferentFromH5M |= !cubInfo.exists() || h5mInfo.lastModified() < cubInfo.lastModified();
   }

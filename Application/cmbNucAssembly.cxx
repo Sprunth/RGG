@@ -157,7 +157,6 @@ cmbNucAssembly::cmbNucAssembly()
   KeepPinsCentered = false;
   this->LegendColor = Qt::white;
   this->Parameters = new cmbAssyParameters;
-  this->DifferentFromFile = true;
   this->DifferentFromJournel = true;
   this->DifferentFromCub = true;
   this->Connection = new cmbNucAssemblyConnection();
@@ -318,7 +317,7 @@ bool cmbNucAssembly::IsHexType()
   return this->lattice.GetGeometryType() == HEXAGONAL;
 }
 
-void cmbNucAssembly::WriteFile(const std::string &fname)
+void cmbNucAssembly::WriteINPFile(const std::string &fname)
 {
   inpFileWriter::write(fname, *this, true);
 }
@@ -435,22 +434,19 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
 {
   if(diffFromFile)
   {
-    this->DifferentFromFile = true;
     this->DifferentFromCub = true;
     this->DifferentFromJournel = true;
     return;
   }
   //make sure file exits
   //check to see if a cub file has been generate and is older than this file
-  QFileInfo inpInfo(this->FileName.c_str());
+  QFileInfo inpInfo(this->ExportFileName.c_str());
   if(!inpInfo.exists())
   {
-    this->DifferentFromFile = true;
     this->DifferentFromCub = true;
     DifferentFromJournel = true;
     return;
   }
-  this->DifferentFromFile = false;
   QDateTime inpLM = inpInfo.lastModified();
   QFileInfo jrlInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".jou");
   if(jrlInfo.exists())
@@ -477,11 +473,6 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
   }
   QDateTime cubLM = cubInfo.lastModified();
   this->DifferentFromCub = cubLM < jrlInfo.lastModified();;
-}
-
-bool cmbNucAssembly::changeSinceLastSave() const
-{
-  return this->DifferentFromFile;
 }
 
 bool cmbNucAssembly::changeSinceLastGenerate() const

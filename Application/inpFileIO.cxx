@@ -267,7 +267,7 @@ bool inpFileReader
     return false;
   inpFileHelper helper;
   helper.labelIsDifferent = false;
-  assembly.FileName = FileName;
+  assembly.ExportFileName = FileName;
   assembly.clear();
   std::stringstream input(CleanFile);
   QFileInfo info(FileName.c_str());
@@ -408,7 +408,7 @@ bool inpFileReader
   std::string strPath = info.dir().path().toStdString();
 
   inpFileHelper helper;
-  core.FileName = FileName;
+  core.ExportFileName = FileName;
   core.h5mFile = (info.completeBaseName() + ".h5m").toStdString();
   std::stringstream input(CleanFile);
   while(!input.eof())
@@ -631,7 +631,7 @@ bool inpFileWriter::write(std::string fname,
     }
   if(updateFname && !limited)
     {
-    assembly.FileName = fname;
+    assembly.ExportFileName = fname;
     }
   helper.writeHeader(output,"Assembly");
   cmbAssyParameters * params = assembly.Parameters;
@@ -716,7 +716,7 @@ bool inpFileWriter::write(std::string fname,
     }
   if(updateFname)
     {
-    core.FileName = fname;
+    core.ExportFileName = fname;
     }
   if(core.h5mFile.empty())
   {
@@ -1637,7 +1637,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     //construct assemply file name
     //Look to see if it already has a fname
     cmbNucAssembly & assembly = *(usedAssemblies[i]);
-    std::string assemblyName = assembly.FileName;
+    std::string assemblyName = assembly.ExportFileName;
     if(assemblyName.empty())
       {
       //construct a name
@@ -1646,7 +1646,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
         {
         assemblyName = "assembly_a_"+assembly.label;
         }
-      assembly.FileName = strPath+"/"+assemblyName+".inp";
+      assembly.ExportFileName = strPath+"/"+assemblyName+".inp";
       }
     else
       {
