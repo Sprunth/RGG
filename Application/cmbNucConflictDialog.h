@@ -6,7 +6,6 @@
 #include <QThread>
 #include "cmbNucPinLibrary.h"
 #include "cmbNucPinCell.h"
-#include "Ui_name_conflict_gui.h"
 
 // Forward Qt class declarations
 class Ui_name_conflict_gui;
