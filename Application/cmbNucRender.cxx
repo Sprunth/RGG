@@ -441,7 +441,7 @@ public:
     }
   }
 
-  static void createGeo(cmbNucAssembly * input, bool rotate_30,
+  static void createGeo(cmbNucAssembly * input,
                         Lattice::CellDrawMode mode,
                         std::map<key,GeoToPoints> & geometry)
   {
@@ -456,7 +456,7 @@ public:
     bool hasSectioning = false;
     std::vector<point> sectioningPlanes;
     static int sectionedCount = 0;
-    if(rotate_30)
+    if(input->getLattice().getFullCellMode() == Lattice::HEX_FULL_30)
     {
       xformR.xyz[2] += 30;
       xformS.xyz[2] -= 30;
@@ -660,7 +660,6 @@ public:
     double extraXTrans;
     double extraYTrans;
     calculatePoints(input, extraXTrans, extraYTrans, idToPoint);
-    bool rotate_30 = input->IsHexType() && !(input->getLattice().GetGeometrySubType()&VERTEX);
     for( std::map< CellKey, std::vector<point> >::const_iterator iter = idToPoint.begin();
         iter != idToPoint.end(); ++iter)
     {
@@ -676,7 +675,7 @@ public:
         tmpGeo[i->first].geo = i->second.geo;
       }
 
-      createGeo(assembly, rotate_30, iter->first.mode, tmpGeo);
+      createGeo(assembly, iter->first.mode, tmpGeo);
       std::vector<point> const& points = iter->second;
       mergeGeometry(tmpGeo, points, extraXTrans, extraYTrans, geometry);
     }
@@ -969,10 +968,10 @@ void cmbNucRender::render(cmbNucCore * core)
   sendToGlyphMappers(geometry);
 }
 
-void cmbNucRender::render(cmbNucAssembly * assy, bool rotate_30)
+void cmbNucRender::render(cmbNucAssembly * assy)
 {
   std::map<key, GeoToPoints> geometry;
-  cmbNucRenderHelper::createGeo(assy, rotate_30, assy->getLattice().getFullCellMode(), geometry);
+  cmbNucRenderHelper::createGeo(assy, assy->getLattice().getFullCellMode(), geometry);
   BoundingBox = assy->computeBounds();
   sendToGlyphMappers(geometry);
 }

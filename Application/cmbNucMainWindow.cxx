@@ -1589,9 +1589,7 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
     return;
   }
   cmbNucMaterialColors::instance()->clearDisplayed();
-  bool t = this->NuclearCore->IsHexType() &&
-           !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX);
-  this->NucMappers->render(assy, t);
+  this->NucMappers->render(assy);
   vtkBoundingBox box;
   this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);

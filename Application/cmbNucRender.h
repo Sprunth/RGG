@@ -87,7 +87,7 @@ public:
   void computeBounds(vtkBoundingBox &);
 
   void render(cmbNucCore *);
-  void render(cmbNucAssembly *, bool rotate_30);
+  void render(cmbNucAssembly *);
   void render(DuctCell* ductCell, bool isHex, bool cutaway);
   void render(PinCell* pinCell, bool isHex, bool cutaway);
 
