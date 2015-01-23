@@ -10,9 +10,9 @@
 #define PUGIXML_HEADER_ONLY
 #include "src/pugixml.cpp"
 
-#include <QPointer.h>
-#include <QString.h>
-#include <QColor.h>
+#include <QPointer>
+#include <QString>
+#include <QColor>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QDir>
