@@ -27,6 +27,8 @@
 
 #define PI           3.14159265358979323846  /* pi */
 
+static const double sin60cos30 = 0.86602540378443864676372317075294;
+
 typedef cmbNucRender::point point;
 typedef cmbNucRender::GeoToPoints GeoToPoints;
 typedef cmbNucRender::key key;
@@ -109,7 +111,12 @@ struct CellKey
   bool operator<(CellKey const& other) const
   {
     if(str < other.str) return true;
-    return mode < other.mode;
+    if(str == other.str) return mode < other.mode;
+    return false;
+  }
+  bool operator==(CellKey const& other) const
+  {
+    return str == other.str && mode == other.mode;
   }
 };
 
@@ -454,37 +461,6 @@ public:
       xformR.xyz[2] += 30;
       xformS.xyz[2] -= 30;
     }
-    hasSectioning = true;
-    switch(mode)
-    {
-      case Lattice::HEX_SIXTH_VERT_CENTER:
-      {
-        point plane;
-        plane.xyz[1] = 1;
-        sectioningPlanes.push_back(plane);
-        plane.xyz[1] = -0.5;
-        plane.xyz[0] = cos(-PI/6.0);
-        sectioningPlanes.push_back(plane);
-        break;
-      }
-      case Lattice::HEX_SIXTH_VERT_BOTTOM:
-      {
-        point plane;
-        plane.xyz[1] = 1;
-        sectioningPlanes.push_back(plane);
-        break;
-      }
-      case Lattice::HEX_SIXTH_VERT_TOP:
-      {
-        point plane;
-        plane.xyz[1] = -0.5;
-        plane.xyz[0] = cos(-PI/6.0);
-        sectioningPlanes.push_back(plane);
-        break;
-      }
-      default:
-        hasSectioning = false;
-    }
     for(unsigned int i = 0; i < input->getNumberOfTransforms(); ++i)
     {
       cmbNucAssembly::Transform* tmpxf = input->getTransform(i);
@@ -494,6 +470,55 @@ public:
         xformR.xyz[tmpxf->getAxis()] += tmpxf->getValue();
         xformS.xyz[tmpxf->getAxis()] -= tmpxf->getValue();
       }
+    }
+    hasSectioning = true;
+    double s = 1;
+    int inc = 0;
+    switch(mode)
+    {
+      case Lattice::HEX_TWELFTH_CENTER:
+        inc = 1;
+        s = -1;
+      case Lattice::HEX_SIXTH_FLAT_CENTER:
+      case Lattice::HEX_SIXTH_VERT_CENTER:
+      {
+        point plane;
+        plane.xyz[1] = 1;
+        transformNormal(plane.xyz, xformS.xyz);
+        sectioningPlanes.push_back(plane);
+        plane.xyz[(inc+1)%2] = s*-0.5;
+        plane.xyz[inc%2] = s*sin60cos30;
+        transformNormal(plane.xyz, xformS.xyz);
+        sectioningPlanes.push_back(plane);
+        break;
+      }
+      case Lattice::HEX_SIXTH_FLAT_BOTTOM:
+      case Lattice::HEX_SIXTH_VERT_BOTTOM:
+      case Lattice::HEX_TWELFTH_BOTTOM:
+      {
+        point plane;
+        plane.xyz[1] = 1;
+        transformNormal(plane.xyz, xformS.xyz);
+        sectioningPlanes.push_back(plane);
+        break;
+      }
+      case Lattice::HEX_TWELFTH_TOP:
+        inc = 1;
+        s = -1;
+      case Lattice::HEX_SIXTH_FLAT_TOP:
+      case Lattice::HEX_SIXTH_VERT_TOP:
+      {
+        point plane;
+        plane.xyz[(1+inc)%2] = s*-0.5;
+        plane.xyz[inc%2] = s*sin60cos30;
+        transformNormal(plane.xyz, xformS.xyz);
+        sectioningPlanes.push_back(plane);
+        break;
+      }
+      default:
+        hasSectioning = false;
+    }
+
       /*
       else
       {
@@ -504,7 +529,6 @@ public:
         sectioningPlanes.push_back(plane);
       }
       */
-    }
     //Duct
     {
       std::map<key, GeoToPoints> tmpGeo;
@@ -1175,7 +1199,7 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
     if(isHex)
     {
       res = 6;
-      r[0] = r[1] = r[0]/0.86602540378443864676372317075294;
+      r[0] = r[1] = r[0]/sin60cos30;
     }
     coneSource->SetBaseRadius(pincell->GetNumberOfLayers(), r[0], r[1]);
     coneSource->SetTopRadius(pincell->GetNumberOfLayers(), r[0], r[1]);
@@ -1222,7 +1246,7 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCe
   if(isHex)
   {
     res = 6;
-    mult = 0.5/0.86602540378443864676372317075294;
+    mult = 0.5/sin60cos30;
   }
 
   for(int k = 0; k < numLayers; k++)
