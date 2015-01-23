@@ -25,6 +25,8 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucPartDefinition.h"
 
+#define PI           3.14159265358979323846  /* pi */
+
 typedef cmbNucRender::point point;
 typedef cmbNucRender::GeoToPoints GeoToPoints;
 typedef cmbNucRender::key key;
@@ -96,13 +98,28 @@ bool cmbNucRender::key::operator<(key const& other) const
   return false;
 }
 
+struct CellKey
+{
+  std::string str;
+  Lattice::CellDrawMode mode;
+  CellKey( std::string const& s): str(s), mode(Lattice::HEX_FULL)
+  {}
+  CellKey( std::string const& s, Lattice::CellDrawMode m): str(s), mode(m)
+  {}
+  bool operator<(CellKey const& other) const
+  {
+    if(str < other.str) return true;
+    return mode < other.mode;
+  }
+};
+
 class cmbNucRenderHelper
 {
 public:
 
   static void hexHelper(cmbNucCore * input,
                         double & extraXTrans, double & extraYTrans,
-                        std::map< std::string, std::vector<point> > & idToPoint)
+                        std::map< CellKey, std::vector<point> > & idToPoint)
   {
     Lattice & lat = input->getLattice();
     extraYTrans = 0;
@@ -146,7 +163,7 @@ public:
     double hexDiameter, junkDK;
     input->GetDefaults()->getDuctThickness(hexDiameter, junkDK);
 
-    for(size_t i = 0; i < lat.getSize(); i++)
+    for(size_t i = 0; i < lat.getSize(); i++) //layer
     {
       double layerCorners[6][2], layerRadius;
       if(i>0)
@@ -160,12 +177,12 @@ public:
         }
       }
 
-      for(size_t j = 0; j < lat.getSize(i); j++)
+      for(size_t j = 0; j < lat.getSize(i); j++) //index on ring
       {
         if(!lat.GetCell(i,j).isBlank())
         {
-          const std::string &type = lat.GetCell(i,j).label;
-          cmbNucAssembly* assembly = input->GetAssembly(type);
+          CellKey key( lat.GetCell(i,j).label, lat.getDrawMode(/*index*/j, /*Layer*/ i) );
+          cmbNucAssembly* assembly = input->GetAssembly(key.str);
           if(assembly == NULL) continue;
 
           // For hex geometry type, figure out the six corners first
@@ -201,7 +218,7 @@ public:
               tY += centerPos[1];
             }
           }
-          idToPoint[type].push_back(point(tX,tY));
+          idToPoint[key].push_back(point(tX,tY));
         }
       }
     }
@@ -209,7 +226,7 @@ public:
 
   static void hexHelper(cmbNucAssembly * input,
                         double & extraXTrans, double & extraYTrans,
-                        std::map< std::string, std::vector<point> > & idToPoint)
+                        std::map< CellKey, std::vector<point> > & idToPoint)
   {
     extraXTrans = 0;
     extraYTrans = 0;
@@ -225,8 +242,8 @@ public:
       {
         if(!lat.GetCell(i,j).isBlank())
         {
-          const std::string &type = lat.GetCell(i,j).label;
-          PinCell* pincell = input->GetPinCell(type);
+          CellKey key( lat.GetCell(i,j).label, lat.getDrawMode(j, i));
+          PinCell* pincell = input->GetPinCell(key.str);
           if(pincell && (pincell->GetNumberOfParts())>0)
           {
             double pinDistFromCenter = pitchX * (i);
@@ -261,7 +278,7 @@ public:
                 tY += centerPos[1];
               }
             }
-            idToPoint[type].push_back(point(tX, -tY));
+            idToPoint[key].push_back(point(tX, -tY));
           }
         }
       }
@@ -271,7 +288,7 @@ public:
   template<class T>
   static void helperRect(T * input,
                          double & extraXTrans, double & extraYTrans,
-                         std::map< std::string, std::vector<point> > & idToPoint)
+                         std::map< CellKey, std::vector<point> > & idToPoint)
   {
     double currentLaticePoint[] = {0,0};
 
@@ -284,8 +301,9 @@ public:
         input->calculateRectPt(i, j, currentLaticePoint);
         if(!lat.GetCell(i,j).isBlank())
         {
-          idToPoint[lat.GetCell(i,j).label].push_back(point( currentLaticePoint[0],
-                                                             currentLaticePoint[1]));
+          CellKey key( lat.GetCell(i,j).label, lat.getDrawMode(j, i));
+          idToPoint[key].push_back(point( currentLaticePoint[0],
+                                          currentLaticePoint[1]));
         }
       }
     }
@@ -294,7 +312,7 @@ public:
 
   template<class T>
   static void calculatePoints( T * input, double & extraXTrans, double & extraYTrans,
-                               std::map< std::string, std::vector<point> > & idToPoint)
+                               std::map< CellKey, std::vector<point> > & idToPoint)
   {
     extraXTrans = 0;
     extraYTrans = 0;
@@ -416,9 +434,11 @@ public:
     }
   }
 
-  static void createGeo(cmbNucAssembly * input, bool rotate_30, std::map<key,GeoToPoints> & geometry)
+  static void createGeo(cmbNucAssembly * input, bool rotate_30,
+                        Lattice::CellDrawMode mode,
+                        std::map<key,GeoToPoints> & geometry)
   {
-    std::map< std::string, std::vector<point> > idToPoint;
+    std::map< CellKey, std::vector<point> > idToPoint;
     double extraXTrans = 0;
     double extraYTrans = 0;
     double pitchX = input->getPinPitchX();
@@ -434,6 +454,37 @@ public:
       xformR.xyz[2] += 30;
       xformS.xyz[2] -= 30;
     }
+    hasSectioning = true;
+    switch(mode)
+    {
+      case Lattice::HEX_SIXTH_VERT_CENTER:
+      {
+        point plane;
+        plane.xyz[1] = 1;
+        sectioningPlanes.push_back(plane);
+        plane.xyz[1] = -0.5;
+        plane.xyz[0] = cos(-PI/6.0);
+        sectioningPlanes.push_back(plane);
+        break;
+      }
+      case Lattice::HEX_SIXTH_VERT_BOTTOM:
+      {
+        point plane;
+        plane.xyz[1] = 1;
+        sectioningPlanes.push_back(plane);
+        break;
+      }
+      case Lattice::HEX_SIXTH_VERT_TOP:
+      {
+        point plane;
+        plane.xyz[1] = -0.5;
+        plane.xyz[0] = cos(-PI/6.0);
+        sectioningPlanes.push_back(plane);
+        break;
+      }
+      default:
+        hasSectioning = false;
+    }
     for(unsigned int i = 0; i < input->getNumberOfTransforms(); ++i)
     {
       cmbNucAssembly::Transform* tmpxf = input->getTransform(i);
@@ -443,6 +494,7 @@ public:
         xformR.xyz[tmpxf->getAxis()] += tmpxf->getValue();
         xformS.xyz[tmpxf->getAxis()] -= tmpxf->getValue();
       }
+      /*
       else
       {
         hasSectioning = true;
@@ -451,7 +503,7 @@ public:
         transformNormal(plane.xyz, xformS.xyz);
         sectioningPlanes.push_back(plane);
       }
-
+      */
     }
     //Duct
     {
@@ -492,7 +544,7 @@ public:
       }
     }
     //pins
-    for(std::map< std::string, std::vector<point> >::const_iterator iter = idToPoint.begin();
+    for(std::map< CellKey, std::vector<point> >::const_iterator iter = idToPoint.begin();
         iter != idToPoint.end(); ++iter)
     {
       std::map<key, GeoToPoints> tmpGeo;
@@ -502,7 +554,7 @@ public:
         tmpGeo[i->first].geo = i->second.geo;
       }
 
-      createGeo(input->GetPinCell(iter->first), input->IsHexType(), tmpGeo, pitchX, pitchY);
+      createGeo(input->GetPinCell(iter->first.str), input->IsHexType(), tmpGeo, pitchX, pitchY);
 
       std::vector<point> const& points = iter->second;
       if(hasSectioning)
@@ -580,15 +632,15 @@ public:
 
   static void createGeo(cmbNucCore * input, std::map<key, GeoToPoints> & geometry)
   {
-    std::map< std::string, std::vector<point> > idToPoint;
+    std::map< CellKey, std::vector<point> > idToPoint;
     double extraXTrans;
     double extraYTrans;
     calculatePoints(input, extraXTrans, extraYTrans, idToPoint);
     bool rotate_30 = input->IsHexType() && !(input->getLattice().GetGeometrySubType()&VERTEX);
-    for( std::map< std::string, std::vector<point> >::const_iterator iter = idToPoint.begin();
+    for( std::map< CellKey, std::vector<point> >::const_iterator iter = idToPoint.begin();
         iter != idToPoint.end(); ++iter)
     {
-      cmbNucAssembly* assembly = input->GetAssembly(iter->first);
+      cmbNucAssembly* assembly = input->GetAssembly(iter->first.str);
       if(!assembly)
       {
         continue;
@@ -600,7 +652,7 @@ public:
         tmpGeo[i->first].geo = i->second.geo;
       }
 
-      createGeo(assembly, rotate_30, tmpGeo);
+      createGeo(assembly, rotate_30, iter->first.mode, tmpGeo);
       std::vector<point> const& points = iter->second;
       mergeGeometry(tmpGeo, points, extraXTrans, extraYTrans, geometry);
     }
@@ -896,7 +948,7 @@ void cmbNucRender::render(cmbNucCore * core)
 void cmbNucRender::render(cmbNucAssembly * assy, bool rotate_30)
 {
   std::map<key, GeoToPoints> geometry;
-  cmbNucRenderHelper::createGeo(assy, rotate_30, geometry);
+  cmbNucRenderHelper::createGeo(assy, rotate_30, assy->getLattice().getFullCellMode(), geometry);
   BoundingBox = assy->computeBounds();
   sendToGlyphMappers(geometry);
 }

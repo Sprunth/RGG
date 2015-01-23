@@ -25,7 +25,7 @@ public slots:
   void apply();
   void reset();
   void redraw();
-  void set_full_mode(cmbNucDraw2DLattice::CellDrawMode m);
+  void set_full_mode(Lattice::CellDrawMode m);
   void clear();
   void createImage(QString);
 signals:

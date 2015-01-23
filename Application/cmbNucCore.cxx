@@ -202,6 +202,15 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
   this->Assemblies.push_back(assembly);
   assembly->setPinLibrary(this->PinLibrary);
   assembly->setDuctLibrary(this->DuctLibrary);
+  if( this->getLattice().GetGeometrySubType() & ANGLE_60 &&
+      this->getLattice().GetGeometrySubType() & VERTEX )
+  {
+    assembly->getLattice().setFullCellMode(Lattice::HEX_FULL);
+  }
+  else
+  {
+    assembly->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
+  }
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SIGNAL(dataChangedSig()));
   QObject::connect(assembly->GetConnection(), SIGNAL(colorChanged()),

@@ -76,7 +76,7 @@ cmbNucLatticeWidget::apply()
   }
 }
 
-void cmbNucLatticeWidget::set_full_mode(cmbNucDraw2DLattice::CellDrawMode m)
+void cmbNucLatticeWidget::set_full_mode(Lattice::CellDrawMode m)
 {
   this->draw_control->setFullCellMode(m);
 }

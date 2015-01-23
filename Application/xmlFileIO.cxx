@@ -730,6 +730,23 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
   if(!read(lnode, core.getLattice(), used)) return false;
   core.setUsedLabels(used);
 
+  if(core.IsHexType())
+  {
+    core.getLattice().setFullCellMode(Lattice::HEX_FULL);
+    for(unsigned int i = 0; i < core.GetNumberOfAssemblies(); ++i)
+    {
+      if( core.getLattice().GetGeometrySubType() & ANGLE_60 &&
+          core.getLattice().GetGeometrySubType() & VERTEX )
+      {
+        core.GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL);
+      }
+      else
+      {
+        core.GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
+      }
+    }
+  }
+
   return true;
 }
 

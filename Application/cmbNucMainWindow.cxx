@@ -688,8 +688,8 @@ void cmbNucMainWindow::initPanels()
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
                      this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
 
-    QObject::connect(this->PropertyWidget, SIGNAL(sendLatticeFullMode(cmbNucDraw2DLattice::CellDrawMode)),
-                     this->LatticeDraw,    SLOT(set_full_mode(cmbNucDraw2DLattice::CellDrawMode)));
+    QObject::connect(this->PropertyWidget, SIGNAL(sendLatticeFullMode(Lattice::CellDrawMode)),
+                     this->LatticeDraw,    SLOT(set_full_mode(Lattice::CellDrawMode)));
 
     QObject::connect(this->PropertyWidget, SIGNAL(select3DModelView()),
                      this->ui->Dock3D,     SLOT(raise()));
@@ -1052,6 +1052,15 @@ void cmbNucMainWindow::onImportINPFile()
         if(this->NuclearCore->IsHexType() &&
            !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX))
           assembly->adjustRotation();
+        if( this->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
+            this->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )
+        {
+          assembly->getLattice().setFullCellMode(Lattice::HEX_FULL);
+        }
+        else
+        {
+          assembly->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
+        }
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -1085,6 +1094,15 @@ void cmbNucMainWindow::onImportINPFile()
           for(unsigned int i = 0; i < this->NuclearCore->GetNumberOfAssemblies(); ++i)
           {
             this->NuclearCore->GetAssembly(i)->adjustRotation();
+            if( this->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
+               this->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )
+            {
+              this->NuclearCore->GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL);
+            }
+            else
+            {
+              this->NuclearCore->GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
+            }
           }
         }
         break;
