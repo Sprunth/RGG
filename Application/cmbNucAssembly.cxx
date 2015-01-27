@@ -693,28 +693,38 @@ void cmbNucAssembly::setDuctLibrary(cmbNucDuctLibrary * d)
   }
 }
 
-//Used when importing inp file to take into account the auto rotation of 30 degrees
+//Used when importing inp file
 void cmbNucAssembly::adjustRotation()
 {
   if(this->Transforms.empty()) return;
-  if(this->Transforms[0]->getLabel() == "Rotate")
+  double r = 0;
+  if(this->lattice.getFullCellMode() ==  Lattice::HEX_FULL_30)
   {
-    double v = this->Transforms[0]->getValue()-30;
-    if(v != 0)
+    r = -30;
+  }
+  for(unsigned int i = 0; i < this->Transforms.size(); ++i)
+  {
+    if(this->Transforms[i]->getLabel() == "Rotate" && this->Transforms[i]->getAxis() == Transform::Z)
     {
-      Transform * t = new Rotate(this->Transforms[0]->getAxis(),
-                                 this->Transforms[0]->getValue()-30);
-      updateTransform(0,t);
-    }
-    else
-    {
-      delete this->Transforms[0];
-      this->Transforms.erase(this->Transforms.begin());
+      double v = this->Transforms[i]->getValue();
+      r += v;
     }
   }
-  else
+  while(r < -180) r += 360;
+  if(r != 0)
   {
-    Transform * t = new Rotate("Z",-30);
-    this->Transforms.insert(this->Transforms.begin(),t);
+    this->setZAxisRotation(static_cast<int>(r));
   }
+  removeOldTransforms(0);
+}
+
+double cmbNucAssembly::getZAxisRotation() const
+{
+  if(zAxisRotation.isValid()) return zAxisRotation.getValue();
+  return 0;
+}
+
+void cmbNucAssembly::setZAxisRotation(double d)
+{
+  zAxisRotation = Rotate(Transform::Z, d);
 }

@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
 #include <QColor>
 #include <QObject>
 #include <QPointer>
@@ -289,6 +291,8 @@ public:
 
   virtual void setUsedLabels(std::map<QString, int> const& labels)
   {}
+
+  std::map< std::string, std::set< Lattice::CellDrawMode > > getDrawModesForAssemblies();
 
 private:
   bool hasCylinder;

@@ -19,6 +19,8 @@ public:
                     HEX_SIXTH_VERT_BOTTOM, HEX_SIXTH_VERT_CENTER, HEX_SIXTH_VERT_TOP,
                     HEX_TWELFTH_BOTTOM,    HEX_TWELFTH_CENTER,    HEX_TWELFTH_TOP };
 
+  static std::string generate_string(std::string, CellDrawMode);
+
   // Represents a cell in the lattice view widget, containing
   // a label and a color.
   struct LatticeCell

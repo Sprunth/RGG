@@ -440,3 +440,26 @@ Lattice::CellDrawMode Lattice::getDrawMode(int index, int layer) const
   }
   return Lattice::HEX_FULL;
 }
+
+std::string Lattice::generate_string(std::string in, CellDrawMode mode)
+{
+  switch(mode)
+  {
+    case RECT:
+    case HEX_FULL:
+    case HEX_FULL_30:
+      return in;
+    case HEX_SIXTH_FLAT_BOTTOM:
+    case HEX_SIXTH_VERT_BOTTOM:
+    case HEX_TWELFTH_BOTTOM:
+      return in+"_bottom";
+    case HEX_SIXTH_FLAT_CENTER:
+    case HEX_SIXTH_VERT_CENTER:
+    case HEX_TWELFTH_CENTER:
+      return in + "_center";
+    case HEX_SIXTH_FLAT_TOP:
+    case HEX_SIXTH_VERT_TOP:
+    case HEX_TWELFTH_TOP:
+      return in + "_top";
+  }
+}

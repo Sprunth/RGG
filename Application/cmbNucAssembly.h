@@ -284,6 +284,7 @@ public:
   std::string label;
 
   std::string ExportFileName;
+  std::map< Lattice::CellDrawMode, std::string > ExportFileNames;
 
   std::string getGeometryLabel() const;
   void setGeometryLabel(std::string geomType);
@@ -296,6 +297,7 @@ public:
   // Check if GeometryType is Hexagonal
   bool IsHexType();
 
+  //Transforms exist for inp file import and export
   bool addTransform(Transform * in); //Will not add invalid xfroms, takes ownership
   bool updateTransform(int at, Transform * in); //Take ownership of in
 
@@ -337,13 +339,19 @@ public:
 
   void adjustRotation();
 
+  double getZAxisRotation() const;
+  void setZAxisRotation(double d);
+
 protected:
   std::vector<PinCell*> PinCells;
   cmbNucPinLibrary * Pins;
   cmbNucDuctLibrary * Ducts;
   DuctCell * AssyDuct;
 
+  //Transforms exist for inp file import and export
   std::vector<Transform*> Transforms;
+
+  Rotate zAxisRotation;
 
   bool KeepPinsCentered;
 

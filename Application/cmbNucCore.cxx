@@ -589,3 +589,20 @@ void cmbNucCore::clearCylinder()
   }
   hasCylinder = false;
 }
+
+std::map< std::string, std::set< Lattice::CellDrawMode> >
+cmbNucCore::getDrawModesForAssemblies()
+{
+  std::map< std::string, std::set< Lattice::CellDrawMode> > result;
+  for(size_t i = 0; i < lattice.getSize(); i++) //layer
+  {
+    for(size_t j = 0; j < lattice.getSize(i); j++) //index on ring
+    {
+      if(!lattice.GetCell(i,j).isBlank())
+      {
+        result[lattice.GetCell(i,j).label].insert(lattice.getDrawMode(/*index*/j, /*Layer*/ i) );
+      }
+    }
+  }
+  return result;
+}

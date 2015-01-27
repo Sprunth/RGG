@@ -43,8 +43,6 @@ namespace
   const std::string GEOMETRY_TAG = "Geometry";
   const std::string CENTER_PINS_TAG = "CenterPins";
   const std::string PITCH_TAG = "Pitch";
-  const std::string TRANSFORMATIONS_TAG = "Transformations";
-  const std::string TRANSFORM_TAG = "Transform";
   const std::string VALUE_TAG = "Value";
   const std::string AXIS_TAG = "Axis";
   const std::string DIRECTION_TAG = "Direction";
@@ -75,6 +73,7 @@ namespace
   const std::string CYLINDER_OUTER_SPACING_TAG = "CylinderOuterSpacing";
   const std::string BACKGROUND_FILENAME_TAG = "BackgroundFileName";
   const std::string MESH_FILENAME_TAG = "MeshFileName";
+  const std::string ROTATE_TAG = "Rotate";
 }
 
 class xmlHelperClass
@@ -418,20 +417,9 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucAssembly * assy)
   r &= write(node, LEGEND_COLOR_TAG.c_str(), assy->GetLegendColor());
   r &= write(node, CENTER_PINS_TAG.c_str(), assy->isPinsAutoCentered());
   r &= write(node, PITCH_TAG.c_str(), QString("%1, %2").arg(assy->getPinPitchX(), 0, 'g', 9).arg(assy->getPinPitchY(), 0, 'g', 9));
+  r &= write(node, ROTATE_TAG.c_str(), assy->getZAxisRotation());
 
-  pugi::xml_node transNodeRoot = node.append_child(TRANSFORMATIONS_TAG.c_str());
-  {
-    size_t num = assy->getNumberOfTransforms();
-    for(size_t i = 0; i < num; ++i)
-    {
-      pugi::xml_node tnode = transNodeRoot.append_child(TRANSFORM_TAG.c_str());
-      cmbNucAssembly::Transform* x = assy->getTransform(i);
-      r &= write(tnode, TYPE_TAG.c_str(), x->getLabel());
-      r &= write(tnode, VALUE_TAG.c_str(), x->getValue());
-      r &= write(tnode, AXIS_TAG.c_str(), static_cast<unsigned int>(x->getAxis()));
-      r &= write(tnode, DIRECTION_TAG.c_str(), x->reverse());
-    }
-  }
+
 
   pugi::xml_node paramNode = node.append_child(PARAMETERS_TAG.c_str());
   {
@@ -976,27 +964,10 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
   if(!read(node, PITCH_TAG.c_str(), pitch, 2)) return false;
   assy->setPitch(pitch[0], pitch[1], false);
 
-  pugi::xml_node transnode = node.child(TRANSFORMATIONS_TAG.c_str());
-
-  for(pugi::xml_node tnode = transnode.child(TRANSFORM_TAG.c_str()); tnode;
-      tnode = tnode.next_sibling(TRANSFORM_TAG.c_str()))
+  double degree;
+  if(read(node, ROTATE_TAG.c_str(), degree))
   {
-    std::string type;
-    double value;
-    unsigned int axis;
-    int dir;
-    if(!read(tnode, TYPE_TAG.c_str(), type)) return false;
-    if(!read(tnode, VALUE_TAG.c_str(), value)) return false;
-    if(!read(tnode, AXIS_TAG.c_str(), axis)) return false;
-    if(!read(tnode, DIRECTION_TAG.c_str(), dir)) return false;
-    if(type == "Rotate")
-    {
-      assy->addTransform(new cmbNucAssembly::Rotate(static_cast<cmbNucAssembly::Transform::AXIS>(axis), value));
-    }
-    else
-    {
-      assy->addTransform(new cmbNucAssembly::Section(static_cast<cmbNucAssembly::Transform::AXIS>(axis), value, dir));
-    }
+    assy->setZAxisRotation(degree);
   }
 
   pugi::xml_node paramNode = node.child(PARAMETERS_TAG.c_str());

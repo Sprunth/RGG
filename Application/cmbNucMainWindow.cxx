@@ -1049,9 +1049,6 @@ void cmbNucMainWindow::onImportINPFile()
         this->Internal->HasModel = true;
         this->modelControls(true);
 
-        if(this->NuclearCore->IsHexType() &&
-           !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX))
-          assembly->adjustRotation();
         if( this->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
             this->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )
         {
@@ -1061,6 +1058,7 @@ void cmbNucMainWindow::onImportINPFile()
         {
           assembly->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
         }
+        assembly->adjustRotation();
         break;
       }
       case inpFileReader::CORE_TYPE:
@@ -1088,21 +1086,17 @@ void cmbNucMainWindow::onImportINPFile()
         setTitle();
         this->Internal->HasModel = true;
         this->modelControls(true);
-        if( this->NuclearCore->IsHexType() &&
-           !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX))
+        for(unsigned int i = 0; i < this->NuclearCore->GetNumberOfAssemblies(); ++i)
         {
-          for(unsigned int i = 0; i < this->NuclearCore->GetNumberOfAssemblies(); ++i)
+          this->NuclearCore->GetAssembly(i)->adjustRotation();
+          if( this->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
+             this->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )
           {
-            this->NuclearCore->GetAssembly(i)->adjustRotation();
-            if( this->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
-               this->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )
-            {
-              this->NuclearCore->GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL);
-            }
-            else
-            {
-              this->NuclearCore->GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
-            }
+            this->NuclearCore->GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL);
+          }
+          else
+          {
+            this->NuclearCore->GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
           }
         }
         break;
@@ -1246,6 +1240,66 @@ void cmbNucMainWindow::onSaveAll()
   this->saveXML(this->NuclearCore, false, false);
 }
 
+bool cmbNucMainWindow::exportINP(cmbNucAssembly * assy)
+{
+  for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = assy->ExportFileNames.begin();
+      iter != assy->ExportFileNames.end(); ++iter)
+  {
+    Lattice::CellDrawMode mode = iter->first;
+    std::string const& fname = iter->second;
+    double deg = assy->getZAxisRotation();
+    if( assy->getLattice().getFullCellMode() == Lattice::HEX_FULL_30 )
+    {
+      deg += 30;
+    }
+    assy->removeOldTransforms(0);
+    if(deg != 0)
+    {
+      assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, deg));
+    }
+    switch(mode)
+    {
+      case Lattice::HEX_SIXTH_FLAT_BOTTOM:
+      case Lattice::HEX_SIXTH_VERT_BOTTOM:
+      case Lattice::HEX_TWELFTH_BOTTOM:
+        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, 1));
+        break;
+      case Lattice::HEX_SIXTH_FLAT_TOP:
+      case Lattice::HEX_SIXTH_VERT_TOP:
+        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
+        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::X, 0, 1));
+        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
+        break;
+      case Lattice::HEX_TWELFTH_TOP:
+        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
+        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, -1));
+        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
+        break;
+      case Lattice::HEX_SIXTH_FLAT_CENTER:
+      case Lattice::HEX_SIXTH_VERT_CENTER:
+        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, 1));
+        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
+        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::X, 0, 1));
+        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
+        break;
+      case Lattice::HEX_TWELFTH_CENTER:
+        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, 1));
+        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
+        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, -1));
+        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
+        break;
+    }
+    QFileInfo assyFile(fname.c_str());
+
+    if(!assyFile.exists() || assy->changeSinceLastGenerate())
+    {
+      inpFileWriter::write(fname, *assy, false);
+    }
+  }
+  assy->removeOldTransforms(0);
+  return true;
+}
+
 bool cmbNucMainWindow::exportINPs()
 {
   QString coreName = this->NuclearCore->ExportFileName.c_str();
@@ -1257,22 +1311,38 @@ bool cmbNucMainWindow::exportINPs()
 
   QFileInfo coreinfo(coreName);
 
-  for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
+  std::map< std::string, std::set< Lattice::CellDrawMode > > cells = this->NuclearCore->getDrawModesForAssemblies();
+
+  for(std::map< std::string, std::set< Lattice::CellDrawMode > >::const_iterator iter = cells.begin();
+      iter != cells.end(); ++iter)
   {
-    cmbNucAssembly* assembly = NuclearCore->GetAssembly(i);
+    cmbNucAssembly* assembly = NuclearCore->GetAssembly(iter->first);
+    std::set< Lattice::CellDrawMode > const& forms = iter->second;
     if(assembly == NULL) continue;
+    assembly->ExportFileNames.clear();
     QString fileName = assembly->ExportFileName.c_str();
     if(fileName.isEmpty())
     {
       fileName = coreinfo.dir().path() + (std::string("assembly_") + assembly->getLabel() + ".inp").c_str();
     }
-
-    if(assembly->changeSinceLastGenerate())
+    QFileInfo assyFileInfo(fileName);
+    assembly->ExportFileName = fileName.toStdString();
+    for(std::set< Lattice::CellDrawMode >::const_iterator fiter = forms.begin(); fiter != forms.end(); ++fiter)
     {
-      bool rotate_30 = this->NuclearCore->IsHexType() &&
-                       !(this->NuclearCore->getLattice().GetGeometrySubType()&VERTEX);
-      inpFileWriter::write(fileName.toStdString(), *assembly, rotate_30, true);
+      Lattice::CellDrawMode mode = *fiter;
+      if(mode == Lattice::RECT || mode == Lattice::HEX_FULL || mode == Lattice::HEX_FULL_30 || forms.size() == 1)
+      {
+        assembly->ExportFileNames[mode] = fileName.toStdString();
+      }
+      else
+      {
+        assembly->ExportFileNames[mode] = (coreinfo.dir().path() +
+                                           ( std::string("assembly_") +
+                                             Lattice::generate_string(assembly->getLabel(), mode) +
+                                             ".inp" ).c_str()).toStdString();
+      }
     }
+    this->exportINP(assembly);
   }
   if(this->NuclearCore->changeSinceLastGenerate())
   {

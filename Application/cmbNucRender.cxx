@@ -461,16 +461,12 @@ public:
       xformR.xyz[2] += 30;
       xformS.xyz[2] -= 30;
     }
-    for(unsigned int i = 0; i < input->getNumberOfTransforms(); ++i)
     {
-      cmbNucAssembly::Transform* tmpxf = input->getTransform(i);
-      if( tmpxf == NULL ) continue;
-      if(tmpxf->getLabel() == "Rotate")
-      {
-        xformR.xyz[tmpxf->getAxis()] += tmpxf->getValue();
-        xformS.xyz[tmpxf->getAxis()] -= tmpxf->getValue();
-      }
+      double v = input->getZAxisRotation();
+      xformR.xyz[2] += v;
+      xformS.xyz[2] -= v;
     }
+
     hasSectioning = true;
     double s = 1;
     int inc = 0;
