@@ -382,17 +382,14 @@ void cmbNucAssembly::calculatePitch(int width, int height, double & x, double & 
   if(this->IsHexType())
   {
     const double d = inDuctThick[0]-inDuctThick[0]*0.035; // make it slightly smaller to make exporting happy
-    const double l = dim.first;
     const double cost=0.86602540378443864676372317075294;
     const double sint=0.5;
-    x = y = (cost*d)/(l+sint*(l-1));
+    x = y = (cost*d)/(width+sint*(width-1));
   }
   else
   {
-    double w = dim.second;
-    double h = dim.first;
-    x = (inDuctThick[0])/(width+0.5);
-    y = (inDuctThick[1])/(height+0.5);
+    x = (inDuctThick[0])/(height+0.5);
+    y = (inDuctThick[1])/(width+0.5);
   }
   if(x<0) x = -1;
   if(y<0) y = -1;
