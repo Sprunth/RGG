@@ -466,11 +466,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
   connect(this->ui->importINPFile, SIGNAL(triggered()), this, SLOT(onImportINPFile()));
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
-  connect(this->ui->actionSaveSelected,   SIGNAL(triggered()), this, SLOT(onSaveSelected()));
-  connect(this->ui->actionSaveSelectedAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
-  connect(this->ui->actionSaveAll,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
+  connect(this->ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
+  connect(this->ui->actionSave,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
+  connect(this->ui->actionSaveFile,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
 
   connect(this->ui->actionExport_Visible_Mesh, SIGNAL(triggered()), this, SLOT(onExportVisibleMesh()));
+
+  connect(this->ui->ExportImpFiles, SIGNAL(triggered()), this, SLOT(onExportINPFiles()));
 
   connect(this->ui->actionView_Axis,      SIGNAL(triggered(bool)), this, SLOT(setAxis(bool)));
 
@@ -609,7 +611,6 @@ void cmbNucMainWindow::initPanels()
   }
   this->InputsWidget->setEnabled(0);
   this->ui->actionExport->setEnabled(false);
-  this->ui->actionGenerate_Cylinder->setEnabled(false);
   this->InputsWidget->setCore(this->NuclearCore);
 
   {
@@ -887,7 +888,6 @@ void cmbNucMainWindow::onNewCore()
     this->NuclearCore->sendDefaults();
     this->ui->actionNew_Assembly->setEnabled(true);
     this->ui->actionExport->setEnabled(true);
-    this->ui->actionGenerate_Cylinder->setEnabled(true);
     this->resetCamera();
     this->Renderer->Render();
     this->Internal->HasModel = true;
@@ -918,6 +918,7 @@ void cmbNucMainWindow::onFileOpen()
   {
     return;
   }
+
   this->setCursor(Qt::BusyCursor);
   // Cache the directory for the next time the dialog is opened
   if(xmlFileReader::read(fileNames[0].toStdString(), *(this->NuclearCore)))
@@ -927,7 +928,6 @@ void cmbNucMainWindow::onFileOpen()
                                                   defaultAssemblyColors);
     this->ui->actionNew_Assembly->setEnabled(true);
     this->ui->actionExport->setEnabled(true);
-    this->ui->actionGenerate_Cylinder->setEnabled(true);
     this->PropertyWidget->resetCore(this->NuclearCore);
     setTitle();
     this->Internal->HasModel = true;
@@ -944,7 +944,9 @@ void cmbNucMainWindow::onFileOpen()
     // update render view
     emit checkSave();
     this->resetCamera();
-    //this->Renderer->Render();
+
+    QFileInfo info(fileNames[0]);
+    settings.setValue("cache/lastDir", info.dir().path());
   }
   else
   {
@@ -1045,7 +1047,6 @@ void cmbNucMainWindow::onImportINPFile()
         need_to_use_assem = true;
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
-        this->ui->actionGenerate_Cylinder->setEnabled(true);
         this->Internal->HasModel = true;
         this->modelControls(true);
 
@@ -1081,7 +1082,6 @@ void cmbNucMainWindow::onImportINPFile()
                                                       defaultAssemblyColors);
         this->ui->actionNew_Assembly->setEnabled(true);
         this->ui->actionExport->setEnabled(true);
-        this->ui->actionGenerate_Cylinder->setEnabled(true);
         this->PropertyWidget->resetCore(this->NuclearCore);
         setTitle();
         this->Internal->HasModel = true;
@@ -1561,7 +1561,6 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->InputsWidget->setCore(this->NuclearCore);
   this->ui->actionNew_Assembly->setEnabled(false);
   this->ui->actionExport->setEnabled(false);
-  this->ui->actionGenerate_Cylinder->setEnabled(false);
 
   this->Internal->HasModel = false;
 
