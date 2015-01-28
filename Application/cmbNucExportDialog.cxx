@@ -264,7 +264,10 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
     cmbNucAssembly * assy = this->Core->GetAssembly(i);
     if(force || assy->changeSinceLastGenerate())
     {
-      this->AssygenFileList.append(QString(assy->ExportFileName.c_str()));
+      for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = assy->ExportFileNames.begin(); iter != assy->ExportFileNames.end(); ++iter)
+      {
+        this->AssygenFileList.append(QString(iter->second.c_str()));
+      }
     }
   }
   this->ui->assygenFileList->clear();

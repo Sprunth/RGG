@@ -14,6 +14,13 @@ class Lattice : public AssyPartObj
 {
 public:
 
+  enum CellDrawMode{RECT, HEX_FULL, HEX_FULL_30,
+                    HEX_SIXTH_FLAT_BOTTOM, HEX_SIXTH_FLAT_CENTER, HEX_SIXTH_FLAT_TOP,
+                    HEX_SIXTH_VERT_BOTTOM, HEX_SIXTH_VERT_CENTER, HEX_SIXTH_VERT_TOP,
+                    HEX_TWELFTH_BOTTOM,    HEX_TWELFTH_CENTER,    HEX_TWELFTH_TOP };
+
+  static std::string generate_string(std::string, CellDrawMode);
+
   // Represents a cell in the lattice view widget, containing
   // a label and a color.
   struct LatticeCell
@@ -111,6 +118,25 @@ public:
 
   bool labelUsed(const std::string &l) const;
 
+  Lattice::CellDrawMode getDrawMode(int index, int layer) const;
+
+  void setFullCellMode(Lattice::CellDrawMode m)
+  {
+    if(this->enGeometryType == HEXAGONAL)
+    {
+      FullCellMode = m;
+    }
+    else
+    {
+      FullCellMode = RECT;
+    }
+  }
+
+  Lattice::CellDrawMode getFullCellMode() const
+  {
+    return FullCellMode;
+  }
+
 protected:
   class LatticeCellReference
   {
@@ -147,6 +173,9 @@ protected:
   std::map<std::string, LatticeCell*> LabelToCell;
   enumGeometryType enGeometryType;
   int subType;
+  std::vector< std::pair<int, int> > validRange;
+  void computeValidRange();
+  Lattice::CellDrawMode FullCellMode;
 };
 
 class LatticeContainer: public AssyPartObj

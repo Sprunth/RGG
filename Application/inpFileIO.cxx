@@ -1442,14 +1442,18 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
         for( size_t j = start; j < cols; j++)
           {
           std::string label = lat.GetCell(i,j).label;
-          if( !forceLabel.empty() )
-            {
-            label = forceLabel;
-            }
           if(label.empty())
-            {
+          {
             label = "xx";
-            }
+          }
+          if( !forceLabel.empty() )
+          {
+            label = forceLabel;
+          }
+          else if((label != "xx" || label != "XX" ) && useAmp) //core
+          {
+            label = Lattice::generate_string(label, lat.getDrawMode(j, i));
+          }
           output << label << " ";
           }
         if(i < x-1 && useAmp) output << "&";
@@ -1673,8 +1677,13 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   std::string strPath = info.dir().path().toStdString();
   std::string coreName = info.fileName().toStdString();
   std::vector< cmbNucAssembly* > usedAssemblies = core.GetUsedAssemblies();
+  unsigned int count = 0;
+  for(unsigned int i = 0; i < usedAssemblies.size(); ++i)
+  {
+    count += usedAssemblies[i]->ExportFileNames.size();
+  }
 
-  output << "Assemblies " << usedAssemblies.size();
+  output << "Assemblies " << count;
   output << " " << core.AssyemblyPitchX;
   if(!core.IsHexType())
   {
@@ -1682,34 +1691,30 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   }
   output << "\n";
   for(unsigned int i = 0; i < usedAssemblies.size(); ++i)
-    {
+  {
     //construct assemply file name
     //Look to see if it already has a fname
-    cmbNucAssembly & assembly = *(usedAssemblies[i]);
-    std::string assemblyName = assembly.ExportFileName;
-    if(assemblyName.empty())
+    for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = usedAssemblies[i]->ExportFileNames.begin();
+        iter != usedAssemblies[i]->ExportFileNames.end();
+        ++iter)
+    {
+      cmbNucAssembly & assembly = *(usedAssemblies[i]);
+      std::string assemblyName = iter->second;
+      Lattice::CellDrawMode mode = iter->first;
+      assert(!assemblyName.empty());
       {
-      //construct a name
-      assemblyName = "assembly_"+assembly.label;
-      if(assemblyName + ".inp" == coreName)
-        {
-        assemblyName = "assembly_a_"+assembly.label;
-        }
-      assembly.ExportFileName = strPath+"/"+assemblyName+".inp";
-      }
-    else
-      {
-      QFileInfo temp(assemblyName.c_str());
-      assemblyName = temp.completeBaseName().toStdString();
-      if(temp.dir()  == info.dir())
-        {
+        QFileInfo temp(assemblyName.c_str());
         assemblyName = temp.completeBaseName().toStdString();
-        }
-      else
+        if(temp.dir()  == info.dir())
         {
-        assemblyName = (temp.dir().path() + "/" + temp.completeBaseName()).toStdString();
+          assemblyName = temp.completeBaseName().toStdString();
+        }
+        else
+        {
+          assemblyName = (temp.dir().path() + "/" + temp.completeBaseName()).toStdString();
         }
       }
-    output << assemblyName << ".cub " << assembly.label << "\n";
+      output << assemblyName << ".cub " << Lattice::generate_string(assembly.label, mode) << "\n";
     }
+  }
 }

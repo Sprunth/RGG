@@ -202,6 +202,15 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
   this->Assemblies.push_back(assembly);
   assembly->setPinLibrary(this->PinLibrary);
   assembly->setDuctLibrary(this->DuctLibrary);
+  if( this->getLattice().GetGeometrySubType() & ANGLE_60 &&
+      this->getLattice().GetGeometrySubType() & VERTEX )
+  {
+    assembly->getLattice().setFullCellMode(Lattice::HEX_FULL);
+  }
+  else
+  {
+    assembly->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
+  }
   QObject::connect(assembly->GetConnection(), SIGNAL(dataChangedSig()),
                    this->Connection, SIGNAL(dataChangedSig()));
   QObject::connect(assembly->GetConnection(), SIGNAL(colorChanged()),
@@ -579,4 +588,21 @@ void cmbNucCore::clearCylinder()
     cmbNucMaterialColors::instance()->getUnknownMaterial()->dec();
   }
   hasCylinder = false;
+}
+
+std::map< std::string, std::set< Lattice::CellDrawMode> >
+cmbNucCore::getDrawModesForAssemblies()
+{
+  std::map< std::string, std::set< Lattice::CellDrawMode> > result;
+  for(size_t i = 0; i < lattice.getSize(); i++) //layer
+  {
+    for(size_t j = 0; j < lattice.getSize(i); j++) //index on ring
+    {
+      if(!lattice.GetCell(i,j).isBlank())
+      {
+        result[lattice.GetCell(i,j).label].insert(lattice.getDrawMode(/*index*/j, /*Layer*/ i) );
+      }
+    }
+  }
+  return result;
 }

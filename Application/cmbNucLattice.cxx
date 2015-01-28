@@ -13,6 +13,7 @@ Lattice::Lattice( Lattice const& other )
   setUpGrid(other);
   this->subType = other.subType;
   this->enGeometryType = other.enGeometryType;
+  this->FullCellMode = Lattice::HEX_FULL;
 }
 
 Lattice::~Lattice()
@@ -32,6 +33,7 @@ Lattice& Lattice::operator=(Lattice const& other)
   setUpGrid(other);
   this->subType = other.subType;
   this->enGeometryType = other.enGeometryType;
+  this->FullCellMode = other.FullCellMode;
   return *this;
 }
 
@@ -53,6 +55,7 @@ void Lattice::setUpGrid(Lattice const & other)
       this->Grid[i][j].setCell(this->getCell(other.Grid[i][j].getCell()->label));
     }
   }
+  this->computeValidRange();
 }
 
 
@@ -145,27 +148,42 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
       }
     }
   }
+  this->computeValidRange();
 }
 
 bool Lattice::getValidRange(int layer, int & start, int & end) const
 {
   if(this->enGeometryType == HEXAGONAL)
   {
-    start = 0;
-    end = 6*layer-1;
-    if(subType != 0 && !(subType & ANGLE_360))
-    {
-      start = (subType & FLAT)?(layer):(layer-(layer)/2);
-      end = ((subType & FLAT)?(layer+1):(((layer+1)-(layer+2)%2)))+start-1;
-      if(subType & ANGLE_30)
-      {
-        start = 2*layer - layer/2;
-        end = (layer%2 ? (layer+1)/2 :(layer+2)/2) + start - 1;
-      }
-    }
+    start = this->validRange[layer].first;
+    end = this->validRange[layer].second;
     return true;
   }
   return false;
+}
+
+void Lattice::computeValidRange()
+{
+  if(this->enGeometryType == HEXAGONAL)
+  {
+    this->validRange.resize(Grid.size());
+    for( int layer = 0; layer < Grid.size(); ++layer)
+    {
+      this->validRange[layer].first = 0;
+      this->validRange[layer].second = 6*layer-1;
+      if(subType != 0 && !(subType & ANGLE_360))
+      {
+        this->validRange[layer].first = (subType & FLAT)?(layer):(layer-(layer)/2);
+        this->validRange[layer].second = ((subType & FLAT)?(layer+1):
+                                                           (((layer+1)-(layer+2)%2)))+this->validRange[layer].first-1;
+        if(subType & ANGLE_30)
+        {
+          this->validRange[layer].first = 2*layer - layer/2;
+          this->validRange[layer].second = (layer%2 ? (layer+1)/2 :(layer+2)/2) + this->validRange[layer].first - 1;
+        }
+      }
+    }
+  }
 }
 
 std::pair<int, int> Lattice::GetDimensions() const
@@ -364,4 +382,84 @@ Lattice::LatticeCell * Lattice::getCell(std::string label)
     result = iter->second;
   }
   return result;
+}
+
+Lattice::CellDrawMode Lattice::getDrawMode(int index, int layer) const
+{
+  if(this->enGeometryType == RECTILINEAR) return Lattice::RECT;
+  int start, end;
+  this->getValidRange(layer, start, end);
+  if(layer == 0)
+  {
+    if(this->subType & ANGLE_360)
+    {
+      return this->getFullCellMode();
+    }
+    else if(this->subType & ANGLE_60 && this->subType & FLAT)
+    {
+      return Lattice::HEX_SIXTH_FLAT_CENTER;
+    }
+    else if(this->subType & ANGLE_60 && this->subType & VERTEX)
+    {
+      return Lattice::HEX_SIXTH_VERT_CENTER;
+    }
+    else if(this->subType & ANGLE_30)
+    {
+      return Lattice::HEX_TWELFTH_CENTER;
+    }
+  }
+  else if(this->subType & ANGLE_360)
+  {
+    return FullCellMode;
+  }
+  else if( this->subType & ANGLE_60 && this->subType & FLAT )
+  {
+    if(index == start)
+    {
+      return Lattice::HEX_SIXTH_FLAT_TOP;
+    }
+    else if(index == end)
+    {
+      return Lattice::HEX_SIXTH_FLAT_BOTTOM;
+    }
+    else
+    {
+      return Lattice::HEX_FULL;
+    }
+  }
+  else if( this->subType & ANGLE_60 && this->subType & VERTEX )
+  {
+    if(index == start && layer % 2 == 0) return Lattice::HEX_SIXTH_VERT_TOP;
+    else if(index == end && layer % 2 == 0) return Lattice::HEX_SIXTH_VERT_BOTTOM;
+    return Lattice::HEX_FULL_30;
+  }
+  else if(this->subType & ANGLE_30)
+  {
+    if(index == end) return Lattice::HEX_TWELFTH_BOTTOM;
+    else if(index == start && layer % 2 == 0) return Lattice::HEX_TWELFTH_TOP;
+  }
+  return Lattice::HEX_FULL;
+}
+
+std::string Lattice::generate_string(std::string in, CellDrawMode mode)
+{
+  switch(mode)
+  {
+    case RECT:
+    case HEX_FULL:
+    case HEX_FULL_30:
+      return in;
+    case HEX_SIXTH_FLAT_BOTTOM:
+    case HEX_SIXTH_VERT_BOTTOM:
+    case HEX_TWELFTH_BOTTOM:
+      return in+"_bottom";
+    case HEX_SIXTH_FLAT_CENTER:
+    case HEX_SIXTH_VERT_CENTER:
+    case HEX_TWELFTH_CENTER:
+      return in + "_center";
+    case HEX_SIXTH_FLAT_TOP:
+    case HEX_SIXTH_VERT_TOP:
+    case HEX_TWELFTH_TOP:
+      return in + "_top";
+  }
 }

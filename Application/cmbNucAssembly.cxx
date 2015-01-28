@@ -692,3 +692,39 @@ void cmbNucAssembly::setDuctLibrary(cmbNucDuctLibrary * d)
     this->setDuctCell(d->GetDuctCell(at));
   }
 }
+
+//Used when importing inp file
+void cmbNucAssembly::adjustRotation()
+{
+  if(this->Transforms.empty()) return;
+  double r = 0;
+  if(this->lattice.getFullCellMode() ==  Lattice::HEX_FULL_30)
+  {
+    r = -30;
+  }
+  for(unsigned int i = 0; i < this->Transforms.size(); ++i)
+  {
+    if(this->Transforms[i]->getLabel() == "Rotate" && this->Transforms[i]->getAxis() == Transform::Z)
+    {
+      double v = this->Transforms[i]->getValue();
+      r += v;
+    }
+  }
+  while(r < -180) r += 360;
+  if(r != 0)
+  {
+    this->setZAxisRotation(static_cast<int>(r));
+  }
+  removeOldTransforms(0);
+}
+
+double cmbNucAssembly::getZAxisRotation() const
+{
+  if(zAxisRotation.isValid()) return zAxisRotation.getValue();
+  return 0;
+}
+
+void cmbNucAssembly::setZAxisRotation(double d)
+{
+  zAxisRotation = Rotate(Transform::Z, d);
+}

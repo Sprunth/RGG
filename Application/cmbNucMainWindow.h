@@ -75,8 +75,6 @@ public slots:
   void onUpdateINPFiles();
   void clearAll();
   void clearCore();
-  //void saveFile(const QString &fileName);
-  //void saveCoreFile(const QString &fileName);
   void ResetView();
   void Render();
   void onInteractionTransition(vtkObject *, unsigned long event);
@@ -100,6 +98,7 @@ protected:
   void initPanels();
   void saveSelected(bool requestFileName, bool force);
   bool exportINPs();
+  bool exportINP(cmbNucAssembly*assy);
   void saveXML(cmbNucCore*, bool request_file_name, bool force);
   QString requestInpFileName(QString name, QString type);
   QString requestXMLFileName(QString name, QString type);

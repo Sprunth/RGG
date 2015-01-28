@@ -23,6 +23,9 @@
 #include <QMessageBox>
 #include <QComboBox>
 
+static const int degreesHex[6] = {-120, -60, 0, 60, 120, 180};
+static const int degreesRec[4] = {-90, 0, 90, 180};
+
 #define set_and_test_for_change(X, Y)\
    change |= ((Y) != (X)); \
    X = (Y)
@@ -225,7 +228,6 @@ void cmbNucInputPropertiesWidget::onReset()
         this->Internal->coreLabelX->setText("X:");
         }
       this->resetCore(nucCore);
-      sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL);
       emit(sendLattice(nucCore));
       break;
     case CMBNUC_ASSEMBLY:
@@ -255,15 +257,6 @@ void cmbNucInputPropertiesWidget::onReset()
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageAssembly);
       this->setAssembly(assy);
       this->resetAssembly(assy);
-      if( this->Core->getLattice().GetGeometrySubType() & ANGLE_60 &&
-          this->Core->getLattice().GetGeometrySubType() & VERTEX )
-        {
-        sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL);
-        }
-      else
-        {
-        sendLatticeFullMode(cmbNucDraw2DLattice::HEX_FULL_30);
-        }
       emit(sendLattice(assy));
       break;
     }
@@ -519,6 +512,19 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
     this->Internal->pitchY->setEnabled( false );
     this->Internal->computePitch->setEnabled(false);
   }
+
+  int ind = this->Internal->rotationDegree->currentIndex();
+  if (assy->IsHexType())
+  {
+    if(ind >= 0 && ind < 6)
+      assy->setZAxisRotation(degreesHex[ind]);
+  }
+  else
+  {
+    if(ind >= 0 && ind < 4)
+      assy->setZAxisRotation(degreesRec[ind]);
+  }
+
   assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
 }
@@ -548,6 +554,26 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
   this->assyConf->resetAssembly(assy);
   this->Internal->CenterPins->setChecked(assy->isPinsAutoCentered());
   this->Internal->AssyLabel->setText(assy->getLabel().c_str());
+
+  int degree = static_cast<int>(assy->getZAxisRotation());
+
+  this->Internal->rotationDegree->clear();
+  if (assy->IsHexType())
+  {
+    for(unsigned int i = 0; i < 6; ++i)
+    {
+      this->Internal->rotationDegree->addItem(QString::number(degreesHex[i]));
+    }
+  }
+  else
+  {
+    for(unsigned int i = 0; i < 4; ++i)
+    {
+      this->Internal->rotationDegree->addItem(QString::number(degreesRec[i]));
+    }
+  }
+
+  this->Internal->rotationDegree->setCurrentIndex(this->Internal->rotationDegree->findText(QString::number(degree)));
 
   if(assy->isPinsAutoCentered())
   {

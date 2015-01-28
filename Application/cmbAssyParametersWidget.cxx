@@ -16,60 +16,7 @@ class cmbAssyParametersWidget::cmbAssyParametersWidgetInternal :
   public Ui::qAssyParametersWidget
 {
 public:
-  void setTransformRow(int r, cmbNucAssembly::Transform * xform);
-  void resizeTable(int i)
-  {
-    this->TransformTable->setRowCount(i);
-  }
 };
-
-void cmbAssyParametersWidget::cmbAssyParametersWidgetInternal
-::setTransformRow(int r, cmbNucAssembly::Transform * xform)
-{
-  QTableWidget * table = this->TransformTable;
-  table->setSelectionBehavior(QAbstractItemView::SelectRows);
-  table->horizontalHeader()->setStretchLastSection(true);
-  table->verticalHeader()->setVisible(false);
-  //Type
-  {
-    QTableWidgetItem * item = new QTableWidgetItem(xform->getLabel().c_str());
-    item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    table->setItem(r, 0, item);
-  }
-  //AXIS
-  {
-    QComboBox* comboBox = new QComboBox(table);
-    comboBox->addItem("");
-    comboBox->addItem("X");
-    comboBox->addItem("Y");
-    comboBox->addItem("Z");
-    comboBox->setCurrentIndex(xform->getAxis()+1);
-    comboBox->setEditable(xform->getControls() & cmbNucAssembly::Transform::HAS_AXIS);
-    comboBox->setVisible(xform->getControls() & cmbNucAssembly::Transform::HAS_AXIS);
-    table->setCellWidget(r, 1, comboBox);
-  }
-  //Value
-  {
-    QDoubleSpinBox* value = new QDoubleSpinBox(table);
-    value->setDecimals(2);
-    value->setFrame(false);
-    value->setMaximum(10000.0);
-    value->setMinimum(-10000.0);
-    value->setValue(xform->getValue());
-    value->setAlignment(Qt::AlignRight);
-    value->setReadOnly(!(xform->getControls() & cmbNucAssembly::Transform::HAS_VALUE));
-    table->setCellWidget(r, 2, value);
-  }
-  //Reverse
-  {
-    QTableWidgetItem *item = new QTableWidgetItem();
-    item->setCheckState(xform->reverse()?(Qt::Checked):(Qt::Unchecked));
-    if(!(xform->getControls() & cmbNucAssembly::Transform::HAS_REVERSE))
-      item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-    table->setItem(r,3,item);
-  }
-  table->resizeColumnsToContents();
-}
 
 //-----------------------------------------------------------------------------
 cmbAssyParametersWidget::cmbAssyParametersWidget(QWidget *p)
@@ -82,12 +29,6 @@ cmbAssyParametersWidget::cmbAssyParametersWidget(QWidget *p)
   this->Internal->AxialMeshLayout->setVisible(false);
   this->Internal->EdgeIntervalLayout->setVisible(false);
   this->Internal->MeshTypeLayout_2->setVisible(false);
-  connect(this->Internal->addRotation, SIGNAL(clicked ()),
-          this, SLOT(addRotation()));
-  connect(this->Internal->addSection, SIGNAL(clicked ()),
-          this, SLOT(addSection()));
-  connect(this->Internal->deleteSelected, SIGNAL(clicked ()),
-          this, SLOT(deleteSelected()));
 }
 
 //-----------------------------------------------------------------------------
@@ -317,21 +258,6 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 #undef FUN
 #undef FUN2
 
-  //update transforms
-  QTableWidget * table = this->Internal->TransformTable;
-  changed |= assy->removeOldTransforms(table->rowCount());
-  for(int i = 0; i < table->rowCount(); ++i)
-  {
-    std::string xform = table->item( i, 0 )->text().toStdString();
-    std::string axis = (qobject_cast<QComboBox *>(table->cellWidget(i, 1)))->currentText().toStdString();
-    double value = (qobject_cast<QDoubleSpinBox *>(table->cellWidget(i, 2)))->value();
-    bool reverse = table->item( i, 3 )->checkState() == (Qt::Checked);
-    cmbNucAssembly::Transform * tmp = NULL;
-    if(xform == "Rotate") tmp = new cmbNucAssembly::Rotate(axis, value );
-    else if(xform == "Section") tmp = new cmbNucAssembly::Section(axis, value, (reverse)?"reverse":"");
-    changed |= assy->updateTransform(i, tmp);
-  }
-
   std::stringstream ss(Internal->Unknown->toPlainText().toStdString().c_str());
   std::string line;
   unsigned int i = 0;
@@ -368,30 +294,4 @@ void cmbAssyParametersWidget::resetAssembly(cmbNucAssembly* assy)
     unknowns += parameters->UnknownParams[i] + "\n";
   }
   Internal->Unknown->setPlainText(QString::fromStdString(unknowns));
-  Internal->resizeTable(assy->getNumberOfTransforms());
-  for(size_t i = 0; i < assy->getNumberOfTransforms(); ++i)
-  {
-    Internal->setTransformRow(i, assy->getTransform(i));
-  }
-}
-
-void cmbAssyParametersWidget::addRotation()
-{
-  cmbNucAssembly::Rotate r("Z",0);
-  int at = this->Internal->TransformTable->rowCount();
-  this->Internal->resizeTable(at+1);
-  this->Internal->setTransformRow(at, &r);
-}
-
-void cmbAssyParametersWidget::addSection()
-{
-  cmbNucAssembly::Section s("X",0,"");
-  int at = this->Internal->TransformTable->rowCount();
-  this->Internal->resizeTable(at+1);
-  this->Internal->setTransformRow(at, &s);
-}
-
-void cmbAssyParametersWidget::deleteSelected()
-{
-  this->Internal->TransformTable->removeRow(this->Internal->TransformTable->currentRow());
 }

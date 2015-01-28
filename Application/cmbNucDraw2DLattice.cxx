@@ -21,7 +21,7 @@
 cmbNucDraw2DLattice::cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape,
     QWidget* p, Qt::WindowFlags f)
       : QGraphicsView(p), CurrentLattice(NULL),
-        FullCellMode(HEX_FULL), ItemShape(shape)
+        FullCellMode(Lattice::HEX_FULL), ItemShape(shape)
 {
   changed = false;
   setScene(&this->Canvas);
@@ -118,13 +118,13 @@ void cmbNucDraw2DLattice::setLatticeContainer(LatticeContainer* l)
   }
 }
 
-void cmbNucDraw2DLattice::setFullCellMode(CellDrawMode m)
+void cmbNucDraw2DLattice::setFullCellMode(Lattice::CellDrawMode m)
 {
-  FullCellMode = m;
+  this->FullCellMode = m;
 }
 
 void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
-                                  int layer, int cellIdx, CellDrawMode mode)
+                                  int layer, int cellIdx, Lattice::CellDrawMode mode)
 {
   Lattice::LatticeCell lc = Grid.GetCell(layer, cellIdx);
   if(!lc.valid) return;
@@ -132,7 +132,7 @@ void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
 
   switch(mode)
   {
-    case HEX_FULL:
+    case Lattice::HEX_FULL:
       polygon << QPoint(0, 2 * radius)
               << QPoint(-radius * 1.73, radius )
               << QPoint(-radius * 1.73, -radius)
@@ -140,7 +140,7 @@ void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
               << QPoint( radius * 1.73, -radius)
               << QPoint( radius * 1.73, radius );
       break;
-    case HEX_FULL_30:
+    case Lattice::HEX_FULL_30:
       polygon << QPoint( 2 * radius, 0)
               << QPoint(radius, -radius * 1.73 )
               << QPoint(-radius, -radius * 1.73)
@@ -148,57 +148,57 @@ void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
               << QPoint( -radius, radius * 1.73)
               << QPoint( radius, radius * 1.73 );
       break;
-    case HEX_SIXTH_VERT_BOTTOM:
+    case Lattice::HEX_SIXTH_VERT_BOTTOM:
       polygon << QPoint( 2 * radius, 0)
               << QPoint(radius, -radius * 1.73 )
               << QPoint(-radius, -radius * 1.73)
               << QPoint( -2 * radius, 0 );
       break;
-    case HEX_SIXTH_VERT_CENTER:
+    case Lattice::HEX_SIXTH_VERT_CENTER:
       polygon << QPoint( 2 * radius, 0)
               << QPoint(radius, -radius * 1.73 )
               << QPoint(0, 0);
       break;
-    case HEX_SIXTH_VERT_TOP:
+    case Lattice::HEX_SIXTH_VERT_TOP:
       polygon << QPoint( 2 * radius, 0)
               << QPoint(radius, -radius * 1.73 )
               << QPoint( -radius, radius * 1.73)
               << QPoint( radius, radius * 1.73 );
       break;
-    case HEX_SIXTH_FLAT_CENTER:
+    case Lattice::HEX_SIXTH_FLAT_CENTER:
       polygon << QPoint(0, 0)
               << QPoint(radius * 0.865, -1.5 * radius)
               << QPoint( radius * 1.73, -radius)
               << QPoint( radius * 1.73, 0 );
       break;
-    case HEX_SIXTH_FLAT_TOP:
+    case Lattice::HEX_SIXTH_FLAT_TOP:
       polygon << QPoint(0, 2 * radius) //keep
               << QPoint((-radius * 0.865), 1.5 * radius ) //half
               << QPoint(radius*0.865, -1.5 * radius )
               << QPoint( radius * 1.73, -radius)
               << QPoint( radius * 1.73, radius );
       break;
-    case HEX_SIXTH_FLAT_BOTTOM:
-    case HEX_TWELFTH_BOTTOM:
+    case Lattice::HEX_SIXTH_FLAT_BOTTOM:
+    case Lattice::HEX_TWELFTH_BOTTOM:
       polygon << QPoint(-radius * 1.73, 0 )
               << QPoint(-radius * 1.73, -radius)
               << QPoint(0, -2 * radius )
               << QPoint( radius * 1.73, -radius)
               << QPoint( radius * 1.73, 0 );
       break;
-    case HEX_TWELFTH_TOP:
+    case Lattice::HEX_TWELFTH_TOP:
       polygon << QPoint(0, 2 * radius) //keep
               << QPoint( -radius * 1.73, radius)
               << QPoint( radius * 1.73, -radius)
               << QPoint( radius * 1.73, radius );
       break;
-    case HEX_TWELFTH_CENTER:
+    case Lattice::HEX_TWELFTH_CENTER:
       polygon << QPoint(0, 0)
               << QPoint( radius * 1.73, -radius)
               << QPoint( radius * 1.73, 0 );
       break;
       break;
-    case RECT:
+    case Lattice::RECT:
       polygon << QPoint(-radius,-radius)
               << QPoint(-radius, radius)
               << QPoint( radius, radius)
@@ -271,24 +271,7 @@ void cmbNucDraw2DLattice::rebuild()
         {
         centerPos[0] = 0;
         centerPos[1] = 0;
-        if(this->Grid.GetGeometrySubType() & ANGLE_360)
-          {
-          this->addCell(centerPos, hexRadius, i, 0, FullCellMode);
-          }
-        else if(this->Grid.GetGeometrySubType() & ANGLE_60 &&
-                this->Grid.GetGeometrySubType() & FLAT)
-          {
-          this->addCell(centerPos, hexRadius, i, 0, HEX_SIXTH_FLAT_CENTER);
-          }
-        else if(this->Grid.GetGeometrySubType() & ANGLE_60 &&
-                this->Grid.GetGeometrySubType() & VERTEX)
-          {
-          this->addCell(centerPos, hexRadius, i, 0, HEX_SIXTH_VERT_CENTER);
-          }
-        else if(this->Grid.GetGeometrySubType() & ANGLE_30)
-          {
-            this->addCell(centerPos, hexRadius, i, 0, HEX_TWELFTH_CENTER);
-          }
+        this->addCell(centerPos, hexRadius, i, 0, this->Grid.getDrawMode(0, i));
         }
       else
         {
@@ -302,7 +285,8 @@ void cmbNucDraw2DLattice::rebuild()
 
           if(( this->Grid.GetGeometrySubType() & ANGLE_60 &&
                this->Grid.GetGeometrySubType() & VERTEX ) ||
-             ( this->Grid.GetGeometrySubType() & ANGLE_360 && FullCellMode == HEX_FULL_30 ) )
+             ( this->Grid.GetGeometrySubType() & ANGLE_360 &&
+               this->Grid.getFullCellMode() == Lattice::HEX_FULL_30 ) )
             {
             angle = 2 * (vtkMath::Pi() / 6.0) * ((c+1)%6 + 3.5);
             }
@@ -310,7 +294,7 @@ void cmbNucDraw2DLattice::rebuild()
           layerCorners[c][1] = layerRadius * sin(angle);
 
           this->addCell(layerCorners[c], hexRadius, i, cellIdx,
-                        getHexDrawMode(cellIdx, i, begin, end));
+                        this->Grid.getDrawMode(cellIdx, i));
           cornerIndices[c] = cellIdx;
           cellIdx = i==1 ? cellIdx+1 : cellIdx+i;
           }
@@ -333,7 +317,7 @@ void cmbNucDraw2DLattice::rebuild()
           {
             centerPos[0] = layerCorners[c][0] + deltx * (b + 1);
             centerPos[1] = layerCorners[c][1] + delty * (b + 1);
-            this->addCell(centerPos, hexRadius, i, cellIdx, getHexDrawMode(cellIdx, i, begin, end));
+            this->addCell(centerPos, hexRadius, i, cellIdx, this->Grid.getDrawMode(cellIdx, i));
             cellIdx++;
             }
           }
@@ -351,49 +335,12 @@ void cmbNucDraw2DLattice::rebuild()
         {
           centerPos[1] = 2*(wh.first-1-i)*radius;
           centerPos[0] = 2*(j)*radius;
-          this->addCell(centerPos, radius, i, j, RECT);
+          this->addCell(centerPos, radius, i, j, this->Grid.getDrawMode(i, j));
         }
       }
     }
   scene()->setSceneRect(scene()->itemsBoundingRect());
   this->repaint();
-}
-
-cmbNucDraw2DLattice::CellDrawMode cmbNucDraw2DLattice::getHexDrawMode(int index, int layer, int start, int end) const
-{
-  if(this->Grid.GetGeometrySubType() & ANGLE_360)
-  {
-    return FullCellMode;
-  }
-  else if( this->Grid.GetGeometrySubType() & ANGLE_60 &&
-           this->Grid.GetGeometrySubType() & FLAT )
-  {
-    if(index == start)
-    {
-      return HEX_SIXTH_FLAT_TOP;
-    }
-    else if(index == end)
-    {
-     return HEX_SIXTH_FLAT_BOTTOM;
-    }
-    else
-    {
-      return HEX_FULL;
-    }
-  }
-  else if( this->Grid.GetGeometrySubType() & ANGLE_60 &&
-           this->Grid.GetGeometrySubType() & VERTEX )
-  {
-    if(index == start && layer % 2 == 0) return HEX_SIXTH_VERT_TOP;
-    else if(index == end && layer % 2 == 0) return HEX_SIXTH_VERT_BOTTOM;
-    return HEX_FULL_30;
-  }
-  else if(this->Grid.GetGeometrySubType() & ANGLE_30)
-  {
-    if(index == end) return HEX_TWELFTH_BOTTOM;
-    else if(index == start && layer % 2 == 0) return HEX_TWELFTH_TOP;
-  }
-  return HEX_FULL;
 }
 
 void cmbNucDraw2DLattice::showContextMenu(

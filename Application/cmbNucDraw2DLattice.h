@@ -18,10 +18,6 @@ class cmbNucDraw2DLattice : public QGraphicsView {
   typedef QGraphicsView Superclass;
 
 public:
-  enum CellDrawMode{RECT, HEX_FULL, HEX_FULL_30,
-                    HEX_SIXTH_FLAT_BOTTOM, HEX_SIXTH_FLAT_CENTER, HEX_SIXTH_FLAT_TOP,
-                    HEX_SIXTH_VERT_BOTTOM, HEX_SIXTH_VERT_CENTER, HEX_SIXTH_VERT_TOP,
-                    HEX_TWELFTH_BOTTOM, HEX_TWELFTH_CENTER, HEX_TWELFTH_TOP};
   cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape = DrawLatticeItem::Circle,
                       QWidget* parent = 0, Qt::WindowFlags f = 0);
   ~cmbNucDraw2DLattice();
@@ -38,7 +34,7 @@ public:
   void setActions(const QStringList& actions);
   void setItemShape(DrawLatticeItem::ShapeStyle shapetype);
   void setLatticeContainer(LatticeContainer* l);
-  void setFullCellMode(CellDrawMode m);
+  void setFullCellMode(Lattice::CellDrawMode m);
 
 public slots:
   void clear();
@@ -52,7 +48,9 @@ protected:
 private slots:
   void init();
 
-  void addCell(double centerPos[2], double radius, int layer, int cellIdx, CellDrawMode mode);
+  void addCell(double centerPos[2],
+               double radius, int layer, int cellIdx,
+               Lattice::CellDrawMode mode);
 
 private:
   LatticeContainer* CurrentLattice;
@@ -62,12 +60,10 @@ private:
 
   std::map<QString, int> usedLabelCount;
 
-  CellDrawMode FullCellMode;
+  Lattice::CellDrawMode FullCellMode;
 
   QStringList ActionList;
   DrawLatticeItem::ShapeStyle ItemShape;
-
-  CellDrawMode getHexDrawMode(int index, int layer, int begin, int end) const;
 };
 
 #endif
