@@ -371,7 +371,7 @@ void cmbNucAssembly::computeDefaults()
   this->calculatePitch(x, y);
 }
 
-void cmbNucAssembly::calculatePitch(double & x, double & y)
+void cmbNucAssembly::calculatePitch(int width, int height, double & x, double & y)
 {
   double inDuctThick[2];
   if(!this->AssyDuct->GetInnerDuctSize(inDuctThick[0],inDuctThick[1]) &&
@@ -379,7 +379,6 @@ void cmbNucAssembly::calculatePitch(double & x, double & y)
   {
     inDuctThick[0] = inDuctThick[1] = 10;
   }
-  std::pair<int, int> dim = lattice.GetDimensions();
   if(this->IsHexType())
   {
     const double d = inDuctThick[0]-inDuctThick[0]*0.035; // make it slightly smaller to make exporting happy
@@ -392,11 +391,18 @@ void cmbNucAssembly::calculatePitch(double & x, double & y)
   {
     double w = dim.second;
     double h = dim.first;
-    x = (inDuctThick[0])/(w+0.5);
-    y = (inDuctThick[1])/(h+0.5);
+    x = (inDuctThick[0])/(width+0.5);
+    y = (inDuctThick[1])/(height+0.5);
   }
   if(x<0) x = -1;
   if(y<0) y = -1;
+}
+
+void cmbNucAssembly::calculatePitch(double & x, double & y)
+{
+  std::pair<int, int> dim = lattice.GetDimensions();
+  this->calculatePitch(dim.first, dim.second, x, y);
+
 }
 
 void cmbNucAssembly::calculateRadius(double & r)

@@ -263,6 +263,7 @@ public:
   void computeDefaults();
 
   void calculatePitch(double & x, double & y);
+  void calculatePitch(int width, int height, double & x, double & y);
   void calculateRadius(double & r);
   void setPitch(double x, double y, bool testDiff = true);
 
