@@ -288,7 +288,7 @@ void cmbNucDraw2DLattice::rebuild()
              ( this->Grid.GetGeometrySubType() & ANGLE_360 &&
                this->Grid.getFullCellMode() == Lattice::HEX_FULL_30 ) )
             {
-            angle = 2 * (vtkMath::Pi() / 6.0) * ((c+1)%6 + 3.5);
+            angle = 2 * (vtkMath::Pi() / 6.0) * ((c)%6 + 3.5);
             }
           layerCorners[c][0] = layerRadius * cos(angle);
           layerCorners[c][1] = layerRadius * sin(angle);
