@@ -1323,7 +1323,9 @@ bool cmbNucMainWindow::exportINPs()
     QString fileName = assembly->ExportFileName.c_str();
     if(fileName.isEmpty())
     {
-      fileName = coreinfo.dir().path() + (std::string("assembly_") + assembly->getLabel() + ".inp").c_str();
+      fileName = coreinfo.dir().path() + QString("/assembly_") +
+                                         QString(assembly->getLabel().c_str()).toLower() +
+                                         ".inp";
     }
     QFileInfo assyFileInfo(fileName);
     assembly->ExportFileName = fileName.toStdString();
@@ -1337,9 +1339,10 @@ bool cmbNucMainWindow::exportINPs()
       else
       {
         assembly->ExportFileNames[mode] = (coreinfo.dir().path() +
-                                           ( std::string("assembly_") +
-                                             Lattice::generate_string(assembly->getLabel(), mode) +
-                                             ".inp" ).c_str()).toStdString();
+                                            QString("/assembly_") +
+                                             QString(Lattice::generate_string(assembly->getLabel(),
+                                                                              mode).c_str()).toLower() +
+                                             ".inp").toStdString();
       }
     }
     this->exportINP(assembly);
