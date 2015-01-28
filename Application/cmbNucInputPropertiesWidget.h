@@ -92,6 +92,8 @@ protected slots:
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToCore(cmbNucCore* nucCore);
 
+  void setAutoPitch(bool);
+
   void computePitch();
 
   void showPinCellEditor();

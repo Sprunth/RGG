@@ -107,6 +107,7 @@ void cmbNucInputPropertiesWidget::initUI()
   connect( CoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
 
   connect( this->Internal->computePitch, SIGNAL(clicked()), this, SLOT(computePitch()));
+  connect( this->Internal->CenterPins, SIGNAL(clicked(bool)), this, SLOT(setAutoPitch(bool)) );
 }
 
 //-----------------------------------------------------------------------------
@@ -496,21 +497,16 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
   px = this->Internal->pitchX->value();
   py = this->Internal->pitchY->value();
   bool checked = this->Internal->CenterPins->isChecked();
+  this->setAutoPitch(checked);
   if(!checked)
   {
     assy->setPitch(px,py);
-    this->Internal->pitchX->setEnabled( true );
-    this->Internal->pitchY->setEnabled( true );
-    this->Internal->computePitch->setEnabled(true);
   }
   else
   {
     assy->calculatePitch(px, py);
     this->Internal->pitchX->setValue(px);
     this->Internal->pitchY->setValue(py);
-    this->Internal->pitchX->setEnabled( false );
-    this->Internal->pitchY->setEnabled( false );
-    this->Internal->computePitch->setEnabled(false);
   }
 
   int ind = this->Internal->rotationDegree->currentIndex();
@@ -527,6 +523,13 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 
   assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
+}
+
+void cmbNucInputPropertiesWidget::setAutoPitch(bool v)
+{
+  this->Internal->pitchX->setEnabled( !v );
+  this->Internal->pitchY->setEnabled( !v );
+  this->Internal->computePitch->setEnabled( !v);
 }
 
 //-----------------------------------------------------------------------------
