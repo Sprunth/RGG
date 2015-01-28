@@ -86,11 +86,16 @@ protected slots:
   void resetAssemblyLattice();
   void resetAssembly(cmbNucAssembly* assy);
 
+  void xSizeChanged(int i);
+  void ySizeChanged(int i);
+
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
   void applyToLattice(Lattice* lattice);
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToCore(cmbNucCore* nucCore);
+
+  void setAutoPitch(bool);
 
   void computePitch();
 

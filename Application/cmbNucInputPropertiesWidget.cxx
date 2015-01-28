@@ -87,9 +87,9 @@ void cmbNucInputPropertiesWidget::initUI()
                    this, SIGNAL(reset()));
 
   QObject::connect(this->Internal->latticeX, SIGNAL(valueChanged(int)),
-                   this, SIGNAL(sendXSize(int)));
+                   this, SLOT(xSizeChanged(int)));
   QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
-                   this, SIGNAL(sendYSize(int)));
+                   this, SLOT(ySizeChanged(int)));
   QObject::connect(this->Internal->coreLatticeX, SIGNAL(valueChanged(int)),
                    this, SIGNAL(sendXSize(int)));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
@@ -107,6 +107,7 @@ void cmbNucInputPropertiesWidget::initUI()
   connect( CoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
 
   connect( this->Internal->computePitch, SIGNAL(clicked()), this, SLOT(computePitch()));
+  connect( this->Internal->CenterPins, SIGNAL(clicked(bool)), this, SLOT(setAutoPitch(bool)) );
 }
 
 //-----------------------------------------------------------------------------
@@ -496,21 +497,16 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
   px = this->Internal->pitchX->value();
   py = this->Internal->pitchY->value();
   bool checked = this->Internal->CenterPins->isChecked();
+  this->setAutoPitch(checked);
   if(!checked)
   {
     assy->setPitch(px,py);
-    this->Internal->pitchX->setEnabled( true );
-    this->Internal->pitchY->setEnabled( true );
-    this->Internal->computePitch->setEnabled(true);
   }
   else
   {
     assy->calculatePitch(px, py);
     this->Internal->pitchX->setValue(px);
     this->Internal->pitchY->setValue(py);
-    this->Internal->pitchX->setEnabled( false );
-    this->Internal->pitchY->setEnabled( false );
-    this->Internal->computePitch->setEnabled(false);
   }
 
   int ind = this->Internal->rotationDegree->currentIndex();
@@ -527,6 +523,51 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 
   assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
+}
+
+void cmbNucInputPropertiesWidget::setAutoPitch(bool v)
+{
+  if(v)
+  {
+    double x, y;
+    this->Assembly->calculatePitch( this->Internal->latticeX->value(),
+                                    this->Internal->latticeY->value(),
+                                    x, y );
+    this->Internal->pitchX->setValue(x);
+    this->Internal->pitchY->setValue(y);
+  }
+  this->Internal->pitchX->setEnabled( !v );
+  this->Internal->pitchY->setEnabled( !v );
+  this->Internal->computePitch->setEnabled( !v);
+}
+
+void cmbNucInputPropertiesWidget::xSizeChanged(int i)
+{
+  bool checked = this->Internal->CenterPins->isChecked();
+  if(checked)
+  {
+    double x,y;
+    this->Assembly->calculatePitch( i, this->Internal->latticeY->value(),
+                                    x, y );
+    this->Internal->pitchX->setValue(x);
+    this->Internal->pitchY->setValue(y);
+  }
+  emit sendXSize(i);
+}
+
+void cmbNucInputPropertiesWidget::ySizeChanged(int i)
+{
+  bool checked = this->Internal->CenterPins->isChecked();
+  if(checked)
+  {
+    double x,y;
+    this->Assembly->calculatePitch( this->Internal->latticeX->value(),
+                                    i,
+                                    x, y );
+    this->Internal->pitchX->setValue(x);
+    this->Internal->pitchY->setValue(y);
+  }
+  emit sendYSize(i);
 }
 
 //-----------------------------------------------------------------------------
@@ -764,7 +805,9 @@ void cmbNucInputPropertiesWidget::computePitch()
 {
   double px, py;
   cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(this->CurrentObject);
-  assy->calculatePitch(px, py);
+  assy->calculatePitch( this->Internal->latticeX->value(),
+                        this->Internal->latticeY->value(),
+                        px, py );
   this->Internal->pitchX->setValue(px);
   this->Internal->pitchY->setValue(py);
 }
