@@ -117,6 +117,8 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
 
     this->Grid.resize(iin);
 
+    this->computeValidRange();
+
     if(iin > current)
     {
       for(int k = current; k < iin; k++)
@@ -148,7 +150,6 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
       }
     }
   }
-  this->computeValidRange();
 }
 
 bool Lattice::getValidRange(int layer, int & start, int & end) const
