@@ -100,8 +100,9 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
     this->Grid.resize(iin);
     for(int k = 0; k < iin; k++)
     {
+      int old = reset?0:this->Grid[k].size();
       this->Grid[k].resize(jin);
-      for(int r = 0; r < jin; ++r)
+      for(int r = old; r < jin; ++r)
       {
         this->Grid[k][r].setCell(XX);
       }
