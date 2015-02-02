@@ -849,6 +849,7 @@ void cmbNucMainWindow::onNewCore()
     QString type = act->text();
     std::string geoType = "HexFlat";;
     int subtype = 1;
+    Lattice::CellDrawMode dmode = Lattice::HEX_FULL;
     if(type.contains("1/6 Symmetric Flat"))
     {
       subtype = 6;
@@ -868,6 +869,7 @@ void cmbNucMainWindow::onNewCore()
     }
     else if(type.contains("Rectilinear"))
     {
+      Lattice::CellDrawMode dmode = Lattice::RECT;
       geoType = "Rectangular";
     }
     else
@@ -893,6 +895,7 @@ void cmbNucMainWindow::onNewCore()
     this->Internal->HasModel = true;
     this->modelControls(true);
     this->InputsWidget->modelIsLoaded(true);
+    this->NuclearCore->getLattice().setFullCellMode(dmode);
   }
   else
   {
