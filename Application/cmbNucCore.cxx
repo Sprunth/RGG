@@ -96,12 +96,13 @@ vtkBoundingBox cmbNucCore::computeBounds()
   double wh[2];
   this->Assemblies[0]->GetDuctWidthHeight(wh);
   std::pair<int, int> dim = lattice.GetDimensions();
-  double diameter = wh[0]*(dim.first*2-1);
-  double radius = diameter*0.5;
-  double pointDist = wh[0]*0.5/0.86602540378443864676372317075294;
-  double tmpH = (dim.first + std::floor((dim.first-1)*0.5))*pointDist;
   if(IsHexType())
   {
+    double diameter = wh[0]*(dim.first*2-1);
+    double radius = diameter*0.5;
+    double pointDist = wh[0]*0.5/0.86602540378443864676372317075294;
+    double tmpH = (dim.first + std::floor((dim.first-1)*0.5))*pointDist;
+
     int subType = lattice.GetGeometrySubType();
     double tx = 0, ty = 0;
     double min[2], max[2];
@@ -159,6 +160,7 @@ vtkBoundingBox cmbNucCore::computeBounds()
     pt[1] -= wh[1]*0.5;
     pt[2] += wh[0]*0.5;
     pt[3] += wh[1]*0.5;
+    double cp[] = {(pt[2] + pt[0])*0.5,(pt[3] + pt[1])*0.5};
     double w = pt[2] - pt[0];
     double h = pt[3] - pt[1];
     if(getHasCylinder())
@@ -166,8 +168,8 @@ vtkBoundingBox cmbNucCore::computeBounds()
       w = std::max(w, 2*this->cylinderRadius);
       h = std::max(h, 2*this->cylinderRadius);
     }
-    return vtkBoundingBox(transX+pt[0], transX+pt[0]+w,
-                          transY+pt[1], transY+pt[1]+h,
+    return vtkBoundingBox(transX+cp[0]-w*0.5, transX+cp[0]+w*0.5,
+                          transY+cp[1]-h*0.5, transY+cp[1]+h*0.5,
                           z1, z2);
   }
 }

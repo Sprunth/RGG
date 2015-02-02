@@ -89,6 +89,9 @@ protected slots:
   void xSizeChanged(int i);
   void ySizeChanged(int i);
 
+  void coreXSizeChanged(int i);
+  void coreYSizeChanged(int i);
+
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
   void applyToLattice(Lattice* lattice);
@@ -105,7 +108,7 @@ protected slots:
   void choosePinLegendColor();
   void chooseAssyLegendColor();
 
-  void onCalculateCylinderDefaults();
+  void onCalculateCylinderDefaults(bool checkOld = false);
   void displayBackgroundControls(int);
   void onRadiusChanged(double v);
   void onIntervalChanged(int v);

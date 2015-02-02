@@ -52,6 +52,8 @@ cmbNucInputPropertiesWidget::cmbNucInputPropertiesWidget(cmbNucMainWindow *mainW
 {
   this->Internal = new cmbNucInputPropertiesWidgetInternal;
   this->Internal->setupUi(this);
+  this->Internal->FileName->setVisible(false);
+  this->Internal->GenerateControls->setVisible(false);
   this->initUI();
   this->CurrentObject = NULL;
   this->RebuildCoreGrid = false;
@@ -94,9 +96,9 @@ void cmbNucInputPropertiesWidget::initUI()
   QObject::connect(this->Internal->latticeY, SIGNAL(valueChanged(int)),
                    this, SLOT(ySizeChanged(int)));
   QObject::connect(this->Internal->coreLatticeX, SIGNAL(valueChanged(int)),
-                   this, SIGNAL(sendXSize(int)));
+                   this, SLOT(coreXSizeChanged(int)));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
-                   this, SIGNAL(sendYSize(int)));
+                   this, SLOT(coreYSizeChanged(int)));
 
   QObject::connect(this->Internal->OuterEdgeInterval, SIGNAL(valueChanged(int)),
                    this, SLOT(onIntervalChanged(int)));
@@ -729,6 +731,11 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
 
     this->Internal->JacketMode->setCurrentIndex(nucCore->Params.BackgroundMode);
 
+    if(nucCore->Params.BackgroundMode == cmbNucCoreParams::Generate)
+    {
+      onCalculateCylinderDefaults(true);
+    }
+
     QStringList actionList;
     actionList.append("xx");
 
@@ -883,7 +890,7 @@ void cmbNucInputPropertiesWidget::computePitch()
   this->Internal->pitchY->setValue(py);
 }
 
-void cmbNucInputPropertiesWidget::onCalculateCylinderDefaults()
+void cmbNucInputPropertiesWidget::onCalculateCylinderDefaults(bool checkOld)
 {
   double initRadius;
   int ei = 0;
@@ -893,20 +900,27 @@ void cmbNucInputPropertiesWidget::onCalculateCylinderDefaults()
   Core->GetDefaults()->getDuctThickness(ductsize[0],ductsize[1]);
   if(Core->IsHexType())
   {
-    initRadius = Core->getLattice().getSize() * ductsize[0];
-    this->Internal->OuterEdgeInterval->setValue(Core->getLattice().getSize()*ei*12);
+    double a = ductsize[0] * 0.2;
+    double tmp = (this->Internal->coreLatticeX->value()-0.5)*ductsize[0]+a;
+    double tmp2 = ((ductsize[0]+a)/std::sqrt(3))*0.5;
+    double h = std::sqrt(tmp*tmp + tmp2*tmp2);
+    initRadius = h;
+    this->Internal->OuterEdgeInterval->setValue(this->Internal->coreLatticeX->value()*ei*12);
   }
   else
   {
-    double ti = Core->getLattice().getSize(0) * ductsize[0];
-    double tj = Core->getLattice().getSize() * ductsize[1];
+    double ti = this->Internal->coreLatticeY->value() * ductsize[0];
+    double tj = this->Internal->coreLatticeX->value() * ductsize[1];
     double tmpr = std::sqrt(ti*ti+tj*tj);
-    initRadius = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
-    this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().getSize(),Core->getLattice().getSize(0))
+    initRadius = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[1])*0.5*0.2;
+    this->Internal->OuterEdgeInterval->setValue(std::max(this->Internal->coreLatticeX->value(),
+                                                         this->Internal->coreLatticeY->value())
                                                 *ei*4);
   }
 
-  this->Internal->RadiusBox->setValue(initRadius);
+  double r = this->Internal->RadiusBox->value();
+  this->Internal->RadiusBox->setMinimum(initRadius);
+  this->Internal->RadiusBox->setValue((checkOld) ? (r>initRadius) ? r : initRadius :initRadius);
 }
 
 void cmbNucInputPropertiesWidget::onDrawCylinder()
@@ -927,44 +941,7 @@ void cmbNucInputPropertiesWidget::displayBackgroundControls(int index)
   this->Internal->GenerateControls->setVisible(index == cmbNucCoreParams::Generate);
   if(index == cmbNucCoreParams::Generate)
   {
-    double ductsize[2];
-    Core->GetDefaults()->getDuctThickness(ductsize[0],ductsize[1]);
-    this->Internal->GenerateControls->setVisible(true);
-    if(this->currentRadius != 0 && this->currentInterval != 0)
-    {
-      this->onDrawCylinder();
-    }
-    if(this->currentRadius == 0)
-    {
-      double ir =0;
-      if(Core->IsHexType())
-      {
-        ir = Core->getLattice().getSize() * ductsize[0];
-      }
-      else
-      {
-        double ti = Core->getLattice().getSize(0) * ductsize[0];
-        double tj = Core->getLattice().getSize() * ductsize[1];
-        double tmpr = std::sqrt(ti*ti+tj*tj);
-        ir = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
-      }
-      this->Internal->RadiusBox->setValue(ir);
-    }
-    if(this->currentInterval == 0)
-    {
-      int ei = 0;
-      ;
-      if(!Core->GetDefaults()->getEdgeInterval(ei)) ei = 10;
-      if(Core->IsHexType())
-      {
-        this->Internal->OuterEdgeInterval->setValue(Core->getLattice().getSize()*ei*12);
-      }
-      else
-      {
-        this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().getSize(),Core->getLattice().getSize(0))
-                                                    *ei*4);
-      }
-    }
+    onCalculateCylinderDefaults();
   }
   else
   {
@@ -1052,4 +1029,22 @@ void cmbNucInputPropertiesWidget::onClearBackgroundMesh()
   }
   this->Internal->background_full_path = "";
   Internal->Background->setText("");
+}
+
+void cmbNucInputPropertiesWidget::coreXSizeChanged(int i)
+{
+  emit sendXSize(i);
+  if(this->Internal->JacketMode->currentIndex() == cmbNucCoreParams::Generate)
+  {
+    this->onCalculateCylinderDefaults(true);
+  }
+}
+
+void cmbNucInputPropertiesWidget::coreYSizeChanged(int i)
+{
+  emit sendYSize(i);
+  if(this->Internal->JacketMode->currentIndex() == cmbNucCoreParams::Generate)
+  {
+    this->onCalculateCylinderDefaults(true);
+  }
 }
