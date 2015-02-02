@@ -105,6 +105,14 @@ protected slots:
   void choosePinLegendColor();
   void chooseAssyLegendColor();
 
+  void onCalculateCylinderDefaults();
+  void displayBackgroundControls(int);
+  void onRadiusChanged(double v);
+  void onIntervalChanged(int v);
+  void onDrawCylinder();
+  void onSetBackgroundMesh();
+  void onClearBackgroundMesh();
+
 private:
   bool RebuildCoreGrid;
   cmbNucInputPropertiesWidgetInternal* Internal;
@@ -118,5 +126,8 @@ private:
   cmbCoreParametersWidget* CoreProperties;
   cmbAssyParametersWidget* assyConf;
   QPointer<cmbNucDefaultWidget> CoreDefaults;
+
+  double currentRadius, previousRadius;
+  int currentInterval, previousInterval;
 };
 #endif

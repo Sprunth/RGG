@@ -22,6 +22,12 @@
 #include <QColorDialog>
 #include <QMessageBox>
 #include <QComboBox>
+#include <QFileInfo>
+#include <QDir>
+#include <QSettings>
+#include <QFileDialog>
+
+#include <cmath>
 
 static const int degreesHex[6] = {-120, -60, 0, 60, 120, 180};
 static const int degreesRec[4] = {-90, 0, 90, 180};
@@ -36,6 +42,7 @@ class cmbNucInputPropertiesWidgetInternal :
 public:
   QPointer <cmbNucPinCellEditor> PinCellEditor;
   QPointer <cmbNucDuctCellEditor> DuctCellEditor;
+  std::string background_full_path;
 };
 
 //-----------------------------------------------------------------------------
@@ -65,10 +72,6 @@ void cmbNucInputPropertiesWidget::initUI()
   this->Internal->CoreConfLayout->addWidget(this->CoreProperties);
   connect(this->CoreProperties, SIGNAL(valuesChanged()),
           this, SIGNAL(valuesChanged()));
-  connect(this->CoreProperties, SIGNAL(drawCylinder(double, int)),
-          this, SIGNAL(drawCylinder(double,int)));
-  connect(this->CoreProperties, SIGNAL(clearCylinder()),
-          this, SIGNAL(clearCylinder()));
 
   this->assyConf = new cmbAssyParametersWidget(this);
   this->Internal->AssyConfLayout->addWidget(this->assyConf);
@@ -94,6 +97,21 @@ void cmbNucInputPropertiesWidget::initUI()
                    this, SIGNAL(sendXSize(int)));
   QObject::connect(this->Internal->coreLatticeY, SIGNAL(valueChanged(int)),
                    this, SIGNAL(sendYSize(int)));
+
+  QObject::connect(this->Internal->OuterEdgeInterval, SIGNAL(valueChanged(int)),
+                   this, SLOT(onIntervalChanged(int)));
+  QObject::connect(this->Internal->RadiusBox, 	SIGNAL(valueChanged(double)),
+                   this, SLOT(onRadiusChanged(double)));
+  QObject::connect(this->Internal->FindMinCylinder, SIGNAL(clicked()),
+                   this, SLOT(onCalculateCylinderDefaults()));
+  QObject::connect(this->Internal->JacketMode, SIGNAL(currentIndexChanged(int)),
+                   this, SLOT(onDrawCylinder()));
+  QObject::connect(this->Internal->JacketMode, SIGNAL(currentIndexChanged(int)),
+                   this, SLOT(displayBackgroundControls(int)));
+  QObject::connect( this->Internal->BackgroundSetting, SIGNAL(clicked()),
+                    this, SLOT(onSetBackgroundMesh()) );
+  QObject::connect( this->Internal->BackgroundClear, SIGNAL(clicked()),
+                    this, SLOT(onClearBackgroundMesh()));
 
   // pincell related connections
   QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
@@ -575,13 +593,55 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 {
   bool changed = false;
   if(this->CoreDefaults->assyPitchChanged())
-    {
+  {
     changed = true;
     nucCore->setAndTestDiffFromFiles(true);
-    }
+  }
   this->CoreProperties->applyToCore(nucCore);
   this->CoreDefaults->apply();
   nucCore->sendDefaults();
+  changed |= nucCore->Params.Background != Internal->Background->text().toStdString();
+  nucCore->Params.Background = Internal->Background->text().toStdString();
+  if(nucCore->Params.BackgroundMode != this->Internal->JacketMode->currentIndex())
+  {
+    switch(this->Internal->JacketMode->currentIndex())
+    {
+      case cmbNucCoreParams::None:
+        nucCore->Params.BackgroundMode =cmbNucCoreParams::None;
+        break;
+      case cmbNucCoreParams::External:
+        nucCore->Params.BackgroundMode =cmbNucCoreParams::External;
+        break;
+      case cmbNucCoreParams::Generate:
+        nucCore->Params.BackgroundMode =cmbNucCoreParams::Generate;
+        break;
+      default:
+        break;
+    }
+    changed = true;
+  }
+
+  if(nucCore->Params.BackgroundFullPath != Internal->background_full_path &&
+     nucCore->Params.BackgroundMode != cmbNucCoreParams::None)
+  {
+    nucCore->Params.BackgroundFullPath = Internal->background_full_path;
+    changed = true;
+  }
+
+  if(this->previousRadius != this->currentRadius && nucCore->Params.BackgroundIsSet() )
+  {
+    nucCore->setCylinderRadius(this->currentRadius);
+    this->previousRadius = this->currentRadius;
+    changed = true;
+  }
+
+  if(this->previousInterval != this->currentInterval && nucCore->Params.BackgroundIsSet())
+  {
+    nucCore->setCylinderOuterSpacing(this->currentInterval);
+    this->previousInterval = this->currentInterval;
+    changed = true;
+  }
+
   if(changed)
   {
     emit valuesChanged();
@@ -647,7 +707,7 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
 void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
 {
   if(nucCore)
-    {
+  {
     this->Core = nucCore;
     this->CoreProperties->setCore(nucCore);
     this->CoreProperties->resetCore(nucCore);
@@ -658,22 +718,33 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
     this->Internal->coreLatticeX->blockSignals(false);
     this->Internal->coreLatticeY->blockSignals(false);
 
+    this->Internal->Background->setText(nucCore->Params.Background.c_str());
+    this->Internal->background_full_path = nucCore->Params.BackgroundFullPath;
+
+    this->currentRadius = this->previousRadius = nucCore->getCylinderRadius();
+    this->currentInterval = this->previousInterval = nucCore->getCylinderOuterSpacing();
+
+    this->Internal->OuterEdgeInterval->setValue(this->previousInterval);
+    this->Internal->RadiusBox->setValue(this->previousRadius);
+
+    this->Internal->JacketMode->setCurrentIndex(nucCore->Params.BackgroundMode);
+
     QStringList actionList;
     actionList.append("xx");
 
     if(this->RebuildCoreGrid)
-      {
+    {
       nucCore->RebuildGrid();
       this->RebuildCoreGrid = false;
-      }
+    }
 
     // build the action list
     for(int i = 0; i < nucCore->GetNumberOfAssemblies(); i++)
-      {
+    {
       cmbNucAssembly *assy = nucCore->GetAssembly(i);
       actionList.append(assy->label.c_str());
-      }
     }
+  }
 }
 
 void cmbNucInputPropertiesWidget::showDuctCellEditor()
@@ -810,4 +881,175 @@ void cmbNucInputPropertiesWidget::computePitch()
                         px, py );
   this->Internal->pitchX->setValue(px);
   this->Internal->pitchY->setValue(py);
+}
+
+void cmbNucInputPropertiesWidget::onCalculateCylinderDefaults()
+{
+  double initRadius;
+  int ei = 0;
+  Core->GetDefaults()->getEdgeInterval(ei);
+  if(!Core->GetDefaults()->getEdgeInterval(ei)) ei = 10;
+  double ductsize[2];
+  Core->GetDefaults()->getDuctThickness(ductsize[0],ductsize[1]);
+  if(Core->IsHexType())
+  {
+    initRadius = Core->getLattice().getSize() * ductsize[0];
+    this->Internal->OuterEdgeInterval->setValue(Core->getLattice().getSize()*ei*12);
+  }
+  else
+  {
+    double ti = Core->getLattice().getSize(0) * ductsize[0];
+    double tj = Core->getLattice().getSize() * ductsize[1];
+    double tmpr = std::sqrt(ti*ti+tj*tj);
+    initRadius = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
+    this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().getSize(),Core->getLattice().getSize(0))
+                                                *ei*4);
+  }
+
+  this->Internal->RadiusBox->setValue(initRadius);
+}
+
+void cmbNucInputPropertiesWidget::onDrawCylinder()
+{
+  if(this->Internal->JacketMode->currentIndex() == cmbNucCoreParams::Generate)
+  {
+    emit drawCylinder(this->currentRadius, this->currentInterval);
+  }
+  else
+  {
+    emit clearCylinder();
+  }
+}
+
+void cmbNucInputPropertiesWidget::displayBackgroundControls(int index)
+{
+  this->Internal->FileName->setVisible(index != cmbNucCoreParams::None);
+  this->Internal->GenerateControls->setVisible(index == cmbNucCoreParams::Generate);
+  if(index == cmbNucCoreParams::Generate)
+  {
+    double ductsize[2];
+    Core->GetDefaults()->getDuctThickness(ductsize[0],ductsize[1]);
+    this->Internal->GenerateControls->setVisible(true);
+    if(this->currentRadius != 0 && this->currentInterval != 0)
+    {
+      this->onDrawCylinder();
+    }
+    if(this->currentRadius == 0)
+    {
+      double ir =0;
+      if(Core->IsHexType())
+      {
+        ir = Core->getLattice().getSize() * ductsize[0];
+      }
+      else
+      {
+        double ti = Core->getLattice().getSize(0) * ductsize[0];
+        double tj = Core->getLattice().getSize() * ductsize[1];
+        double tmpr = std::sqrt(ti*ti+tj*tj);
+        ir = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[0])*0.5;
+      }
+      this->Internal->RadiusBox->setValue(ir);
+    }
+    if(this->currentInterval == 0)
+    {
+      int ei = 0;
+      ;
+      if(!Core->GetDefaults()->getEdgeInterval(ei)) ei = 10;
+      if(Core->IsHexType())
+      {
+        this->Internal->OuterEdgeInterval->setValue(Core->getLattice().getSize()*ei*12);
+      }
+      else
+      {
+        this->Internal->OuterEdgeInterval->setValue(std::max(Core->getLattice().getSize(),Core->getLattice().getSize(0))
+                                                    *ei*4);
+      }
+    }
+  }
+  else
+  {
+    emit clearCylinder();
+  }
+}
+
+void cmbNucInputPropertiesWidget::onRadiusChanged(double v)
+{
+  this->currentRadius = v;
+  this->onDrawCylinder();
+}
+
+void cmbNucInputPropertiesWidget::onIntervalChanged(int v)
+{
+  this->currentInterval = v;
+  this->onDrawCylinder();
+}
+
+void cmbNucInputPropertiesWidget::onSetBackgroundMesh()
+{
+  if(this->Core == NULL)
+  {
+    return;
+  }
+  QString fileName;
+  if(this->Internal->JacketMode->currentIndex() == cmbNucCoreParams::Generate)
+  {
+    QString defaultLoc;
+    QString name(Core->ExportFileName.c_str());
+    if(name.isEmpty()) name = QString(Core->CurrentFileName.c_str());
+    if(!name.isEmpty())
+    {
+      QFileInfo fi(name);
+      QDir dir = fi.dir();
+      if(dir.path() == ".")
+      {
+        QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                                QDir::homePath()).toString();
+        defaultLoc = tdir.path();
+      }
+      else
+      {
+        defaultLoc = dir.path();
+      }
+    }
+    else
+    {
+      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                              QDir::homePath()).toString();
+      defaultLoc = tdir.path();
+    }
+
+    fileName = QFileDialog::getSaveFileName( this, "Save Outer Cylinder File...",  defaultLoc, "cub Files (*.cub)" );
+  }
+  else
+  {
+    // Use cached value for last used directory if there is one,
+    // or default to the user's home dir if not.
+    QSettings settings("CMBNuclear", "CMBNuclear");
+    QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+    QStringList fileNames =
+    QFileDialog::getOpenFileNames(this,
+                                  "Open File...",
+                                  dir.path(),
+                                  "cub Files (*.cub)");
+    if(fileNames.count()==0)
+    {
+      return;
+    }
+    fileName =fileNames[0];
+  }
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileName);
+  this->Internal->background_full_path = info.absoluteFilePath().toStdString();
+  Internal->Background->setText(info.fileName());
+}
+
+void cmbNucInputPropertiesWidget::onClearBackgroundMesh()
+{
+  if(this->Core == NULL)
+  {
+    return;
+  }
+  this->Internal->background_full_path = "";
+  Internal->Background->setText("");
 }
