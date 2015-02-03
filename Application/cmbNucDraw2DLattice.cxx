@@ -246,23 +246,47 @@ void cmbNucDraw2DLattice::rebuild()
 
   if(CurrentLattice->IsHexType())
   {
-    if(this->Grid.GetGeometrySubType() & ANGLE_60)
-    {
-      squareLength = std::min(this->width(), static_cast<int>(this->height()*1.3));
-    }
-    else if(this->Grid.GetGeometrySubType() & ANGLE_30)
-    {
-      squareLength = std::min(this->width(), static_cast<int>(this->height()*1.6));
-    }
     double hexRadius, hexDiameter, layerRadius;
-    hexDiameter = squareLength / static_cast<double>(3 * numLayers + 1);
-    if(!(this->Grid.GetGeometrySubType() & ANGLE_360))
+    if(this->Grid.GetGeometrySubType() & ANGLE_60 || this->Grid.GetGeometrySubType() & ANGLE_30)
     {
-      hexDiameter *= 1.8;
+      if(this->Grid.GetGeometrySubType() & ANGLE_60 && this->Grid.GetGeometrySubType() & FLAT)
+      {
+        double n = 1/(1.75*numLayers - 0.5);
+        double t1 = this->width()*(n);
+        double t2 = this->height()*n/0.86602540378443864676372317075294;
+        hexDiameter = std::min(t1, t2);
+
+      }
+      else if(this->Grid.GetGeometrySubType() & ANGLE_60 && this->Grid.GetGeometrySubType() & VERTEX)
+      {
+        double n = 2*numLayers - 0.4;
+        double t1 = this->width()/(0.86602540378443864676372317075294*0.86602540378443864676372317075294*n);
+        double nl = 0;
+        if(numLayers%2 == 0) nl = numLayers*0.5*1.5 - 0.5;//even
+        else nl = (numLayers-1)*0.5*1.5 + 0.5;//odd
+        double t2 = this->height()/(2*(nl+0.1)*0.86602540378443864676372317075294);
+        hexDiameter = std::min(t1, t2);
+      }
+      else
+      {
+        double n = 1/(1.75*numLayers - 0.5);
+        double t1 = this->width()*(n);
+        double t2 = 100000;//this->height()*n/0.86602540378443864676372317075294;
+        if(numLayers%2 == 0)
+        {
+          double w;
+        }
+        hexDiameter = std::min(t1, t2);
+      }
+    }
+    else
+    {
+      hexDiameter = squareLength / static_cast<double>(3 * numLayers + 1.0);
     }
     hexDiameter = std::max(hexDiameter, 20.0); // Enforce minimum size for hexes
-    hexRadius = hexDiameter / static_cast<double>(2 * cos(30.0 * vtkMath::Pi() / 180.0));
+    hexRadius = hexDiameter / 2.0; //static_cast<double>(2 * cos(30.0 * vtkMath::Pi() / 180.0));
     int begin, end;
+    double rad2 = 0.86602540378443864676372317075294*hexRadius;
 
     for(int i = 0; i < numLayers; i++)
       {
@@ -275,7 +299,7 @@ void cmbNucDraw2DLattice::rebuild()
         }
       else
         {
-        /*if(this->Grid.subType & ANGLE_360)*/ layerRadius = hexDiameter * (2 * i);
+        /*if(this->Grid.subType & ANGLE_360)*/ layerRadius = rad2 * (4 * i);
         /*else layerRadius = hexDiameter * i;*/
         int cellIdx = 0;
         for(int c = 0; c < 6; c++)
