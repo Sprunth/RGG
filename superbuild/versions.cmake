@@ -190,7 +190,7 @@ else(BUILD_MESHKIT_MASTER)
   )
 endif(BUILD_MESHKIT_MASTER)
 
-if(BUILD_WITH_CUBIT AND UNIX AND NOT APPLE)
+if(BUILD_WITH_CUBIT)
  add_revision(meshkit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
 else()
   if(BUILD_MESHKIT_MASTER)
