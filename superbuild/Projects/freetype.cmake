@@ -7,3 +7,8 @@ add_external_project(
                     --enable-static=no
                      --with-sysroot=<INSTALL_DIR>
 ) 
+
+add_extra_cmake_args(
+  -DFREETYPE_INCLUDE_DIR_freetype2=<INSTALL_DIR>/include/freetype2
+  -DFREETYPE_INCLUDE_DIR_ft2build=<INSTALL_DIR>/include
+)
