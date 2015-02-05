@@ -37,3 +37,10 @@ else()
   )
 
 endif()
+
+CONFIGURE_FILE("${SuperBuild_PROJECTS_DIR}/patches/libiMesh.la.in"
+               "${CMAKE_BINARY_DIR}/libiMesh.la" @ONLY)
+file(COPY ${CMAKE_BINARY_DIR}/libiMesh.la
+          DESTINATION ${install_location}/lib/
+          FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
+          GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

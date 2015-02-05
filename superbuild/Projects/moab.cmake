@@ -1,5 +1,4 @@
 
-
 #reset back the cppflag to the pre netcdf values.
 #this works since the only project that depends on netcdf is moab
 if (build-projects)
@@ -47,3 +46,12 @@ else()
   )
 
 endif()
+
+message("${install_location}/lib/libiMesh.la")
+
+CONFIGURE_FILE("${SuperBuild_PROJECTS_DIR}/patches/libiMesh.la.in"
+               "${CMAKE_BINARY_DIR}/libiMesh.la" @ONLY)
+file(COPY ${CMAKE_BINARY_DIR}/libiMesh.la
+     DESTINATION ${install_location}/lib/
+     FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
+                      GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
