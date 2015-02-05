@@ -10,11 +10,9 @@ endif()
 if(BUILD_MESHKIT_MASTER)
   add_external_project(lasso
     DEPENDS moab cgm
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/lass.apple.dylib.git_patch.txt
     BUILD_IN_SOURCE 1
     ${suppress_build_out}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
-      --enable-encoding
       --enable-shared
       --with-imesh=<INSTALL_DIR>
       --with-igeom=<INSTALL_DIR>
@@ -23,7 +21,6 @@ if(BUILD_MESHKIT_MASTER)
 else()
   add_external_project(lasso
     DEPENDS moab cgm
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/lass.apple.dylib.git_patch_release.txt
     BUILD_IN_SOURCE 1
     ${suppress_build_out}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
