@@ -271,11 +271,7 @@ void cmbNucDraw2DLattice::rebuild()
       {
         double n = 1/(1.75*numLayers - 0.5);
         double t1 = this->width()*(n);
-        double t2 = 100000;//this->height()*n/0.86602540378443864676372317075294;
-        if(numLayers%2 == 0)
-        {
-          double w;
-        }
+        double t2 = this->height()*(n*1.8)/0.86602540378443864676372317075294;
         hexDiameter = std::min(t1, t2);
       }
     }
