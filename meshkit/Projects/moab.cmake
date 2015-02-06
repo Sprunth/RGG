@@ -21,7 +21,6 @@ get_filename_component(hdf5_path "${hdf5_path}../" PATH)
 #ubuntu that isn't true, so moab breaks.
 
 #with cgm turned on moab doesn't properly link to cgm, so we need to add a patch step
-if(BUILD_MESHKIT_MASTER)
 add_external_project(moab
   DEPENDS hdf5 cgm netcdf
   CMAKE_ARGS
@@ -35,23 +34,10 @@ add_external_project(moab
     -DCGM_CFG:path=<INSTALL_DIR>/lib/cgm.make
     ${suppress_build_out}
 )
-else(BUILD_MESHKIT_MASTER)
-add_external_project(moab
-   DEPENDS hdf5 cgm netcdf
-  USE_AUTOCONF
-  BUILD_IN_SOURCE 1
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --prefix=<INSTALL_DIR>
-    --with-hdf5=${hdf5_path}
-    --with-zlib=${zlib_path}
-    --with-szip=${szip_path}
-    --with-netcdf=${netcdf_path}
-    --with-cgm=<INSTALL_DIR>
-    --without-damsel
-    --without-ccmio
-    --enable-dagmc
-    --enable-shared
-    --enable-dagmc
-    "CFLAGS=${cflags}" "CXXFLAGS=${cxxflags}"
-)
-endif(BUILD_MESHKIT_MASTER)
+
+CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/Projects/patches/libiMesh.la.in"
+"${CMAKE_BINARY_DIR}/libiMesh.la" @ONLY)
+file(COPY ${CMAKE_BINARY_DIR}/libiMesh.la
+DESTINATION ${install_location}/lib/
+FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
+GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

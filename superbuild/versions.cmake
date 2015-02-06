@@ -85,7 +85,7 @@ add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
-  GIT_TAG 758c71bae1b4b244e72279d032c7b57081bf30e8 )
+  GIT_TAG f25c14491ac9e0e09f6b136bfc52215ab41d506e )
 
 if (UNIX)
   add_revision(mpi
@@ -183,7 +183,7 @@ add_revision(OCE
 
 add_revision(cgm
   GIT_REPOSITORY "https://bitbucket.org/fathomteam/cgm.git"
-  GIT_TAG 13.1.1
+  GIT_TAG 14.1
   )
 
 if(BUILD_MESHKIT_MASTER)
@@ -194,7 +194,7 @@ if(BUILD_MESHKIT_MASTER)
 else(BUILD_MESHKIT_MASTER)
   add_revision(lasso
     GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-    GIT_TAG Version3.1
+    GIT_TAG Version3.2
   )
 endif(BUILD_MESHKIT_MASTER)
 
@@ -208,7 +208,7 @@ else()
   else(BUILD_MESHKIT_MASTER)
     add_revision(meshkit
                  GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-                 GIT_TAG MeshKitv1.2)
+                 GIT_TAG MeshKitv1.3)
   endif(BUILD_MESHKIT_MASTER)
 endif()
 
@@ -241,13 +241,7 @@ if(BUILD_MESHKIT_MASTER)
                  GIT_TAG fix_windows )
   endif(WIN32)
 else()
-  if(WIN32)
-    add_revision(moab
-                 GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
-                 GIT_TAG 4.6.3_cmake)
-  else(WIN32)
-    add_revision(moab
-                 GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-                 GIT_TAG Version4.7.0)
-  endif(WIN32)
+  add_revision( moab
+                GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
+                GIT_TAG 4.8.0 )
 endif()

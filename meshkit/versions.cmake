@@ -45,7 +45,7 @@ add_revision(hdf5
 
 add_revision(cgm
   GIT_REPOSITORY "https://bitbucket.org/fathomteam/cgm.git"
-  GIT_TAG 13.1.1
+  GIT_TAG 14.1
   )
 
 if(BUILD_MESHKIT_MASTER)
@@ -66,16 +66,16 @@ if(BUILD_MESHKIT_MASTER)
 else()
   add_revision(moab
     GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-    GIT_TAG Version4.7.0
+    GIT_TAG 4.8.0
   )
 
   add_revision(lasso
     GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-    GIT_TAG Version3.1
+    GIT_TAG Version3.2
   )
 
   add_revision(meshkit
     GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-    GIT_TAG MeshKitv1.2
+    GIT_TAG MeshKitv1.3
   )
 endif()

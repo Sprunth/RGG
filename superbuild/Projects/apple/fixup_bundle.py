@@ -223,9 +223,9 @@ def _isframework(path):
 def _find(ref):
   name = os.path.basename(ref)
   for loc in SearchLocations:
-    output = commands.getoutput('find "%s" -name "%s"' % (loc, name)).strip()
-    if output:
-      return output
+    for root, dirs, files in os.walk(loc):
+      if ref in files:
+        return os.path.join(root, name)
   return ref
 
 def _makeSymlink(ref):
