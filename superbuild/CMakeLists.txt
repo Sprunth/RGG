@@ -216,31 +216,21 @@ include(zeroMQ)
 include(remus)
 include(vtk)
 
-if(ENABLE_meshkit)
-  include(OCE)
-  include(cgm)
-  include(lasso)
-endif()
-
 include(meshkit)
 
 if (BUILD_WITH_CUBIT)
   find_package(CUBIT REQUIRED)
-  set(USE_SYSTEM_OCE TRUE)
 endif ()
 
 if(APPLE AND BUILD_WITH_CUBIT)
   include(meshkit32bit)
   set(ENABLE_meshkit32bit ON)
   mark_as_advanced(ENABLE_meshkit32bit)
-  #mark_as_advanced(ENABLE_meshkit32bit ON)
 elseif(UNIX AND BUILD_WITH_CUBIT)
   set (ld_library_path "${install_location}/lib:${CUBIT_PATH}:$ENV{LD_LIBRARY_PATH}")
 endif()
 
-
 include(netcdf)
-include(ftgl)
 include(freetype)
 include(netcdfcpp)
 include(szip)

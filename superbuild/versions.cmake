@@ -68,55 +68,12 @@ add_revision(QtTesting
   GIT_REPOSITORY "http://paraview.org/QtTesting.git"
   GIT_TAG master)
 
-#Meshkit
-add_revision(OCE
-  GIT_REPOSITORY "https://github.com/mathstuf/oce.git"
-  GIT_TAG "next"
-  )
-
-add_revision(cgm
-  GIT_REPOSITORY "https://bitbucket.org/mathstuf/cgm.git"
-  GIT_TAG windows-with-cmake-support
-  )
-
-if(BUILD_MESHKIT_MASTER)
-  add_revision(lasso
-    GIT_REPOSITORY https://bitbucket.org/mathstuf/lasso.git
-    GIT_TAG cmake
-  )
-else(BUILD_MESHKIT_MASTER)
-  add_revision(lasso
-    GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-    GIT_TAG Version3.2
-  )
-endif(BUILD_MESHKIT_MASTER)
-
-if(BUILD_WITH_CUBIT)
- add_revision(meshkit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
-else()
-  if(BUILD_MESHKIT_MASTER)
-    add_revision(meshkit
-                 GIT_REPOSITORY https://bitbucket.org/mathstuf/meshkit.git
-                 GIT_TAG cmake)
-  else(BUILD_MESHKIT_MASTER)
-    add_revision(meshkit
-                 #GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-                  GIT_REPOSITORY https://bitbucket.org/judajake/meshkit.git
-                 #GIT_TAG MeshKitv1.3
-                  GIT_TAG v3 )
-  endif(BUILD_MESHKIT_MASTER)
-endif()
-
+add_revision(meshkit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
 add_revision(meshkit32bit SOURCE_DIR ${superbuild_top_dir}/../meshkit/ )
 
 #------------------------------------------------------------------------------
 # moab versions
 #------------------------------------------------------------------------------
-add_revision(ftgl
-  GIT_REPOSITORY "https://github.com/ulrichard/ftgl.git"
-  GIT_TAG cf4d9957930e41c3b82a57b20207242c7ef69f18
-  )
-
 add_revision(netcdf
   URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/old/netcdf-4.3.0.tar.gz"
   URL_MD5 40c0e53433fc5dc59296ee257ff4a813)
@@ -125,18 +82,7 @@ add_revision(netcdfcpp
   URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx-4.2.tar.gz"
   URL_MD5 d32b20c00f144ae6565d9e98d9f6204c)
 
-if(BUILD_MESHKIT_MASTER)
-  add_revision(moab
-               GIT_REPOSITORY https://bitbucket.org/mathstuf/moab.git
-               GIT_TAG windows-with-cmake-support)
-else()
-  if(WIN32)
-    add_revision( moab
-                  GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-                  GIT_TAG 4.8.0 )
-  else()
-    add_revision( moab
-                  GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
-                  GIT_TAG add_verdict_support )
-  endif()
-endif()
+# FIXME: verdict support?
+add_revision(moab
+             GIT_REPOSITORY https://bitbucket.org/mathstuf/moab.git
+             GIT_TAG windows-with-cmake-support)
