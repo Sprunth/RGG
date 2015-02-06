@@ -5,15 +5,12 @@ if (build-projects)
   set (cppflags "-I${install_location}/include ${cppflags}")
 endif()
 
-option(SUPPRESS_NETCDF_BUILD_OUTPUT
-"Suppress netcdf build output"
-ON)
+option(SUPPRESS_NETCDF_BUILD_OUTPUT "Suppress netcdf build output" ON)
 mark_as_advanced(SUPPRESS_NETCDF_BUILD_OUTPUT)
 
 set(suppress_build_out)
-
 if(SUPPRESS_NETCDF_BUILD_OUTPUT)
-set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+  set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
 add_external_project(netcdf
@@ -37,15 +34,19 @@ add_external_project(netcdf
 )
 
 add_external_project_step(patch1
-      COMMENT "Fixing missing include files."
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/Projects/patches/netcdf.load.c <SOURCE_DIR>/ncgen3/load.c
-      DEPENDEES update
-      DEPENDERS patch)
+  COMMENT   "Fixing missing include files."
+  COMMAND   ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/Projects/patches/netcdf.load.c
+            <SOURCE_DIR>/ncgen3/load.c
+  DEPENDEES update
+  DEPENDERS patch)
 
-if( ${CMAKE_OSX_DEPLOYMENT_TARGET} MATCHES "10.6" ) 
-add_external_project_step(patch2
-      COMMENT "Fixing missing include files."
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/Projects/patches/netcdf.daputil.c <SOURCE_DIR>/libdap2/daputil.c
-      DEPENDEES update
-      DEPENDERS patch1)
+if( CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "10.6" )
+  add_external_project_step(patch2
+    COMMENT   "Fixing missing include files."
+    COMMAND   ${CMAKE_COMMAND} -E copy_if_different
+              ${CMAKE_SOURCE_DIR}/Projects/patches/netcdf.daputil.c
+              <SOURCE_DIR>/libdap2/daputil.c
+    DEPENDEES update
+    DEPENDERS patch1)
 endif()

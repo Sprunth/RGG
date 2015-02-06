@@ -202,7 +202,7 @@ include(szip)
 include(moab)
 
 if (UNIX AND NOT APPLE)
-    include(fontconfig)
+  include(fontconfig)
 endif()
 
 include(QtTesting)

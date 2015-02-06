@@ -1,10 +1,7 @@
-option(SUPPRESS_SZIP_BUILD_OUTPUT
-       "Suppress SZIP build output"
-      ON)
+option(SUPPRESS_SZIP_BUILD_OUTPUT "Suppress SZIP build output" ON)
 mark_as_advanced(SUPPRESS_SZIP_BUILD_OUTPUT)
 
 set(suppress_build_out)
-
 if(SUPPRESS_SZIP_BUILD_OUTPUT)
   set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()

@@ -1,4 +1,3 @@
-
 #reset back the cppflag to the pre netcdf values.
 #this works since the only project that depends on netcdf is moab
 if (build-projects)
@@ -10,9 +9,8 @@ mark_as_advanced(SUPPRESS_MOAB_BUILD_OUTPUT)
 
 set(suppress_build_out)
 if(SUPPRESS_MOAB_BUILD_OUTPUT)
-set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+  set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
-
 
 add_external_project(moab
   DEPENDS hdf5 netcdfcpp

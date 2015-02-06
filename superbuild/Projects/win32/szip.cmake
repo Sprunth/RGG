@@ -3,10 +3,11 @@ add_external_project(szip
     -DBUILD_SHARED_LIBS:BOOL=OFF
     -DBUILD_TESTING:BOOL=OFF
   PATCH_COMMAND
-		# BUG: szip does not install ricehdf.h
-		# replace the file with an appropriate version.
-	  ${CMAKE_COMMAND} -E copy_if_different ${SuperBuild_PROJECTS_DIR}/patches/szip.src.CMakeLists.txt
-		                                      <SOURCE_DIR>/src/CMakeLists.txt
+          # BUG: szip does not install ricehdf.h
+          # replace the file with an appropriate version.
+          ${CMAKE_COMMAND} -E copy_if_different
+          ${SuperBuild_PROJECTS_DIR}/patches/szip.src.CMakeLists.txt
+          <SOURCE_DIR>/src/CMakeLists.txt
 )
 
 set(szip_debug_suffix)

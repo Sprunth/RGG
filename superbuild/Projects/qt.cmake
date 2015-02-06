@@ -66,9 +66,9 @@ if ((NOT 64bit_build) AND UNIX AND (NOT APPLE))
   # 8 (instead of 4) with GCC4.1 toolchain on old debians. This patch overcomes
   # that.
   add_external_project_step(qt-patch-configure
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                              ${SuperBuild_PROJECTS_DIR}/patches/qt.configure
-			      <SOURCE_DIR>/configure
+    COMMAND   ${CMAKE_COMMAND} -E copy_if_different
+              ${SuperBuild_PROJECTS_DIR}/patches/qt.configure
+              <SOURCE_DIR>/configure
     DEPENDEES patch
     DEPENDERS configure)
 endif()
@@ -76,9 +76,9 @@ endif()
 if (APPLE)
   # corewlan .pro file needs to be patched to find
   add_external_project_step(qt-patch-corewlan
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                              ${SuperBuild_PROJECTS_DIR}/patches/qt.src.plugins.berarer.corewlan.corewlan.pro
-           <SOURCE_DIR>/src/plugins/bearer/corewlan/corewlan.pro
+    COMMAND   ${CMAKE_COMMAND} -E copy_if_different
+              ${SuperBuild_PROJECTS_DIR}/patches/qt.src.plugins.berarer.corewlan.corewlan.pro
+              <SOURCE_DIR>/src/plugins/bearer/corewlan/corewlan.pro
     DEPENDEES patch
     DEPENDERS configure)
 endif()

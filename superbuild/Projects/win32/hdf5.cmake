@@ -14,7 +14,7 @@ add_external_project(
     -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=TRUE
     -DHDF5_ENABLE_SZIP_ENCODING:BOOL=TRUE
     -DHDF5_BUILD_HL_LIB:BOOL=TRUE
-	-DZLIB_LIBRARY:FILEPATH=${install_location}/lib/zlib.lib
+    -DZLIB_LIBRARY:FILEPATH=${install_location}/lib/zlib.lib
 )
 
 if (MSVC)

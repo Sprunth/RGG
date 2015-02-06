@@ -326,7 +326,7 @@ function(add_external_project_internal name)
   set(arg_DEPENDS)
   get_project_depends(${name} arg)
   foreach(dependency IN LISTS arg_DEPENDS)
-		get_property(dependency_args GLOBAL PROPERTY ${dependency}_CMAKE_ARGS)
+    get_property(dependency_args GLOBAL PROPERTY ${dependency}_CMAKE_ARGS)
     list(APPEND cmake_params ${dependency_args})
   endforeach()
 

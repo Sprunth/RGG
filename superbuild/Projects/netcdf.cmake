@@ -1,12 +1,9 @@
-option(SUPPRESS_NETCDF_BUILD_OUTPUT
-"Suppress netcdf build output"
-ON)
+option(SUPPRESS_NETCDF_BUILD_OUTPUT "Suppress netcdf build output" ON)
 mark_as_advanced(SUPPRESS_NETCDF_BUILD_OUTPUT)
 
 set(suppress_build_out)
-
 if(SUPPRESS_NETCDF_BUILD_OUTPUT)
-set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+  set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
 #this will only modify the cppflags for netcdf as the next project in the tree
