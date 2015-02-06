@@ -7,10 +7,10 @@ if (APPLE)
   endif()
 endif()
 
-project(CMBSuperBuild)
+project(RGGSuperBuild)
 set (SuperBuild_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 set (SuperBuild_PROJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Projects")
-set (SuperBuild_BINARY_DIR ${CMBSuperBuild_BINARY_DIR})
+set (SuperBuild_BINARY_DIR ${RGGSuperBuild_BINARY_DIR})
 
 set (platform)
 if (APPLE)
@@ -90,7 +90,7 @@ else ()
   set (package_suffix "${package_suffix}-32bit")
 endif()
 
-include(paraview_version)
+include(rgg_version)
 
 option(TRUST_SVN_CERTIFICATES_AUTOMATICALLY
   "Trust SVN certificates automatically" ON)
@@ -192,7 +192,7 @@ include(CTest)
 set (CM_PROJECTS_ALL)
 
 #must before any including of projects
-SetupCMBSuperBuild()
+SetupRGGSuperBuild()
 
 # Include all optional projects. These are the ones user can pick and choose.
 # Some of these allow using system libraries too.

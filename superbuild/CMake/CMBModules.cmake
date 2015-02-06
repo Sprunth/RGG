@@ -3,7 +3,7 @@ include (ParaViewModules)
 
 #------------------------------------------------------------------------------
 #Macro to hide all non optional CMB modules
-macro (SetupCMBSuperBuild)
+macro (SetupRGGSuperBuild)
 
   #force the variables to be advanced so user don't play with them
   #we want to show the user python as a option
