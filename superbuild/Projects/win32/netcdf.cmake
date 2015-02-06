@@ -6,10 +6,8 @@ if(SUPPRESS_NETCDF_BUILD_OUTPUT)
   set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
-#this will only modify the cppflags for netcdf as the next project in the tree
-#moab will unset the cppflags back to the original values
 if (build-projects)
-  set (pre_netcdf_cpp_flags ${cppflags})
+  set (cppflags_save "${cppflags}")
   set (cppflags "-I${install_location}/include ${cppflags}")
 endif()
 
@@ -33,3 +31,8 @@ add_external_project(netcdf
     -DENABLE_DAP:BOOL=OFF
   ${suppress_build_out}
 )
+
+if (build-projects)
+  # Restore the flags.
+  set(cppflags "${cppflags_save}")
+endif ()

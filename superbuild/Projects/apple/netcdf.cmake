@@ -1,7 +1,5 @@
-#this will only modify the cppflags for netcdf as the next project in the tree
-#moab will unset the cppflags back to the original values
 if (build-projects)
-  set (pre_netcdf_cpp_flags ${cppflags})
+  set (cppflags_save "${cppflags}")
   set (cppflags "-I${install_location}/include ${cppflags}")
 endif()
 
@@ -50,3 +48,8 @@ if( CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "10.6" )
     DEPENDEES update
     DEPENDERS patch1)
 endif()
+
+if (build-projects)
+  # Restore the flags.
+  set(cppflags "${cppflags_save}")
+endif ()

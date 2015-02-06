@@ -1,9 +1,3 @@
-#reset back the cppflag to the pre netcdf values.
-#this works since the only project that depends on netcdf is moab
-if (build-projects)
-  set (cppflags "${pre_netcdf_cpp_flags}")
-endif()
-
 option(SUPPRESS_MOAB_BUILD_OUTPUT "Suppress MOAB build output" ON)
 mark_as_advanced(SUPPRESS_MOAB_BUILD_OUTPUT)
 
