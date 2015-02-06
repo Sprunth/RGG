@@ -175,7 +175,7 @@ add_revision(OCE
 
 add_revision(cgm
   GIT_REPOSITORY "https://bitbucket.org/mathstuf/cgm.git"
-  GIT_TAG next
+  GIT_TAG windows-with-cmake-support
   )
 
 if(BUILD_MESHKIT_MASTER)
@@ -227,7 +227,7 @@ add_revision(netcdfcpp
 if(BUILD_MESHKIT_MASTER)
   add_revision(moab
                GIT_REPOSITORY https://bitbucket.org/mathstuf/moab.git
-               GIT_TAG next)
+               GIT_TAG windows-with-cmake-support)
 else()
   if(WIN32)
     add_revision( moab
