@@ -31,7 +31,7 @@ add_external_project(moab
     -DMOAB_USE_NETCDF:BOOL=ON
     -DMOAB_USE_HDF:BOOL=ON
     -DNetCDF_DIR:path=<INSTALL_DIR>
-    "-DCUBIT_DIR:PATH=${CUBIT_DIR}"
+    "-DCUBITROOT:PATH=${CUBITROOT}"
     ${suppress_build_out}
 )
 

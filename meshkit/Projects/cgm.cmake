@@ -1,7 +1,7 @@
 set(cgm_cmake_args)
 if (BUILD_WITH_CUBIT)
   list(APPEND cgm_cmake_args
-    "-DCUBIT_DIR:PATH=${CUBIT_DIR}")
+    "-DCUBITROOT:PATH=${CUBITROOT}")
 endif ()
 
 add_external_project(cgm

@@ -178,7 +178,7 @@ if(CMBNuc_BUILD_MESHKIT)
                               CMAKE_ARGS ${APPLE_OPTIONS}
                                          -DCMAKE_BUILD_TYPE:STRING=Release
                                          -DBUILD_WITH_CUBIT:BOOL=${BUILD_WITH_CUBIT}
-                                         -DCUBIT_DIR:PATH=${CUBIT_DIR}
+                                         -DCUBITROOT:PATH=${CUBITROOT}
                                          -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
 
 

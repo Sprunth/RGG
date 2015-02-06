@@ -2,14 +2,14 @@ if (CUBIT_FOUND)
   return ()
 endif ()
 
-set(CUBIT_DIR "" CACHE PATH "Where CUBIT is stored")
+set(CUBITROOT "" CACHE PATH "Where CUBIT is stored")
 
 find_library(CUBIT_LIBRARY
   NAMES cubiti19
-  PATHS "${CUBIT_DIR}/bin"
-        "${CUBIT_DIR}/lib"
-        "${CUBIT_DIR}/libs"
-        "${CUBIT_DIR}"
+  PATHS "${CUBITROOT}/bin"
+        "${CUBITROOT}/lib"
+        "${CUBITROOT}/libs"
+        "${CUBITROOT}"
   DOC   "The path to the cubit library")
 
 get_filename_component(CUBIT_PATH "${CUBIT_LIBRARY}" DIRECTORY)
@@ -17,19 +17,19 @@ get_filename_component(CUBIT_PATH "${CUBIT_LIBRARY}" DIRECTORY)
 find_library(CUBIT_UTIL_LIBRARY
   NAMES cubit_util
   HINTS "${CUBIT_PATH}"
-  PATHS "${CUBIT_DIR}/bin"
-        "${CUBIT_DIR}/lib"
-        "${CUBIT_DIR}/libs"
-        "${CUBIT_DIR}"
+  PATHS "${CUBITROOT}/bin"
+        "${CUBITROOT}/lib"
+        "${CUBITROOT}/libs"
+        "${CUBITROOT}"
   DOC   "The path to the cubit utility library")
 
 find_library(CUBIT_GEOM_LIBRARY
   NAMES cubit_geom
   HINTS "${CUBIT_PATH}"
-  PATHS "${CUBIT_DIR}/bin"
-        "${CUBIT_DIR}/lib"
-        "${CUBIT_DIR}/libs"
-        "${CUBIT_DIR}"
+  PATHS "${CUBITROOT}/bin"
+        "${CUBITROOT}/lib"
+        "${CUBITROOT}/libs"
+        "${CUBITROOT}"
   DOC   "The path to the cubit geometry library")
 
 if (CUBIT_LIBRARY)
