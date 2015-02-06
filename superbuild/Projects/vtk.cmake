@@ -6,10 +6,6 @@ if(SUPPRESS_VTK_BUILD_OUTPUT)
   set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
-#if(${USE_SYSTEM_qt})
-#set(TMP_QMAKE -DQT_QMAKE_EXECUTABLE:PATH="${QT_QMAKE_EXECUTABLE}")
-#endif()
-
 add_external_project(vtk
   DEPENDS qt
   CMAKE_ARGS
@@ -20,6 +16,5 @@ add_external_project(vtk
     -DModule_vtkViewsQt:bool=ON
     -DVTK_RENDERING_BACKEND:STRING=OpenGL2
     -DVTK_REQUIRED_OBJCXX_FLAGS:STRING=""
-    ${TMP_QMAKE}
   ${suppress_build_out}
 )
