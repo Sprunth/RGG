@@ -26,21 +26,12 @@ endif()
 option(BUILD_DOCUMENTATION "Build the RGG Documentation" OFF)
 option(BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF)
 
-#-----------------------------------------------------------------------------
-# Cross compilation
-set (CROSS_BUILD_STAGE "HOST" CACHE STRING
-  "Cross compilation stage: either HOST(ie no crosscompile)|TOOLS|CROSS")
-set_property(CACHE CROSS_BUILD_STAGE PROPERTY STRINGS
-   "HOST" "TOOLS" "CROSS")
-
 option(BUILD_SHARED_LIBS "Whether to build shared libs by default" OFF)
 
 #-----------------------------------------------------------------------------
 # Setup CMAKE_MODULE_PATH so that platform specific configurations are processed
 # before the generic ones.
-string(TOLOWER "${CROSS_BUILD_STAGE}" lstage)
 set (CMAKE_MODULE_PATH
-  "${SuperBuild_PROJECTS_DIR}/${platform}/${lstage}"
   "${SuperBuild_PROJECTS_DIR}/${platform}"
   "${SuperBuild_PROJECTS_DIR}/common"
   "${SuperBuild_PROJECTS_DIR}"
@@ -48,37 +39,17 @@ set (CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}"
   ${CMAKE_MODULE_PATH})
 
-#-----------------------------------------------------------------------------
-if (NOT CROSS_BUILD_STAGE STREQUAL "HOST")
-  include(CrossCompilationMacros)
-
-  #ask user to say what machine they are compiling onto
-  #so we can get the right environment settings
-  query_target_machine()
-
-  if (CROSS_BUILD_STAGE STREQUAL "CROSS")
-    #configure the platform dependent settings
-    #64bit_build, static_only, mpi search path
-    do_cross_platform_settings()
-
-    #find location of hosttools or host build to get compilation tools from
-    find_hosttools()
-  endif()
-endif()
-
 include(CMakeDependentOption)
 
 #-----------------------------------------------------------------------------
 # Collect information about the build platform.
 include(CheckTypeSize)
 
-if (NOT CROSS_BUILD_STAGE STREQUAL "CROSS")
-  check_type_size(void* VOID_PTR_SIZE BUILTIN_TYPES_ONLY)
-  if (VOID_PTR_SIZE EQUAL 8)
-    set (64bit_build TRUE)
-  else ()
-    set (64bit_build FALSE)
-  endif()
+check_type_size(void* VOID_PTR_SIZE BUILTIN_TYPES_ONLY)
+if (VOID_PTR_SIZE EQUAL 8)
+  set (64bit_build TRUE)
+else ()
+  set (64bit_build FALSE)
 endif()
 
 # Set suffix to be used for generating archives. This ensures that the package
@@ -111,11 +82,9 @@ if (WIN32)
 else ()
   # FIXME: currently, if any of these are empty, we have build issues on Unix.
   set (ldflags "$ENV{LDFLAGS} -L${install_location}/lib")
-  if (NOT CROSS_BUILD_STAGE STREQUAL "CROSS")
-    set (cppflags "$ENV{CPPFLAGS} -fPIC")
-    set (cxxflags "$ENV{CXXFLAGS} -fPIC")
-    set (cflags "$ENV{CFLAGS} -fPIC")
-  endif()
+  set (cppflags "$ENV{CPPFLAGS} -fPIC")
+  set (cxxflags "$ENV{CXXFLAGS} -fPIC")
+  set (cflags "$ENV{CFLAGS} -fPIC")
   set (ld_library_path "${install_location}/lib:$ENV{LD_LIBRARY_PATH}")
 endif()
 
@@ -196,18 +165,12 @@ SetupRGGSuperBuild()
 
 # Include all optional projects. These are the ones user can pick and choose.
 # Some of these allow using system libraries too.
-if (CROSS_BUILD_STAGE STREQUAL "CROSS")
-  include(boost)
-elseif(CROSS_BUILD_STAGE STREQUAL "TOOLS")
-  include(boost)
-else()
-  include(boost)
-  include(hdf5)
-  include(freetype)
-  include(libxml2)
-  include(png)
-  include(qt)
-endif()
+include(boost)
+include(hdf5)
+include(freetype)
+include(libxml2)
+include(png)
+include(qt)
 
 #RGG dependencies
 
