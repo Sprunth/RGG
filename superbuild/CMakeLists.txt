@@ -19,6 +19,8 @@ elseif (UNIX)
   set (platform "unix")
 elseif (WIN32)
   set (platform "win32")
+else ()
+  message (FATAL_ERROR "Platform unsupported.")
 endif()
 
 #-----------------------------------------------------------------------------
