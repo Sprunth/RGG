@@ -39,32 +39,24 @@ add_external_project(meshkit
 
 else()
 
+find_package(Autotools REQUIRED)
 add_external_project(meshkit
-  DEPENDS moab cgm lasso
-  BUILD_IN_SOURCE 1
-  PATCH_COMMAND ${GIT_EXECUTABLE} apply ${SuperBuild_PROJECTS_DIR}/patches/meshkit.fix_moab_linking_linux.txt
-  BUILD_COMMAND "make -j5 install"
-  ${suppress_build_out}
-  CONFIGURE_COMMAND  <SOURCE_DIR>/configure
-  --prefix=<INSTALL_DIR>
-  --with-itaps=<INSTALL_DIR>
-  --enable-algs
-  --enable-optimize
-  --enable-src
-  --enable-utils
-  --enable-rgg
-  --enable-shared
-  INSTALL_COMMAND ""
-)
-
-if(ENABLE_meshkit)
-  find_package(Autotools REQUIRED)
-  add_external_project_step(meshkit-autoconf
-    COMMAND     ${AUTORECONF_EXECUTABLE} -i <SOURCE_DIR>
-    DEPENDEES update
-    DEPENDERS configure
-  )
-endif()
+    BUILD_COMMAND "make -j5 install"
+    INSTALL_COMMAND ""
+    ${suppress_build_out}
+    CMAKE_ARGS
+      -DBUILD_MESHKIT_MASTER:BOOL=${BUILD_MESHKIT_MASTER}
+      -DAUTOHEADER_EXECUTABLE:path=${AUTOHEADER_EXECUTABLE}
+      -DAUTOM4TE_EXECUTABLE:path=${AUTOM4TE_EXECUTABLE}
+      -DAUTORECONF_EXECUTABLE:path=${AUTORECONF_EXECUTABLE}
+      -DAUTOUPDATE_EXECUTABLE:path=${AUTOUPDATE_EXECUTABLE}
+      -DBUILD_WITH_CUBIT:BOOL=OFF
+      -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>/meshkitCubit
+      -DCMAKE_PREFIX_PATH:path=<INSTALL_DIR>/meshkitCubit
+      -DAUTOHEADER_EXECUTABLE:path=${AUTOHEADER_EXECUTABLE}
+      -DAUTOM4TE_EXECUTABLE:path=${AUTOM4TE_EXECUTABLE}
+      -DAUTORECONF_EXECUTABLE:path=${AUTORECONF_EXECUTABLE}
+      -DAUTOUPDATE_EXECUTABLE:path=${AUTOUPDATE_EXECUTABLE})
 
 endif()
 

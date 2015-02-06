@@ -16,11 +16,6 @@ if(BUILD_WITH_CUBIT)
       --prefix=<INSTALL_DIR>
       --enable-shared )
 else()
-  #we need a external build step since cgm expects occ to be in the system
-  #library search path.
-  #string(REPLACE " " "\\ " cgm_binary "${CMAKE_CURRENT_BINARY_DIR}/cgm/src/cgm")
-  #set(BUILD_STEP ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cgm_build_step.cmake)
-  #configure_file(${patch_location}/cgm_build_step.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cgm_build_step.cmake @ONLY)
 
   #cgm has to be built in source to work
   add_external_project(cgm
