@@ -31,18 +31,6 @@ add_revision(hdf5
   URL "http://paraview.org/files/dependencies/hdf5-1.8.9.tar.gz"
   URL_MD5 d1266bb7416ef089400a15cc7c963218)
 
-add_revision(silo
-  URL "http://paraview.org/files/dependencies/silo-4.8-bsd.tar.gz"
-  URL_MD5 d864e383f25b5b047b98aa2d5562d379)
-
-add_revision(cgns
-  URL "http://www.paraview.org/files/dependencies/cgnslib_3.1.3-4.tar.gz"
-  URL_MD5 442bba32b576f3429cbd086af43fd4ae)
-
-add_revision(ffmpeg
-  URL "http://paraview.org/files/dependencies/ffmpeg-0.6.5.tar.gz"
-  URL_MD5 451054dae3b3d33a86c2c48bd12d56e7)
-
 add_revision(libxml2
   URL "http://paraview.org/files/dependencies/libxml2-2.7.8.tar.gz"
   URL_MD5 8127a65e8c3b08856093099b52599c86)
@@ -55,31 +43,9 @@ add_revision(qt
   URL "http://download.qt-project.org/official_releases/qt/4.8/4.8.6/qt-everywhere-opensource-src-4.8.6.tar.gz"
   URL_MD5 2edbe4d6c2eff33ef91732602f3518eb)
 
-if (WIN32 OR (CROSS_BUILD_STAGE STREQUAL "CROSS"))
-  add_revision(python
-    URL "http://www.paraview.org/files/dependencies/Python-2.7.3.tgz"
-    URL_MD5 "2cf641732ac23b18d139be077bd906cd")
-else()
-  add_revision(python
-    URL "http://paraview.org/files/dependencies/Python-2.7.2.tgz"
-    URL_MD5 "0ddfe265f1b3d0a8c2459f5bf66894c7")
-endif()
-
-add_revision(numpy
-  URL "http://paraview.org/files/dependencies/numpy-1.6.2.tar.gz"
-  URL_MD5 95ed6c9dcc94af1fc1642ea2a33c1bba)
-
-add_revision(matplotlib
-  URL "http://paraview.org/files/dependencies/matplotlib-1.1.1_notests.tar.gz"
-  URL_MD5 30ee59119599331bf1f3b6e838fee9a8)
-
 add_revision(boost
   URL "http://downloads.sourceforge.net/project/boost/boost/1.56.0/boost_1_56_0.tar.gz"
   URL_MD5 8c54705c424513fa2be0042696a3a162 )
-
-add_revision(manta
-  URL "http://paraview.org/files/dependencies/manta-r2439.tar.gz"
-  URL_MD5 fbf4107fe2f6d7e8a5ae3dda71805bdc)
 
 add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
@@ -87,61 +53,6 @@ add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
   GIT_TAG eb5f6f38fe05c8c5fc3b6d488efdb41bd0edf50f
 )
-
-if (UNIX)
-  add_revision(mpi
-    URL "http://paraview.org/files/dependencies/mpich2-1.4.1p1.tar.gz"
-    URL_MD5 b470666749bcb4a0449a072a18e2c204)
-elseif (WIN32)
-  add_revision(mpi
-    URL "http://www.paraview.org/files/dependencies/openmpi-1.4.4.tar.gz"
-    URL_MD5 7253c2a43445fbce2bf4f1dfbac113ad)
-endif()
-
-if (CROSS_BUILD_STAGE STREQUAL "CROSS")
-  add_revision(mesa
-    URL "http://www.paraview.org/files/dependencies/MesaLib-7.6.1.tar.gz"
-    URL_MD5 e80fabad2e3eb7990adae773d6aeacba)
-else()
-  add_revision(mesa
-    URL "http://paraview.org/files/dependencies/MesaLib-7.11.2.tar.gz"
-    URL_MD5 b9e84efee3931c0acbccd1bb5a860554)
-endif()
-
-# We stick with 7.11.2 for Mesa version for now. Newer mesa doesn't seem to
-# build correctly with certain older compilers (e.g. on neser).
-add_revision(osmesa
-    URL "http://paraview.org/files/dependencies/MesaLib-7.11.2.tar.gz"
-    URL_MD5 b9e84efee3931c0acbccd1bb5a860554)
-
-#------------------------------------------------------------------------------
-# Optional Plugins. Doesn't affect ParaView binaries at all even if missing
-# or disabled.
-#------------------------------------------------------------------------------
-
-add_revision(qhull
-    GIT_REPOSITORY http://github.com/gzagaris/gxzagas-qhull.git
-    GIT_TAG master)
-
-
-if (TRUST_SVN_CERTIFICATES_AUTOMATICALLY)
-  add_revision(diy
-     SVN_REPOSITORY https://svn.mcs.anl.gov/repos/diy/trunk
-     SVN_REVISION -r176
-     SVN_TRUST_CERT 1)
-else()
-  add_revision(diy
-     SVN_REPOSITORY https://svn.mcs.anl.gov/repos/diy/trunk
-     SVN_REVISION -r176)
-endif()
-
-add_revision(portfwd
-  URL "http://www.paraview.org/files/dependencies/portfwd-0.29.tar.gz"
-  URL_MD5 93161c91e12b0d67ca52dc13708a2f2f)
-
-add_revision(vxl
-  URL http://vtk.org/files/support/vxl_r35313.tar.gz
-  URL_MD5 2fd3ed6fe208e70be2637bd7342a0011a3e2574e)
 
 add_revision(zeroMQ
   GIT_REPOSITORY "https://github.com/robertmaynard/zeromq4-x.git"
@@ -152,16 +63,6 @@ add_revision(remus
   GIT_REPOSITORY https://github.com/Kitware/Remus.git
   GIT_TAG 8cd2d545b09b2282213c7afd581c74731ec775a5
 )
-
-add_revision(kml
-  URL http://vtk.org/files/support/libkml_fa6c7d8.tar.gz
-  URL_MD5 261b39166b18c2691212ce3495be4e9c
-  )
-
-add_revision(gdal
-  URL http://vtk.org/files/support/gdal_5b8309b.tar.gz
-  URL_MD5 8d77df722a01cc86b292300a007a3282
-  )
 
 add_revision(QtTesting
   GIT_REPOSITORY "http://paraview.org/QtTesting.git"

@@ -21,23 +21,6 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
 
   "/usr/include/x86_64-linux-gnu/bits/*"
 
-  # From numpy, skip configtest warnings.
-  "_configtest"
-  "python/src/python"
-  "-jN forced in submake: disabling jobserver mode"
-  "thirdparty/qt5json"
-  "kml/src/kml"
-  "molequeue/src/molequeue"
-  "/usr/bin/libtool"
-  "/usr/bin/ranlib: file: .*/libtiff.a"
-  "/usr/bin/ranlib: warning for library: .*/libvil3d_io.a"
-  "/usr/bin/ranlib: warning for library: .*/libvimt_algo.a"
-  "src.*smtk.*ThirdParty"
-  "ld: warning: duplicate dylib"
-  "paraview/src/paraview-build"
-  "cmb/Source/Omicron"
-  "/usr/bin/ranlib: file: ../../../../lib/libtl_alloc.a.* has no symbols"
-
   "szip/src/szip"
   "hdf5/src/hdf5"
   
@@ -53,43 +36,6 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
   "threading-multi/windows_file_codecvt.o"
   "threading-multi/thread_clock.o"
 
-  #Shiboken
-  "shiboken/src/shiboken"
-  "CMakeFiles/shiboken.dir"
-  "libapiextractor.a"
-
-  
-  #Paraview
-  "paraview-build/.*/.*/Documentation"
-  
-  #vxl
-  "vxl/src/vxl"
-  "install/include/vxl"
-  "/usr/bin/ranlib: file: .*libvcl.a"
-  "/usr/bin/ranlib: file: .*libvbl.a"
-  "/usr/bin/ranlib: file: .*libvsl.a"
-  "/usr/bin/ranlib: file: .*libvil1.a"
-  "/usr/bin/ranlib: file: .*libvil3d_io.a"
-  "/usr/bin/ranlib: file: .*libvimt_algo.a"
-  
-  #numpy
-  "numpy/core"
-  "numpy/lib"
-  "numpy/linalg"
-  "numpy/random"
-  "numpy/numarray"
-  "numpy/fft"
-  "numpy/random"
-  "libnpymath.a"
-  
-  #python 
-  "src/path.cpp"
-  "src/mplutils.cpp"
-  "src/_ttconv.cpp"
-  "src/cntr.c"
-  "src/backend_agg.cpp"
-  "src/_png.cpp"
-
   #windows
   "boost\\\\src\\\\boost"
   "zeroMQ\\\\src\\\\zeroMQ"
@@ -97,9 +43,6 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
   "szip\\\\src\\\\szip"
   "hdf5\\\\src\\\\hdf5"
   "png\\\\src\\\\png"
-  "kml\\\\src\\\\kml"
-  "python\\\\src\\\\python"
-  "matplotlib\\\\src\\\\matplotlib"
   "warning C4244: .* : conversion from 'Py_ssize_t' to .*, possible loss of data"
   "warning C4244: .* : conversion from 'INT_PTR' to 'int', possible loss of data"
   "src/ft2font.cpp.* : warning C4267:"
@@ -107,22 +50,12 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
   "..\\\\Python\\\\"
   "..\\\\Parser\\\\"
   "tss_dll.obj : warning LNK4221:"
-  "vxl\\\\src\\\\vxl"
-  "vbl_qsort.obj.*warning LNK4221"
-  "vcl_vector.*.obj.*warning LNK4221"
-  "vsl_vector_io.*.obj.*warning LNK4221"
-  "vbl_io_.*.obj.*warning LNK4221"
-  "vnl_io_.*obj.*warning LNK4221"
-  "vil_io_.*.obj.*warning LNK4221"
-  "vsl_pair_io.*.obj.*warning LNK4221"
   "Modules\\\\zlib\\\\gzio.c"
   "Modules\\posixmodule.c"
   "Modules\\\\_ctypes\\\\libffi_msvc\\\\ffi.c"
   "ttconv/.*.cpp"
-  "lib/matplotlib"
   "src/image.cpp"
   "include\\\\Qt.*"
-  "paraview\\\\src\\\\paraview\\\\ThirdParty"
   "non dll-interface class 'google"
   "include\\\\qtcore\\\\q.*.h"
   "src\\\\smtk\\\\ThirdParty"
@@ -133,10 +66,7 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
   "qmap.h.* : warning C4127:"
   "qstringbuilder.h.* : warning C4512:"
   "qmutex.h.* : warning C4512:"
-  "vil3d_dicom.obj : warning LNK4221:"
   "install\\\\include"
-  "shiboken\\\\src\\\\shiboken-build"
-  "smtk\\\\src\\\\smtk\\\\ThirdParty"
   "warning C4996: 'strcpy'"
   "warning C4996: 'scanf'"
   "warning C4996: 'fopen'"
@@ -146,15 +76,11 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
   "..\\\\PC\\\\_.*.c.* : warning C42"
   "..\\\\Objects\\\\obmalloc.c.* : warning C4244"
   "conversion from 'npy_intp' to 'int', possible loss of data"
-  "paraview\\\\.* : warning C4996:"
-  "paraview\\\\.* : warning C4512:"
-  "paraview\\\\.* : warning C4127"
   "Microsoft Visual Studio .*\\\\VC\\\\INCLUDE"
   "libs\\\\filesystem\\\\src\\\\.* : warning C4244:"
   "libs\\\\filesystem\\\\src\\\\.* : warning C4267:"
   "libs\\\\thread\\\\src\\\\win32\\\\.* : warning C4267:"
   "include\\\\qtcore"
-  "cmb\\\\src\\\\cmb\\\\Source\\\\Omicron"
   "warning LNK4098: defaultlib 'LIBCMT'"
   "_ttconv.obj : warning LNK4197:"
   "cntr.obj : warning LNK4197:"
@@ -164,11 +90,6 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
   "backend_agg.obj : warning LNK4197:"
   "_png.obj : warning LNK4197:"
   "_windowing.obj : warning LNK4197:"
-  "ParaViewCore\\\\ServerImplementation\\\\Core\\\\vtkPVMessage.pb.cc"
-  "ParaViewCore\\\\ServerImplementation\\\\Core\\\\vtkPVMessage.pb.h"
-  "paraview\\\\src\\\\paraview\\\\Plugins\\\\H5PartReader\\\\H5Part\\\\src\\\\H5Part.c"
-  "Applications\\\\ParaView\\\\paraview_main.cxx.* : warning C4996:"
-  "cmb-build\\\\source\\\\omicron"
 )
 
 # Regular expression for warning exception during build process
@@ -179,29 +100,9 @@ set (CTEST_CUSTOM_ERROR_EXCEPTION
   "configure.ac:*: installing"
   "Makefile.am:*: but option * is disabled"
 
-  # skip numpy configure errors on Windows.
-  # these are warnings about Atlas/Blas not found.
-  "system_info.py.*UserWarning:"
-  
   #clang warning showing up as error
   "in-class initializer for static data member of type 'const double' is a GNU extension"
 
-  # skip numpy deprecated warnings
-  "config.py.*DeprecationWarning:"
-
-  # again from numpy, skip configtest errors.
-  "_configtest"
-
   # from free-type
   "install/include/freetype2/freetype/internal"
-
-  # skip untar errors when unpacking silo.
-  "CMake Error.*archive_write_header"
-  "CMake Error.*silo-4.8-bsd/config-site"
-
-  # skip numpy config error
-
-  # skip BLAS and Lapack not found errors
-  "BlasNotFoundError"
-  "LapackSrcNotFoundError"
 )

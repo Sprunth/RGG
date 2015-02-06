@@ -157,12 +157,6 @@ if(UNIX AND NOT APPLE AND PASS_LD_LIBRARY_PATH_FOR_BUILDS)
   file(APPEND "${CMAKE_BINARY_DIR}/env.cmake" "set( ENV{LD_LIBRARY_PATH} \"${ld_library_path}\")\n")
 endif()
 
-#-----------------------------------------------------------------------------
-## Top-level options. These must be limited to a commonly used subset with
-## default values being used for building ParaView binaries.
-#option(PV_COMMAND_LINE_TOOLS_ONLY
-#  "Turn this ON to build command lines tools alone." OFF)
-
 if (WIN32)
   if ( (NOT "${CMAKE_GENERATOR}" MATCHES "^NMake.*$") OR
        (NOT "${CMAKE_GENERATOR}" MATCHES "^Visual Studio.*$"))
@@ -260,11 +254,6 @@ include(QtTesting)
 include(nuclearRGG)
 
 include(nuclearRGG.bundle OPTIONAL)
-
-# paraview.sdk is a module that is used install the ParaView SDK.
-# Simply enabling this module will result in the ParaView SDK to be
-# installed by "make install". Note that this is not always supported.
-include(paraviewsdk OPTIONAL)
 
 #call cmb process dependencies to get the ability to do a build
 #for developers.
