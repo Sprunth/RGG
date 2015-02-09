@@ -62,6 +62,7 @@
 #include "inpFileIO.h"
 #include "xmlFileIO.h"
 #include "cmbNucRender.h"
+#include "cmbNucInpExporter.h"
 
 #include "vtkCmbLayeredConeSource.h"
 #include "cmbNucLatticeWidget.h"
@@ -272,6 +273,8 @@ public:
   QString TestMeshCorrectImage;
   QString TestDirectory;
   QString TestOutputDirectory;
+
+  cmbNucInpExporter inpExporter;
 };
 
 int numAssemblyDefaultColors = 42;
@@ -328,6 +331,8 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->TestUtility = NULL;
 
+  Internal = new NucMainInternal();
+
   this->ui = new Ui_qNucMainWindow;
   this->setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
@@ -345,6 +350,7 @@ cmbNucMainWindow::cmbNucMainWindow()
     win->Delete();
   }
   this->NuclearCore = new cmbNucCore(false);
+  this->Internal->inpExporter.setCore(this->NuclearCore);
   setTitle();
 
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
@@ -360,7 +366,7 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   this->ExportDialog = new cmbNucExportDialog(this);
   this->Preferences = new cmbNucPreferencesDialog(this);
-  Internal = new NucMainInternal();
+
   this->Internal->IsCoreView = false;
   this->Internal->IsFullMesh = false;
   this->Internal->CamerasLinked = false;
@@ -1243,118 +1249,10 @@ void cmbNucMainWindow::onSaveAll()
   this->saveXML(this->NuclearCore, false, false);
 }
 
-bool cmbNucMainWindow::exportINP(cmbNucAssembly * assy)
-{
-  for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = assy->ExportFileNames.begin();
-      iter != assy->ExportFileNames.end(); ++iter)
-  {
-    Lattice::CellDrawMode mode = iter->first;
-    std::string const& fname = iter->second;
-    double deg = assy->getZAxisRotation();
-    if( assy->getLattice().getFullCellMode() == Lattice::HEX_FULL_30 )
-    {
-      deg += 30;
-    }
-    assy->removeOldTransforms(0);
-    if(deg != 0)
-    {
-      assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, deg));
-    }
-    switch(mode)
-    {
-      case Lattice::HEX_SIXTH_FLAT_BOTTOM:
-      case Lattice::HEX_SIXTH_VERT_BOTTOM:
-      case Lattice::HEX_TWELFTH_BOTTOM:
-        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, 1));
-        break;
-      case Lattice::HEX_SIXTH_FLAT_TOP:
-      case Lattice::HEX_SIXTH_VERT_TOP:
-        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
-        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::X, 0, 1));
-        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
-        break;
-      case Lattice::HEX_TWELFTH_TOP:
-        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
-        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, -1));
-        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
-        break;
-      case Lattice::HEX_SIXTH_FLAT_CENTER:
-      case Lattice::HEX_SIXTH_VERT_CENTER:
-        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, 1));
-        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
-        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::X, 0, 1));
-        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
-        break;
-      case Lattice::HEX_TWELFTH_CENTER:
-        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, 1));
-        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
-        assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, -1));
-        assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
-        break;
-    }
-    QFileInfo assyFile(fname.c_str());
-
-    if(!assyFile.exists() || assy->changeSinceLastGenerate())
-    {
-      inpFileWriter::write(fname, *assy, false);
-    }
-  }
-  assy->removeOldTransforms(0);
-  return true;
-}
-
 bool cmbNucMainWindow::exportINPs()
 {
-  QString coreName = this->NuclearCore->ExportFileName.c_str();
-  if(coreName.isEmpty())
-  {
-    coreName = cmbNucMainWindow::requestInpFileName("","Core");
-  }
-  if(coreName.isEmpty()) return false;
-
-  QFileInfo coreinfo(coreName);
-
-  std::map< std::string, std::set< Lattice::CellDrawMode > > cells = this->NuclearCore->getDrawModesForAssemblies();
-
-  for(std::map< std::string, std::set< Lattice::CellDrawMode > >::const_iterator iter = cells.begin();
-      iter != cells.end(); ++iter)
-  {
-    cmbNucAssembly* assembly = NuclearCore->GetAssembly(iter->first);
-    std::set< Lattice::CellDrawMode > const& forms = iter->second;
-    if(assembly == NULL) continue;
-    assembly->ExportFileNames.clear();
-    QString fileName = assembly->ExportFileName.c_str();
-    if(fileName.isEmpty())
-    {
-      fileName = coreinfo.dir().path() + QString("/assembly_") +
-                                         QString(assembly->getLabel().c_str()).toLower() +
-                                         ".inp";
-    }
-    QFileInfo assyFileInfo(fileName);
-    assembly->ExportFileName = fileName.toStdString();
-    for(std::set< Lattice::CellDrawMode >::const_iterator fiter = forms.begin(); fiter != forms.end(); ++fiter)
-    {
-      Lattice::CellDrawMode mode = *fiter;
-      if(mode == Lattice::RECT || mode == Lattice::HEX_FULL || mode == Lattice::HEX_FULL_30 || forms.size() == 1)
-      {
-        assembly->ExportFileNames[mode] = fileName.toStdString();
-      }
-      else
-      {
-        assembly->ExportFileNames[mode] = (coreinfo.dir().path() +
-                                            QString("/assembly_") +
-                                             QString(Lattice::generate_string(assembly->getLabel(),
-                                                                              mode).c_str()).toLower() +
-                                             ".inp").toStdString();
-      }
-    }
-    this->exportINP(assembly);
-  }
-  if(this->NuclearCore->changeSinceLastGenerate())
-  {
-    inpFileWriter::write(coreName.toStdString(), *(this->NuclearCore));
-  }
-  return false;
+  
+  return this->Internal->inpExporter.exportInpFiles();
 }
 
 void cmbNucMainWindow::onSaveSelectedAs()
@@ -1388,61 +1286,6 @@ void cmbNucMainWindow::checkForNewCUBH5MFiles()
   }
   NuclearCore->setAndTestDiffFromFiles(NuclearCore->changeSinceLastSave());
   emit checkSave();
-}
-
-QString cmbNucMainWindow::requestInpFileName(QString name,
-                                             QString type)
-{
-  QString defaultName("");
-  QString defaultLoc;
-  if(!name.isEmpty())
-  {
-    QFileInfo fi(name);
-    QDir dir = fi.dir();
-    if(dir.path() == ".")
-      {
-      defaultName = fi.baseName();
-      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                              QDir::homePath()).toString();
-      defaultLoc = tdir.path();
-      }
-    else
-      {
-      defaultLoc = dir.path();
-      defaultName = fi.baseName();
-      }
-  }
-  if(defaultLoc.isEmpty())
-  {
-    QDir dir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                           QDir::homePath()).toString();
-    defaultLoc = dir.path();
-  }
-
-  QFileDialog saveQD( this, "Save "+type+" File...", defaultLoc, "INP Files (*.inp)");
-  saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
-  saveQD.setAcceptMode(QFileDialog::AcceptSave);
-  saveQD.selectFile(defaultName);
-  QString fileName;
-  if(saveQD.exec()== QDialog::Accepted)
-  {
-    fileName = saveQD.selectedFiles().first();
-  }
-  else
-  {
-    return QString();
-  }
-  if( !fileName.endsWith(".inp") )
-    fileName += ".inp";
-
-  if(!fileName.isEmpty())
-  {
-    // Cache the directory for the next time the dialog is opened
-    QFileInfo info(fileName);
-    QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir",
-                                                   info.dir().path());
-  }
-  return fileName;
 }
 
 QString cmbNucMainWindow::requestXMLFileName(QString name, QString type)
@@ -1561,6 +1404,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
 
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore(needSave);
+  this->Internal->inpExporter.setCore(this->NuclearCore);
   this->InputsWidget->setCore(this->NuclearCore);
   this->ui->actionNew_Assembly->setEnabled(false);
   this->ui->actionExport->setEnabled(false);

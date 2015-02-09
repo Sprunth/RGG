@@ -1,0 +1,33 @@
+#ifndef cmbNucInpExporter_h
+#define cmbNucInpExporter_h
+
+#include <vector>
+#include <map>
+
+#include <QString>
+
+class cmbNucCore;
+class cmbNucAssembly;
+
+class cmbNucInpExporter
+{
+public:
+  cmbNucInpExporter();
+  void setCore(cmbNucCore * core);
+  void removeAssembly(cmbNucAssembly * assy);
+  bool exportInpFiles();
+protected:
+  bool updateCoreLevelLayers();
+  bool updateAssemblyLevelLayers(cmbNucAssembly * assy);
+  bool exportInpFile(cmbNucAssembly * assy);
+  QString requestInpFileName(QString name, QString type);
+  struct layers
+  {
+    std::vector<double> layers;
+  };
+  layers coreLevelLayers;
+  std::map<cmbNucAssembly *, layers> assemblyLevelLayers;
+  cmbNucCore * NuclearCore;
+};
+
+#endif

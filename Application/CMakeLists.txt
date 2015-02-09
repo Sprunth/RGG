@@ -57,6 +57,7 @@ SET(RGGNuclear_Srcs
   pqXMLEventObserver.cxx
   cmbNucRender.cxx
   cmbNucConflictDialog.cxx
+  cmbNucInpExporter.cxx
 )
 
 SET(RGGNuclear_UI
