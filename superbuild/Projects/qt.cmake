@@ -81,6 +81,15 @@ if (APPLE)
               <SOURCE_DIR>/src/plugins/bearer/corewlan/corewlan.pro
     DEPENDEES patch
     DEPENDERS configure)
+
+  # Patch for modal dialog errors on 10.9 and up
+  # See https://bugreports.qt-project.org/browse/QTBUG-37699?focusedCommentId=251106#comment-251106
+  add_external_project_step(qt-patch-modal-dialogs
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                              ${SuperBuild_PROJECTS_DIR}/patches/qt.src.gui.kernel.qeventdispatcher_mac.mm
+                              <SOURCE_DIR>/src/gui/kernel/qeventdispatcher_mac.mm
+    DEPENDEES patch
+    DEPENDERS configure)
 endif()
 
 # Tell ParaView to disable WebKit, if disabled.
