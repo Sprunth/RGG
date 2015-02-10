@@ -14,7 +14,7 @@ class cmbNucInpExporter
 public:
   cmbNucInpExporter();
   void setCore(cmbNucCore * core);
-  void removeAssembly(cmbNucAssembly * assy);
+  void updateCoreLayers(bool ignore_regen = false);
   bool exportInpFiles();
 protected:
   bool updateCoreLevelLayers();
@@ -23,7 +23,9 @@ protected:
   QString requestInpFileName(QString name, QString type);
   struct layers
   {
-    std::vector<double> layers;
+    layers()
+    {}
+    std::vector<double> levels;
   };
   layers coreLevelLayers;
   std::map<cmbNucAssembly *, layers> assemblyLevelLayers;

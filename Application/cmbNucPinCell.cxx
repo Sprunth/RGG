@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <algorithm>
+#include <set>
 
 #include <QDebug>
 
@@ -204,6 +205,27 @@ PinSubPart * Cylinder::clone() const
 {
   PinSubPart * result = new Cylinder(r,z1,z2);
   result->fill(this);
+  return result;
+}
+
+std::vector<Cylinder *> Cylinder
+::split( std::vector<double>::const_iterator b,
+         std::vector<double>::const_iterator end)
+{
+  std::vector<Cylinder *> result;
+  assert(*b == this->z1);
+  for(std::vector<double>::const_iterator iter = b; iter != end; ++iter)
+  {
+    if(iter + 1 == end)
+    {
+      assert(*iter == this->z2);
+      break;
+    }
+    Cylinder * c = new Cylinder(this);
+    c->z1 = *iter;
+    c->z2 = *(iter+1);
+    result.push_back(c);
+  }
   return result;
 }
 
@@ -633,4 +655,51 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
     }
   }
   return vtkBoundingBox(-x,x,-y,y,minZ,maxZ);
+}
+
+std::vector<double> PinCell::getPinLayers() const
+{
+  std::set<double> unique_levels;
+  for(int i = 0; i < static_cast<int>(this->GetNumberOfParts()); i++)
+  {
+    unique_levels.insert(this->GetPart(i)->z1);
+    unique_levels.insert(this->GetPart(i)->z2);
+  }
+  std::vector<double> result;
+  for(std::set<double>::const_iterator iter = unique_levels.begin(); iter != unique_levels.end(); ++iter)
+  {
+    result.push_back(*iter);
+  }
+  std::sort(result.begin(), result.end());
+  return result;
+}
+
+void PinCell::splitPin(std::vector<double> const& layers)
+{
+  //TODO: handel when the pin is not alligned with the top and bottom of the duct
+  std::vector<Cylinder*> c = this->Cylinders;
+  this->Cylinders.clear();
+  for(unsigned int i = 0; i < c.size(); ++i)
+  {
+    double z1 = c[i]->z1, z2 = c[i]->z2;
+    std::vector<double>::const_iterator b = layers.begin();
+    for(; b!= layers.end(); ++b)
+    {
+      if(*b == z1) break;
+    }
+    assert(b != layers.end());
+    std::vector<double>::const_iterator e = b+1;
+    for(; e!= layers.end(); ++e)
+    {
+      if(*e == z2) break;
+    }
+    assert(e != layers.end());
+    std::vector<Cylinder*> tmp = c[i]->split(b, e+1);
+    for(unsigned int k = 0; k < tmp.size(); ++k)
+    {
+      this->AddCylinder(tmp[k]);
+    }
+    delete c[i];
+  }
+  //TODO Frustrums
 }

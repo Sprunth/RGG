@@ -121,6 +121,9 @@ public:
     this->r = rin;
   }
 
+  std::vector<Cylinder *> split(std::vector<double>::const_iterator b,
+                               std::vector<double>::const_iterator end);
+
   double r;
 };
 
@@ -140,6 +143,10 @@ public:
     r[0] = r[1];
     r[1] = t;
   }
+
+
+  std::vector<Frustum *> split(std::vector<double>::const_iterator b,
+                               std::vector<double>::const_iterator end);
 
   PinSubPart * clone() const;
 
@@ -230,6 +237,10 @@ public:
   QColor legendColor;
   vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
   bool cutaway;
+
+  std::vector<double> getPinLayers() const;
+
+  void splitPin(std::vector<double> const& layers);
 
 protected:
   std::vector<Cylinder*> Cylinders;

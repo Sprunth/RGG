@@ -109,6 +109,9 @@ public:
   bool isUsed();
   void used();
   void freed();
+  std::vector<double> getDuctLayers() const;
+  //assumes that the ducts z1 and z2 are in layers
+  void splitDucts( std::vector<double> const& layers );
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

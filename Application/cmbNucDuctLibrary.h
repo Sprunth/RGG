@@ -43,6 +43,8 @@ public:
   bool nameConflicts(std::string n) const;
   bool replaceName(std::string oldN, std::string newN);
 
+  cmbNucDuctLibrary * clone();
+
 protected:
   std::vector<DuctCell*> DuctCells;
   std::map<std::string, size_t> NameToDuct;

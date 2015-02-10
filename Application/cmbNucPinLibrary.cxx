@@ -27,12 +27,12 @@ cmbNucPinLibrary::testPinConflicts(PinCell* pc) const
 
 bool cmbNucPinLibrary::labelConflicts(std::string l) const
 {
-  return LabelToPin.find(l) != LabelToPin.end();
+  return this->LabelToPin.find(l) != this->LabelToPin.end();
 }
 
 bool cmbNucPinLibrary::nameConflicts(std::string n) const
 {
-  return NameToPin.find(n) != NameToPin.end();
+  return this->NameToPin.find(n) != this->NameToPin.end();
 }
 
 bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
@@ -145,4 +145,16 @@ void cmbNucPinLibrary::replaceName(std::string oldN, std::string newN)
   if(ni == NameToPin.end()) return;
   NameToPin[newN] = ni->second;
   NameToPin.erase(ni);
+}
+
+cmbNucPinLibrary * cmbNucPinLibrary::clone() const
+{
+  cmbNucPinLibrary * result = new cmbNucPinLibrary();
+  for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin(); iter != this->PinCells.end(); ++iter)
+  {
+    PinCell * pc = new PinCell();
+    pc->fill(*iter);
+    result->addPin(&pc, KeepOriginal);
+  }
+  return result;
 }

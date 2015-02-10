@@ -2,6 +2,7 @@
 #include "cmbNucMaterialColors.h"
 
 #include <cmath>
+#include <cassert>
 
 void DuctConnection::sendChange()
 {
@@ -426,4 +427,77 @@ void DuctCell::freed()
 {
   if(this->useCount > 0)
     this->useCount--;
+}
+
+std::vector<double> DuctCell::getDuctLayers() const
+{
+  std::vector<double> result;
+  result.push_back(this->Ducts[0]->z1);
+  for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    result.push_back(this->Ducts[i]->z2);
+  }
+  return result;
+}
+
+void DuctCell::splitDucts( std::vector<double> const& layers )
+{
+  std::vector<Duct*> addedDucts;
+  int ductLoc = 0;
+  int layersStart = 0;
+  //find the the bottom
+  double z1 = this->Ducts[0]->z1;
+  for(;layersStart < layers.size(); ++layersStart)
+  {
+    if(layers[layersStart] == z1) break;
+  }
+  assert(layersStart != layers.size());
+  for(int i = 0; i < layersStart; ++i)
+  {
+    Duct * d = new Duct(this->Ducts[0], false);
+    d->setZ1(layers[i]);
+    d->setZ2(layers[i+1]);
+    for( unsigned int j = 0; j < d->NumberOfLayers(); ++j)
+    {
+      d->setMaterial(j, cmbNucMaterialColors::instance()->getMaterialByName("gap"));
+    }
+    addedDucts.push_back(d);
+  }
+  for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    double z2 = this->Ducts[i]->z2;
+    int layerEnd = layersStart + 1;
+    for(;layerEnd < layers.size(); ++layerEnd)
+    {
+      if(layers[layerEnd] == z2) break;
+    }
+    assert(layerEnd != layers.size());
+    if( layerEnd != layersStart + 1)
+    {
+      this->Ducts[i]->setZ2(layers[layersStart + 1]);
+      for(unsigned int j = layersStart + 1; j < layerEnd; ++j)
+      {
+        Duct * d = new Duct(this->Ducts[i], false);
+        d->setZ1(layers[j]);
+        d->setZ2(layers[j+1]);
+        addedDucts.push_back(d);
+      }
+    }
+    layersStart = layerEnd;
+  }
+  for(int i = layersStart; i < layers.size()-1; ++i)
+  {
+    Duct * d = new Duct(this->Ducts[0], false);
+    d->setZ1(layers[i]);
+    d->setZ2(layers[i+1]);
+    for( unsigned int j = 0; j < d->NumberOfLayers(); ++j)
+    {
+      d->setMaterial(j, cmbNucMaterialColors::instance()->getMaterialByName("gap"));
+    }
+    addedDucts.push_back(d);
+  }
+  for(unsigned int i = 0; i < addedDucts.size(); ++i)
+  {
+    this->AddDuct(addedDucts[i]);
+  }
 }

@@ -48,6 +48,8 @@ public:
   void replaceLabel(std::string oldL, std::string newL);
   void replaceName(std::string oldN, std::string newN);
 
+  cmbNucPinLibrary * clone() const;
+
 protected:
   std::vector<PinCell*> PinCells;
   std::map<std::string, size_t> NameToPin;

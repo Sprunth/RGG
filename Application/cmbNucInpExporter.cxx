@@ -2,10 +2,13 @@
 #include "inpFileIO.h"
 #include "cmbNucCore.h"
 #include "cmbNucAssembly.h"
+#include "cmbNucDuctLibrary.h"
 
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QSettings>
+
+#include <set>
 
 cmbNucInpExporter
 ::cmbNucInpExporter()
@@ -16,6 +19,7 @@ void cmbNucInpExporter
 ::setCore(cmbNucCore * core)
 {
   this->NuclearCore = core;
+  this->updateCoreLayers(true);
 }
 
 bool cmbNucInpExporter
@@ -27,6 +31,24 @@ bool cmbNucInpExporter
     coreName = requestInpFileName("","Core");
   }
   if(coreName.isEmpty()) return false;
+
+  updateCoreLayers(true);  //todo Is this needed?
+
+  //clone the pins and ducts.  These are needed for determining layers
+  cmbNucPinLibrary * pl = this->NuclearCore->getPinLibrary()->clone();
+  cmbNucDuctLibrary * dl = this->NuclearCore->getDuctLibrary()->clone();
+
+  //split ducts if needed
+  for(unsigned int i = 0; i < dl->GetNumberOfDuctCells(); ++i)
+  {
+    dl->GetDuctCell(i)->splitDucts(this->coreLevelLayers.levels);
+  }
+
+  //split pins if needed
+  for(unsigned int i = 0; i < pl->GetNumberOfPinCells(); ++i)
+  {
+    pl->GetPinCell(i)->splitPin(this->coreLevelLayers.levels);
+  }
 
   QFileInfo coreinfo(coreName);
 
@@ -64,7 +86,9 @@ bool cmbNucInpExporter
                                            ".inp").toStdString();
       }
     }
-    this->exportInpFile(assembly);
+    cmbNucAssembly* assemblyClone = assembly->clone(pl, dl);
+    this->exportInpFile(assemblyClone);
+    delete assemblyClone;
   }
   if(this->NuclearCore->changeSinceLastGenerate())
   {
@@ -73,22 +97,71 @@ bool cmbNucInpExporter
   return true;
 }
 
-void cmbNucInpExporter
-::removeAssembly(cmbNucAssembly * assy)
-{
-  
-}
-
 bool cmbNucInpExporter
 ::updateCoreLevelLayers()
 {
+  
   return true;
 }
 
-bool cmbNucInpExporter
-::updateAssemblyLevelLayers(cmbNucAssembly * assy)
+void cmbNucInpExporter
+::updateCoreLayers(bool ignore_regen)
 {
-  return true;
+  std::vector<double> levels;
+  std::set<DuctCell *> dc;
+  std::set<PinCell *> pc;
+  std::set<double> unique_levels;
+
+  std::vector< cmbNucAssembly* > used = this->NuclearCore->GetUsedAssemblies();
+  for(std::vector< cmbNucAssembly* >::const_iterator iter = used.begin(); iter != used.end(); ++iter)
+  {
+    cmbNucAssembly * assy = *iter;
+    dc.insert(&(assy->getAssyDuct()));
+    std::size_t npc = assy->GetNumberOfPinCells();
+    for(std::size_t i = 0; i < npc; ++i)
+    {
+      pc.insert(assy->GetPinCell(i));
+    }
+  }
+  for(std::set<DuctCell *>::const_iterator iter = dc.begin(); iter != dc.end(); ++iter)
+  {
+    std::vector<double> tmp = (*iter)->getDuctLayers();
+    for(unsigned int i = 0; i < tmp.size(); ++i)
+    {
+      unique_levels.insert(tmp[i]);
+    }
+  }
+  for(std::set<PinCell *>::const_iterator iter = pc.begin(); iter != pc.end(); ++iter)
+  {
+    std::vector<double> tmp = (*iter)->getPinLayers();
+    for(unsigned int i = 0; i < tmp.size(); ++i)
+    {
+      unique_levels.insert(tmp[i]);
+    }
+  }
+  for(std::set<double>::const_iterator iter = unique_levels.begin(); iter != unique_levels.end(); ++iter)
+  {
+    levels.push_back(*iter);
+  }
+
+  std::sort(levels.begin(), levels.end());
+
+  if(!ignore_regen)
+  {
+    bool same = coreLevelLayers.levels.size() == levels.size();
+    for(unsigned int i = 0; i < levels.size() && same; ++i)
+    {
+      same = levels[i] == coreLevelLayers.levels[i];
+    }
+    if(!same)
+    {
+      for(std::vector< cmbNucAssembly* >::const_iterator iter = used.begin(); iter != used.end(); ++iter)
+      {
+        (*iter)->setAndTestDiffFromFiles(true);
+      }
+    }
+  }
+  coreLevelLayers.levels = levels;
 }
 
 bool cmbNucInpExporter
