@@ -41,6 +41,7 @@ bool cmbNucInpExporter
   //split ducts if needed
   for(unsigned int i = 0; i < dl->GetNumberOfDuctCells(); ++i)
   {
+    dl->GetDuctCell(i)->uniformizeMaterialLayers();
     dl->GetDuctCell(i)->splitDucts(this->coreLevelLayers.levels);
   }
 

@@ -28,7 +28,6 @@ protected:
     std::vector<double> levels;
   };
   layers coreLevelLayers;
-  std::map<cmbNucAssembly *, layers> assemblyLevelLayers;
   cmbNucCore * NuclearCore;
 };
 

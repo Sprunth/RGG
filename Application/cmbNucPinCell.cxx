@@ -278,6 +278,33 @@ PinSubPart * Frustum::clone() const
   return result;
 }
 
+std::vector<Frustum *> Frustum
+::split( std::vector<double>::const_iterator b,
+        std::vector<double>::const_iterator end)
+{
+  std::vector<Frustum *> result;
+  assert(*b == this->z1);
+  for(std::vector<double>::const_iterator iter = b; iter != end; ++iter)
+  {
+    if(iter + 1 == end)
+    {
+      assert(*iter == this->z2);
+      break;
+    }
+    Frustum * c = new Frustum(this);
+    c->z1 = *iter;
+    c->z2 = *(iter+1);
+    if(!result.empty())
+    {
+      c->r[0] = (*(result.rbegin()))->r[1];
+    }
+    double t = (this->z2 - c->z2)/(this->z2 - this->z1);
+    c->r[1] = t * this->r[0] + (1-t)*this->r[1];
+    result.push_back(c);
+  }
+  return result;
+}
+
 //*********************************************************//
 
 PinCell::PinCell()
@@ -701,5 +728,28 @@ void PinCell::splitPin(std::vector<double> const& layers)
     }
     delete c[i];
   }
-  //TODO Frustrums
+  std::vector<Frustum*> f = this->Frustums;
+  this->Frustums.clear();
+  for(unsigned int i = 0; i < f.size(); ++i)
+  {
+    double z1 = f[i]->z1, z2 = f[i]->z2;
+    std::vector<double>::const_iterator b = layers.begin();
+    for(; b!= layers.end(); ++b)
+    {
+      if(*b == z1) break;
+    }
+    assert(b != layers.end());
+    std::vector<double>::const_iterator e = b+1;
+    for(; e!= layers.end(); ++e)
+    {
+      if(*e == z2) break;
+    }
+    assert(e != layers.end());
+    std::vector<Frustum*> tmp = f[i]->split(b, e+1);
+    for(unsigned int k = 0; k < tmp.size(); ++k)
+    {
+      this->AddFrustum(tmp[k]);
+    }
+    delete f[i];
+  }
 }

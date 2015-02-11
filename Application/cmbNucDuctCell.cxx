@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <set>
 
 void DuctConnection::sendChange()
 {
@@ -202,6 +203,38 @@ void Duct::setMaterialLayer(int i, cmbNucMaterialLayer * ml)
   if(i >= this->Materials.size()) this->SetNumberOfLayers(i+1);
   Materials[i] = *ml;
   delete ml;
+}
+
+void Duct::splitMaterialLayer( std::vector<double> const& lx, std::vector<double> const& ly )
+{
+  assert(lx.size() == ly.size());
+  if(lx.size() == this->Materials.size()) return; //nothing to do
+  assert(lx.size() > this->Materials.size());
+  std::vector< QPointer<cmbNucMaterial> > materials;
+  int at = 0;
+  for(unsigned int i = 0; i < lx.size(); ++i)
+  {
+    assert(at < this->Materials.size());
+    assert(lx[i] <= getNormThick(at)[0]);
+    if(lx[i] < getNormThick(at)[0])
+    {
+      materials.push_back(getMaterial(at));
+    }
+    else if(lx[i] == getNormThick(at)[0])
+    {
+      materials.push_back(getMaterial(at));
+      at++;
+    }
+  }
+  assert( materials.size() == lx.size());
+  this->SetNumberOfLayers(lx.size());
+  for(unsigned int i = 0; i < lx.size(); ++i)
+  {
+    this->setMaterial(i, materials[i]);
+    double * ntat = getNormThick(i);
+    ntat[0] = lx[i];
+    ntat[1] = ly[i];
+  }
 }
 
 /*******************************************************************************/
@@ -438,6 +471,33 @@ std::vector<double> DuctCell::getDuctLayers() const
     result.push_back(this->Ducts[i]->z2);
   }
   return result;
+}
+
+void DuctCell::uniformizeMaterialLayers()
+{
+  std::set<double> slayersX, slayersY;
+  for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    Duct * d = this->Ducts[i];
+    for(unsigned int l = 0; l < d->NumberOfLayers(); ++l)
+    {
+      slayersX.insert(d->getNormThick(l)[0]);
+      slayersY.insert(d->getNormThick(l)[1]);
+    }
+  }
+  std::vector<double> layersX, layersY;
+  std::set<double>::const_iterator iX = slayersX.begin();
+  std::set<double>::const_iterator iY = slayersY.begin();
+
+  for(; iX != slayersX.end(); ++iX, ++iY)
+  {
+    layersX.push_back(*iX);
+    layersY.push_back(*iY);
+  }
+  for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    this->Ducts[i]->splitMaterialLayer(layersX, layersY);
+  }
 }
 
 void DuctCell::splitDucts( std::vector<double> const& layers )
