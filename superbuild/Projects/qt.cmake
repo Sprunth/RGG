@@ -90,6 +90,15 @@ if (APPLE)
                               <SOURCE_DIR>/src/gui/kernel/qeventdispatcher_mac.mm
     DEPENDEES patch
     DEPENDERS configure)
+
+  # Patch for build failures on 10.10
+  # See http://fink.9193.n7.nabble.com/qt4-base-mac-4-8-6-2-compile-failure-on-OS-X-10-10-Public-Beta-3-td46612.html
+  add_external_project_step(qt-patch-cocoa-build-fail
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                              ${SuperBuild_PROJECTS_DIR}/patches/qt.src.gui.kernel.qcocoaapplicationdelegate_mac.mm
+                              <SOURCE_DIR>/src/gui/kernel/qcocoaapplicationdelegate_mac.mm
+    DEPENDEES patch
+    DEPENDERS configure)
 endif()
 
 # Tell ParaView to disable WebKit, if disabled.
