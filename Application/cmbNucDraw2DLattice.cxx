@@ -352,6 +352,7 @@ void cmbNucDraw2DLattice::rebuild()
     std::pair<int, int> wh = this->Grid.GetDimensions();
     double tmax = std::max(wh.first, wh.second);
     double radius = squareLength/tmax*0.5;
+    radius = std::max(radius, 20.0);
     for(int i = 0; i < wh.first; ++i)
       {
       for(int j = 0; j < wh.second; ++j)
