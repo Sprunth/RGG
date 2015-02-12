@@ -13,7 +13,7 @@ Lattice::Lattice( Lattice const& other )
   setUpGrid(other);
   this->subType = other.subType;
   this->enGeometryType = other.enGeometryType;
-  this->FullCellMode = Lattice::HEX_FULL;
+  this->FullCellMode = other.FullCellMode;
 }
 
 Lattice::~Lattice()

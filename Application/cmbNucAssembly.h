@@ -71,6 +71,8 @@ public:
   template<typename T> static bool isValueSet(const T& val)
   { return val != ASSY_NOT_SET_VALUE; }
 
+  void fill(cmbAssyParameters * other);
+
   // Geometry     {Volume | Surface}
   std::string Geometry;
 
@@ -342,6 +344,8 @@ public:
 
   double getZAxisRotation() const;
   void setZAxisRotation(double d);
+
+  cmbNucAssembly * clone(cmbNucPinLibrary * pl, cmbNucDuctLibrary * dl);
 
 protected:
   std::vector<PinCell*> PinCells;

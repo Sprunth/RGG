@@ -92,3 +92,18 @@ bool cmbNucDuctLibrary
   this->NameToDuct.erase(iter);
   return true;
 }
+
+cmbNucDuctLibrary * cmbNucDuctLibrary
+::clone()
+{
+  cmbNucDuctLibrary * result = new cmbNucDuctLibrary();
+
+  for(std::vector<DuctCell*>::const_iterator it = this->DuctCells.begin(); it != this->DuctCells.end(); ++it)
+  {
+    DuctCell * dc = new DuctCell();
+    dc->fill(*it);
+    result->addDuct(dc);
+  }
+
+  return result;
+}
