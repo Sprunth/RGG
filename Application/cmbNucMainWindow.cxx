@@ -351,6 +351,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   }
   this->NuclearCore = new cmbNucCore(false);
   this->Internal->inpExporter.setCore(this->NuclearCore);
+  connect( this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
+           this, SLOT(checkExporter()) );
   setTitle();
 
   this->tabifyDockWidget(this->ui->Dock2D, this->ui->Dock3D);
@@ -953,6 +955,7 @@ void cmbNucMainWindow::onFileOpen()
     // update render view
     emit checkSave();
     this->resetCamera();
+    this->Internal->inpExporter.updateCoreLayers();
 
     QFileInfo info(fileNames[0]);
     settings.setValue("cache/lastDir", info.dir().path());
@@ -1131,6 +1134,7 @@ void cmbNucMainWindow::onImportINPFile()
   // update render view
   emit checkSave();
   this->resetCamera();
+  this->Internal->inpExporter.updateCoreLayers();
   this->Renderer->Render();
 }
 
@@ -1405,6 +1409,8 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   delete this->NuclearCore;
   this->NuclearCore = new cmbNucCore(needSave);
   this->Internal->inpExporter.setCore(this->NuclearCore);
+  connect( this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
+           this, SLOT(checkExporter()) );
   this->InputsWidget->setCore(this->NuclearCore);
   this->ui->actionNew_Assembly->setEnabled(false);
   this->ui->actionExport->setEnabled(false);
@@ -2012,4 +2018,11 @@ void cmbNucMainWindow::onRaiseMesh()
 void cmbNucMainWindow::onRaiseModel()
 {
   this->ui->Dock3D->raise();
+}
+
+void cmbNucMainWindow::checkExporter()
+{
+  this->Internal->inpExporter.updateCoreLayers();
+  this->InputsWidget->emitCheckSavedAndGenerage();
+  this->InputsWidget->repaintList();
 }

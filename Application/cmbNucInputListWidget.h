@@ -48,6 +48,11 @@ public:
 
   void initMaterialsTree();
 
+  void emitCheckSavedAndGenerage()
+  {
+    emit(checkSavedAndGenerate());
+  }
+
 signals:
   // Description:
   // Fired when a part/material is selected in the tree
@@ -84,6 +89,7 @@ public slots:
   void updateMainMeshComponents(QStringList parts, int select);
   void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
   void onNewDuct();
+  void repaintList();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -118,7 +124,6 @@ private slots:
   void onImportMaterial();
   void onSaveMaterial();
 
-  void repaintList();
   void hideLabels(bool);
 
 signals:

@@ -90,6 +90,7 @@ public slots:
   void modelControls(bool);
   void resetMeshCamera();
   void waitForExportingToBeDone();
+  void checkExporter();
 
 signals:
   void updateGlobalZScale(double scale);

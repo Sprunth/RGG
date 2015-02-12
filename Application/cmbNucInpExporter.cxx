@@ -32,8 +32,6 @@ bool cmbNucInpExporter
   }
   if(coreName.isEmpty()) return false;
 
-  updateCoreLayers(true);  //todo Is this needed?
-
   //clone the pins and ducts.  These are needed for determining layers
   cmbNucPinLibrary * pl = this->NuclearCore->getPinLibrary()->clone();
   cmbNucDuctLibrary * dl = this->NuclearCore->getDuctLibrary()->clone();
