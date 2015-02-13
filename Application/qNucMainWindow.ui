@@ -551,7 +551,7 @@
   </action>
   <action name="ExportImpFiles">
    <property name="text">
-    <string>Imp Files</string>
+    <string>Inp Files</string>
    </property>
   </action>
  </widget>
