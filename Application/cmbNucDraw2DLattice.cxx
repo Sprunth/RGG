@@ -376,6 +376,7 @@ void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem, QMouseEvent
 
   QMenu contextMenu(this);
   QMenu * replaceMenu = new QMenu("Replace All With",this);
+  QMenu * fillRing = new QMenu("Fill Ring All With",this);
   QAction* pAction = NULL;
   // available parts
   foreach(QString strAct, this->ActionList)
@@ -386,15 +387,19 @@ void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem, QMouseEvent
     pAction = new QAction(strAct, this);
     pAction->setData(1);
     replaceMenu->addAction(pAction);
-    contextMenu.addMenu( replaceMenu );
+    pAction = new QAction(strAct, this);
+    pAction->setData(2);
+    fillRing->addAction(pAction);
   }
+  contextMenu.addMenu( replaceMenu );
+  contextMenu.addMenu( fillRing );
 
   QAction* assignAct = contextMenu.exec(qme->globalPos());
   if(assignAct)
   {
+    QString text = this->CurrentLattice->extractLabel(assignAct->text());
     if(assignAct->data().toInt() == 0)
     {
-      QString text = this->CurrentLattice->extractLabel(assignAct->text());
       changed |= hexitem->text() != text;
       usedLabelCount[hexitem->text()]--;
       usedLabelCount[text]++;
@@ -412,7 +417,6 @@ void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem, QMouseEvent
     }
     else if(assignAct->data().toInt() == 1)
     {
-      QString text = this->CurrentLattice->extractLabel(assignAct->text());
       changed |= hexitem->text() != text;
       if(hexitem->text() != text)
       {
@@ -420,6 +424,12 @@ void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem, QMouseEvent
         this->rebuild();
         this->repaint();
       }
+    }
+    else if(assignAct->data().toInt() == 2)
+    {
+      changed |= this->Grid.fillRing(hexitem->layer(), text.toStdString());
+      this->rebuild();
+      this->repaint();
     }
   }
 }

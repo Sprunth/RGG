@@ -195,16 +195,23 @@ void Lattice::computeValidRange()
     for( int layer = 0; layer < Grid.size(); ++layer)
     {
       this->validRange[layer].first = 0;
-      this->validRange[layer].second = 6*layer-1;
-      if(subType != 0 && !(subType & ANGLE_360))
+      if(layer == 0)
       {
-        this->validRange[layer].first = (subType & FLAT)?(layer):(layer-(layer)/2);
-        this->validRange[layer].second = ((subType & FLAT)?(layer+1):
-                                                           (((layer+1)-(layer+2)%2)))+this->validRange[layer].first-1;
-        if(subType & ANGLE_30)
+        this->validRange[layer].second = 0;
+      }
+      else
+      {
+        this->validRange[layer].second = 6*layer-1;
+        if(subType != 0 && !(subType & ANGLE_360))
         {
-          this->validRange[layer].first = 2*layer - layer/2;
-          this->validRange[layer].second = (layer%2 ? (layer+1)/2 :(layer+2)/2) + this->validRange[layer].first - 1;
+          this->validRange[layer].first = (subType & FLAT)?(layer):(layer-(layer)/2);
+          this->validRange[layer].second = ((subType & FLAT)?(layer+1):
+                                                           (((layer+1)-(layer+2)%2)))+this->validRange[layer].first-1;
+          if(subType & ANGLE_30)
+          {
+            this->validRange[layer].first = 2*layer - layer/2;
+            this->validRange[layer].second = (layer%2 ? (layer+1)/2 :(layer+2)/2) + this->validRange[layer].first - 1;
+          }
         }
       }
     }
@@ -487,4 +494,29 @@ std::string Lattice::generate_string(std::string in, CellDrawMode mode)
     case HEX_TWELFTH_TOP:
       return in + "_top";
   }
+}
+
+bool Lattice::fillRing(int i, std::string const& label)
+{
+  bool change = false;
+  if(this->enGeometryType == RECTILINEAR)
+  {
+    //todo
+  }
+  else if(this->enGeometryType == HEXAGONAL)
+  {
+    int start, end;
+    if(getValidRange(i, start, end))
+    {
+      for(int j = start; j <= end; ++j)
+      {
+        if(label != Grid[i][j].getCell()->label)
+        {
+          change = true;
+          this->SetCell(i,j,label);
+        }
+      }
+    }
+  }
+  return change;
 }

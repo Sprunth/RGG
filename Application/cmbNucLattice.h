@@ -137,6 +137,8 @@ public:
     return FullCellMode;
   }
 
+  bool fillRing(int r, std::string const& label);
+
 protected:
   class LatticeCellReference
   {
