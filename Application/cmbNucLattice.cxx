@@ -39,6 +39,22 @@ Lattice& Lattice::operator=(Lattice const& other)
 
 void Lattice::setUpGrid(Lattice const & other)
 {
+  this->Grid.clear();
+  this->Grid.resize(other.Grid.size());
+  for(unsigned int i = 0; i < other.Grid.size(); ++i)
+  {
+    this->Grid[i].resize(other.Grid[i].size());
+  }
+
+  for(std::map<std::string, LatticeCell*>::iterator i = this->LabelToCell.begin();
+      i != this->LabelToCell.end(); ++i)
+  {
+    delete i->second;
+    i->second = NULL;
+  }
+
+  this->LabelToCell.clear();
+
   for(std::map<std::string, LatticeCell*>::const_iterator i = other.LabelToCell.begin();
       i != other.LabelToCell.end(); ++i)
   {
@@ -46,13 +62,20 @@ void Lattice::setUpGrid(Lattice const & other)
     LabelToCell[i->first] = new LatticeCell(*(i->second));
   }
   //TODO update grid
+  this->Grid.clear();
   this->Grid.resize(other.Grid.size());
   for(unsigned int i = 0; i < other.Grid.size(); ++i)
   {
     this->Grid[i].resize(other.Grid[i].size());
+  }
+  for(unsigned int i = 0; i < other.Grid.size(); ++i)
+  {
     for(unsigned j = 0; j < other.Grid[i].size(); ++j)
     {
-      this->Grid[i][j].setCell(this->getCell(other.Grid[i][j].getCell()->label));
+      LatticeCell * c = this->getCell(other.Grid[i][j].getCell()->label);
+      int oc = c->getCount();
+      this->Grid[i][j].setCell(c);
+      assert(c->getCount() == oc + 1);
     }
   }
   this->computeValidRange();
@@ -295,7 +318,7 @@ bool Lattice::ClearCell(const std::string &label)
 
 bool Lattice::replaceLabel(const std::string &oldL, const std::string &newL)
 {
-  std::map<std::string, LatticeCell *>::iterator iter = LabelToCell.find(oldL);
+  std::map<std::string, LatticeCell *>::iterator iter = this->LabelToCell.find(oldL);
   if(iter == LabelToCell.end() || iter->second->getCount() == 0)
   {
     return false;
