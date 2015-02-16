@@ -137,6 +137,8 @@ public:
     return FullCellMode;
   }
 
+  bool fillRing(int r, int c, std::string const& label);
+
 protected:
   class LatticeCellReference
   {
@@ -146,6 +148,7 @@ protected:
     LatticeCellReference(LatticeCellReference const& other)
     : cell(other.cell)
     {
+      if(cell) cell->inc();
     }
     ~LatticeCellReference()
     { if(cell) cell->dec();  }
@@ -169,7 +172,7 @@ protected:
 
   void setUpGrid(Lattice const & other);
 
-  std::vector<std::vector<LatticeCellReference> > Grid;
+  std::vector< std::vector<LatticeCellReference> > Grid;
   std::map<std::string, LatticeCell*> LabelToCell;
   enumGeometryType enGeometryType;
   int subType;

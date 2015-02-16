@@ -367,41 +367,70 @@ void cmbNucDraw2DLattice::rebuild()
   this->repaint();
 }
 
-void cmbNucDraw2DLattice::showContextMenu(
-  DrawLatticeItem *hexitem, QMouseEvent* qme)
+void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem, QMouseEvent* qme )
 {
   if(!hexitem || !hexitem->is_available())
-    {
+  {
     return;
-    }
+  }
 
   QMenu contextMenu(this);
+  QMenu * replaceMenu = new QMenu("Replace All With",this);
+  QMenu * fillRing = new QMenu("Fill Ring All With",this);
   QAction* pAction = NULL;
   // available parts
   foreach(QString strAct, this->ActionList)
   {
     pAction = new QAction(strAct, this);
+    pAction->setData(0);
     contextMenu.addAction(pAction);
+    pAction = new QAction(strAct, this);
+    pAction->setData(1);
+    replaceMenu->addAction(pAction);
+    pAction = new QAction(strAct, this);
+    pAction->setData(2);
+    fillRing->addAction(pAction);
   }
+  contextMenu.addMenu( replaceMenu );
+  contextMenu.addMenu( fillRing );
 
   QAction* assignAct = contextMenu.exec(qme->globalPos());
   if(assignAct)
   {
     QString text = this->CurrentLattice->extractLabel(assignAct->text());
-    changed |= hexitem->text() != text;
-    usedLabelCount[hexitem->text()]--;
-    usedLabelCount[text]++;
-    hexitem->setText(text);
-    QColor color(Qt::white);
-    if(this->CurrentLattice)
+    if(assignAct->data().toInt() == 0)
     {
-      AssyPartObj * obj = this->CurrentLattice->getFromLabel(text.toStdString());
-      color = obj ? obj->GetLegendColor() : Qt::white;
+      changed |= hexitem->text() != text;
+      usedLabelCount[hexitem->text()]--;
+      usedLabelCount[text]++;
+      hexitem->setText(text);
+      QColor color(Qt::white);
+      if(this->CurrentLattice)
+      {
+        AssyPartObj * obj = this->CurrentLattice->getFromLabel(text.toStdString());
+        color = obj ? obj->GetLegendColor() : Qt::white;
 
-      hexitem->setColor(color);
+        hexitem->setColor(color);
+      }
+      this->Grid.SetCell(hexitem->layer(), hexitem->cellIndex(),
+                         text.toStdString(), color, true);
     }
-    this->Grid.SetCell(hexitem->layer(), hexitem->cellIndex(),
-                       text.toStdString(), color, true);
+    else if(assignAct->data().toInt() == 1)
+    {
+      changed |= hexitem->text() != text;
+      if(hexitem->text() != text)
+      {
+        this->Grid.replaceLabel(hexitem->text().toStdString(), text.toStdString());
+        this->rebuild();
+        this->repaint();
+      }
+    }
+    else if(assignAct->data().toInt() == 2)
+    {
+      changed |= this->Grid.fillRing(hexitem->layer(), hexitem->cellIndex(), text.toStdString());
+      this->rebuild();
+      this->repaint();
+    }
   }
 }
 
