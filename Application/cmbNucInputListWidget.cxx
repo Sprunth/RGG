@@ -108,9 +108,11 @@ public:
     this->Action_NewPin = new QAction("Create Pin", this->PartsList);
     this->Action_NewDuct = new QAction("Create Duct", this->PartsList);
     this->Action_DeletePart = new QAction("Delete Selected", this->PartsList);
+    this->Action_Clone = new QAction("Clone Selected", this->PartsList);
     this->PartsList->addAction(this->Action_NewAssembly);
     this->PartsList->addAction(this->Action_NewPin);
     this->PartsList->addAction(this->Action_NewDuct);
+    this->PartsList->addAction(this->Action_Clone);
     this->PartsList->addAction(this->Action_DeletePart);
   }
 
@@ -118,6 +120,7 @@ public:
   QPointer<QAction> Action_NewPin;
   QPointer<QAction> Action_NewDuct;
   QPointer<QAction> Action_DeletePart;
+  QPointer<QAction> Action_Clone;
 
   cmbNucPartsTreeItem* RootCoreNode;
   cmbNucPartsTreeItem* AssemblyNode;
@@ -158,8 +161,10 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
     this, SLOT(onNewPin()));
   QObject::connect(this->Internal->Action_NewDuct, SIGNAL(triggered()),
                    this, SLOT(onNewDuct()));
+  QObject::connect(this->Internal->Action_Clone, SIGNAL(triggered()),
+                   this, SLOT(onClone()));
   QObject::connect(this->Internal->Action_DeletePart, SIGNAL(triggered()),
-    this, SLOT(onRemoveSelectedPart()));
+                   this, SLOT(onRemoveSelectedPart()));
 
   QObject::connect(this->Internal->newMaterial, SIGNAL(clicked()),
                    cmbNucMaterialColors::instance(), SLOT(CreateNewMaterial()));
@@ -218,6 +223,7 @@ void cmbNucInputListWidget::setPartOptions(QMenu * qm) const
   qm->addAction(this->Internal->Action_NewAssembly);
   qm->addAction(this->Internal->Action_NewPin);
   qm->addAction(this->Internal->Action_NewDuct);
+  qm->addAction(this->Internal->Action_Clone);
   qm->addAction(this->Internal->Action_DeletePart);
 }
 
@@ -383,6 +389,7 @@ void cmbNucInputListWidget::setActionsEnabled(bool val)
   this->Internal->Action_NewAssembly->setEnabled(val);
   this->Internal->Action_NewPin->setEnabled(val);
   this->Internal->Action_NewDuct->setEnabled(val);
+  this->Internal->Action_Clone->setEnabled(val);
   this->Internal->Action_DeletePart->setEnabled(val);
 }
 //----------------------------------------------------------------------------
@@ -414,10 +421,6 @@ void cmbNucInputListWidget::onNewAssembly()
   double thickX, thickY, h;
   assembly->getDefaults()->getDuctThickness(thickX,thickY);
   assembly->getDefaults()->getHeight(h);
-  //TODO:
-  //Duct * newduct = new Duct(h, thickX, thickY);
-
-  //assembly->AssyDuct.AddDuct(newduct);
 
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
@@ -814,6 +817,7 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
   {
   case CMBNUC_ASSEMBLY:
     this->Internal->Action_DeletePart->setEnabled(true);
+    this->Internal->Action_Clone->setEnabled(true);
     break;
   case CMBNUC_CORE:
     this->Internal->Action_NewPin->setEnabled(false);
@@ -822,19 +826,17 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
     break;
   case CMBNUC_ASSY_PINCELL:
     this->Internal->Action_DeletePart->setEnabled(true);
-    break;
-  case CMBNUC_ASSY_FRUSTUM_PIN:
-    this->Internal->Action_DeletePart->setEnabled(true);
-    break;
-  case CMBNUC_ASSY_CYLINDER_PIN:
-    this->Internal->Action_DeletePart->setEnabled(true);
+    this->Internal->Action_Clone->setEnabled(true);
     break;
   case CMBNUC_ASSY_DUCTCELL:
     {
       DuctCell * dc = static_cast<DuctCell *>(selObj);
       this->Internal->Action_DeletePart->setEnabled(!dc->isUsed());
+      this->Internal->Action_Clone->setEnabled(true);
     }
     break;
+  case CMBNUC_ASSY_FRUSTUM_PIN:
+  case CMBNUC_ASSY_CYLINDER_PIN:
   default:
     break;
   }
@@ -1066,4 +1068,115 @@ void cmbNucInputListWidget::selectModelTab(bool v)
     this->Internal->previousMeshOrModelTab = 0; //used to supress signal
     this->Internal->tabInputs->setCurrentIndex(0);
   }
+}
+
+void cmbNucInputListWidget::onClone()
+{
+  cmbNucPartsTreeItem* selItem = this->getSelectedItem(this->Internal->PartsList);
+  if(!selItem || !selItem->getPartObject())
+  {
+    return;
+  }
+  AssyPartObj* selObj = selItem->getPartObject();
+  DuctCell* ductcell = NULL;
+
+  enumNucPartsType selType = selObj->GetType();
+  std::string selText = selItem->text(0).toStdString();
+  switch(selType)
+  {
+    case CMBNUC_CORE:
+      //DO Nothing
+      break;
+    case CMBNUC_ASSEMBLY:
+    {
+      //clone assembly
+      cmbNucAssembly * assy = dynamic_cast<cmbNucAssembly *>(selObj);
+      if(assy)
+      {
+        cmbNucAssembly * clone_assy = assy->clone(this->NuclearCore->getPinLibrary(),
+                                                  this->NuclearCore->getDuctLibrary());
+        cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+        double r,g,b;
+        matColorMap->CalcRGB(r,g,b);
+
+        clone_assy->SetLegendColor(QColor::fromRgbF(r,g,b));
+        std::string name = clone_assy->getLabel();
+        unsigned int count = 0;
+        while(!this->NuclearCore->label_unique(name))
+        {
+          name = (QString(name.c_str()) + "_" + QString::number(count++)).toStdString();
+        }
+        clone_assy->setLabel(name);
+        clone_assy->ExportFileName = "";
+        clone_assy->ExportFileNames.clear();
+        this->NuclearCore->AddAssembly(clone_assy);
+        this->initCoreRootNode();
+        this->updateWithAssembly(clone_assy);
+        emit assembliesModified(this->NuclearCore);
+      }
+      break;
+    }
+    case CMBNUC_ASSY_PINCELL:
+    {
+      PinCell* pincell = dynamic_cast<PinCell *>(selObj);
+      if(pincell)
+      {
+        cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+        double rgb[3];
+        matColorMap->CalcRGB(rgb[0],rgb[1],rgb[2]);
+        PinCell* clonePin = new PinCell();
+        clonePin->fill(pincell);
+        clonePin->SetLegendColor(QColor::fromRgbF(rgb[0],rgb[1],rgb[2]));
+        std::string name = clonePin->getName();
+        std::string label = clonePin->getLabel();
+        unsigned int count = 0;
+        while(this->NuclearCore->getPinLibrary()->labelConflicts(label))
+        {
+          label = QString(label.c_str()).append(QString("_") + QString::number(count++)).toStdString();
+        }
+        count = 0;
+        while(this->NuclearCore->getPinLibrary()->nameConflicts(name))
+        {
+          name = QString(name.c_str()).append("_" + QString::number(count++)).toStdString();
+        }
+        clonePin->setLabel(label);
+        clonePin->setName(name);
+        this->NuclearCore->getPinLibrary()->addPin(&clonePin, cmbNucPinLibrary::KeepOriginal);
+        this->initCoreRootNode();
+        this->updateWithPin(clonePin);
+        emit assembliesModified(this->NuclearCore);
+      }
+      break;
+    }
+    case CMBNUC_ASSY_DUCTCELL:
+    {
+      DuctCell* ductcell = dynamic_cast<DuctCell *>(selObj);
+      if(ductcell)
+      {
+        cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+        DuctCell* cloneDuct = new DuctCell();
+        cloneDuct->fill(ductcell);
+        std::string name = cloneDuct->getName();
+        unsigned int count = 0;
+        count = 0;
+        while(this->NuclearCore->getDuctLibrary()->nameConflicts(name))
+        {
+          name = QString(name.c_str()).append("_" + QString::number(count++)).toStdString();
+        }
+        cloneDuct->setName(name);
+        this->NuclearCore->getDuctLibrary()->addDuct(cloneDuct);
+        this->initCoreRootNode();
+        this->updateWithDuct(cloneDuct);
+        emit assembliesModified(this->NuclearCore);
+      }
+      break;
+    }
+    case CMBNUC_ASSY_DUCT:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    default:
+      break;
+  }
+
+  emit checkSavedAndGenerate();
 }

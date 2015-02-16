@@ -760,6 +760,7 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
                                        cmbNucDuctLibrary * dl)
 {
   cmbNucAssembly * result = new cmbNucAssembly();
+  result->label = this->label;
   result->setPinLibrary(pl);
   result->setDuctLibrary(dl);
   for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin(); iter != this->PinCells.end(); ++iter)
