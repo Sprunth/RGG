@@ -1098,17 +1098,17 @@ void cmbNucMainWindow::onImportINPFile()
         setTitle();
         this->Internal->HasModel = true;
         this->modelControls(true);
-        for(unsigned int i = 0; i < this->NuclearCore->GetNumberOfAssemblies(); ++i)
+        for(unsigned int j = 0; j < this->NuclearCore->GetNumberOfAssemblies(); ++j)
         {
-          this->NuclearCore->GetAssembly(i)->adjustRotation();
+          this->NuclearCore->GetAssembly(j)->adjustRotation();
           if( this->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
              this->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )
           {
-            this->NuclearCore->GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL);
+            this->NuclearCore->GetAssembly(j)->getLattice().setFullCellMode(Lattice::HEX_FULL);
           }
           else
           {
-            this->NuclearCore->GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
+            this->NuclearCore->GetAssembly(j)->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
           }
         }
         break;
