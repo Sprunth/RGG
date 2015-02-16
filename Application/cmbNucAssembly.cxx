@@ -765,7 +765,7 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
   result->setDuctLibrary(dl);
   for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin(); iter != this->PinCells.end(); ++iter)
   {
-    result->AddPinCell(pl->GetPinCell((*iter)->getName()));
+    result->AddPinCell(pl->GetPinCell((*iter)->getLabel()));
   }
   DuctCell * dc = dl->GetDuctCell(this->AssyDuct->getName());
   assert(dc != NULL);
