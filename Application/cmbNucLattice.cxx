@@ -1,5 +1,6 @@
 #include "cmbNucLattice.h"
 #include "cmbNucPartDefinition.h"
+#include <algorithm>
 
 Lattice::Lattice()
 {
@@ -496,24 +497,59 @@ std::string Lattice::generate_string(std::string in, CellDrawMode mode)
   }
 }
 
-bool Lattice::fillRing(int i, std::string const& label)
+bool Lattice::fillRing(int r, int c, std::string const& label)
 {
   bool change = false;
   if(this->enGeometryType == RECTILINEAR)
   {
-    //todo
+    int ring = std::min(r, std::min(c, std::min(static_cast<int>(this->Grid.size()-1-r),
+                                                static_cast<int>(this->Grid[0].size()-1-c))));
+    for( int i = ring; i < this->Grid.size()-ring; ++i )
+    {
+      if(label != Grid[i][ring].getCell()->label)
+      {
+        change = true;
+        this->SetCell(i,ring,label);
+      }
+    }
+    for( int i = ring; i < this->Grid[0].size()-ring; ++i )
+    {
+      if(label != Grid[ring][i].getCell()->label)
+      {
+        change = true;
+        this->SetCell(ring,i,label);
+      }
+    }
+    int tmp = this->Grid.size()-1-ring;
+    for( int i = ring; i < this->Grid[0].size()-ring; ++i )
+    {
+      if(label != Grid[tmp][i].getCell()->label)
+      {
+        change = true;
+        this->SetCell(tmp,i,label);
+      }
+    }
+    tmp = this->Grid[0].size()-1-ring;
+    for( int i = ring; i < this->Grid.size()-ring; ++i )
+    {
+      if(label != Grid[i][tmp].getCell()->label)
+      {
+        change = true;
+        this->SetCell(i,tmp,label);
+      }
+    }
   }
   else if(this->enGeometryType == HEXAGONAL)
   {
     int start, end;
-    if(getValidRange(i, start, end))
+    if(getValidRange(r, start, end))
     {
       for(int j = start; j <= end; ++j)
       {
-        if(label != Grid[i][j].getCell()->label)
+        if(label != Grid[r][j].getCell()->label)
         {
           change = true;
-          this->SetCell(i,j,label);
+          this->SetCell(r,j,label);
         }
       }
     }

@@ -427,7 +427,7 @@ void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem, QMouseEvent
     }
     else if(assignAct->data().toInt() == 2)
     {
-      changed |= this->Grid.fillRing(hexitem->layer(), text.toStdString());
+      changed |= this->Grid.fillRing(hexitem->layer(), hexitem->cellIndex(), text.toStdString());
       this->rebuild();
       this->repaint();
     }
