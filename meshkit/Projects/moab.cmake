@@ -20,9 +20,21 @@ get_filename_component(hdf5_path "${hdf5_path}../" PATH)
 #in a folder called lib, on some systems like
 #ubuntu that isn't true, so moab breaks.
 
+set(moab_cmake_args)
+
+set(mpi_deps)
+if (BUILD_WITH_MPI)
+  list(APPEND mpi_deps
+    pnetcdf)
+  list(APPEND moab_cmake_args
+    "-DPNetCDF_DIR=<INSTALL_DIR>"
+    "-DPNetCDF_INCLUDES=<INSTALL_DIR>/include"
+    "-DPNetCDF_LIBRARIES=<INSTALL_DIR>/lib/libpnetcdf.a")
+endif ()
+
 #with cgm turned on moab doesn't properly link to cgm, so we need to add a patch step
 add_external_project(moab
-  DEPENDS hdf5 cgm netcdf
+  DEPENDS hdf5 cgm netcdf ${mpi_deps}
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>
     -DHDF5_DIR:path=<INSTALL_DIR>
@@ -32,6 +44,8 @@ add_external_project(moab
     -DMOAB_USE_HDF:BOOL=ON
     -DNetCDF_DIR:path=<INSTALL_DIR>
     "-DCUBITROOT:PATH=${CUBITROOT}"
+    -DMOAB_USE_MPI:BOOL=${BUILD_WITH_MPI}
+    ${moab_cmake_args}
     ${suppress_build_out}
 )
 

@@ -7,4 +7,5 @@ add_external_project(meshkit
     -DENABLE_SRC:BOOL=ON
     -DENABLE_UTILS:BOOL=ON
     -DENABLE_RGG:BOOL=ON
+    -DWITH_MPI:BOOL=${BUILD_WITH_MPI}
 )

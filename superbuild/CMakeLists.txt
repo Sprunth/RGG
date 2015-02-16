@@ -27,6 +27,10 @@ endif()
 # Options
 option(BUILD_DOCUMENTATION "Build the RGG Documentation" OFF)
 option(BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF)
+if (NOT WIN32)
+  # MSMPI is not supported by pnetcdf's configure script.
+  option(BUILD_MESHKIT_WITH_MPI "Build Meshkit with MPI support" OFF)
+endif ()
 
 option(BUILD_SHARED_LIBS "Whether to build shared libs by default" OFF)
 

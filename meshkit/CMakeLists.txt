@@ -47,6 +47,7 @@ set (prefix_path "${install_location}")
 
 option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
 option ( BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF )
+option ( BUILD_WITH_MPI       "Build with MPI support" OFF )
 
 find_package(Autotools REQUIRED)
 
@@ -74,6 +75,9 @@ add_project(zlib SYSTEM REQUIRED)
 add_project(szip SYSTEM REQUIRED)
 add_project(hdf5 SYSTEM REQUIRED)
 include(netcdf)
+if (NOT WIN32 AND BUILD_WITH_MPI)
+  include(pnetcdf)
+endif ()
 if(NOT BUILD_WITH_CUBIT)
   add_project(freetype SYSTEM REQUIRED)
   add_project(ftgl SYSTEM REQUIRED)
