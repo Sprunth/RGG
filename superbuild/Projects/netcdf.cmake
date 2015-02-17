@@ -23,6 +23,7 @@ add_external_project(netcdf
     -DUSE_SZIP:BOOL=ON
     -DUSE_HDF5:BOOL=ON
     -DENABLE_NETCDF_4:BOOL=ON
+    -DENABLE_DAP:BOOL=OFF
   ${suppress_build_out}
 )
 
