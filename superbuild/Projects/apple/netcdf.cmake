@@ -1,8 +1,3 @@
-if (build-projects)
-  set (cppflags_save "${cppflags}")
-  set (cppflags "-I${install_location}/include ${cppflags}")
-endif()
-
 option(SUPPRESS_NETCDF_BUILD_OUTPUT "Suppress netcdf build output" ON)
 mark_as_advanced(SUPPRESS_NETCDF_BUILD_OUTPUT)
 
@@ -48,8 +43,3 @@ if( CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "10.6" )
     DEPENDEES update
     DEPENDERS patch1)
 endif()
-
-if (build-projects)
-  # Restore the flags.
-  set(cppflags "${cppflags_save}")
-endif ()

@@ -88,7 +88,7 @@ if (WIN32)
 else ()
   # FIXME: currently, if any of these are empty, we have build issues on Unix.
   set (ldflags "$ENV{LDFLAGS} -L${install_location}/lib")
-  set (cppflags "$ENV{CPPFLAGS} -fPIC")
+  set (cppflags "$ENV{CPPFLAGS} -I${install_location}/include")
   set (cxxflags "$ENV{CXXFLAGS} -fPIC")
   set (cflags "$ENV{CFLAGS} -fPIC")
   set (ld_library_path "${install_location}/lib:$ENV{LD_LIBRARY_PATH}")

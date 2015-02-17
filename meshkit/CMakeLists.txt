@@ -11,14 +11,22 @@ endif()
 project(MeshKitSuperBuild)
 include(CMakeDependentOption)
 
+set (MeshKitSuperBuild_CMAKE_DIR
+  "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
+set (install_location "${CMAKE_CURRENT_BINARY_DIR}/install")
+set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
+set (patch_location "${CMAKE_CURRENT_SOURCE_DIR}/patches")
+set (prefix_path "${install_location}")
+
 set (platform)
 if (APPLE)
   set (platform "apple")
 elseif (UNIX)
   set (platform "unix")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC"  )
+  set (cppflags "${cppflags} -I${install_location}/include")
   set (cflags "${cflags} -fPIC")
-  set (cppflags "${cppflags} -fPIC")
   set (cxxflags "${cxxflags} -fPIC")
 elseif (WIN32)
   set (platform "win32")
@@ -33,17 +41,8 @@ set (CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
-
-set (MeshKitSuperBuild_CMAKE_DIR
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
-
 include (MeshKitModules)
 include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
-
-set (install_location "${CMAKE_CURRENT_BINARY_DIR}/install")
-set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
-set (patch_location "${CMAKE_CURRENT_SOURCE_DIR}/patches")
-set (prefix_path "${install_location}")
 
 option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
 option ( BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF )

@@ -1,15 +1,3 @@
-
-
-#this will only modify the cppflags for netcdf as the next project in the tree
-#moab will unset the cppflags back to the original values
-if (build-projects)
-  set (pre_netcdf_cpp_flags ${cppflags})
-  set (pre_netcdf_c_flags ${cflags})
-
-  set (cppflags "-I${install_location}/include ${cppflags}")
-  set (cflags "-I${install_location}/include ${cflags}")
-endif()
-
 add_external_project(netcdf
   DEPENDS hdf5
 
