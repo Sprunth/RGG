@@ -1,4 +1,9 @@
 set(extra_deps)
+if (BUILD_WITH_CUBIT)
+  list(APPEND extra_deps
+    cubit)
+endif ()
+
 if (BUILD_WITH_MPI)
   list(APPEND extra_deps
     pnetcdf)

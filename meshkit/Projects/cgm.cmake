@@ -1,10 +1,14 @@
-set(cgm_cmake_args)
+set(extra_deps)
 if (BUILD_WITH_CUBIT)
-  list(APPEND cgm_cmake_args
-    "-DCUBITROOT:PATH=${CUBITROOT}")
+  list(APPEND extra_deps
+    cubit)
+else ()
+  list(APPEND extra_deps
+    OCE)
 endif ()
 
 add_external_project(cgm
+  DEPENDS ${extra_deps}
   CMAKE_ARGS
     ${cgm_cmake_args}
     -DCGM_KCM:BOOL=OFF
