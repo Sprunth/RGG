@@ -29,7 +29,7 @@ add_revision(pnetcdf
 
 add_revision(cgm
   GIT_REPOSITORY "https://bitbucket.org/mathstuf/cgm.git"
-  GIT_TAG next
+  GIT_TAG windows-with-cmake-support
   )
 
 if(BUILD_MESHKIT_MASTER)
