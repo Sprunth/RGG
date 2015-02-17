@@ -9,6 +9,8 @@ endif()
 
 
 project(MeshKitSuperBuild)
+set (SuperBuild_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+set (SuperBuild_PROJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Projects")
 include(CMakeDependentOption)
 
 set (MeshKitSuperBuild_CMAKE_DIR
@@ -41,14 +43,12 @@ set (CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
-include (MeshKitModules)
+include (ParaViewModules)
 include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
 
 option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
 option ( BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF )
 option ( BUILD_WITH_MPI       "Build with MPI support" OFF )
-
-find_package(Autotools REQUIRED)
 
 if(BUILD_WITH_CUBIT)
   find_package(CUBIT REQUIRED)
@@ -70,23 +70,26 @@ endif()
 #add_project(mpich2)
 
 
-add_project(zlib SYSTEM REQUIRED)
-add_project(szip SYSTEM REQUIRED)
-add_project(hdf5 SYSTEM REQUIRED)
+include(zlib)
+include(szip)
+include(hdf5)
 include(netcdf)
 if (NOT WIN32 AND BUILD_WITH_MPI)
   include(pnetcdf)
 endif ()
 if(NOT BUILD_WITH_CUBIT)
-  add_project(freetype SYSTEM REQUIRED)
-  add_project(ftgl SYSTEM REQUIRED)
-  add_project(OCE SYSTEM REQUIRED)
+  include(freetype)
+  include(ftgl)
+  include(OCE)
 endif()
-add_project(cgm REQUIRED)
-add_project(moab REQUIRED)
-add_project(lasso REQUIRED)
-add_project(meshkit REQUIRED)
+include(cgm)
+include(moab)
+include(lasso)
+include(meshkit)
 
+#call cmb process dependencies to get the ability to do a build
+#for developers.
+process_dependencies()
 
 INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/bin USE_SOURCE_PERMISSIONS DESTINATION meshkit )
 INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/lib USE_SOURCE_PERMISSIONS DESTINATION meshkit )

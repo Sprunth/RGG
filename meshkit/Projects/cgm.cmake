@@ -11,6 +11,5 @@ add_external_project(cgm
     -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     -DUSE_MPI:BOOL=${BUILD_WITH_MPI})
 
-set_property(GLOBAL APPEND
-  PROPERTY
-    cgm_CMAKE_ARGS "-DCGM_DIR=<INSTALL_DIR>/lib/cmake/CGM")
+add_extra_cmake_args(
+  "-DCGM_DIR=<INSTALL_DIR>/lib/cmake/CGM")

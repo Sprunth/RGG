@@ -12,3 +12,8 @@ add_external_project(pnetcdf
       --disable-fortran
      "--with-mpi=${mpi_root}"
 )
+
+add_extra_cmake_args(
+  "-DPNetCDF_DIR=<INSTALL_DIR>"
+  "-DPNetCDF_INCLUDES=<INSTALL_DIR>/include"
+  "-DPNetCDF_LIBRARIES=<INSTALL_DIR>/lib/libpnetcdf.a")

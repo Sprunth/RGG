@@ -9,8 +9,7 @@ if(SUPPRESS_HDF5_BUILD_OUTPUT)
   set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
-add_external_project(
-  hdf5
+add_external_project(hdf5
   DEPENDS zlib szip
 
   # HDF5 1.8.9 has a CMake install rule bug. Fix that.
@@ -30,3 +29,8 @@ add_external_project(
     -DHDF5_BUILD_WITH_INSTALL_NAME:BOOL=TRUE
   ${suppress_build_out}
 )
+
+add_extra_cmake_args(
+  -DHDF5_DIR:PATH=<INSTALL_DIR>
+  -DHDF5_LIBRARIES:FILEPATH=<INSTALL_DIR>/lib/libhdf5_hl${CMAKE_SHARED_LIBRARY_SUFFIX};<INSTALL_DIR>/lib/libhdf5${CMAKE_SHARED_LIBRARY_SUFFIX}
+  -DHDF5_INCLUDE_DIR:PATH=<INSTALL_DIR>/include)
