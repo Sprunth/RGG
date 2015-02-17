@@ -16,8 +16,6 @@ if (NOT BUILD_WITH_CUBIT)
 endif ()
 
 set(meshkit_args
-  BUILD_COMMAND "make -j5 install"
-  INSTALL_COMMAND ""
   ${suppress_build_out}
   DEPENDS zlib szip hdf5 netcdf ${extra_deps}
   CMAKE_ARGS
