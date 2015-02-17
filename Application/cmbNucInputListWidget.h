@@ -123,6 +123,7 @@ private slots:
   void onNewPin();
   void onImportMaterial();
   void onSaveMaterial();
+  void onClone();
 
   void hideLabels(bool);
 

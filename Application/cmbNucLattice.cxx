@@ -15,6 +15,7 @@ Lattice::Lattice( Lattice const& other )
   this->subType = other.subType;
   this->enGeometryType = other.enGeometryType;
   this->FullCellMode = other.FullCellMode;
+  this->validRange = other.validRange;
 }
 
 Lattice::~Lattice()
@@ -35,6 +36,7 @@ Lattice& Lattice::operator=(Lattice const& other)
   this->subType = other.subType;
   this->enGeometryType = other.enGeometryType;
   this->FullCellMode = other.FullCellMode;
+  this->validRange = other.validRange;
   return *this;
 }
 
