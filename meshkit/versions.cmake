@@ -35,7 +35,7 @@ add_revision(cgm
 if(BUILD_MESHKIT_MASTER)
   add_revision(moab
     GIT_REPOSITORY https://bitbucket.org/mathstuf/moab.git
-    GIT_TAG next
+    GIT_TAG windows-with-cmake-support
   )
 
   add_revision(lasso
