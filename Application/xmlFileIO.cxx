@@ -1169,7 +1169,11 @@ bool xmlFileReader::read(std::string fname, std::vector<PinCell*> & pincells, cm
   {
     return false;
   }
-  pugi::xml_node node = document.child(CORE_TAG.c_str()).child(PINS_TAG.c_str());
+
+  pugi::xml_node node = document.child(CORE_TAG.c_str()).child(MATERIALS_TAG.c_str());
+  if(!helper.read(node, materials)) return false;
+
+  node = document.child(CORE_TAG.c_str()).child(PINS_TAG.c_str());
 
   for (pugi::xml_node pnode = node.child(PINCELL_TAG.c_str()); pnode;
        pnode = pnode.next_sibling(PINCELL_TAG.c_str()))
@@ -1177,6 +1181,48 @@ bool xmlFileReader::read(std::string fname, std::vector<PinCell*> & pincells, cm
     PinCell * pc = new PinCell();
     if(!helper.read(pnode, pc, materials)) return false;
     pincells.push_back(pc);
+  }
+  return true;
+}
+
+bool xmlFileReader::read(std::string fname, std::vector<DuctCell*> & ductcells,
+                         cmbNucMaterialColors * materials)
+{
+  std::ifstream in(fname.c_str(), std::ios::in);
+  if (!in)
+  {
+    return false;
+  }
+
+  // Allocate string
+  std::string content;
+  in.seekg(0, std::ios::end);
+  content.resize(in.tellg());
+
+  in.seekg(0, std::ios::beg);
+  in.read(&content[0], content.size());
+  in.close();
+
+  xmlHelperClass helper;
+
+  pugi::xml_document document;
+  pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
+  if (presult.status != pugi::status_ok)
+  {
+    return false;
+  }
+
+  pugi::xml_node node = document.child(CORE_TAG.c_str()).child(MATERIALS_TAG.c_str());
+  if(!helper.read(node, materials)) return false;
+
+  node = document.child(CORE_TAG.c_str()).child(DUCTS_TAG.c_str());
+
+  for (pugi::xml_node pnode = node.child(DUCT_CELL_TAG.c_str()); pnode;
+       pnode = pnode.next_sibling(DUCT_CELL_TAG.c_str()))
+  {
+    DuctCell * dc = new DuctCell();
+    if(!helper.read(pnode, dc, materials)) return false;
+    ductcells.push_back(dc);
   }
   return true;
 }

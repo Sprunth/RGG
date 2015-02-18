@@ -776,8 +776,18 @@ void cmbNucInputListWidget::updateWithPinLibrary(cmbNucPinLibrary * pl)
   }
 }
 
+void cmbNucInputListWidget::updateWithDuctLibrary()
+{
+  this->updateWithDuctLibrary(this->NuclearCore->getDuctLibrary());
+}
+
 void cmbNucInputListWidget::updateWithDuctLibrary(cmbNucDuctLibrary * dl)
 {
+  QList<QTreeWidgetItem *> tmpl = this->Internal->DuctsNode->takeChildren();
+  for(QList<QTreeWidgetItem *>::iterator i = tmpl.begin(); i != tmpl.end(); ++i)
+  {
+    delete *i;
+  }
   for(size_t i = 0; i < dl->GetNumberOfDuctCells(); i++)
   {
     this->updateWithDuct(dl->GetDuctCell(i));

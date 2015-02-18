@@ -25,6 +25,22 @@ bool cmbNucDuctLibrary
   return true;
 }
 
+bool cmbNucDuctLibrary
+::addDuct(DuctCell * dc, std::map<std::string, std::string> & nameChange)
+{
+  if(dc == NULL) return false;
+  //rename loop
+  std::string n = (dc)->getName();
+  int count = 0;
+  while(this->nameConflicts(n))
+  {
+    n = (QString(n.c_str()) + QString::number(count++)).toStdString();
+  }
+  if(n != (dc)->getName()) nameChange[(dc)->getName()] = n;
+  dc->setName(n);
+  return this->addDuct(dc);
+}
+
 void cmbNucDuctLibrary
 ::removeDuctcell(DuctCell* dc)
 {

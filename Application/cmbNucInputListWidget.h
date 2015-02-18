@@ -91,6 +91,7 @@ public slots:
   void onNewDuct();
   void repaintList();
   void updateWithPinLibrary();
+  void updateWithDuctLibrary();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);

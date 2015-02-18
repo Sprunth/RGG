@@ -8,6 +8,7 @@
 #include "xmlFileIO.h"
 #include "cmbNucDefaults.h"
 #include "cmbNucMaterialColors.h"
+#include "cmbNucDuctLibrary.h"
 
 #include <QSettings>
 #include <QMessageBox>
@@ -46,76 +47,72 @@ bool cmbNucImporter::importXMLPins()
   settings.setValue("cache/lastDir", info.dir().path());
   std::map<std::string, std::string> junk;
 
-  double tmpD;
-  if(!(mainWindow->NuclearCore->HasDefaults() && mainWindow->NuclearCore->GetDefaults()->getHeight(tmpD)))
-  {
-    tmpD = 10.0;
-  }
+  double tmpD = 10.0;
+  assert(mainWindow->NuclearCore->HasDefaults());
+  mainWindow->NuclearCore->GetDefaults()->getHeight(tmpD);
 
   cmbNucMaterialColors * materials = new cmbNucMaterialColors;
-  cmbNucMaterialColors * matColorMap = cmbNucMaterialColors::instance();
   mainWindow->NuclearCore->getPinLibrary()->setKeepGoingAsRename();
 
   for( int i = 0; i < fileNames.count(); ++i)
   {
     materials->clear();
 
-    xmlFileReader::read(fileNames[i].toStdString(), materials);
-    
     std::vector<PinCell*> pincells;
     
     xmlFileReader::read(fileNames[i].toStdString(), pincells, materials);
     for(unsigned int j = 0; j < pincells.size(); ++j)
     {
-      PinCell * pc = pincells[j];
-      pc->setHeight(tmpD);
-      //adjust materials
-      if(pc->cellMaterialSet())
-      {
-        QPointer<cmbNucMaterial> cm = pc->getCellMaterial();
-        QPointer<cmbNucMaterial> tmpm;
-        if( matColorMap->nameUsed(cm->getName()))
-        {
-          tmpm = matColorMap->getMaterialByName(cm->getName());
-        }
-        else if(matColorMap->labelUsed(cm->getLabel()))
-        {
-          tmpm = matColorMap->getMaterialByLabel(cm->getLabel());
-        }
-        else
-        {
-          tmpm = matColorMap->AddMaterial(cm->getName(),
-                                          cm->getLabel(),
-                                          cm->getColor());
-        }
-        assert(tmpm != NULL);
-        assert(tmpm != matColorMap->getUnknownMaterial());
-        pc->setCellMaterial(tmpm);
-      }
-      int layers = pc->GetNumberOfLayers();
-      for(int i = 0; i < layers; ++i)
-      {
-        QPointer<cmbNucMaterial> cm = pc->Material(i);
-        QPointer<cmbNucMaterial> tmpm;
-        if( matColorMap->nameUsed(cm->getName()))
-        {
-          tmpm = matColorMap->getMaterialByName(cm->getName());
-        }
-        else if(matColorMap->labelUsed(cm->getLabel()))
-        {
-          tmpm = matColorMap->getMaterialByLabel(cm->getLabel());
-        }
-        else
-        {
-          tmpm = matColorMap->AddMaterial(cm->getName(),
-                                          cm->getLabel(),
-                                          cm->getColor());
-        }
-        assert(tmpm != NULL);
-        assert(tmpm != matColorMap->getUnknownMaterial());
-        pc->SetMaterial(i, tmpm);
-      }
-      mainWindow->NuclearCore->getPinLibrary()->addPin(&pc, junk);
+      this->addPin(pincells[j], tmpD, junk);
+    }
+  }
+  delete materials;
+  return true;
+}
+
+bool cmbNucImporter::importXMLDucts()
+{
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QStringList fileNames =
+  QFileDialog::getOpenFileNames(mainWindow,
+                                "Open File...",
+                                dir.path(),
+                                "RGG XML File (*.RXF)");
+  if(fileNames.count()==0)
+  {
+    return false;
+  }
+
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileNames[0]);
+  settings.setValue("cache/lastDir", info.dir().path());
+  std::map<std::string, std::string> junk;
+
+  double tmpD = 10;
+  assert(mainWindow->NuclearCore->HasDefaults());
+  mainWindow->NuclearCore->GetDefaults()->getHeight(tmpD);
+
+  double ductThick[] = {10.0, 10.0};
+  mainWindow->NuclearCore->GetDefaults()->getDuctThickness(ductThick[0],ductThick[1]);
+
+  cmbNucMaterialColors * materials = new cmbNucMaterialColors;
+
+  cmbNucDuctLibrary * dl = mainWindow->NuclearCore->getDuctLibrary();
+
+  for( int i = 0; i < fileNames.count(); ++i)
+  {
+    materials->clear();
+
+    std::vector<DuctCell*> ductcells;
+
+    xmlFileReader::read(fileNames[i].toStdString(), ductcells, materials);
+    for(unsigned int j = 0; j < ductcells.size(); ++j)
+    {
+      this->addDuct(ductcells[j], tmpD, ductThick, junk);
     }
   }
   delete materials;
@@ -272,4 +269,72 @@ bool cmbNucImporter::importInpFile()
   // In case the loaded core adds new materials
   mainWindow->InputsWidget->updateUI(numNewAssy);
   return true;
+}
+
+void cmbNucImporter::addPin(PinCell * pc, double dh, std::map<std::string, std::string> & nc)
+{
+  pc->setHeight(dh);
+  //adjust materials
+  if(pc->cellMaterialSet())
+  {
+    QPointer<cmbNucMaterial> cm = pc->getCellMaterial();
+    QPointer<cmbNucMaterial> tmpm = this->getMaterial(pc->getCellMaterial());
+    assert(tmpm != NULL);
+    assert(tmpm != cmbNucMaterialColors::instance()->getUnknownMaterial());
+    pc->setCellMaterial(tmpm);
+  }
+  int layers = pc->GetNumberOfLayers();
+  for(int k = 0; k < layers; ++k)
+  {
+    QPointer<cmbNucMaterial> tmpm = this->getMaterial(pc->Material(k));
+    assert(tmpm != NULL);
+    assert(tmpm != cmbNucMaterialColors::instance()->getUnknownMaterial());
+    pc->SetMaterial(k, tmpm);
+  }
+  mainWindow->NuclearCore->getPinLibrary()->addPin(&pc, nc);
+}
+
+void cmbNucImporter::addDuct(DuctCell * dc, double dh, double dt[2], std::map<std::string, std::string> & nc)
+{
+  dc->setDuctThickness(dt[0], dt[1]);
+  dc->setLength(dh);
+
+  //adjust materials
+  for(unsigned int k = 0; k < dc->numberOfDucts(); ++k)
+  {
+    Duct * d = dc->getDuct(k);
+    int layers = d->NumberOfLayers();
+    for(int l = 0; l < layers; ++l)
+    {
+      QPointer<cmbNucMaterial> tmpm = this->getMaterial(d->getMaterial(l));
+      assert(tmpm != NULL);
+      assert(tmpm != cmbNucMaterialColors::instance()->getUnknownMaterial());
+      d->setMaterial(l, tmpm);
+      if(mainWindow->NuclearCore->IsHexType())
+      {
+        double * tmp = d->getNormThick(l);
+        tmp[1] = tmp[0];
+      }
+    }
+  }
+  mainWindow->NuclearCore->getDuctLibrary()->addDuct(dc, nc);
+}
+
+QPointer<cmbNucMaterial> cmbNucImporter::getMaterial(QPointer<cmbNucMaterial> cm)
+{
+  cmbNucMaterialColors * matColorMap = cmbNucMaterialColors::instance();
+  if( matColorMap->nameUsed(cm->getName()))
+  {
+    return matColorMap->getMaterialByName(cm->getName());
+  }
+  else if(matColorMap->labelUsed(cm->getLabel()))
+  {
+    return matColorMap->getMaterialByLabel(cm->getLabel());
+  }
+  else
+  {
+    return  matColorMap->AddMaterial(cm->getName(),
+                                     cm->getLabel(),
+                                     cm->getColor());
+  }
 }

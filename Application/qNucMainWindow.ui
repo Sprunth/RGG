@@ -90,6 +90,7 @@
      <addaction name="importINPFile"/>
      <addaction name="separator"/>
      <addaction name="actionImportPins"/>
+     <addaction name="actionImportDucts"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
@@ -559,6 +560,11 @@
   <action name="actionImportPins">
    <property name="text">
     <string>Pins</string>
+   </property>
+  </action>
+  <action name="actionImportDucts">
+   <property name="text">
+    <string>Ducts</string>
    </property>
   </action>
  </widget>

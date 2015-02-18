@@ -153,6 +153,7 @@ protected slots:
   void resetCamera();
 
   void onImportPins();
+  void onImportDucts();
 
 private:
   // Designer form

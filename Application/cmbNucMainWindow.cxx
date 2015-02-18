@@ -475,6 +475,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
   connect(this->ui->importINPFile, SIGNAL(triggered()), this, SLOT(onImportINPFile()));
   connect(this->ui->actionImportPins, SIGNAL(triggered()), this, SLOT(onImportPins()));
+  connect(this->ui->actionImportDucts, SIGNAL(triggered()), this, SLOT(onImportDucts()));
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
   connect(this->ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
   connect(this->ui->actionSave,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
@@ -1008,6 +1009,21 @@ void cmbNucMainWindow::onImportPins()
   if(importer->importXMLPins())
   {
     this->InputsWidget->updateWithPinLibrary();
+    this->InputsWidget->initMaterialsTree();
+    this->InputsWidget->repaintList();
+    emit checkSave();
+  }
+
+  this->unsetCursor();
+}
+
+void cmbNucMainWindow::onImportDucts()
+{
+  this->setCursor(Qt::BusyCursor);
+
+  if(importer->importXMLDucts())
+  {
+    this->InputsWidget->updateWithDuctLibrary();
     this->InputsWidget->initMaterialsTree();
     this->InputsWidget->repaintList();
     emit checkSave();
