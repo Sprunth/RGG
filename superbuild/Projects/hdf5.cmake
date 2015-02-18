@@ -21,6 +21,7 @@ add_external_project(hdf5
   #enable install name so that we get full paths to library on apple
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE:STRING=Release
+    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
     -DBUILD_SHARED_LIBS:BOOL=TRUE
     -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=TRUE
     -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=TRUE
