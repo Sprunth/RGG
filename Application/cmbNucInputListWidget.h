@@ -90,6 +90,7 @@ public slots:
   void updateMeshTable(QList<QTreeWidgetItem*> MeshParts);
   void onNewDuct();
   void repaintList();
+  void updateWithPinLibrary();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);

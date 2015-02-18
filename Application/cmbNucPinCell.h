@@ -242,6 +242,8 @@ public:
 
   void splitPin(std::vector<double> const& layers);
 
+  void setHeight(double nh);
+
 protected:
   std::vector<Cylinder*> Cylinders;
   std::vector<Frustum*> Frustums;

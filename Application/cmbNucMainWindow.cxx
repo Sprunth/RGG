@@ -474,6 +474,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
   connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
   connect(this->ui->importINPFile, SIGNAL(triggered()), this, SLOT(onImportINPFile()));
+  connect(this->ui->actionImportPins, SIGNAL(triggered()), this, SLOT(onImportPins()));
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
   connect(this->ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
   connect(this->ui->actionSave,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
@@ -499,7 +500,7 @@ cmbNucMainWindow::cmbNucMainWindow()
            this,                                 SLOT(onNewCore()) );
   connect( this->ui->actionNew_Rectilinear_Core, SIGNAL(triggered()),
            this,                                 SLOT(onNewCore()) );
-  this->ui->actionNew_Assembly->setEnabled(false);
+  this->setCoreActions(false);
 
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
           this->Preferences, SLOT(setPreferences()));
@@ -552,6 +553,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->meshControls(false);
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
+}
+
+void cmbNucMainWindow::setCoreActions(bool v)
+{
+  this->ui->actionNew_Assembly->setEnabled(v);
+  this->ui->actionImportPins->setEnabled(v);
+  this->ui->actionExport->setEnabled(v);
 }
 
 void cmbNucMainWindow::CameraMovedHandlerModel()
@@ -898,8 +906,7 @@ void cmbNucMainWindow::onNewCore()
     this->InputsWidget->onNewDuct();
     this->InputsWidget->onNewAssembly();
     this->NuclearCore->sendDefaults();
-    this->ui->actionNew_Assembly->setEnabled(true);
-    this->ui->actionExport->setEnabled(true);
+    this->setCoreActions(true);
     this->resetCamera();
     this->Renderer->Render();
     this->Internal->HasModel = true;
@@ -939,9 +946,7 @@ void cmbNucMainWindow::onFileOpen()
     this->NuclearCore->setAndTestDiffFromFiles(false);
     this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                   defaultAssemblyColors);
-    this->ui->actionNew_Assembly->setEnabled(true);
-    this->ui->actionExport->setEnabled(true);
-    this->PropertyWidget->resetCore(this->NuclearCore);
+    this->setCoreActions(true);
     setTitle();
     this->Internal->HasModel = true;
     this->modelControls(true);
@@ -979,8 +984,7 @@ void cmbNucMainWindow::onImportINPFile()
 
   if(importer->importInpFile())
   {
-    this->ui->actionNew_Assembly->setEnabled(true);
-    this->ui->actionExport->setEnabled(true);
+    this->setCoreActions(true);
     this->setTitle();
     this->modelControls(true);
 
@@ -994,6 +998,21 @@ void cmbNucMainWindow::onImportINPFile()
     this->Renderer->Render();
   }
   
+  this->unsetCursor();
+}
+
+void cmbNucMainWindow::onImportPins()
+{
+  this->setCursor(Qt::BusyCursor);
+
+  if(importer->importXMLPins())
+  {
+    this->InputsWidget->updateWithPinLibrary();
+    this->InputsWidget->initMaterialsTree();
+    this->InputsWidget->repaintList();
+    emit checkSave();
+  }
+
   this->unsetCursor();
 }
 
@@ -1271,8 +1290,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   connect( this->NuclearCore->GetConnection(), SIGNAL(dataChangedSig()),
            this, SLOT(checkExporter()) );
   this->InputsWidget->setCore(this->NuclearCore);
-  this->ui->actionNew_Assembly->setEnabled(false);
-  this->ui->actionExport->setEnabled(false);
+  this->setCoreActions(false);
 
   this->Internal->HasModel = false;
 

@@ -758,8 +758,18 @@ void cmbNucInputListWidget::updateWithPin(PinCell * pincell, bool select)
   }
 }
 
+void cmbNucInputListWidget::updateWithPinLibrary()
+{
+  this->updateWithPinLibrary(this->NuclearCore->getPinLibrary());
+}
+
 void cmbNucInputListWidget::updateWithPinLibrary(cmbNucPinLibrary * pl)
 {
+  QList<QTreeWidgetItem *> tmpl = this->Internal->PinsNode->takeChildren();
+  for(QList<QTreeWidgetItem *>::iterator i = tmpl.begin(); i != tmpl.end(); ++i)
+  {
+    delete *i;
+  }
   for(size_t i = 0; i < pl->GetNumberOfPinCells(); i++)
   {
     this->updateWithPin(pl->GetPinCell(i));

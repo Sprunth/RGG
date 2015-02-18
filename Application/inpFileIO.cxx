@@ -1286,45 +1286,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
       pincell->SetLegendColor(firstMaterial->getColor());
     }
 
-    if(this->keepGoing)
-    {
-      if(pl->testPinConflicts(pincell) && this->renamePin)
-      {
-        //TODO
-        //rename loop
-        std::string n = pincell->getName();
-        int count = 0;
-        while(pl->nameConflicts(n))
-        {
-          n = (QString(n.c_str()) + QString::number(count++)).toStdString();
-        }
-        //relabel loop
-        std::string l = pincell->getLabel();
-        count = 0;
-        while(pl->labelConflicts(l))
-        {
-          l = (QString(l.c_str()) + QString::number(count++)).toStdString();
-        }
-        pincell->setName(n);
-        if(pincell->getLabel() != l) newLabel[pincell->getLabel()] = l;
-        pincell->setLabel(l);
-      }
-    }
-    else
-    {
-      pinAddMode = cmbNucPinLibrary::KeepOriginal;
-      if(pl->testPinConflicts(pincell))
-      {
-        std::string old_label = pincell->getLabel();
-        cmbNucConflictDialog cncd(NULL, pl, pincell);
-        pinAddMode = static_cast<cmbNucPinLibrary::AddMode>(cncd.exec());
-        this->renamePin = cncd.rename();
-        this->keepGoing = cncd.keepGoing();
-        std::string new_label = pincell->getLabel();
-        if(new_label != old_label) newLabel[old_label] = new_label;
-      }
-    }
-    pl->addPin(&pincell, pinAddMode);
+    pl->addPin(&pincell, newLabel);
     assembly.AddPinCell(pincell);
   }
   return true;

@@ -152,6 +152,8 @@ protected slots:
 
   void resetCamera();
 
+  void onImportPins();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
@@ -159,6 +161,7 @@ private:
   cmbNucImporter * importer;
 
   void doClearAll(bool needSave = false);
+  void setCoreActions(bool);
 
   cmbNucRender * NucMappers;
   vtkSmartPointer<vtkRenderer> Renderer;

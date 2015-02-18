@@ -5,6 +5,9 @@
 #include "cmbNucInputListWidget.h"
 #include "cmbNucAssembly.h"
 #include "cmbNucInputPropertiesWidget.h"
+#include "xmlFileIO.h"
+#include "cmbNucDefaults.h"
+#include "cmbNucMaterialColors.h"
 
 #include <QSettings>
 #include <QMessageBox>
@@ -19,6 +22,104 @@ extern int numAssemblyDefaultColors;
 cmbNucImporter::cmbNucImporter(cmbNucMainWindow * mw)
 :mainWindow(mw)
 {
+}
+
+bool cmbNucImporter::importXMLPins()
+{
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QStringList fileNames =
+  QFileDialog::getOpenFileNames(mainWindow,
+                                "Open File...",
+                                dir.path(),
+                                "RGG XML File (*.RXF)");
+  if(fileNames.count()==0)
+  {
+    return false;
+  }
+
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileNames[0]);
+  settings.setValue("cache/lastDir", info.dir().path());
+  std::map<std::string, std::string> junk;
+
+  double tmpD;
+  if(!(mainWindow->NuclearCore->HasDefaults() && mainWindow->NuclearCore->GetDefaults()->getHeight(tmpD)))
+  {
+    tmpD = 10.0;
+  }
+
+  cmbNucMaterialColors * materials = new cmbNucMaterialColors;
+  cmbNucMaterialColors * matColorMap = cmbNucMaterialColors::instance();
+  mainWindow->NuclearCore->getPinLibrary()->setKeepGoingAsRename();
+
+  for( int i = 0; i < fileNames.count(); ++i)
+  {
+    materials->clear();
+
+    xmlFileReader::read(fileNames[i].toStdString(), materials);
+    
+    std::vector<PinCell*> pincells;
+    
+    xmlFileReader::read(fileNames[i].toStdString(), pincells, materials);
+    for(unsigned int j = 0; j < pincells.size(); ++j)
+    {
+      PinCell * pc = pincells[j];
+      pc->setHeight(tmpD);
+      //adjust materials
+      if(pc->cellMaterialSet())
+      {
+        QPointer<cmbNucMaterial> cm = pc->getCellMaterial();
+        QPointer<cmbNucMaterial> tmpm;
+        if( matColorMap->nameUsed(cm->getName()))
+        {
+          tmpm = matColorMap->getMaterialByName(cm->getName());
+        }
+        else if(matColorMap->labelUsed(cm->getLabel()))
+        {
+          tmpm = matColorMap->getMaterialByLabel(cm->getLabel());
+        }
+        else
+        {
+          tmpm = matColorMap->AddMaterial(cm->getName(),
+                                          cm->getLabel(),
+                                          cm->getColor());
+        }
+        assert(tmpm != NULL);
+        assert(tmpm != matColorMap->getUnknownMaterial());
+        pc->setCellMaterial(tmpm);
+      }
+      int layers = pc->GetNumberOfLayers();
+      for(int i = 0; i < layers; ++i)
+      {
+        QPointer<cmbNucMaterial> cm = pc->Material(i);
+        QPointer<cmbNucMaterial> tmpm;
+        if( matColorMap->nameUsed(cm->getName()))
+        {
+          tmpm = matColorMap->getMaterialByName(cm->getName());
+        }
+        else if(matColorMap->labelUsed(cm->getLabel()))
+        {
+          tmpm = matColorMap->getMaterialByLabel(cm->getLabel());
+        }
+        else
+        {
+          tmpm = matColorMap->AddMaterial(cm->getName(),
+                                          cm->getLabel(),
+                                          cm->getColor());
+        }
+        assert(tmpm != NULL);
+        assert(tmpm != matColorMap->getUnknownMaterial());
+        pc->SetMaterial(i, tmpm);
+      }
+      mainWindow->NuclearCore->getPinLibrary()->addPin(&pc, junk);
+    }
+  }
+  delete materials;
+  return true;
 }
 
 bool cmbNucImporter::importInpFile()
@@ -43,6 +144,8 @@ bool cmbNucImporter::importInpFile()
   settings.setValue("cache/lastDir", info.dir().path());
   int numExistingAssy = mainWindow->NuclearCore->GetNumberOfAssemblies();
   bool need_to_use_assem = false;
+
+  mainWindow->NuclearCore->getPinLibrary()->resetConflictResolution();
 
   for( int i = 0; i < fileNames.count(); ++i)
   {

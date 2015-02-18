@@ -156,17 +156,17 @@ public:
   bool read(pugi::xml_node & node, cmbNucMaterialColors * materials);
   bool read(pugi::xml_node & node, QString & name, QString & label, QColor & color);
 
-  bool read(pugi::xml_node & node, cmbNucPinLibrary * dl);
-  bool read(pugi::xml_node & node, PinCell * dc);
-  bool read(pugi::xml_node & node, Cylinder * dc);
-  bool read(pugi::xml_node & node, Frustum * dc);
-  bool readPSP(pugi::xml_node & node, PinSubPart * dc);
+  bool read(pugi::xml_node & node, cmbNucPinLibrary * dl, cmbNucMaterialColors * materials);
+  bool read(pugi::xml_node & node, PinCell * dc, cmbNucMaterialColors * materials);
+  bool read(pugi::xml_node & node, Cylinder * dc, cmbNucMaterialColors * materials);
+  bool read(pugi::xml_node & node, Frustum * dc, cmbNucMaterialColors * materials);
+  bool readPSP(pugi::xml_node & node, PinSubPart * dc, cmbNucMaterialColors * materials);
 
-  bool read(pugi::xml_node & node, cmbNucMaterialLayer * ml);
+  bool read(pugi::xml_node & node, cmbNucMaterialLayer * ml, cmbNucMaterialColors * materials);
 
-  bool read(pugi::xml_node & node, cmbNucDuctLibrary * dl);
-  bool read(pugi::xml_node & node, DuctCell * dc);
-  bool read(pugi::xml_node & node, Duct * dc);
+  bool read(pugi::xml_node & node, cmbNucDuctLibrary * dl, cmbNucMaterialColors * materials);
+  bool read(pugi::xml_node & node, DuctCell * dc, cmbNucMaterialColors * materials);
+  bool read(pugi::xml_node & node, Duct * dc, cmbNucMaterialColors * materials);
 
   bool read(pugi::xml_node & node, cmbNucAssembly* assy);
 
@@ -252,7 +252,7 @@ public:
 };
 
 bool xmlHelperClass::write(pugi::xml_node & materialElement,
-                                    cmbNucMaterialColors * cnmc)
+                           cmbNucMaterialColors * cnmc)
 {
   std::vector< QPointer< cmbNucMaterial > > materials = cnmc->getMaterials();
   for(size_t i = 0; i < materials.size(); ++i)
@@ -606,11 +606,11 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
   }
   {
     pugi::xml_node node = rootElement.child(DUCTS_TAG.c_str());
-    if(!read(node, core.getDuctLibrary())) return false;
+    if(!read(node, core.getDuctLibrary(), cmbNucMaterialColors::instance())) return false;
   }
   {
     pugi::xml_node node = rootElement.child(PINS_TAG.c_str());
-    if(!read(node, core.getPinLibrary())) return false;
+    if(!read(node, core.getPinLibrary(), cmbNucMaterialColors::instance())) return false;
   }
 
   {
@@ -761,7 +761,8 @@ bool xmlHelperClass::read(pugi::xml_node & node, QString & name, QString & label
   return true;
 }
 
-bool xmlHelperClass::read(pugi::xml_node & node, cmbNucPinLibrary * dl)
+bool xmlHelperClass::read(pugi::xml_node & node, cmbNucPinLibrary * dl,
+                          cmbNucMaterialColors * materials)
 {
   if(dl == NULL) return false;
 
@@ -769,7 +770,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucPinLibrary * dl)
        pnode = pnode.next_sibling(PINCELL_TAG.c_str()))
   {
     PinCell * pc = new PinCell();
-    if(!this->read(pnode, pc)) return false;
+    if(!this->read(pnode, pc, materials)) return false;
     std::string name = pc->getName(), label = pc->getLabel();
     int count = 0;
     //Mainly for when importing a pin file
@@ -790,7 +791,8 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucPinLibrary * dl)
   return true;
 }
 
-bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc)
+bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc,
+                          cmbNucMaterialColors * materials)
 {
   if( dc == NULL ) return false;
   bool r = true;
@@ -807,7 +809,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc)
       tnode = tnode.next_sibling(CYLINDER_TAG.c_str()))
   {
     Cylinder * c = new Cylinder(0,0,0);
-    r &= this->read(tnode, c);
+    r &= this->read(tnode, c, materials);
     dc->AddCylinder(c);
   }
 
@@ -816,32 +818,35 @@ bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc)
       tnode = tnode.next_sibling(FRUSTRUM_TAG.c_str()))
   {
     Frustum * f = new Frustum(junk, 0, 0);
-    r &= this->read(tnode, f);
+    r &= this->read(tnode, f, materials);
     dc->AddFrustum(f);
   }
 
   return r;
 }
 
-bool xmlHelperClass::read(pugi::xml_node & node, Cylinder * dc)
+bool xmlHelperClass::read(pugi::xml_node & node, Cylinder * dc,
+                          cmbNucMaterialColors * materials)
 {
   if( dc == NULL ) return false;
   bool r = true;
   r &= read(node, RADIUS_TAG.c_str(), dc->r);
-  r &= readPSP(node, dc);
+  r &= readPSP(node, dc, materials);
   return r;
 }
 
-bool xmlHelperClass::read(pugi::xml_node & node, Frustum * dc)
+bool xmlHelperClass::read(pugi::xml_node & node, Frustum * dc,
+                          cmbNucMaterialColors * materials)
 {
   if( dc == NULL ) return false;
   bool r = true;
   r &= read(node, RADIUS_TAG.c_str(), dc->r, 2);
-  r &= readPSP(node, dc);
+  r &= readPSP(node, dc, materials);
   return r;
 }
 
-bool xmlHelperClass::readPSP(pugi::xml_node & node, PinSubPart * dc)
+bool xmlHelperClass::readPSP(pugi::xml_node & node, PinSubPart * dc,
+                             cmbNucMaterialColors * materials)
 {
   if( dc == NULL ) return false;
   QString str;
@@ -856,25 +861,27 @@ bool xmlHelperClass::readPSP(pugi::xml_node & node, PinSubPart * dc)
       tnode = tnode.next_sibling(MATERIAL_LAYER_TAG.c_str()))
   {
     cmbNucMaterialLayer * ml = new cmbNucMaterialLayer();
-    if(!read(tnode, ml)) return false;
+    if(!read(tnode, ml, materials)) return false;
     dc->setMaterialLayer(i++, ml);
   }
   return true;
 }
 
-bool xmlHelperClass::read(pugi::xml_node & node, cmbNucMaterialLayer * ml)
+bool xmlHelperClass::read(pugi::xml_node & node, cmbNucMaterialLayer * ml,
+                          cmbNucMaterialColors * materials)
 {
   bool r = true;
   QString materialName;
   r &= read(node, THICKNESS_TAG.c_str(), ml->getThickness(), 2);
   r &= read(node, MATERIAL_TAG.c_str(), materialName);
-  QPointer<cmbNucMaterial> cnm = cmbNucMaterialColors::instance()->getMaterialByName(materialName);
+  QPointer<cmbNucMaterial> cnm = materials->getMaterialByName(materialName);
   ml->changeMaterial(cnm);
 
   return r;
 }
 
-bool xmlHelperClass::read(pugi::xml_node & node, cmbNucDuctLibrary * dl)
+bool xmlHelperClass::read(pugi::xml_node & node, cmbNucDuctLibrary * dl,
+                          cmbNucMaterialColors * materials)
 {
   if(dl == NULL) return false;
 
@@ -882,7 +889,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucDuctLibrary * dl)
       tnode = tnode.next_sibling(DUCT_CELL_TAG.c_str()))
   {
     DuctCell * dc  = new DuctCell();
-    if(!this->read(tnode, dc)) return false;
+    if(!this->read(tnode, dc, materials)) return false;
     std::string name = dc->getName();
     int count = 0;
     while(dl->nameConflicts(name))
@@ -896,7 +903,8 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucDuctLibrary * dl)
   return true;
 }
 
-bool xmlHelperClass::read(pugi::xml_node & node, DuctCell * dc)
+bool xmlHelperClass::read(pugi::xml_node & node, DuctCell * dc,
+                          cmbNucMaterialColors * materials)
 {
   if(dc == NULL) return false;
   std::string name;
@@ -906,13 +914,14 @@ bool xmlHelperClass::read(pugi::xml_node & node, DuctCell * dc)
       tnode = tnode.next_sibling(DUCT_LAYER_TAG.c_str()))
   {
     Duct * d = new Duct(0,0,0);
-    if(!read(tnode, d)) return false;
+    if(!read(tnode, d, materials)) return false;
     dc->AddDuct(d);
   }
   return true;
 }
 
-bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc)
+bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc,
+                          cmbNucMaterialColors * materials)
 {
   if(dc == NULL) return false;
   QString str;
@@ -932,7 +941,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc)
       tnode = tnode.next_sibling(MATERIAL_LAYER_TAG.c_str()))
   {
     cmbNucMaterialLayer * ml = new cmbNucMaterialLayer();
-    if(!read(tnode, ml)) return false;
+    if(!read(tnode, ml, materials)) return false;
     dc->setMaterialLayer(i++, ml);
   }
 
@@ -1104,6 +1113,72 @@ bool xmlFileReader::read(std::string fname, cmbNucCore & core)
   core.CurrentFileName = fname;
 
   return helper.read(content, core);
+}
+
+bool xmlFileReader::read(std::string fname, cmbNucMaterialColors * materials)
+{
+  std::ifstream in(fname.c_str(), std::ios::in);
+  if (!in)
+  {
+    return false;
+  }
+
+  // Allocate string
+  std::string content;
+  in.seekg(0, std::ios::end);
+  content.resize(in.tellg());
+
+  in.seekg(0, std::ios::beg);
+  in.read(&content[0], content.size());
+  in.close();
+
+  xmlHelperClass helper;
+
+  pugi::xml_document document;
+  pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
+  if (presult.status != pugi::status_ok)
+  {
+    return false;
+  }
+  pugi::xml_node node = document.child(CORE_TAG.c_str()).child(MATERIALS_TAG.c_str());
+  return helper.read(node, materials);
+}
+
+bool xmlFileReader::read(std::string fname, std::vector<PinCell*> & pincells, cmbNucMaterialColors * materials)
+{
+  std::ifstream in(fname.c_str(), std::ios::in);
+  if (!in)
+  {
+    return false;
+  }
+
+  // Allocate string
+  std::string content;
+  in.seekg(0, std::ios::end);
+  content.resize(in.tellg());
+
+  in.seekg(0, std::ios::beg);
+  in.read(&content[0], content.size());
+  in.close();
+
+  xmlHelperClass helper;
+
+  pugi::xml_document document;
+  pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
+  if (presult.status != pugi::status_ok)
+  {
+    return false;
+  }
+  pugi::xml_node node = document.child(CORE_TAG.c_str()).child(PINS_TAG.c_str());
+
+  for (pugi::xml_node pnode = node.child(PINCELL_TAG.c_str()); pnode;
+       pnode = pnode.next_sibling(PINCELL_TAG.c_str()))
+  {
+    PinCell * pc = new PinCell();
+    if(!helper.read(pnode, pc, materials)) return false;
+    pincells.push_back(pc);
+  }
+  return true;
 }
 
 bool xmlFileWriter::write(std::string fname, cmbNucCore & core, bool /*updateFname*/) //TODO the file update
