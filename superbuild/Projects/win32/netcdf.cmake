@@ -26,3 +26,6 @@ add_external_project(netcdf
     -DENABLE_DAP:BOOL=OFF
   ${suppress_build_out}
 )
+
+add_extra_cmake_args(
+  "-DNetCDF_DIR:path=<INSTALL_DIR>")
