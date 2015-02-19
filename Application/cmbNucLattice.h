@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cassert>
 
 #include "cmbNucPartDefinition.h"
 
@@ -134,6 +135,7 @@ public:
 
   Lattice::CellDrawMode getFullCellMode() const
   {
+    assert(FullCellMode == RECT || FullCellMode == HEX_FULL || FullCellMode == HEX_FULL_30);
     return FullCellMode;
   }
 

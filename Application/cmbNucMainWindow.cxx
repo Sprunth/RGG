@@ -1065,10 +1065,12 @@ void cmbNucMainWindow::onImportINPFile()
         if( this->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
             this->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )
         {
+          this->NuclearCore->getLattice().setFullCellMode(Lattice::HEX_FULL);
           assembly->getLattice().setFullCellMode(Lattice::HEX_FULL);
         }
         else
         {
+          this->NuclearCore->getLattice().setFullCellMode(Lattice::HEX_FULL);
           assembly->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
         }
         assembly->adjustRotation();
@@ -1098,6 +1100,7 @@ void cmbNucMainWindow::onImportINPFile()
         setTitle();
         this->Internal->HasModel = true;
         this->modelControls(true);
+        this->NuclearCore->getLattice().setFullCellMode(Lattice::HEX_FULL);
         for(unsigned int j = 0; j < this->NuclearCore->GetNumberOfAssemblies(); ++j)
         {
           this->NuclearCore->GetAssembly(j)->adjustRotation();
@@ -1255,7 +1258,7 @@ void cmbNucMainWindow::onSaveAll()
 
 bool cmbNucMainWindow::exportINPs()
 {
-  
+
   return this->Internal->inpExporter.exportInpFiles();
 }
 
