@@ -12,6 +12,7 @@ endif ()
 add_external_project(cgm
   DEPENDS ${extra_deps}
   CMAKE_ARGS
+    -DCGM_USE_CUBIT:BOOL=${BUILD_WITH_CUBIT}
     -DCGM_OCC:BOOL=${use_occ}
     -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
     -DUSE_MPI:BOOL=${BUILD_WITH_MPI})
