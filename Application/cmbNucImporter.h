@@ -3,6 +3,7 @@
 
 #include <cmbNucMaterial.h>
 #include <map>
+#include <QStringList>
 
 class cmbNucCore;
 class cmbNucMainWindow;
@@ -16,9 +17,11 @@ public:
   bool importInpFile();
   bool importXMLPins();
   bool importXMLDucts();
+  bool importXMLAssembly();
 protected:
   void addPin(PinCell * pc, double dh, std::map<std::string, std::string> & nc);
   void addDuct(DuctCell * dc, double dh, double dt[2], std::map<std::string, std::string> & nc);
+  QStringList getXMLFiles();
   QPointer<cmbNucMaterial> getMaterial(QPointer<cmbNucMaterial> in);
   cmbNucMainWindow * mainWindow;
 };

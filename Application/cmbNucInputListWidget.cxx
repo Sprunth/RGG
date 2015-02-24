@@ -650,10 +650,10 @@ void cmbNucInputListWidget::updateUI(bool selCore)
 {
   this->initUI();
   if(!this->NuclearCore)
-    {
+  {
     this->setEnabled(0);
     return;
-    }
+  }
   this->setEnabled(1);
   // Core node
   this->initCoreRootNode();
@@ -661,16 +661,16 @@ void cmbNucInputListWidget::updateUI(bool selCore)
   this->updateWithDuctLibrary(this->NuclearCore->getDuctLibrary());
   // Assembly nodes
   for(int i=0; i<this->NuclearCore->GetNumberOfAssemblies(); i++)
-    {
+  {
     this->updateWithAssembly(this->NuclearCore->GetAssembly(i),
       (!selCore && i == (this->NuclearCore->GetNumberOfAssemblies()-1)));
-    }
+  }
 
   if(selCore)
-    {
+  {
     this->Internal->RootCoreNode->setSelected(true);
     this->onPartsSelectionChanged();
-    }
+  }
 }
 //-----------------------------------------------------------------------------
 void cmbNucInputListWidget::initCoreRootNode()
@@ -707,6 +707,19 @@ void cmbNucInputListWidget::initCoreRootNode()
     this->Internal->AssemblyNode->setChildIndicatorPolicy(
                                                           QTreeWidgetItem::DontShowIndicatorWhenChildless);
     this->Internal->AssemblyNode->setExpanded(false);
+  }
+}
+
+void cmbNucInputListWidget::updateWithAssembly()
+{
+  QList<QTreeWidgetItem *> tmpl = this->Internal->AssemblyNode->takeChildren();
+  for(QList<QTreeWidgetItem *>::iterator i = tmpl.begin(); i != tmpl.end(); ++i)
+  {
+    delete *i;
+  }
+  for(int i=0; i<this->NuclearCore->GetNumberOfAssemblies(); i++)
+  {
+    this->updateWithAssembly(this->NuclearCore->GetAssembly(i), false);
   }
 }
 

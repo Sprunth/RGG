@@ -10,11 +10,12 @@
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDuctLibrary.h"
 
+#include <set>
+
 #include <QSettings>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
-#include <QStringList>
 #include <QDebug>
 
 extern int defaultAssemblyColors[][3];
@@ -27,24 +28,12 @@ cmbNucImporter::cmbNucImporter(cmbNucMainWindow * mw)
 
 bool cmbNucImporter::importXMLPins()
 {
-  // Use cached value for last used directory if there is one,
-  // or default to the user's home dir if not.
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
-
-  QStringList fileNames =
-  QFileDialog::getOpenFileNames(mainWindow,
-                                "Open File...",
-                                dir.path(),
-                                "RGG XML File (*.RXF)");
+  QStringList fileNames = this->getXMLFiles();
   if(fileNames.count()==0)
   {
     return false;
   }
 
-  // Cache the directory for the next time the dialog is opened
-  QFileInfo info(fileNames[0]);
-  settings.setValue("cache/lastDir", info.dir().path());
   std::map<std::string, std::string> junk;
 
   double tmpD = 10.0;
@@ -60,7 +49,7 @@ bool cmbNucImporter::importXMLPins()
 
     std::vector<PinCell*> pincells;
     
-    xmlFileReader::read(fileNames[i].toStdString(), pincells, materials);
+    if(!xmlFileReader::read(fileNames[i].toStdString(), pincells, materials)) return false;
     for(unsigned int j = 0; j < pincells.size(); ++j)
     {
       this->addPin(pincells[j], tmpD, junk);
@@ -72,24 +61,12 @@ bool cmbNucImporter::importXMLPins()
 
 bool cmbNucImporter::importXMLDucts()
 {
-  // Use cached value for last used directory if there is one,
-  // or default to the user's home dir if not.
-  QSettings settings("CMBNuclear", "CMBNuclear");
-  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
-
-  QStringList fileNames =
-  QFileDialog::getOpenFileNames(mainWindow,
-                                "Open File...",
-                                dir.path(),
-                                "RGG XML File (*.RXF)");
+  QStringList fileNames = this->getXMLFiles();
   if(fileNames.count()==0)
   {
     return false;
   }
 
-  // Cache the directory for the next time the dialog is opened
-  QFileInfo info(fileNames[0]);
-  settings.setValue("cache/lastDir", info.dir().path());
   std::map<std::string, std::string> junk;
 
   double tmpD = 10;
@@ -109,7 +86,7 @@ bool cmbNucImporter::importXMLDucts()
 
     std::vector<DuctCell*> ductcells;
 
-    xmlFileReader::read(fileNames[i].toStdString(), ductcells, materials);
+    if(!xmlFileReader::read(fileNames[i].toStdString(), ductcells, materials)) return false;
     for(unsigned int j = 0; j < ductcells.size(); ++j)
     {
       this->addDuct(ductcells[j], tmpD, ductThick, junk);
@@ -271,6 +248,108 @@ bool cmbNucImporter::importInpFile()
   return true;
 }
 
+bool cmbNucImporter::importXMLAssembly()
+{
+  QStringList fileNames = this->getXMLFiles();
+  if(fileNames.count()==0)
+  {
+    return false;
+  }
+
+  cmbNucDuctLibrary * dl = new cmbNucDuctLibrary();
+  cmbNucPinLibrary * pl = new cmbNucPinLibrary();
+  cmbNucMaterialColors * materials = new cmbNucMaterialColors;
+
+  double tmpD = 10;
+  assert(mainWindow->NuclearCore->HasDefaults());
+  mainWindow->NuclearCore->GetDefaults()->getHeight(tmpD);
+
+  double ductThick[] = {10.0, 10.0};
+  mainWindow->NuclearCore->GetDefaults()->getDuctThickness(ductThick[0],ductThick[1]);
+
+  for( int i = 0; i < fileNames.count(); ++i)
+  {
+    materials->clear();
+
+    std::vector<cmbNucAssembly *> assys;
+    std::map<PinCell*, PinCell*> addedPin;
+    std::map<DuctCell*, DuctCell*> addedDuct;
+    std::map<std::string, std::string> ductMap;
+    std::map<std::string, std::string> pinMap;
+
+    xmlFileReader::read(fileNames[i].toStdString(), assys, pl, dl, materials);
+    for(unsigned int j = 0; j < assys.size(); ++j)
+    {
+      cmbNucAssembly * assy = assys[j];
+      if(assy->IsHexType() != mainWindow->NuclearCore->IsHexType())
+      {
+        QMessageBox msgBox;
+        msgBox.setText("Not the same type");
+        msgBox.setInformativeText(fileNames[i]+" is not the same geometry type as current core.");
+        msgBox.exec();
+        for(unsigned int k = 0; k < assys.size(); ++k)
+        {
+          delete assys[k];
+        }
+        j = assys.size();
+        continue;
+      }
+      //update duct
+      DuctCell * aduct = &(assy->getAssyDuct());
+      if(addedDuct.find(aduct) != addedDuct.end())
+      {
+        assy->setDuctCell(addedDuct[aduct]);
+      }
+      else
+      {
+        DuctCell * dc = new DuctCell();
+        dc->fill(aduct);
+        addedDuct[aduct] = dc;
+        this->addDuct(dc, tmpD, ductThick, ductMap);
+        assy->setDuctCell(dc);
+      }
+      std::map<std::string, std::string> jnk;
+
+      //update pins
+      for(int k = 0; k < assy->GetNumberOfPinCells(); ++k)
+      {
+        PinCell* old = assy->GetPinCell(k);
+        PinCell* newpc = NULL;
+        if(addedPin.find(old) != addedPin.end())
+        {
+          newpc = addedPin[old];
+        }
+        else
+        {
+          newpc = new PinCell;
+          newpc->fill(old);
+          addedPin[old] = newpc;
+          this->addPin(newpc, tmpD, jnk);
+        }
+        assy->SetPinCell(k, newpc);
+        if(old->getLabel() != newpc->getLabel())
+        {
+          assy->getLattice().replaceLabel(old->getLabel(), newpc->getLabel());
+        }
+      }
+
+      //add assy
+      std::string n = assy->getLabel();
+      int count = 0;
+      while(!mainWindow->NuclearCore->label_unique(n))
+      {
+        n = (QString(n.c_str()) + QString::number(count++)).toStdString();
+      }
+      assy->setLabel(n);
+      mainWindow->NuclearCore->AddAssembly(assy);
+    }
+  }
+  delete materials;
+  delete dl;
+  delete pl;
+  return true;
+}
+
 void cmbNucImporter::addPin(PinCell * pc, double dh, std::map<std::string, std::string> & nc)
 {
   pc->setHeight(dh);
@@ -337,4 +416,27 @@ QPointer<cmbNucMaterial> cmbNucImporter::getMaterial(QPointer<cmbNucMaterial> cm
                                      cm->getLabel(),
                                      cm->getColor());
   }
+}
+
+QStringList cmbNucImporter::getXMLFiles()
+{
+  // Use cached value for last used directory if there is one,
+  // or default to the user's home dir if not.
+  QSettings settings("CMBNuclear", "CMBNuclear");
+  QDir dir = settings.value("cache/lastDir", QDir::homePath()).toString();
+
+  QStringList fileNames =
+  QFileDialog::getOpenFileNames(mainWindow,
+                                "Open File...",
+                                dir.path(),
+                                "RGG XML File (*.RXF)");
+  if(fileNames.count()==0)
+  {
+    return fileNames;
+  }
+
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileNames[0]);
+  settings.setValue("cache/lastDir", info.dir().path());
+  return fileNames;
 }

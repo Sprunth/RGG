@@ -200,6 +200,7 @@ void cmbNucInputPropertiesWidget::onApply()
       break;
     }
 }
+
 // Invoked when Reset button clicked
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::onReset()
@@ -209,32 +210,31 @@ void cmbNucInputPropertiesWidget::onReset()
     return;
     }
   AssyPartObj* selObj = this->CurrentObject;
-  PinCell* pincell = NULL;
-  cmbNucCore* nucCore = NULL;
-  cmbNucAssembly* assy = NULL;
   switch(selObj->GetType())
-    {
+  {
     case CMBNUC_CORE:
-      nucCore = dynamic_cast<cmbNucCore*>(selObj);
+    {
+      cmbNucCore* nucCore = dynamic_cast<cmbNucCore*>(selObj);
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
       this->CoreDefaults->set(nucCore->GetDefaults(), true, nucCore->IsHexType());
       this->Internal->coreLabelY->setVisible(!nucCore->IsHexType());
       this->Internal->coreLatticeY->setVisible(!nucCore->IsHexType());
       if(nucCore->IsHexType())
-        {
+      {
         this->Internal->coreLabelX->setText("Number Of Layers:");
-        }
+      }
       else
-        {
+      {
         this->Internal->coreLabelX->setText("X:");
-        }
+      }
       this->resetCore(nucCore);
       emit(sendLattice(nucCore));
       break;
+    }
     case CMBNUC_ASSEMBLY:
     {
       QStringList list;
-      assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(selObj);
       QString tmp(assy->getAssyDuct().getName().c_str());
       assy->getDuctLibrary()->fillList(list);
       int i = list.indexOf(tmp);
@@ -262,7 +262,8 @@ void cmbNucInputPropertiesWidget::onReset()
       break;
     }
     case CMBNUC_ASSY_PINCELL:
-      pincell = dynamic_cast<PinCell*>(selObj);
+    {
+      PinCell* pincell = dynamic_cast<PinCell*>(selObj);
       this->resetPinCell(pincell);
       this->Internal->stackedWidget->setCurrentWidget(
         this->Internal->pagePinCell);
@@ -270,6 +271,7 @@ void cmbNucInputPropertiesWidget::onReset()
       emit(select3DModelView());
       emit(sendLattice(NULL));
       break;
+    }
     case CMBNUC_ASSY_FRUSTUM_PIN:
     case CMBNUC_ASSY_CYLINDER_PIN:
       /*handled in pin editor*/

@@ -91,6 +91,7 @@
      <addaction name="separator"/>
      <addaction name="actionImportPins"/>
      <addaction name="actionImportDucts"/>
+     <addaction name="actionImportAssemblies"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
@@ -565,6 +566,11 @@
   <action name="actionImportDucts">
    <property name="text">
     <string>Ducts</string>
+   </property>
+  </action>
+  <action name="actionImportAssemblies">
+   <property name="text">
+    <string>Assemblies</string>
    </property>
   </action>
  </widget>

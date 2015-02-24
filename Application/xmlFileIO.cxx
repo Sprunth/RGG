@@ -79,6 +79,7 @@ namespace
 class xmlHelperClass
 {
 public:
+  bool openReadFile(std::string fname, pugi::xml_document & document);
   bool writeToString(std::string & out, cmbNucCore & core);
   bool writeStringToFile(std::string fname, std::string & out);
 
@@ -250,6 +251,33 @@ public:
     return true;
   }
 };
+
+bool xmlHelperClass::openReadFile(std::string fname, pugi::xml_document & document)
+{
+  std::ifstream in(fname.c_str(), std::ios::in);
+  if (!in)
+  {
+    return false;
+  }
+
+  // Allocate string
+  std::string content;
+  in.seekg(0, std::ios::end);
+  content.resize(in.tellg());
+
+  in.seekg(0, std::ios::beg);
+  in.read(&content[0], content.size());
+  in.close();
+
+  xmlHelperClass helper;
+
+  pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
+  if (presult.status != pugi::status_ok)
+  {
+    return false;
+  }
+  return true;
+}
 
 bool xmlHelperClass::write(pugi::xml_node & materialElement,
                            cmbNucMaterialColors * cnmc)
@@ -1117,58 +1145,20 @@ bool xmlFileReader::read(std::string fname, cmbNucCore & core)
 
 bool xmlFileReader::read(std::string fname, cmbNucMaterialColors * materials)
 {
-  std::ifstream in(fname.c_str(), std::ios::in);
-  if (!in)
-  {
-    return false;
-  }
-
-  // Allocate string
-  std::string content;
-  in.seekg(0, std::ios::end);
-  content.resize(in.tellg());
-
-  in.seekg(0, std::ios::beg);
-  in.read(&content[0], content.size());
-  in.close();
-
   xmlHelperClass helper;
 
   pugi::xml_document document;
-  pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
-  if (presult.status != pugi::status_ok)
-  {
-    return false;
-  }
+  if(!helper.openReadFile(fname,document)) return false;
   pugi::xml_node node = document.child(CORE_TAG.c_str()).child(MATERIALS_TAG.c_str());
   return helper.read(node, materials);
 }
 
 bool xmlFileReader::read(std::string fname, std::vector<PinCell*> & pincells, cmbNucMaterialColors * materials)
 {
-  std::ifstream in(fname.c_str(), std::ios::in);
-  if (!in)
-  {
-    return false;
-  }
-
-  // Allocate string
-  std::string content;
-  in.seekg(0, std::ios::end);
-  content.resize(in.tellg());
-
-  in.seekg(0, std::ios::beg);
-  in.read(&content[0], content.size());
-  in.close();
-
   xmlHelperClass helper;
 
   pugi::xml_document document;
-  pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
-  if (presult.status != pugi::status_ok)
-  {
-    return false;
-  }
+  if(!helper.openReadFile(fname,document)) return false;
 
   pugi::xml_node node = document.child(CORE_TAG.c_str()).child(MATERIALS_TAG.c_str());
   if(!helper.read(node, materials)) return false;
@@ -1188,29 +1178,10 @@ bool xmlFileReader::read(std::string fname, std::vector<PinCell*> & pincells, cm
 bool xmlFileReader::read(std::string fname, std::vector<DuctCell*> & ductcells,
                          cmbNucMaterialColors * materials)
 {
-  std::ifstream in(fname.c_str(), std::ios::in);
-  if (!in)
-  {
-    return false;
-  }
-
-  // Allocate string
-  std::string content;
-  in.seekg(0, std::ios::end);
-  content.resize(in.tellg());
-
-  in.seekg(0, std::ios::beg);
-  in.read(&content[0], content.size());
-  in.close();
-
   xmlHelperClass helper;
 
   pugi::xml_document document;
-  pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
-  if (presult.status != pugi::status_ok)
-  {
-    return false;
-  }
+  if(!helper.openReadFile(fname,document)) return false;
 
   pugi::xml_node node = document.child(CORE_TAG.c_str()).child(MATERIALS_TAG.c_str());
   if(!helper.read(node, materials)) return false;
@@ -1226,6 +1197,48 @@ bool xmlFileReader::read(std::string fname, std::vector<DuctCell*> & ductcells,
   }
   return true;
 }
+
+bool xmlFileReader::read(std::string fname, std::vector<cmbNucAssembly*> & assys,
+                         cmbNucPinLibrary * pl,
+                         cmbNucDuctLibrary * dl,
+                         cmbNucMaterialColors * materials)
+{
+  if(pl == NULL) return false;
+  if(dl == NULL) return false;
+  xmlHelperClass helper;
+
+  pugi::xml_document document;
+  if(!helper.openReadFile(fname,document)) return false;
+
+  pugi::xml_node rnode = document.child(CORE_TAG.c_str());
+
+  {
+    pugi::xml_node node = rnode.child(MATERIALS_TAG.c_str());
+    if(!helper.read(node, materials)) return false;
+  }
+
+  {
+    pugi::xml_node node = rnode.child(DUCTS_TAG.c_str());
+    if(!helper.read(node, dl, materials)) return false;
+  }
+
+  {
+    pugi::xml_node node = rnode.child(PINS_TAG.c_str());
+    if(!helper.read(node, pl, materials)) return false;
+  }
+
+  for(pugi::xml_node tnode = rnode.child(ASSEMBLY_TAG.c_str()); tnode;
+      tnode = tnode.next_sibling(ASSEMBLY_TAG.c_str()))
+  {
+    cmbNucAssembly* assy = new cmbNucAssembly;
+    assy->setPinLibrary(pl);
+    assy->setDuctLibrary(dl);
+    if(!helper.read(tnode, assy)) return false;
+    assys.push_back(assy);
+  }
+  return true;
+}
+
 
 bool xmlFileWriter::write(std::string fname, cmbNucCore & core, bool /*updateFname*/) //TODO the file update
 {

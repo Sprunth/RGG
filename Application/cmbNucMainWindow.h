@@ -154,6 +154,7 @@ protected slots:
 
   void onImportPins();
   void onImportDucts();
+  void onImportAssemblies();
 
 private:
   // Designer form

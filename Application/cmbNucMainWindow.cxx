@@ -476,6 +476,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->importINPFile, SIGNAL(triggered()), this, SLOT(onImportINPFile()));
   connect(this->ui->actionImportPins, SIGNAL(triggered()), this, SLOT(onImportPins()));
   connect(this->ui->actionImportDucts, SIGNAL(triggered()), this, SLOT(onImportDucts()));
+  connect(this->ui->actionImportAssemblies, SIGNAL(triggered()), this, SLOT(onImportAssemblies()));
   connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
   connect(this->ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
   connect(this->ui->actionSave,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
@@ -561,6 +562,9 @@ void cmbNucMainWindow::setCoreActions(bool v)
   this->ui->actionNew_Assembly->setEnabled(v);
   this->ui->actionImportPins->setEnabled(v);
   this->ui->actionExport->setEnabled(v);
+  this->ui->ExportImpFiles->setEnabled(v);
+  this->ui->actionImportAssemblies->setEnabled(v);
+  this->ui->actionImportDucts->setEnabled(v);
 }
 
 void cmbNucMainWindow::CameraMovedHandlerModel()
@@ -1011,6 +1015,7 @@ void cmbNucMainWindow::onImportPins()
     this->InputsWidget->updateWithPinLibrary();
     this->InputsWidget->initMaterialsTree();
     this->InputsWidget->repaintList();
+    this->LatticeDraw->updateActionList();
     emit checkSave();
   }
 
@@ -1026,6 +1031,24 @@ void cmbNucMainWindow::onImportDucts()
     this->InputsWidget->updateWithDuctLibrary();
     this->InputsWidget->initMaterialsTree();
     this->InputsWidget->repaintList();
+    emit checkSave();
+  }
+
+  this->unsetCursor();
+}
+
+void cmbNucMainWindow::onImportAssemblies()
+{
+  this->setCursor(Qt::BusyCursor);
+
+  if(importer->importXMLAssembly())
+  {
+    this->InputsWidget->updateWithPinLibrary();
+    this->InputsWidget->updateWithDuctLibrary();
+    this->InputsWidget->updateWithAssembly();
+    this->InputsWidget->initMaterialsTree();
+    this->InputsWidget->repaintList();
+    this->LatticeDraw->updateActionList();
     emit checkSave();
   }
 
