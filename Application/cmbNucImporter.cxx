@@ -187,10 +187,12 @@ bool cmbNucImporter::importInpFile()
         if( mainWindow->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
            mainWindow->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )
         {
+          mainWindow->NuclearCore->getLattice().setFullCellMode(Lattice::HEX_FULL);
           assembly->getLattice().setFullCellMode(Lattice::HEX_FULL);
         }
         else
         {
+          mainWindow->NuclearCore->getLattice().setFullCellMode(Lattice::HEX_FULL);
           assembly->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
         }
         assembly->adjustRotation();
@@ -215,6 +217,7 @@ bool cmbNucImporter::importInpFile()
         mainWindow->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
                                                       defaultAssemblyColors);
         mainWindow->PropertyWidget->resetCore(mainWindow->NuclearCore);
+        mainWindow->NuclearCore->getLattice().setFullCellMode(Lattice::HEX_FULL);
 
         for(unsigned int j = 0; j < mainWindow->NuclearCore->GetNumberOfAssemblies(); ++j)
         {

@@ -1,6 +1,7 @@
 #include "cmbNucLattice.h"
 #include "cmbNucPartDefinition.h"
 #include <algorithm>
+#include <cassert>
 
 Lattice::Lattice()
 {
@@ -497,6 +498,8 @@ std::string Lattice::generate_string(std::string in, CellDrawMode mode)
     case HEX_TWELFTH_TOP:
       return in + "_top";
   }
+  assert(false);
+  return in;
 }
 
 bool Lattice::fillRing(int r, int c, std::string const& label)

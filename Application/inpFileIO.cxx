@@ -724,7 +724,7 @@ bool inpFileWriter::write(std::string fname,
   inpFileHelper helper;
   QFileInfo info(fname.c_str());
   std::ofstream output(fname.c_str());
-  if(!output.is_open())
+  if(!output)
     {
     return false;
     }
@@ -798,6 +798,9 @@ bool inpFileWriter::write(std::string fname,
   helper.writeUnknown(output, core.Params.UnknownKeyWords);
 
   output << "End\n";
+
+  qDebug() << ((output)?"is ok":"Something bad happen");
+
   output.close();
 
   core.setAndTestDiffFromFiles(false);
@@ -1679,4 +1682,6 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       output << assemblyName << ".cub " << Lattice::generate_string(assembly.label, mode) << "\n";
     }
   }
+  output.flush();
+  qDebug() << "wrote assemplies";
 }

@@ -1172,7 +1172,7 @@ void cmbNucMainWindow::onSaveAll()
 
 bool cmbNucMainWindow::exportINPs()
 {
-  
+
   return this->Internal->inpExporter.exportInpFiles();
 }
 
