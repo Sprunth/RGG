@@ -753,3 +753,17 @@ void PinCell::splitPin(std::vector<double> const& layers)
     delete f[i];
   }
 }
+
+void PinCell::setHeight(double nh)
+{
+  std::vector<double> layers = this->getPinLayers();
+  double oldH = *(layers.rbegin()) - *(layers.begin());
+  assert( oldH > 0 );
+  for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
+  {
+    PinSubPart* p = this->GetPart(i);
+    p->z1 = p->z1/oldH * nh;
+    p->z2 = p->z2/oldH * nh;
+    //TODO: look into new way of z1 and z2.  Turn pins sections into relative heights
+  }
+}

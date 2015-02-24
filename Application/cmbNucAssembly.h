@@ -229,6 +229,7 @@ public:
   // Adds a new pincell to the assebly. After adding the pincell it
   // can be placed in the assembly with the SetCell() method.
   void AddPinCell(PinCell *pincell);
+  void SetPinCell(int i, PinCell *pc);
 
   // Remove the pincell with label from the assembly.
   void RemovePinCell(const std::string label);

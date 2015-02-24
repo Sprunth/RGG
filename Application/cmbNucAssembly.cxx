@@ -246,6 +246,27 @@ void cmbNucAssembly::AddPinCell(PinCell *pincell)
   this->PinCells.push_back(pincell);
 }
 
+void cmbNucAssembly::SetPinCell(int i, PinCell *pc)
+{
+  if(i > this->PinCells.size()) return;
+  if(pc == NULL) return;
+  PinCell * old = this->PinCells[i];
+  if(old == pc) return;
+  QObject::disconnect(old->GetConnection(), SIGNAL(Changed()),
+                      this->Connection, SLOT(dataChanged()));
+  QObject::disconnect(old->GetConnection(), SIGNAL(CellMaterialChanged()),
+                      this->Connection, SLOT(geometryChanged()));
+  QObject::disconnect(old->GetConnection(), SIGNAL(Deleted(PinCell*)),
+                      this->Connection, SLOT(pinDeleted(PinCell*)));
+  QObject::connect(pc->GetConnection(), SIGNAL(Changed()),
+                   this->Connection, SLOT(dataChanged()));
+  QObject::connect(pc->GetConnection(), SIGNAL(CellMaterialChanged()),
+                   this->Connection, SLOT(geometryChanged()));
+  QObject::connect(pc->GetConnection(), SIGNAL(Deleted(PinCell*)),
+                   this->Connection, SLOT(pinDeleted(PinCell*)));
+  this->PinCells[i] = pc;
+}
+
 void cmbNucAssembly::RemovePinCell(const std::string label_in)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)

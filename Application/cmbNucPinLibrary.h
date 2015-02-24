@@ -36,6 +36,13 @@ public:
 
   //takes ownership when successful. Returns true if successful.
   bool addPin(PinCell** pc, AddMode mode);
+  bool addPin(PinCell** pc, std::map<std::string, std::string> & nameChange);
+  void resetConflictResolution();
+  void setKeepGoingAsRename()
+  {
+    this->keepGoing = true;
+    this->renamePin = true;
+  }
   void removePincell(PinCell* pc);
   PinCell* GetPinCell(const std::string &label);
   PinCell* GetPinCell(int pc) const;
@@ -55,6 +62,8 @@ protected:
   std::map<std::string, size_t> NameToPin;
   std::map<std::string, size_t> LabelToPin;
   cmbNucPinLibraryConnection * Connection;
+  bool keepGoing, renamePin;
+  AddMode conflictResMode;
 };
 
 #endif

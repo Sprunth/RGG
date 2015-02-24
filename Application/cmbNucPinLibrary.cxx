@@ -1,9 +1,11 @@
 #include "cmbNucPinLibrary.h"
+#include "cmbNucConflictDialog.h"
 
 cmbNucPinLibrary::cmbNucPinLibrary()
 {
   this->Connection = new cmbNucPinLibraryConnection;
   this->Connection->v = this;
+  this->resetConflictResolution();
 }
 
 cmbNucPinLibrary::~cmbNucPinLibrary()
@@ -68,6 +70,57 @@ bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
     }
   }
   return false;
+}
+
+bool cmbNucPinLibrary::addPin(PinCell** pc, std::map<std::string, std::string> & nameChange)
+{
+  if(pc == NULL) return false;
+  if(*pc == NULL) return false;
+  if(this->keepGoing)
+  {
+    if(this->testPinConflicts(*pc) && this->renamePin)
+    {
+      //rename loop
+      std::string n = (*pc)->getName();
+      int count = 0;
+      while(this->nameConflicts(n))
+      {
+        n = (QString(n.c_str()) + QString::number(count++)).toStdString();
+      }
+      //relabel loop
+      std::string l = (*pc)->getLabel();
+      count = 0;
+      while(this->labelConflicts(l))
+      {
+        l = (QString(l.c_str()) + QString::number(count++)).toStdString();
+      }
+      (*pc)->setName(n);
+      if((*pc)->getLabel() != l) nameChange[(*pc)->getLabel()] = l;
+      (*pc)->setLabel(l);
+    }
+  }
+  else
+  {
+    this->conflictResMode = cmbNucPinLibrary::KeepOriginal;
+    if(this->testPinConflicts(*pc))
+    {
+      std::string old_label = (*pc)->getLabel();
+      cmbNucConflictDialog cncd(NULL, this, *pc);
+      this->conflictResMode = static_cast<cmbNucPinLibrary::AddMode>(cncd.exec());
+      this->renamePin = cncd.rename();
+      this->keepGoing = cncd.keepGoing();
+      std::string new_label = (*pc)->getLabel();
+      if(new_label != old_label) nameChange[old_label] = new_label;
+    }
+  }
+  return this->addPin(pc, this->conflictResMode);
+}
+
+void cmbNucPinLibrary::resetConflictResolution()
+{
+  this->keepGoing = false;
+  this->renamePin = false;
+  this->conflictResMode = KeepOriginal;
 }
 
 void cmbNucPinLibrary::removePincell(PinCell* pc)

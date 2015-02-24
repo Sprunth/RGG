@@ -58,6 +58,7 @@ SET(RGGNuclear_Srcs
   cmbNucRender.cxx
   cmbNucConflictDialog.cxx
   cmbNucInpExporter.cxx
+  cmbNucImporter.cxx
 )
 
 SET(RGGNuclear_UI
