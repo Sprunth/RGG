@@ -47,8 +47,6 @@ void cmbCoreParametersWidget::initUI()
   connect(Internal->NewmannSetAdd, SIGNAL(clicked()), this, SLOT(onAddToTable()));
   connect(Internal->NewmannSetDel, SIGNAL(clicked()), this, SLOT(onDeleteRow()));
 
-  this->Internal->FileName->setVisible(false);
-  this->Internal->GenerateControls->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
