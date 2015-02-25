@@ -755,6 +755,13 @@ bool inpFileWriter::write(std::string fname,
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", true, core.getLattice() );
+  if( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
+      core.Params.BackgroundFullPath.empty())
+  {
+    QFileInfo tmpFI( QFileInfo(core.CurrentFileName.c_str()).dir(),
+                    core.Params.Background.c_str() );
+    core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
+  }
   if( ( ( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
           QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() ) ||
           core.Params.BackgroundMode == cmbNucCoreParams::Generate ) && !core.Params.Background.empty() )

@@ -57,7 +57,7 @@ cmbNucGenerateOuterCylinder
     }
     else
     {
-      FileName = qi.dir().absolutePath()+tmp.c_str();
+      FileName = qi.dir().absolutePath() + "/" + tmp.c_str();
       random = GetRandomString(8);
       Generate();
     }
