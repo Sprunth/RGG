@@ -89,6 +89,9 @@ protected slots:
   void xSizeChanged(int i);
   void ySizeChanged(int i);
 
+  void coreXSizeChanged(int i);
+  void coreYSizeChanged(int i);
+
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
   void applyToLattice(Lattice* lattice);
@@ -105,6 +108,14 @@ protected slots:
   void choosePinLegendColor();
   void chooseAssyLegendColor();
 
+  void onCalculateCylinderDefaults(bool checkOld = false);
+  void displayBackgroundControls(int);
+  void onRadiusChanged(double v);
+  void onIntervalChanged(int v);
+  void onDrawCylinder();
+  void onSetBackgroundMesh();
+  void onClearBackgroundMesh();
+
 private:
   bool RebuildCoreGrid;
   cmbNucInputPropertiesWidgetInternal* Internal;
@@ -118,5 +129,8 @@ private:
   cmbCoreParametersWidget* CoreProperties;
   cmbAssyParametersWidget* assyConf;
   QPointer<cmbNucDefaultWidget> CoreDefaults;
+
+  double currentRadius, previousRadius;
+  int currentInterval, previousInterval;
 };
 #endif

@@ -24,8 +24,6 @@ signals:
   void set(QString v);
   void set(bool b);
   void valuesChanged();
-  void drawCylinder(double r, int i);
-  void clearCylinder();
 
 public slots:
   // Invoked when Apply button clicked
@@ -34,13 +32,6 @@ public slots:
   void onReset();
   void onAddToTable();
   void onDeleteRow();
-  void onSetBackgroundMesh();
-  void onRadiusChanged(double v);
-  void onIntervalChanged(int v);
-  void onCalculateCylinderDefaults();
-  void onDrawCylinder();
-  void onClearBackgroundMesh();
-  void controlDisplayBackgroundControls(int index);
 
 public slots:  // reset property panel with given object
   void resetCore(cmbNucCore* Core);
@@ -56,9 +47,5 @@ private:
 
   void initUI();
   cmbNucCore *Core;
-  double currentRadius;
-  int currentInterval;
-  double previousRadius;
-  int previousInterval;
 };
 #endif
