@@ -1,9 +1,11 @@
 #include "cmbNucPinLibrary.h"
+#include "cmbNucConflictDialog.h"
 
 cmbNucPinLibrary::cmbNucPinLibrary()
 {
   this->Connection = new cmbNucPinLibraryConnection;
   this->Connection->v = this;
+  this->resetConflictResolution();
 }
 
 cmbNucPinLibrary::~cmbNucPinLibrary()
@@ -27,12 +29,12 @@ cmbNucPinLibrary::testPinConflicts(PinCell* pc) const
 
 bool cmbNucPinLibrary::labelConflicts(std::string l) const
 {
-  return LabelToPin.find(l) != LabelToPin.end();
+  return this->LabelToPin.find(l) != this->LabelToPin.end();
 }
 
 bool cmbNucPinLibrary::nameConflicts(std::string n) const
 {
-  return NameToPin.find(n) != NameToPin.end();
+  return this->NameToPin.find(n) != this->NameToPin.end();
 }
 
 bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
@@ -68,6 +70,57 @@ bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
     }
   }
   return false;
+}
+
+bool cmbNucPinLibrary::addPin(PinCell** pc, std::map<std::string, std::string> & nameChange)
+{
+  if(pc == NULL) return false;
+  if(*pc == NULL) return false;
+  if(this->keepGoing)
+  {
+    if(this->testPinConflicts(*pc) && this->renamePin)
+    {
+      //rename loop
+      std::string n = (*pc)->getName();
+      int count = 0;
+      while(this->nameConflicts(n))
+      {
+        n = (QString(n.c_str()) + QString::number(count++)).toStdString();
+      }
+      //relabel loop
+      std::string l = (*pc)->getLabel();
+      count = 0;
+      while(this->labelConflicts(l))
+      {
+        l = (QString(l.c_str()) + QString::number(count++)).toStdString();
+      }
+      (*pc)->setName(n);
+      if((*pc)->getLabel() != l) nameChange[(*pc)->getLabel()] = l;
+      (*pc)->setLabel(l);
+    }
+  }
+  else
+  {
+    this->conflictResMode = cmbNucPinLibrary::KeepOriginal;
+    if(this->testPinConflicts(*pc))
+    {
+      std::string old_label = (*pc)->getLabel();
+      cmbNucConflictDialog cncd(NULL, this, *pc);
+      this->conflictResMode = static_cast<cmbNucPinLibrary::AddMode>(cncd.exec());
+      this->renamePin = cncd.rename();
+      this->keepGoing = cncd.keepGoing();
+      std::string new_label = (*pc)->getLabel();
+      if(new_label != old_label) nameChange[old_label] = new_label;
+    }
+  }
+  return this->addPin(pc, this->conflictResMode);
+}
+
+void cmbNucPinLibrary::resetConflictResolution()
+{
+  this->keepGoing = false;
+  this->renamePin = false;
+  this->conflictResMode = KeepOriginal;
 }
 
 void cmbNucPinLibrary::removePincell(PinCell* pc)
@@ -145,4 +198,16 @@ void cmbNucPinLibrary::replaceName(std::string oldN, std::string newN)
   if(ni == NameToPin.end()) return;
   NameToPin[newN] = ni->second;
   NameToPin.erase(ni);
+}
+
+cmbNucPinLibrary * cmbNucPinLibrary::clone() const
+{
+  cmbNucPinLibrary * result = new cmbNucPinLibrary();
+  for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin(); iter != this->PinCells.end(); ++iter)
+  {
+    PinCell * pc = new PinCell();
+    pc->fill(*iter);
+    result->addPin(&pc, KeepOriginal);
+  }
+  return result;
 }

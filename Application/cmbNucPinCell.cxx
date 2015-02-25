@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <algorithm>
+#include <set>
 
 #include <QDebug>
 
@@ -207,6 +208,27 @@ PinSubPart * Cylinder::clone() const
   return result;
 }
 
+std::vector<Cylinder *> Cylinder
+::split( std::vector<double>::const_iterator b,
+         std::vector<double>::const_iterator end)
+{
+  std::vector<Cylinder *> result;
+  assert(*b == this->z1);
+  for(std::vector<double>::const_iterator iter = b; iter != end; ++iter)
+  {
+    if(iter + 1 == end)
+    {
+      assert(*iter == this->z2);
+      break;
+    }
+    Cylinder * c = new Cylinder(this);
+    c->z1 = *iter;
+    c->z2 = *(iter+1);
+    result.push_back(c);
+  }
+  return result;
+}
+
 //*********************************************************//
 
 Frustum::Frustum(double const* rin,
@@ -253,6 +275,33 @@ PinSubPart * Frustum::clone() const
 {
   PinSubPart * result = new Frustum(r, z1, z2);
   result->fill(this);
+  return result;
+}
+
+std::vector<Frustum *> Frustum
+::split( std::vector<double>::const_iterator b,
+        std::vector<double>::const_iterator end)
+{
+  std::vector<Frustum *> result;
+  assert(*b == this->z1);
+  for(std::vector<double>::const_iterator iter = b; iter != end; ++iter)
+  {
+    if(iter + 1 == end)
+    {
+      assert(*iter == this->z2);
+      break;
+    }
+    Frustum * c = new Frustum(this);
+    c->z1 = *iter;
+    c->z2 = *(iter+1);
+    if(!result.empty())
+    {
+      c->r[0] = (*(result.rbegin()))->r[1];
+    }
+    double t = (this->z2 - c->z2)/(this->z2 - this->z1);
+    c->r[1] = t * this->r[0] + (1-t)*this->r[1];
+    result.push_back(c);
+  }
   return result;
 }
 
@@ -633,4 +682,88 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
     }
   }
   return vtkBoundingBox(-x,x,-y,y,minZ,maxZ);
+}
+
+std::vector<double> PinCell::getPinLayers() const
+{
+  std::set<double> unique_levels;
+  for(int i = 0; i < static_cast<int>(this->GetNumberOfParts()); i++)
+  {
+    unique_levels.insert(this->GetPart(i)->z1);
+    unique_levels.insert(this->GetPart(i)->z2);
+  }
+  std::vector<double> result;
+  for(std::set<double>::const_iterator iter = unique_levels.begin(); iter != unique_levels.end(); ++iter)
+  {
+    result.push_back(*iter);
+  }
+  std::sort(result.begin(), result.end());
+  return result;
+}
+
+void PinCell::splitPin(std::vector<double> const& layers)
+{
+  //TODO: handel when the pin is not alligned with the top and bottom of the duct
+  std::vector<Cylinder*> c = this->Cylinders;
+  this->Cylinders.clear();
+  for(unsigned int i = 0; i < c.size(); ++i)
+  {
+    double z1 = c[i]->z1, z2 = c[i]->z2;
+    std::vector<double>::const_iterator b = layers.begin();
+    for(; b!= layers.end(); ++b)
+    {
+      if(*b == z1) break;
+    }
+    assert(b != layers.end());
+    std::vector<double>::const_iterator e = b+1;
+    for(; e!= layers.end(); ++e)
+    {
+      if(*e == z2) break;
+    }
+    assert(e != layers.end());
+    std::vector<Cylinder*> tmp = c[i]->split(b, e+1);
+    for(unsigned int k = 0; k < tmp.size(); ++k)
+    {
+      this->AddCylinder(tmp[k]);
+    }
+    delete c[i];
+  }
+  std::vector<Frustum*> f = this->Frustums;
+  this->Frustums.clear();
+  for(unsigned int i = 0; i < f.size(); ++i)
+  {
+    double z1 = f[i]->z1, z2 = f[i]->z2;
+    std::vector<double>::const_iterator b = layers.begin();
+    for(; b!= layers.end(); ++b)
+    {
+      if(*b == z1) break;
+    }
+    assert(b != layers.end());
+    std::vector<double>::const_iterator e = b+1;
+    for(; e!= layers.end(); ++e)
+    {
+      if(*e == z2) break;
+    }
+    assert(e != layers.end());
+    std::vector<Frustum*> tmp = f[i]->split(b, e+1);
+    for(unsigned int k = 0; k < tmp.size(); ++k)
+    {
+      this->AddFrustum(tmp[k]);
+    }
+    delete f[i];
+  }
+}
+
+void PinCell::setHeight(double nh)
+{
+  std::vector<double> layers = this->getPinLayers();
+  double oldH = *(layers.rbegin()) - *(layers.begin());
+  assert( oldH > 0 );
+  for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
+  {
+    PinSubPart* p = this->GetPart(i);
+    p->z1 = p->z1/oldH * nh;
+    p->z2 = p->z2/oldH * nh;
+    //TODO: look into new way of z1 and z2.  Turn pins sections into relative heights
+  }
 }

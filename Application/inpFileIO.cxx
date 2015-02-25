@@ -724,7 +724,7 @@ bool inpFileWriter::write(std::string fname,
   inpFileHelper helper;
   QFileInfo info(fname.c_str());
   std::ofstream output(fname.c_str());
-  if(!output.is_open())
+  if(!output)
     {
     return false;
     }
@@ -755,6 +755,13 @@ bool inpFileWriter::write(std::string fname,
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", true, core.getLattice() );
+  if( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
+      core.Params.BackgroundFullPath.empty())
+  {
+    QFileInfo tmpFI( QFileInfo(core.CurrentFileName.c_str()).dir(),
+                    core.Params.Background.c_str() );
+    core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
+  }
   if( ( ( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
           QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() ) ||
           core.Params.BackgroundMode == cmbNucCoreParams::Generate ) && !core.Params.Background.empty() )
@@ -798,6 +805,9 @@ bool inpFileWriter::write(std::string fname,
   helper.writeUnknown(output, core.Params.UnknownKeyWords);
 
   output << "End\n";
+
+  qDebug() << ((output)?"is ok":"Something bad happen");
+
   output.close();
 
   core.setAndTestDiffFromFiles(false);
@@ -1286,45 +1296,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
       pincell->SetLegendColor(firstMaterial->getColor());
     }
 
-    if(this->keepGoing)
-    {
-      if(pl->testPinConflicts(pincell) && this->renamePin)
-      {
-        //TODO
-        //rename loop
-        std::string n = pincell->getName();
-        int count = 0;
-        while(pl->nameConflicts(n))
-        {
-          n = (QString(n.c_str()) + QString::number(count++)).toStdString();
-        }
-        //relabel loop
-        std::string l = pincell->getLabel();
-        count = 0;
-        while(pl->labelConflicts(l))
-        {
-          l = (QString(l.c_str()) + QString::number(count++)).toStdString();
-        }
-        pincell->setName(n);
-        if(pincell->getLabel() != l) newLabel[pincell->getLabel()] = l;
-        pincell->setLabel(l);
-      }
-    }
-    else
-    {
-      pinAddMode = cmbNucPinLibrary::KeepOriginal;
-      if(pl->testPinConflicts(pincell))
-      {
-        std::string old_label = pincell->getLabel();
-        cmbNucConflictDialog cncd(NULL, pl, pincell);
-        pinAddMode = static_cast<cmbNucPinLibrary::AddMode>(cncd.exec());
-        this->renamePin = cncd.rename();
-        this->keepGoing = cncd.keepGoing();
-        std::string new_label = pincell->getLabel();
-        if(new_label != old_label) newLabel[old_label] = new_label;
-      }
-    }
-    pl->addPin(&pincell, pinAddMode);
+    pl->addPin(&pincell, newLabel);
     assembly.AddPinCell(pincell);
   }
   return true;
@@ -1717,4 +1689,6 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       output << assemblyName << ".cub " << Lattice::generate_string(assembly.label, mode) << "\n";
     }
   }
+  output.flush();
+  qDebug() << "wrote assemplies";
 }

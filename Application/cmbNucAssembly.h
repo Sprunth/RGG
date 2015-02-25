@@ -71,6 +71,8 @@ public:
   template<typename T> static bool isValueSet(const T& val)
   { return val != ASSY_NOT_SET_VALUE; }
 
+  void fill(cmbAssyParameters * other);
+
   // Geometry     {Volume | Surface}
   std::string Geometry;
 
@@ -227,6 +229,7 @@ public:
   // Adds a new pincell to the assebly. After adding the pincell it
   // can be placed in the assembly with the SetCell() method.
   void AddPinCell(PinCell *pincell);
+  void SetPinCell(int i, PinCell *pc);
 
   // Remove the pincell with label from the assembly.
   void RemovePinCell(const std::string label);
@@ -342,6 +345,8 @@ public:
 
   double getZAxisRotation() const;
   void setZAxisRotation(double d);
+
+  cmbNucAssembly * clone(cmbNucPinLibrary * pl, cmbNucDuctLibrary * dl);
 
 protected:
   std::vector<PinCell*> PinCells;

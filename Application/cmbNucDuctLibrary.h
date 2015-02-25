@@ -35,6 +35,8 @@ public:
 
   //takes ownership when successful. Returns true if successful.
   bool addDuct(DuctCell* dc);
+  bool addDuct(DuctCell * dc,
+               std::map<std::string, std::string> & nameChange);
   void removeDuctcell(DuctCell* dc);
   DuctCell* GetDuctCell(const std::string &name);
   DuctCell* GetDuctCell(int pc) const;
@@ -42,6 +44,8 @@ public:
   void fillList(QStringList & l);
   bool nameConflicts(std::string n) const;
   bool replaceName(std::string oldN, std::string newN);
+
+  cmbNucDuctLibrary * clone();
 
 protected:
   std::vector<DuctCell*> DuctCells;

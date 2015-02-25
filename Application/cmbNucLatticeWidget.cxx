@@ -21,14 +21,22 @@ cmbNucLatticeWidget::~cmbNucLatticeWidget()
   delete draw_control;
 }
 
-void cmbNucLatticeWidget::setLattice(LatticeContainer * l)
+void cmbNucLatticeWidget::updateActionList()
 {
-  lattice = l;
   QStringList actionList;
   if(lattice != NULL)
   {
     lattice->fillList(actionList);
     draw_control->setActions(actionList);
+  }
+}
+
+void cmbNucLatticeWidget::setLattice(LatticeContainer * l)
+{
+  lattice = l;
+  this->updateActionList();
+  if(lattice != NULL)
+  {
     draw_control->setLatticeContainer(lattice);
     draw_control->reset();
   }

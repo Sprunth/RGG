@@ -1,5 +1,7 @@
 #include "cmbNucLattice.h"
 #include "cmbNucPartDefinition.h"
+#include <algorithm>
+#include <cassert>
 
 Lattice::Lattice()
 {
@@ -13,7 +15,8 @@ Lattice::Lattice( Lattice const& other )
   setUpGrid(other);
   this->subType = other.subType;
   this->enGeometryType = other.enGeometryType;
-  this->FullCellMode = Lattice::HEX_FULL;
+  this->FullCellMode = other.FullCellMode;
+  this->validRange = other.validRange;
 }
 
 Lattice::~Lattice()
@@ -34,11 +37,28 @@ Lattice& Lattice::operator=(Lattice const& other)
   this->subType = other.subType;
   this->enGeometryType = other.enGeometryType;
   this->FullCellMode = other.FullCellMode;
+  this->validRange = other.validRange;
   return *this;
 }
 
 void Lattice::setUpGrid(Lattice const & other)
 {
+  this->Grid.clear();
+  this->Grid.resize(other.Grid.size());
+  for(unsigned int i = 0; i < other.Grid.size(); ++i)
+  {
+    this->Grid[i].resize(other.Grid[i].size());
+  }
+
+  for(std::map<std::string, LatticeCell*>::iterator i = this->LabelToCell.begin();
+      i != this->LabelToCell.end(); ++i)
+  {
+    delete i->second;
+    i->second = NULL;
+  }
+
+  this->LabelToCell.clear();
+
   for(std::map<std::string, LatticeCell*>::const_iterator i = other.LabelToCell.begin();
       i != other.LabelToCell.end(); ++i)
   {
@@ -46,13 +66,20 @@ void Lattice::setUpGrid(Lattice const & other)
     LabelToCell[i->first] = new LatticeCell(*(i->second));
   }
   //TODO update grid
+  this->Grid.clear();
   this->Grid.resize(other.Grid.size());
   for(unsigned int i = 0; i < other.Grid.size(); ++i)
   {
     this->Grid[i].resize(other.Grid[i].size());
+  }
+  for(unsigned int i = 0; i < other.Grid.size(); ++i)
+  {
     for(unsigned j = 0; j < other.Grid[i].size(); ++j)
     {
-      this->Grid[i][j].setCell(this->getCell(other.Grid[i][j].getCell()->label));
+      LatticeCell * c = this->getCell(other.Grid[i][j].getCell()->label);
+      int oc = c->getCount();
+      this->Grid[i][j].setCell(c);
+      assert(c->getCount() == oc + 1);
     }
   }
   this->computeValidRange();
@@ -172,16 +199,23 @@ void Lattice::computeValidRange()
     for( int layer = 0; layer < Grid.size(); ++layer)
     {
       this->validRange[layer].first = 0;
-      this->validRange[layer].second = 6*layer-1;
-      if(subType != 0 && !(subType & ANGLE_360))
+      if(layer == 0)
       {
-        this->validRange[layer].first = (subType & FLAT)?(layer):(layer-(layer)/2);
-        this->validRange[layer].second = ((subType & FLAT)?(layer+1):
-                                                           (((layer+1)-(layer+2)%2)))+this->validRange[layer].first-1;
-        if(subType & ANGLE_30)
+        this->validRange[layer].second = 0;
+      }
+      else
+      {
+        this->validRange[layer].second = 6*layer-1;
+        if(subType != 0 && !(subType & ANGLE_360))
         {
-          this->validRange[layer].first = 2*layer - layer/2;
-          this->validRange[layer].second = (layer%2 ? (layer+1)/2 :(layer+2)/2) + this->validRange[layer].first - 1;
+          this->validRange[layer].first = (subType & FLAT)?(layer):(layer-(layer)/2);
+          this->validRange[layer].second = ((subType & FLAT)?(layer+1):
+                                                           (((layer+1)-(layer+2)%2)))+this->validRange[layer].first-1;
+          if(subType & ANGLE_30)
+          {
+            this->validRange[layer].first = 2*layer - layer/2;
+            this->validRange[layer].second = (layer%2 ? (layer+1)/2 :(layer+2)/2) + this->validRange[layer].first - 1;
+          }
         }
       }
     }
@@ -295,7 +329,7 @@ bool Lattice::ClearCell(const std::string &label)
 
 bool Lattice::replaceLabel(const std::string &oldL, const std::string &newL)
 {
-  std::map<std::string, LatticeCell *>::iterator iter = LabelToCell.find(oldL);
+  std::map<std::string, LatticeCell *>::iterator iter = this->LabelToCell.find(oldL);
   if(iter == LabelToCell.end() || iter->second->getCount() == 0)
   {
     return false;
@@ -464,4 +498,66 @@ std::string Lattice::generate_string(std::string in, CellDrawMode mode)
     case HEX_TWELFTH_TOP:
       return in + "_top";
   }
+  assert(false);
+  return in;
+}
+
+bool Lattice::fillRing(int r, int c, std::string const& label)
+{
+  bool change = false;
+  if(this->enGeometryType == RECTILINEAR)
+  {
+    int ring = std::min(r, std::min(c, std::min(static_cast<int>(this->Grid.size()-1-r),
+                                                static_cast<int>(this->Grid[0].size()-1-c))));
+    for( int i = ring; i < this->Grid.size()-ring; ++i )
+    {
+      if(label != Grid[i][ring].getCell()->label)
+      {
+        change = true;
+        this->SetCell(i,ring,label);
+      }
+    }
+    for( int i = ring; i < this->Grid[0].size()-ring; ++i )
+    {
+      if(label != Grid[ring][i].getCell()->label)
+      {
+        change = true;
+        this->SetCell(ring,i,label);
+      }
+    }
+    int tmp = this->Grid.size()-1-ring;
+    for( int i = ring; i < this->Grid[0].size()-ring; ++i )
+    {
+      if(label != Grid[tmp][i].getCell()->label)
+      {
+        change = true;
+        this->SetCell(tmp,i,label);
+      }
+    }
+    tmp = this->Grid[0].size()-1-ring;
+    for( int i = ring; i < this->Grid.size()-ring; ++i )
+    {
+      if(label != Grid[i][tmp].getCell()->label)
+      {
+        change = true;
+        this->SetCell(i,tmp,label);
+      }
+    }
+  }
+  else if(this->enGeometryType == HEXAGONAL)
+  {
+    int start, end;
+    if(getValidRange(r, start, end))
+    {
+      for(int j = start; j <= end; ++j)
+      {
+        if(label != Grid[r][j].getCell()->label)
+        {
+          change = true;
+          this->SetCell(r,j,label);
+        }
+      }
+    }
+  }
+  return change;
 }

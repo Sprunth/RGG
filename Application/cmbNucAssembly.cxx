@@ -9,6 +9,7 @@
 #include <limits>
 #include <cctype>
 #include <functional>
+#include <cassert>
 
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
@@ -36,6 +37,29 @@
 #include <QFileInfo>
 #include <QDateTime>
 #include <QDir>
+
+void cmbAssyParameters::fill(cmbAssyParameters * other)
+{
+  UnknownParams = other->UnknownParams;
+  this->Geometry = other->Geometry;
+  this->MeshType = other->MeshType;
+  this->CenterXYZ = other->CenterXYZ;
+  this->HBlock = other->HBlock;
+  this->Info = other->Info;
+  this->SectionXYZ = other->SectionXYZ;
+  this->RadialMeshSize = other->RadialMeshSize;
+  this->AxialMeshSize = other->AxialMeshSize;
+  this->TetMeshSize = other->TetMeshSize;
+  this->CreateFiles = other->CreateFiles;
+  this->SectionOffset = other->SectionOffset;
+  this->MoveXYZ[0] = other->MoveXYZ[0];
+  this->MoveXYZ[1] = other->MoveXYZ[1];
+  this->MoveXYZ[2] = other->MoveXYZ[2];
+  this->SectionReverse = false;
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) this->Var = other->Var;
+  ASSYGEN_EXTRA_VARABLE_MACRO()
+#undef FUN_SIMPLE
+}
 
 std::string TO_AXIS_STRING[] = {"X", "Y", "Z"};
 
@@ -220,6 +244,27 @@ void cmbNucAssembly::AddPinCell(PinCell *pincell)
   QObject::connect(pincell->GetConnection(), SIGNAL(Deleted(PinCell*)),
                    this->Connection, SLOT(pinDeleted(PinCell*)));
   this->PinCells.push_back(pincell);
+}
+
+void cmbNucAssembly::SetPinCell(int i, PinCell *pc)
+{
+  if(i > this->PinCells.size()) return;
+  if(pc == NULL) return;
+  PinCell * old = this->PinCells[i];
+  if(old == pc) return;
+  QObject::disconnect(old->GetConnection(), SIGNAL(Changed()),
+                      this->Connection, SLOT(dataChanged()));
+  QObject::disconnect(old->GetConnection(), SIGNAL(CellMaterialChanged()),
+                      this->Connection, SLOT(geometryChanged()));
+  QObject::disconnect(old->GetConnection(), SIGNAL(Deleted(PinCell*)),
+                      this->Connection, SLOT(pinDeleted(PinCell*)));
+  QObject::connect(pc->GetConnection(), SIGNAL(Changed()),
+                   this->Connection, SLOT(dataChanged()));
+  QObject::connect(pc->GetConnection(), SIGNAL(CellMaterialChanged()),
+                   this->Connection, SLOT(geometryChanged()));
+  QObject::connect(pc->GetConnection(), SIGNAL(Deleted(PinCell*)),
+                   this->Connection, SLOT(pinDeleted(PinCell*)));
+  this->PinCells[i] = pc;
 }
 
 void cmbNucAssembly::RemovePinCell(const std::string label_in)
@@ -730,4 +775,37 @@ double cmbNucAssembly::getZAxisRotation() const
 void cmbNucAssembly::setZAxisRotation(double d)
 {
   zAxisRotation = Rotate(Transform::Z, d);
+}
+
+cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
+                                       cmbNucDuctLibrary * dl)
+{
+  cmbNucAssembly * result = new cmbNucAssembly();
+  result->label = this->label;
+  result->setPinLibrary(pl);
+  result->setDuctLibrary(dl);
+  for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin(); iter != this->PinCells.end(); ++iter)
+  {
+    result->AddPinCell(pl->GetPinCell((*iter)->getLabel()));
+  }
+  DuctCell * dc = dl->GetDuctCell(this->AssyDuct->getName());
+  assert(dc != NULL);
+  result->setDuctCell(dc);
+  result->zAxisRotation = this->zAxisRotation;
+  result->GeometryType = this->GeometryType;
+  result->DifferentFromCub = this->DifferentFromCub;
+  result->DifferentFromJournel = this->DifferentFromJournel;
+
+  result->Parameters->fill(this->Parameters);
+
+  result->pinPitchX = this->pinPitchX;
+  result->pinPitchY = this->pinPitchY;
+
+  result->lattice = Lattice(this->lattice);
+
+  result->ExportFileName = this->ExportFileName;
+  result->ExportFileNames = this->ExportFileNames;
+
+  return result;
+
 }

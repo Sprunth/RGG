@@ -28,6 +28,7 @@ public slots:
   void set_full_mode(Lattice::CellDrawMode m);
   void clear();
   void createImage(QString);
+  void updateActionList();
 signals:
   void valuesChanged();
   void objGeometryChanged(AssyPartObj* selObj);

@@ -7,7 +7,9 @@
 #include <QMap>
 #include <QColor>
 #include <vtkSmartPointer.h>
+
 #include "cmbNucPartDefinition.h"
+#include "cmbNucImporter.h"
 
 // Forward Qt class declarations
 class pqTestUtility;
@@ -42,6 +44,7 @@ class cmbNucMainWindow : public QMainWindow
   Q_OBJECT
 
 public:
+  friend class cmbNucImporter;
   // Constructor/Destructor
   cmbNucMainWindow();
   ~cmbNucMainWindow();
@@ -89,6 +92,7 @@ public slots:
   void modelControls(bool);
   void resetMeshCamera();
   void waitForExportingToBeDone();
+  void checkExporter();
 
 signals:
   void updateGlobalZScale(double scale);
@@ -98,9 +102,7 @@ protected:
   void initPanels();
   void saveSelected(bool requestFileName, bool force);
   bool exportINPs();
-  bool exportINP(cmbNucAssembly*assy);
   void saveXML(cmbNucCore*, bool request_file_name, bool force);
-  QString requestInpFileName(QString name, QString type);
   QString requestXMLFileName(QString name, QString type);
   virtual void closeEvent(QCloseEvent *event);
   void CameraMovedHandlerMesh();
@@ -150,11 +152,18 @@ protected slots:
 
   void resetCamera();
 
+  void onImportPins();
+  void onImportDucts();
+  void onImportAssemblies();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
 
+  cmbNucImporter * importer;
+
   void doClearAll(bool needSave = false);
+  void setCoreActions(bool);
 
   cmbNucRender * NucMappers;
   vtkSmartPointer<vtkRenderer> Renderer;

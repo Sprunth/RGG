@@ -1,7 +1,6 @@
 if(BUILD_MESHKIT_MASTER)
   add_external_project(lasso
     DEPENDS moab cgm
-    PATCH_COMMAND ${GIT_EXECUTABLE} apply ${CMAKE_SOURCE_DIR}/patches/lasso.linux.so.git_patch.txt
     USE_AUTOCONF
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
       --enable-encoding
@@ -13,7 +12,6 @@ if(BUILD_MESHKIT_MASTER)
 else()
   add_external_project(lasso
     DEPENDS moab cgm
-    #PATCH_COMMAND ${GIT_EXECUTABLE} apply ${CMAKE_SOURCE_DIR}/patches/lasso.linux.so.git_patch.txt
     USE_AUTOCONF
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
       --enable-encoding

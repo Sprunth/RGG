@@ -46,6 +46,8 @@ public:
 
   unsigned int numberOfParts();
 
+  void computeBounds(vtkBoundingBox * box);
+
 public slots:
   void openFile(QString file);
   void selectionChanged(QTreeWidgetItem *);

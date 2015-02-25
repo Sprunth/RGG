@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QSet>
 
+#include <vector>
+
 #include <vtkBoundingBox.h>
 
 class DuctConnection : public QObject
@@ -35,6 +37,9 @@ public:
   size_t NumberOfLayers() const;
 
   double * getNormThick(int i);
+
+  void splitMaterialLayer( std::vector<double> const& lx,
+                           std::vector<double> const& ly ); //values are normalized
 
   QPointer<cmbNucMaterial> getMaterial(int i);
   cmbNucMaterialLayer const& getMaterialLayer(int i) const;
@@ -109,6 +114,10 @@ public:
   bool isUsed();
   void used();
   void freed();
+  std::vector<double> getDuctLayers() const;
+  void uniformizeMaterialLayers();
+  //assumes that the ducts z1 and z2 are in layers
+  void splitDucts( std::vector<double> const& layers );
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

@@ -88,6 +88,10 @@
       <string>Import</string>
      </property>
      <addaction name="importINPFile"/>
+     <addaction name="separator"/>
+     <addaction name="actionImportPins"/>
+     <addaction name="actionImportDucts"/>
+     <addaction name="actionImportAssemblies"/>
     </widget>
     <widget class="QMenu" name="menuExport">
      <property name="title">
@@ -551,7 +555,22 @@
   </action>
   <action name="ExportImpFiles">
    <property name="text">
-    <string>Imp Files</string>
+    <string>Inp Files</string>
+   </property>
+  </action>
+  <action name="actionImportPins">
+   <property name="text">
+    <string>Pins</string>
+   </property>
+  </action>
+  <action name="actionImportDucts">
+   <property name="text">
+    <string>Ducts</string>
+   </property>
+  </action>
+  <action name="actionImportAssemblies">
+   <property name="text">
+    <string>Assemblies</string>
    </property>
   </action>
  </widget>

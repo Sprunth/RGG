@@ -12,7 +12,6 @@ add_external_project(lasso
   BUILD_IN_SOURCE 1
   ${suppress_build_out}
   CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --enable-encoding
     --enable-shared
     --with-imesh=<INSTALL_DIR>
     --with-igeom=<INSTALL_DIR>
