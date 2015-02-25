@@ -180,31 +180,6 @@ protected:
 
 namespace
 {
-  void computeBounds(vtkMultiBlockDataSet * dataset, vtkBoundingBox * box)
-  {
-    if(dataset == NULL) return;
-    // move the assembly to the correct position
-    for(size_t idx=0; idx<dataset->GetNumberOfBlocks(); idx++)
-    {
-      // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
-      if(vtkDataObject* objBlock = dataset->GetBlock(idx))
-      {
-        if(vtkMultiBlockDataSet* assyPartBlock =
-           vtkMultiBlockDataSet::SafeDownCast(objBlock))
-        {
-          computeBounds(assyPartBlock, box);
-        }
-        else
-        {
-          vtkDataSet* part = vtkDataSet::SafeDownCast(objBlock);
-          double tmpb[6];
-          part->GetBounds(tmpb);
-          box->AddBounds(tmpb);
-        }
-      }
-    }
-  }
-
   bool CompareImage( vtkRenderWindow* RenderWindow,
                      const QString& ReferenceImage, double Threshold,
                      const QString& TempDirectory)
@@ -1555,9 +1530,12 @@ void cmbNucMainWindow::onSelectionChange()
   this->onChangeMeshColorMode();
 
   vtkBoundingBox box;
-  computeBounds(vtkMultiBlockDataSet::SafeDownCast(this->Internal->MoabSource->getData()), &box);
-  box.GetBounds(this->Internal->BoundsMesh);
-  setScaledBounds();
+  this->Internal->MoabSource->computeBounds(&box);
+  if(box.IsValid())
+  {
+    box.GetBounds(this->Internal->BoundsMesh);
+    setScaledBounds();
+  }
   if( isMeshTabVisible() )
   {
     this->ui->qvtkMeshWidget->update();

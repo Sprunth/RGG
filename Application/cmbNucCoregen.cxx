@@ -20,13 +20,51 @@
 extern int defaultAssemblyColors[][3];
 extern int numAssemblyDefaultColors;
 
+namespace
+{
+  void computeBounds(vtkMultiBlockDataSet * dataset, vtkBoundingBox * box)
+  {
+    if(dataset == NULL) return;
+    // move the assembly to the correct position
+    for(size_t idx=0; idx<dataset->GetNumberOfBlocks(); idx++)
+    {
+      // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
+      if(vtkDataObject* objBlock = dataset->GetBlock(idx))
+      {
+        if(vtkMultiBlockDataSet* assyPartBlock =
+           vtkMultiBlockDataSet::SafeDownCast(objBlock))
+        {
+          computeBounds(assyPartBlock, box);
+        }
+        else
+        {
+          vtkDataSet* part = vtkDataSet::SafeDownCast(objBlock);
+          double tmpb[6];
+          part->GetBounds(tmpb);
+          box->AddBounds(tmpb);
+        }
+      }
+    }
+  }
+}
+
 class MeshTreeItem : public QTreeWidgetItem
 {
 public:
   MeshTreeItem(QTreeWidgetItem* pNode, size_t r, int s, vtkSmartPointer<vtkDataObject> data_in)
   :QTreeWidgetItem(pNode)
   {
-    data = data_in;
+    if(vtkMultiBlockDataSet::SafeDownCast(data_in) == NULL)
+    {
+      vtkSmartPointer<vtkMultiBlockDataSet> mb = vtkSmartPointer<vtkMultiBlockDataSet>::New();
+      mb->SetNumberOfBlocks(1);
+      mb->SetBlock(0, data_in);
+      data = mb;
+    }
+    else
+    {
+      data = data_in;
+    }
     rootId = r;
     subId = s;
   }
@@ -173,6 +211,13 @@ cmbNucCoregen::getData()
   return this->Data;
 }
 
+void cmbNucCoregen::computeBounds(vtkBoundingBox * box)
+{
+  vtkMultiBlockDataSet * dataset = vtkMultiBlockDataSet::SafeDownCast(this->DataSets[this->selectedType]);
+  if(dataset == NULL) return;
+  ::computeBounds(dataset, box);
+}
+
 void cmbNucCoregen::rootChanged(int i)
 {
   int unknown = 0;
@@ -223,7 +268,6 @@ void cmbNucCoregen::openFile(QString file)
   vtkSmartPointer<vtkMultiBlockDataSet> tmp = this->MoabReader->GetOutput();
   DataSets.resize(tmp->GetNumberOfBlocks());
   this->GeoFilt.resize(tmp->GetNumberOfBlocks(), NULL);
-  QList<QTreeWidgetItem*> roots;
 
   qDebug() << "there are " << tmp->GetNumberOfBlocks() << "blocks";
   this->SubPartVisible.resize(tmp->GetNumberOfBlocks());
