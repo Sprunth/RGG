@@ -202,6 +202,8 @@ def isexcluded(id):
     #even when it is installed in a system location like
     #user/local/Cellar.
     return False
+  if re.match(r".*OCE.*", id):
+    return False
   if re.match(r"^libz\.1\.dylib", id):
     return True
   if re.match(r"^/System/Library", id):
