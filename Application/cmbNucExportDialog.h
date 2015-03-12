@@ -10,6 +10,7 @@
 #include "cmbNucCore.h"
 #include "ui_qProgress.h"
 
+
 // Forward Qt class declarations
 class Ui_qExporterDialog;
 class Ui_qProgress;
@@ -45,7 +46,7 @@ public:
   }
 
 public slots:
-  void exportFile(cmbNucCore * core);
+  void exportFile(cmbNucCore * core, cmbNucInpExporter & inpExporter);
 
 protected slots:
   void sendSignalToProcess();
@@ -70,6 +71,7 @@ private:
   // Designer form
   Ui_qExporterDialog *ui;
   cmbNucCore * Core;
+  cmbNucInpExporter * InpExporter;
   cmbNucMainWindow *MainWindow;
 
   bool send_core_mesh;

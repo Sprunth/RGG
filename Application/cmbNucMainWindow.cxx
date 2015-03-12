@@ -1441,7 +1441,7 @@ void cmbNucMainWindow::exportRGG()
   bool isOk = cmbNucPreferencesDialog::isOk();
   if(isOk)
   {
-    this->ExportDialog->exportFile(NuclearCore);
+    this->ExportDialog->exportFile(NuclearCore, this->Internal->inpExporter);
   }
   else
   {

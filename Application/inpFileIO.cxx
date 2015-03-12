@@ -972,7 +972,7 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
           output << " " << duct->GetLayerThick(i, 1);
         }
       }
-    for(int j = 0; j < nl; j++)
+    for(int j = limited?nl-1:0; j < nl; j++)
       {
       output << " " << duct->getMaterial(j)->getLabel().toStdString();
       }
@@ -1039,6 +1039,7 @@ bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell *
 
 void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
 {
+  if(assembly.PinCells.empty()) return;
   output << "pincells " << assembly.PinCells.size() << "\n";
   double pitchX = assembly.getPinPitchX();
   double pitchY = assembly.getPinPitchY();

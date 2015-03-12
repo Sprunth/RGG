@@ -40,7 +40,7 @@ cmbNucGenerateOuterCylinder
 
 void
 cmbNucGenerateOuterCylinder
-::exportFiles(cmbNucCore * core)
+::exportFiles(cmbNucCore * core, cmbNucInpExporter & inpExporter)
 {
   this->Core = core;
   if(this->Core == NULL) return;
@@ -58,44 +58,37 @@ cmbNucGenerateOuterCylinder
     else
     {
       FileName = qi.dir().absolutePath() + "/" + tmp.c_str();
+      this->Core->Params.BackgroundFullPath = FileName.toStdString();
       random = GetRandomString(8);
-      Generate();
+      Generate(inpExporter);
     }
   }
 }
 
 void
 cmbNucGenerateOuterCylinder
-::Generate()
+::Generate(cmbNucInpExporter & inpExporter)
 {
-  //Generate temp inp file of outer cores of an assembly
-  QFileInfo fi(FileName);
-  cmbNucAssembly * temp = this->Core->GetUsedAssemblies()[0];
-  QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
-  fname = fname.toLower();
-  QString fullPath =fi.dir().absoluteFilePath(fname);
-  inpFileWriter::write(fullPath.toStdString(), *temp, false, true);
-
-  //Generate temp inp file of type geometry of core
-  QString corename = QString("core") + random + ".inp";
-  fullPath =fi.dir().absoluteFilePath(corename);
-  inpFileWriter::writeGSH(fullPath.toStdString(), *Core, fname.toStdString());
+  inpExporter.exportCylinderINPFile(FileName,random);
 
   //Generate temp jou file for coregen
-  QString jouname = QString("cylinder") + random + ".jou";
-  fullPath =fi.dir().absoluteFilePath(jouname);
+  QFileInfo fi(FileName);
+  QString jouname  = QString("cylinder") + random + ".jou";
+  QString fullPath = fi.dir().absoluteFilePath(jouname);
+  QString corename = QString("core") + random + ".inp";
   std::ofstream output(fullPath.toStdString().c_str());
+  QString fname = QString(this->Core->GetUsedAssemblies()[0]->getLabel().c_str()).toLower() + random + ".inp";
   output << "{include(\"" << QFileInfo(fname).completeBaseName().toStdString() << ".template.jou\")}\n";
-  output << "{rings = " << Core->getLattice().getSize() << "}\n";
+  output << "#{rings = " << Core->getLattice().getSize() << "}\n";
   output << "#{OUTER_CYL_EDGE_INTERVAL = " << this->Core->getCylinderOuterSpacing() << "}\n";
   output << "#{rd = " << this->Core->getCylinderRadius() << "}\n";
   output << "#{tol = 1e-2}\n";
   output << "#{TOTAL_VOLS_LARGE = 4000}\n";
-  output << "{xmove = rings*PITCH}\n";
-  output << "{y0 = (rings-1)*PITCH*cosd(30)}\n";
+  output << "#{xmove = rings*PITCH}\n";
+  output << "#{y0 = (rings-1)*PITCH*cosd(30)}\n";
   output << "create cylinder radius {rd} height {Z_HEIGHT}\n";
   output << "move vol 1 x {xmove} y {-y0}  z {Z_HEIGHT/2}\n";
-  output << "group 'one' equals vol 1\n";
+  //output << "group 'one' equals vol 1\n";
   output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString() << ".sat'\n";
   output << "group 'gall' equals vol 2 to {TOTAL_VOLS_LARGE}\n";
   output << "subtract vol 2 to 4000 from vol 1\n";
