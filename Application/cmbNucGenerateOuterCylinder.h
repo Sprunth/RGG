@@ -6,6 +6,7 @@
 #include <QThread>
 #include "cmbNucPartDefinition.h"
 #include "cmbNucCore.h"
+#include "cmbNucInpExporter.h"
 
 class cmbNucGenerateOuterCylinder
 {
@@ -13,7 +14,7 @@ public:
   cmbNucGenerateOuterCylinder();
   ~cmbNucGenerateOuterCylinder();
 
-  void exportFiles(cmbNucCore * core);
+  void exportFiles(cmbNucCore * core, cmbNucInpExporter & inpExporter);
   void deleteTempFiles();
 
   QString getAssygenFileName();
@@ -24,7 +25,7 @@ public:
   bool generateCylinder();
 
 protected:
-  void Generate();
+  void Generate(cmbNucInpExporter & inpExporter);
 
 private:
   // Designer form

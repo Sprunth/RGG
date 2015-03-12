@@ -70,7 +70,7 @@ cmbNucExportDialog::~cmbNucExportDialog()
   std::cout << "Done with deleting dialog" << std::endl;
 }
 
-void cmbNucExportDialog::exportFile(cmbNucCore * core)
+void cmbNucExportDialog::exportFile(cmbNucCore * core, cmbNucInpExporter & inpExporter)
 {
   this->hide();
   MainWindow->onUpdateINPFiles();
@@ -81,6 +81,7 @@ void cmbNucExportDialog::exportFile(cmbNucCore * core)
     return;
   }
   Core = core;
+  InpExporter = &inpExporter;
   this->GetRunnableCoreFile(this->ui->forceCore->isChecked());
   this->GetRunnableAssyFiles(this->ui->forceAssy->isChecked());
   this->show();
@@ -140,7 +141,7 @@ void cmbNucExportDialog::sendSignalToProcess()
     qDebug() << outputMesh;
   }
 
-  OuterCylinder->exportFiles(this->Core);
+  OuterCylinder->exportFiles(this->Core, *InpExporter);
   if(OuterCylinder->generateCylinder())
   {
     emit process(this->AssygenFileList, CoregenFile, outputMesh,
@@ -238,7 +239,7 @@ void cmbNucExportDialog::runCoregen()
     qDebug() << outputMesh;
   }
 
-  OuterCylinder->exportFiles(this->Core);
+  OuterCylinder->exportFiles(this->Core, *InpExporter);
   if(OuterCylinder->generateCylinder())
   {
     emit process(QStringList(), CoregenFile, outputMesh,

@@ -86,13 +86,46 @@ bool cmbNucInpExporter
       }
     }
     cmbNucAssembly* assemblyClone = assembly->clone(pl, dl);
-    this->exportInpFile(assemblyClone);
+    this->exportInpFile(assemblyClone, false);
     delete assemblyClone;
   }
   if(this->NuclearCore->changeSinceLastGenerate())
   {
     inpFileWriter::write(coreName.toStdString(), *(this->NuclearCore));
   }
+  return true;
+}
+
+bool cmbNucInpExporter
+::exportCylinderINPFile(QString filename, QString random)
+{
+  //clone the pins and ducts.  These are needed for determining layers
+  cmbNucPinLibrary * pl = this->NuclearCore->getPinLibrary()->clone();
+  cmbNucDuctLibrary * dl = this->NuclearCore->getDuctLibrary()->clone();
+
+  //split ducts if needed
+  for(unsigned int i = 0; i < dl->GetNumberOfDuctCells(); ++i)
+  {
+    dl->GetDuctCell(i)->splitDucts(this->coreLevelLayers.levels);
+  }
+
+  //Generate temp inp file of outer cores of an assembly
+  QFileInfo fi(filename);
+  cmbNucAssembly * temp = this->NuclearCore->GetUsedAssemblies()[0]->clone(this->NuclearCore->getPinLibrary()->clone(),dl);
+  QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
+  fname = fname.toLower();
+  QString fullPath =fi.dir().absoluteFilePath(fname);
+  temp->ExportFileNames.clear();
+  temp->ExportFileNames[ temp->getLattice().getFullCellMode() ] = fullPath.toStdString();
+
+  this->exportInpFile(temp, true);
+
+  delete temp;
+
+  //Generate temp inp file of type geometry of core
+  QString corename = QString("core") + random + ".inp";
+  fullPath =fi.dir().absoluteFilePath(corename);
+  inpFileWriter::writeGSH(fullPath.toStdString(), *NuclearCore, fname.toStdString());
   return true;
 }
 
@@ -164,7 +197,7 @@ void cmbNucInpExporter
 }
 
 bool cmbNucInpExporter
-::exportInpFile(cmbNucAssembly * assy)
+::exportInpFile(cmbNucAssembly * assy, bool isCylinder)
 {
   for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = assy->ExportFileNames.begin();
       iter != assy->ExportFileNames.end(); ++iter)
@@ -219,7 +252,7 @@ bool cmbNucInpExporter
 
     if(!assyFile.exists() || assy->changeSinceLastGenerate())
     {
-      inpFileWriter::write(fname, *assy, false);
+      inpFileWriter::write(fname, *assy, false, isCylinder);
     }
   }
   assy->removeOldTransforms(0);
@@ -227,7 +260,7 @@ bool cmbNucInpExporter
 }
 
 QString cmbNucInpExporter::requestInpFileName(QString name,
-                                             QString type)
+                                              QString type)
 {
   QString defaultName("");
   QString defaultLoc;

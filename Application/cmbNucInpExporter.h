@@ -16,10 +16,11 @@ public:
   void setCore(cmbNucCore * core);
   void updateCoreLayers(bool ignore_regen = false);
   bool exportInpFiles();
+  bool exportCylinderINPFile(QString filename, QString rand);
 protected:
   bool updateCoreLevelLayers();
   bool updateAssemblyLevelLayers(cmbNucAssembly * assy);
-  bool exportInpFile(cmbNucAssembly * assy);
+  bool exportInpFile(cmbNucAssembly * assy, bool isCylinder);
   QString requestInpFileName(QString name, QString type);
   struct layers
   {

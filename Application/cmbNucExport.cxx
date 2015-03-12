@@ -437,6 +437,7 @@ cmbNucExporterWorker
           this->returnResult(results);
           break;
         }
+        qDebug() << input.OutputFile.c_str() << "Does not exist retrying: " << this->label.c_str();
       case RETRY:
         QThread::yieldCurrentThread();
         if(numberOfTries++ < 3)
@@ -584,10 +585,10 @@ cmbNucExporterWorker::status cmbNucExporterWorker
   }
   if( qp.exitStatus() == QProcess::NormalExit)
   {
-    qDebug() << "exited normally process:" << pid;
+    qDebug() << "exited normally process:" << pid << " ID: " << this->label.c_str();
     return OK;
   }
-  qDebug() << pid << "exit"<< qp.exitStatus() << "error:" <<  qp.error() << this->label.c_str();
+  qDebug() << pid << "exit"<< qp.exitStatus() << "error:" <<  qp.error() << "ID:" << this->label.c_str();
   QStringList qargs;
   for( std::vector<std::string>::const_iterator i = ExtraArgs.begin();
       i < ExtraArgs.end(); ++i )
@@ -597,7 +598,11 @@ cmbNucExporterWorker::status cmbNucExporterWorker
   qDebug() << pid << qargs << FileName.c_str();
 
   if(qp.error() == QProcess::Crashed)
+  {
+    qDebug() << "Crashed:" << pid << " ID: " << this->label.c_str();
     return RETRY;
+  }
+  qDebug() << "Failed:" << pid << " ID: " << this->label.c_str();
   return FAILED;
 }
 #endif
@@ -837,6 +842,7 @@ cmbNucExport::exportCylinder( const QString assygenFile,
   JobHolder* assyJob = makeAssyJob(assygenFile);
   std::vector<JobHolder*> tmp = this->runCoreHelper( coregenFile, std::vector<JobHolder*>(1,assyJob),
                                                      coregenResultFile, true );
+  qDebug() << cubitFile << cubitOutputFile;
   result = runCubitHelper(cubitFile, tmp, cubitOutputFile);
   return result;
 }
