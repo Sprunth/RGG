@@ -57,8 +57,13 @@ public:
 
   cmbNucPinLibrary * clone() const;
 
+  void clearRenameEquivelence();
+
+  bool isEquivelence(PinCell* pc) const;
+
 protected:
   std::vector<PinCell*> PinCells;
+  std::map<std::string, PinCell*> OldLabelToNewPincell;
   std::map<std::string, size_t> NameToPin;
   std::map<std::string, size_t> LabelToPin;
   cmbNucPinLibraryConnection * Connection;

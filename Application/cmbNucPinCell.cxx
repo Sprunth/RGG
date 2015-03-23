@@ -160,6 +160,22 @@ bool PinSubPart::fill(PinSubPart const* other)
   return changed;
 }
 
+bool PinSubPart::equal(PinSubPart const* other) const
+{
+  if(other->x != this->x) return false;
+  if(other->y != this->y) return false;
+  if(other->z1 != this->z1) return false;
+  if(other->z2 != this->z2) return false;
+  if(other->Materials.size() != this->Materials.size()) return false;
+  for(unsigned int i = 0; i < this->Materials.size(); ++i)
+  {
+    if(!(*(other->Materials[i]) == *(this->Materials[i]))) return false;
+  }
+
+  return other->getRadius(PinSubPart::BOTTOM) == this->getRadius(PinSubPart::BOTTOM) &&
+         other->getRadius(PinSubPart::TOP) == this->getRadius(PinSubPart::TOP);
+}
+
 //*********************************************************//
 
 Cylinder::Cylinder(double rin, double z1in, double z2in)
@@ -766,4 +782,19 @@ void PinCell::setHeight(double nh)
     p->z2 = p->z2/oldH * nh;
     //TODO: look into new way of z1 and z2.  Turn pins sections into relative heights
   }
+}
+
+bool PinCell::operator==(PinCell const& other)
+{
+  if(other.Cylinders.size() != this->Cylinders.size()) return false;
+  if(other.Frustums.size() != this->Frustums.size()) return false;
+  for(unsigned int i = 0; i < this->Cylinders.size(); ++i)
+  {
+    if(!this->Cylinders[i]->equal(other.Cylinders[i])) return false;
+  }
+  for(unsigned int i = 0; i < this->Frustums.size(); ++i)
+  {
+    if(!this->Frustums[i]->equal(other.Frustums[i])) return false;
+  }
+  return other.CellMaterial == this->CellMaterial;
 }

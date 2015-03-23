@@ -1133,6 +1133,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
   // for Hex type, the pitch is next input.
   double hexPicth = -1.0;
   bool pitchSet = false;
+  bool material_not_found = false;
   if(assembly.IsHexType())
   {
     std::string hexPicthStr;
@@ -1217,9 +1218,14 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
           map_iter it = materialLabelMap.find(mlabel);
           if(it != materialLabelMap.end())
+          {
             tmp = it->second;
+          }
           else
+          {
+            material_not_found = mlabel != tmp->getLabel().toStdString();
             labelIsDifferent = true;
+          }
           // Lets save the first material to use to set the pin's color legend
           if (firstMaterial == NULL)
           {
@@ -1241,7 +1247,10 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         if(it != materialLabelMap.end())
           mat = it->second;
         else
+        {
+          material_not_found = mlabel != mat->getLabel().toStdString();
           labelIsDifferent = true;
+        }
         pincell->setCellMaterial(mat);
       }
       else if(value == "frustum")
@@ -1278,11 +1287,17 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           // maps to the actual material
           std::string mname;
           input >> mlabel;
-          QPointer<cmbNucMaterial> tmp = matColorMap->getMaterialByLabel(mlabel.c_str());
-          // Lets save the first material to use to set the pin's color legend
-          if (firstMaterial == NULL)
+          QPointer< cmbNucMaterial > tmp = cmbNucMaterialColors::instance()->getUnknownMaterial();
+          std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+          map_iter it = materialLabelMap.find(mlabel);
+          if(it != materialLabelMap.end())
           {
-            firstMaterial = tmp;
+            tmp = it->second;
+          }
+          else
+          {
+            material_not_found = mlabel != tmp->getLabel().toStdString();
+            labelIsDifferent = true;
           }
           frustum->SetMaterial(c,tmp);
           frustum->setNormalizedThickness( c, Frustum::TOP,
@@ -1291,6 +1306,12 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
                                            radii[(2*c)+Frustum::BOTTOM]*normF[Frustum::BOTTOM]);
         }
       }
+    }
+    if(material_not_found)
+    {
+      QMessageBox msgBox;
+      msgBox.setText( QString("One or more of the pincell's materials were not found, defaulting to unknown material") );
+      msgBox.exec();
     }
     if(firstMaterial != NULL)
     {

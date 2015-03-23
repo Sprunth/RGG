@@ -70,6 +70,8 @@ public:
   //Takes ownership
   void setMaterialLayer(int i, cmbNucMaterialLayer * m);
 
+  virtual bool equal(PinSubPart const* other) const;
+
   double x;
   double y;
   double z1;
@@ -243,6 +245,8 @@ public:
   void splitPin(std::vector<double> const& layers);
 
   void setHeight(double nh);
+
+  bool operator==(PinCell const& other);
 
 protected:
   std::vector<Cylinder*> Cylinders;
