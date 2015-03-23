@@ -32,10 +32,13 @@ public:
   bool read(cmbNucCore & core, bool read_assemblies = true);
   bool read_defaults(cmbNucDefaults & defaults);
   bool read_defaults(cmbNucAssembly & assembly);
+  std::vector<std::string> getLog()
+  { return log; }
 protected:
   std::string FileName;
   FileType Type;
   std::string CleanFile;
+  std::vector<std::string> log;
 private:
 };
 

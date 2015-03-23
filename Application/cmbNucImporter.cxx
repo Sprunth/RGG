@@ -202,6 +202,7 @@ bool cmbNucImporter::importInpFile()
         // clear old assembly
         if(!mainWindow->checkFilesBeforePreceeding()) return false;
         mainWindow->doClearAll();
+        log.clear();
         mainWindow->PropertyWidget->setObject(NULL, NULL);
         mainWindow->PropertyWidget->setAssembly(NULL);
         if(!freader.read(*(mainWindow->NuclearCore)))
@@ -236,6 +237,8 @@ bool cmbNucImporter::importInpFile()
       default:
         qDebug() << "could not open" << fileNames[i];
     }
+    std::vector<std::string> tlog = freader.getLog();
+    log.insert(log.end(), tlog.begin(), tlog.end());
   }
   int numNewAssy = mainWindow->NuclearCore->GetNumberOfAssemblies() - numExistingAssy;
   if(numNewAssy)
@@ -248,6 +251,7 @@ bool cmbNucImporter::importInpFile()
 
   // In case the loaded core adds new materials
   mainWindow->InputsWidget->updateUI(numNewAssy);
+
   return true;
 }
 

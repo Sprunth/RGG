@@ -76,6 +76,7 @@ public slots:
   void onSaveSelectedAs();
   void onExportINPFiles();
   void onUpdateINPFiles();
+  void onShowImportLog();
   void clearAll();
   void clearCore();
   void ResetView();
@@ -155,6 +156,7 @@ protected slots:
   void onImportPins();
   void onImportDucts();
   void onImportAssemblies();
+  void clearImporterLog();
 
 private:
   // Designer form

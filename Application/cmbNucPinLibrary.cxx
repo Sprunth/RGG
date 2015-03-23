@@ -37,11 +37,12 @@ bool cmbNucPinLibrary::nameConflicts(std::string n) const
   return this->NameToPin.find(n) != this->NameToPin.end();
 }
 
-bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
+cmbNucPinLibrary::PinAddedMode
+cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
 {
-  if(in == NULL) return true;
+  if(in == NULL) return PinNull;
   PinCell * pc = *in;
-  if(pc == NULL) return true; //Ignore null
+  if(pc == NULL) return PinNull; //Ignore null
   ConflictMode cm = this->testPinConflicts(pc);
   if(cm == No_Conflict)
   {
@@ -51,84 +52,82 @@ bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
     std::string name = pc->getName();
     NameToPin[name] = loc;
     LabelToPin[label] = loc;
-    return true;
+    return PinAdded;
   }
   else if(cm == Both_Conflict)
   {
     PinCell * other = PinCells[LabelToPin.find(pc->getLabel())->second];
+    PinAddedMode am;
     switch(mode)
     {
       case Replace:
         other->fill(pc);
+        am = PinAdded;
+        break;
       case KeepOriginal:
-        delete pc;
-        *in = NULL;
-        *in = other;
-        return true;
+        am = PinExists;
+        break;
     }
+    delete pc;
+    *in = other;
+    return am;
   }
-  return false;
+  return PinAddFailed;
 }
 
-bool cmbNucPinLibrary::addPin(PinCell** pc, bool keepEqualent, std::map<std::string, std::string> & nameChange)
+cmbNucPinLibrary::PinAddedMode
+cmbNucPinLibrary::addPin(PinCell** pc, bool keepEqualent,
+                         std::map<std::string, std::string> & nameChange)
 {
-  if(pc == NULL) return false;
-  if(*pc == NULL) return false;
+  if(pc == NULL) return PinNull;
+  if(*pc == NULL) return PinNull;
+  PinAddedMode resultMode = PinAdded;
 
   ConflictMode mode = this->testPinConflicts(*pc);
   std::string oldLabel = (*pc)->getLabel();
+  bool isEq = false;
 
-  if(mode == Both_Conflict && !keepEqualent && isEquivelence(*pc))
+  if(mode == Both_Conflict && !keepEqualent && (isEq = isEquivelence(*pc)))
   {
-    if(oldLabel != (*pc)->getLabel()) nameChange[oldLabel] = (*pc)->getLabel();
+    if(oldLabel != (*pc)->getLabel())
+    {
+      nameChange[oldLabel] = (*pc)->getLabel();
+    }
     return this->addPin(pc, KeepOriginal);
   }
-  else if(this->keepGoing)
+  else if(mode)
   {
-    if(mode && this->renamePin)
+    resultMode = PinRenamed;
+    //rename loop
+    std::string n = (*pc)->getName();
+    int count = 0;
+    while(this->nameConflicts(n))
     {
-      //rename loop
-      std::string n = (*pc)->getName();
-      int count = 0;
-      while(this->nameConflicts(n))
-      {
-        n = (QString(n.c_str()) + QString::number(count++)).toStdString();
-      }
-      //relabel loop
-      std::string l = (*pc)->getLabel();
-      count = 0;
-      while(this->labelConflicts(l))
-      {
-        l = (QString(l.c_str()) + QString::number(count++)).toStdString();
-      }
-      (*pc)->setName(n);
-      if((*pc)->getLabel() != l)
-      {
-        OldLabelToNewPincell[l] = *pc;
-        nameChange[(*pc)->getLabel()] = l;
-      }
-      (*pc)->setLabel(l);
+      n = (QString((*pc)->getName().c_str()) + QString::number(count++)).toStdString();
     }
+    //relabel loop
+    std::string l = (*pc)->getLabel();
+    count = 0;
+    while(this->labelConflicts(l))
+    {
+      l = (QString((*pc)->getLabel().c_str()) + QString::number(count++)).toStdString();
+    }
+    (*pc)->setName(n);
+    if((*pc)->getLabel() != l)
+    {
+      OldLabelToNewPincell[(*pc)->getLabel()] = *pc;
+      nameChange[(*pc)->getLabel()] = l;
+    }
+    (*pc)->setLabel(l);
+  }
+  if(this->addPin(pc, this->conflictResMode))
+  {
+    return resultMode;
   }
   else
   {
-    this->conflictResMode = cmbNucPinLibrary::KeepOriginal;
-    if(mode)
-    {
-      std::string old_label = (*pc)->getLabel();
-      cmbNucConflictDialog cncd(NULL, this, *pc);
-      this->conflictResMode = static_cast<cmbNucPinLibrary::AddMode>(cncd.exec());
-      this->renamePin = cncd.rename();
-      this->keepGoing = cncd.keepGoing();
-      std::string new_label = (*pc)->getLabel();
-      if(new_label != old_label)
-      {
-        nameChange[old_label] = new_label;
-        OldLabelToNewPincell[old_label] = *pc;
-      }
-    }
+    return PinAddFailed;
   }
-  return this->addPin(pc, this->conflictResMode);
 }
 
 void cmbNucPinLibrary::resetConflictResolution()

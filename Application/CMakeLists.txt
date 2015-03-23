@@ -76,6 +76,7 @@ SET(RGGNuclear_UI
   qAssyParameters.ui
   qCoreParameters.ui
   name_conflict_gui.ui
+  qImportLog.ui
 )
 
 SET(RGGNuclear_Headers
