@@ -36,7 +36,7 @@ public:
 
   //takes ownership when successful. Returns true if successful.
   bool addPin(PinCell** pc, AddMode mode);
-  bool addPin(PinCell** pc, std::map<std::string, std::string> & nameChange);
+  bool addPin(PinCell** pc, bool keepEqualent, std::map<std::string, std::string> & nameChange);
   void resetConflictResolution();
   void setKeepGoingAsRename()
   {

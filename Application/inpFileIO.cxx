@@ -293,7 +293,6 @@ bool inpFileReader
   std::map<std::string, std::string> newLabel;
   DuctCell * dc = new DuctCell;
   dc->setName(assembly.getLabel() + "_Duct");
-  assembly.setDuctCell(dc);
 
   while(!input.eof())
   {
@@ -397,6 +396,9 @@ bool inpFileReader
       if(!helper.readUnknown(input, value, assembly.Parameters->UnknownParams)) return false;
       }
     }
+  DuctCell ** dcp = &dc;
+  dl->addDuct(dcp);
+  assembly.setDuctCell(*dcp);
   assembly.computeDefaults();
   assembly.setAndTestDiffFromFiles(helper.labelIsDifferent);
   if(!newLabel.empty())
@@ -406,7 +408,6 @@ bool inpFileReader
       assembly.getLattice().replaceLabel(iter->first, iter->second);
     }
   }
-  dl->addDuct(dc);
   this->keepGoing  = helper.keepGoing;
   this->renamePin  = helper.renamePin;
   this->pinAddMode = helper.pinAddMode;
@@ -1318,7 +1319,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
       pincell->SetLegendColor(firstMaterial->getColor());
     }
 
-    pl->addPin(&pincell, newLabel);
+    pl->addPin(&pincell, false, newLabel);
     assembly.AddPinCell(pincell);
   }
   return true;

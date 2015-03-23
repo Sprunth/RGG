@@ -70,7 +70,7 @@ bool cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
   return false;
 }
 
-bool cmbNucPinLibrary::addPin(PinCell** pc, std::map<std::string, std::string> & nameChange)
+bool cmbNucPinLibrary::addPin(PinCell** pc, bool keepEqualent, std::map<std::string, std::string> & nameChange)
 {
   if(pc == NULL) return false;
   if(*pc == NULL) return false;
@@ -78,7 +78,7 @@ bool cmbNucPinLibrary::addPin(PinCell** pc, std::map<std::string, std::string> &
   ConflictMode mode = this->testPinConflicts(*pc);
   std::string oldLabel = (*pc)->getLabel();
 
-  if(mode == Both_Conflict && isEquivelence(*pc))
+  if(mode == Both_Conflict && !keepEqualent && isEquivelence(*pc))
   {
     if(oldLabel != (*pc)->getLabel()) nameChange[oldLabel] = (*pc)->getLabel();
     return this->addPin(pc, KeepOriginal);

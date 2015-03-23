@@ -373,7 +373,7 @@ void cmbNucImporter::addPin(PinCell * pc, double dh, std::map<std::string, std::
     assert(tmpm != cmbNucMaterialColors::instance()->getUnknownMaterial());
     pc->SetMaterial(k, tmpm);
   }
-  mainWindow->NuclearCore->getPinLibrary()->addPin(&pc, nc);
+  mainWindow->NuclearCore->getPinLibrary()->addPin(&pc, true, nc);
 }
 
 void cmbNucImporter::addDuct(DuctCell * dc, double dh, double dt[2], std::map<std::string, std::string> & nc)
