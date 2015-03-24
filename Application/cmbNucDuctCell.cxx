@@ -386,12 +386,12 @@ void DuctCell::setZ0(double z0)
 {
   if(this->Ducts.size() == 0) return;
   if((*(this->Ducts.begin()))->z1 == z0) return;
+  double d = z0 - (*(this->Ducts.begin()))->z1;
   for (unsigned int i = 0; i < this->Ducts.size(); ++i)
   {
     Duct * duct = Ducts[i];
-    double l = duct->z2 - duct->z1;
-    duct->z1 = z0;
-    z0 = duct->z2 = duct->z1 + l;
+    duct->z1 += d;
+    duct->z2 += d;
   }
   this->Connection->sendChange();
 }

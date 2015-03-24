@@ -602,6 +602,7 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
 
 std::vector<double> PinCell::getPinLayers() const
 {
+  //TODO: Simplify this, we can now assume order
   std::set<double> unique_levels;
   for(int i = 0; i < static_cast<int>(this->GetNumberOfParts()); i++)
   {
@@ -647,15 +648,16 @@ void PinCell::splitPin(std::vector<double> const& layers)
 
 void PinCell::setHeight(double nh)
 {
-  std::vector<double> layers = this->getPinLayers();
-  double oldH = *(layers.rbegin()) - *(layers.begin());
-  assert( oldH > 0 );
+  if(this->Parts.empty()) return;
+  double z0 = this->GetPart(0)->z1;
+  double oldH = (*(this->Parts.rbegin()))->z2 - z0;
+  if(oldH == nh) return;
   for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
   {
     PinSubPart* p = this->GetPart(i);
-    p->z1 = p->z1/oldH * nh;
-    p->z2 = p->z2/oldH * nh;
-    //TODO: look into new way of z1 and z2.  Turn pins sections into relative heights
+    double l = p->z2 - p->z1;
+    p->z1 = z0;
+    z0 = p->z2 = z0 + l/oldH * nh;
   }
 }
 
@@ -680,4 +682,23 @@ namespace
 void PinCell::sort()
 {
   std::sort(Parts.begin(), Parts.end(), sort_by_z1);
+}
+
+double PinCell::getZ0() const
+{
+  if(this->Parts.empty()) return 0;
+  return (*(this->Parts.begin()))->z1;
+}
+
+void PinCell::setZ0(double z0)
+{
+  if(this->Parts.empty()) return;
+  double d = z0 - this->GetPart(0)->z1;
+  if(d == 0) return;
+  for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
+  {
+    PinSubPart* p = this->GetPart(i);
+    p->z1 += d;
+    p->z2 += d;
+  }
 }

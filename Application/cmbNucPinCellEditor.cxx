@@ -201,10 +201,6 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
   ExternalPinCell = NULL;
   this->Ui->setupUi(this);
 
-  //Hide pitch calculation for pitch
-  this->Ui->label_3->setVisible(false);
-  this->Ui->pitchInputBox->setVisible(false);
-
   this->Ui->layersTable->setRowCount(0);
   this->Ui->layersTable->setColumnCount(2);
   this->Ui->layersTable->setHorizontalHeaderLabels( QStringList() << "Material"
@@ -281,8 +277,8 @@ void cmbNucPinCellEditor::Reset()
   this->Ui->nameLineEdit->setText(this->InternalPinCell->getName().c_str());
   this->Ui->labelLineEdit->setText(this->InternalPinCell->getLabel().c_str());
   this->Ui->cutAwayViewCheckBox->setChecked(this->InternalPinCell->cutaway);
-  this->Ui->label_7->setVisible(!isHex);
-  this->Ui->label_8->setVisible(!isHex);
+
+  this->Ui->Z0->setValue(this->InternalPinCell->getZ0());
 
   this->Ui->piecesTable->blockSignals(true);
 
@@ -364,7 +360,7 @@ void cmbNucPinCellEditor::Apply()
 void cmbNucPinCellEditor::UpdatePinCell()
 {
   // update components
-  double z = 0;
+  double z = this->Ui->Z0->value();
   this->Ui->piecesTable->blockSignals(true);
   for(int i = 0; i < this->Ui->piecesTable->rowCount(); i++)
   {

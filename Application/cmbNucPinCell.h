@@ -237,24 +237,16 @@ public:
 
   void setHeight(double nh);
 
+  double getZ0() const;
+  void setZ0(double z0);
+
   bool operator==(PinCell const& other);
 
 protected:
   std::vector<PinSubPart*> Parts;
-  //std::vector<Cylinder*> Cylinders;
-  //std::vector<Frustum*> Frustums;
   PinConnection * Connection;
   cmbNucMaterialLayer CellMaterial;
-  //void AddCylinder(Cylinder* cylinder);
-  //void AddFrustum(Frustum* frustum);
-  //void RemoveCylinder(Cylinder* cylinder);
-  //void RemoveFrustum(Frustum* frustum);
 
-  //size_t NumberOfCylinders() const;
-  //size_t NumberOfFrustums() const;
-
-  //Cylinder* GetCylinder(int i) const;
-  //Frustum * GetFrustum(int i) const;
   void sort();
   void connectSubPart(PinSubPart * part);
 };
