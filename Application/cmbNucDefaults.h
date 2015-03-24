@@ -11,6 +11,7 @@
   FUN1(double, AxialMeshSize) \
   FUN1(int, EdgeInterval)\
   FUN1(QString, MeshType) \
+  FUN1(double, Z0) \
   FUN1(double, Height) \
   FUN1(QString, UserDefined) \
   FUN2(double, DuctThickX, double, DuctThickY, DuctThickness) \

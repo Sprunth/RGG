@@ -162,6 +162,7 @@ bool PinSubPart::fill(PinSubPart const* other)
 
 bool PinSubPart::equal(PinSubPart const* other) const
 {
+  if(this->GetType() != other->GetType()) return false;
   if(other->x != this->x) return false;
   if(other->y != this->y) return false;
   if(other->z1 != this->z1) return false;
@@ -224,11 +225,11 @@ PinSubPart * Cylinder::clone() const
   return result;
 }
 
-std::vector<Cylinder *> Cylinder
+std::vector<PinSubPart *> Cylinder
 ::split( std::vector<double>::const_iterator b,
          std::vector<double>::const_iterator end)
 {
-  std::vector<Cylinder *> result;
+  std::vector<PinSubPart *> result;
   assert(*b == this->z1);
   for(std::vector<double>::const_iterator iter = b; iter != end; ++iter)
   {
@@ -294,12 +295,13 @@ PinSubPart * Frustum::clone() const
   return result;
 }
 
-std::vector<Frustum *> Frustum
+std::vector<PinSubPart *> Frustum
 ::split( std::vector<double>::const_iterator b,
-        std::vector<double>::const_iterator end)
+         std::vector<double>::const_iterator end)
 {
-  std::vector<Frustum *> result;
+  std::vector<PinSubPart *> result;
   assert(*b == this->z1);
+  double previousR = -1;
   for(std::vector<double>::const_iterator iter = b; iter != end; ++iter)
   {
     if(iter + 1 == end)
@@ -312,10 +314,10 @@ std::vector<Frustum *> Frustum
     c->z2 = *(iter+1);
     if(!result.empty())
     {
-      c->r[0] = (*(result.rbegin()))->r[1];
+      c->r[0] = previousR;//(*(result.rbegin()))->r[1];
     }
     double t = (this->z2 - c->z2)/(this->z2 - this->z1);
-    c->r[1] = t * this->r[0] + (1-t)*this->r[1];
+    previousR = c->r[1] = t * this->r[0] + (1-t)*this->r[1];
     result.push_back(c);
   }
   return result;
@@ -339,8 +341,7 @@ PinCell::PinCell()
 PinCell::~PinCell()
 {
   this->Connection->EmitDeleted(this);
-  this->deleteObjs(this->Cylinders);
-  this->deleteObjs(this->Frustums);
+  this->deleteObjs(this->Parts);
   delete Connection;
 }
 
@@ -348,7 +349,7 @@ enumNucPartsType PinCell::GetType() const
 { return CMBNUC_ASSY_PINCELL;}
 
 int PinCell::NumberOfSections() const
-{ return this->Cylinders.size() + this->Frustums.size();}
+{ return this->Parts.size();}
 
 void PinCell::RemoveSection(AssyPartObj* obj)
 {
@@ -356,72 +357,34 @@ void PinCell::RemoveSection(AssyPartObj* obj)
   {
     return;
   }
-  if(obj->GetType() == CMBNUC_ASSY_CYLINDER_PIN)
-  {
-    this->RemoveCylinder(dynamic_cast<Cylinder*>(obj));
-  }
-  else if(obj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN)
-  {
-    this->RemoveFrustum(dynamic_cast<Frustum*>(obj));
-  }
-}
-
-void PinCell::RemoveCylinder(Cylinder* cylinder)
-{
-  //Deleting should automatically remove connection
-  this->removeObj(cylinder, this->Cylinders);
-}
-
-void PinCell::RemoveFrustum(Frustum* frustum)
-{
-  //Deleting should automatically remove connection
-  this->removeObj(frustum, this->Frustums);
+  this->removeObj(static_cast<PinSubPart*>(obj), this->Parts);
 }
 
 double PinCell::Radius(int idx) const
 {
-  if(!this->Cylinders.empty())
-  {
-    return this->Cylinders[0]->getNormalizedThickness(idx);
-  }
-  else if(!this->Frustums.empty())
-  {
-    return this->Frustums[0]->getNormalizedThickness(idx, Frustum::TOP);
-  }
-  return 1;
+  if(this->Parts.empty()) return 1;
+  return this->Parts[0]->getNormalizedThickness(idx, Frustum::TOP);
 }
 
 QPointer<cmbNucMaterial> PinCell::Material(int layer)
 {
-  if(!this->Cylinders.empty())
-  {
-    return this->Cylinders[0]->GetMaterial(layer);
-  }
-  else if(!this->Frustums.empty())
-  {
-    return this->Frustums[0]->GetMaterial(layer);
-  }
-  return cmbNucMaterialColors::instance()->getUnknownMaterial();
+  if(this->Parts.empty())
+    return cmbNucMaterialColors::instance()->getUnknownMaterial();
+  return (*(this->Parts.begin()))->GetMaterial(layer);
 }
 
 void PinCell::SetRadius(int idx, double radius)
 {
-  for(size_t i = 0; i < this->Cylinders.size(); i++){
-    this->Cylinders[i]->setNormalizedThickness(idx, radius);
-  }
-  for(size_t i = 0; i < this->Frustums.size(); i++){
-    this->Frustums[i]->setNormalizedThickness(idx, Frustum::TOP, radius);
-    this->Frustums[i]->setNormalizedThickness(idx, Frustum::BOTTOM, radius);
+  for(size_t i = 0; i < this->Parts.size(); i++){
+    this->Parts[i]->setNormalizedThickness(idx, Frustum::TOP, radius);
+    this->Parts[i]->setNormalizedThickness(idx, Frustum::BOTTOM, radius);
   }
 }
 
 void PinCell::SetMaterial(int idx, QPointer<cmbNucMaterial> material)
 {
-  for(size_t i = 0; i < this->Cylinders.size(); i++){
-    this->Cylinders[i]->SetMaterial(idx, material);
-  }
-  for(size_t i = 0; i < this->Frustums.size(); i++){
-    this->Frustums[i]->SetMaterial(idx, material);
+  for(size_t i = 0; i < this->Parts.size(); i++){
+    this->Parts[i]->SetMaterial(idx, material);
   }
 }
 
@@ -438,90 +401,39 @@ void PinCell::SetLegendColor(const QColor& color)
 
 int PinCell::GetNumberOfLayers()
 {
-  if(this->Cylinders.size() > 0)
-  {
-    return this->Cylinders[0]->GetNumberOfLayers();
-  }
-  else if(this->Frustums.size() > 0)
-  {
-    return this->Frustums[0]->GetNumberOfLayers();
-  }
-  return 0;
+  if(this->Parts.empty()) return 0;
+  return (*(this->Parts.begin()))->GetNumberOfLayers();
 }
 
 void PinCell::SetNumberOfLayers(int numLayers)
 {
-  for(size_t i = 0; i < this->Cylinders.size(); i++){
-    this->Cylinders[i]->SetNumberOfLayers(numLayers);
+  for(size_t i = 0; i < this->Parts.size(); i++){
+    this->Parts[i]->SetNumberOfLayers(numLayers);
   }
-  for(size_t i = 0; i < this->Frustums.size(); i++){
-    this->Frustums[i]->SetNumberOfLayers(numLayers);
-  }
-}
-
-void PinCell::AddCylinder(Cylinder* cylinder)
-{
-  QObject::connect(cylinder->GetConnection(), SIGNAL(Changed()),
-                   this->Connection, SIGNAL(Changed()));
-  this->Cylinders.push_back(cylinder);
-}
-
-void PinCell::AddFrustum(Frustum* frustum)
-{
-  QObject::connect(frustum->GetConnection(), SIGNAL(Changed()),
-                   this->Connection, SIGNAL(Changed()));
-  this->Frustums.push_back(frustum);
 }
 
 void PinCell::AddPart(PinSubPart * part)
 {
-  switch(part->GetType())
-  {
-    case CMBNUC_ASSY_CYLINDER_PIN:
-      AddCylinder(dynamic_cast<Cylinder*>(part));
-      break;
-    case CMBNUC_ASSY_FRUSTUM_PIN:
-      AddFrustum(dynamic_cast<Frustum*>(part));
-      break;
-    default:
-      //DO NOTHING
-      break;
-  }
+  this->connectSubPart(part);
+  this->Parts.push_back(part);
+  this->sort();
 }
 
-size_t PinCell::NumberOfCylinders() const
+void PinCell::connectSubPart(PinSubPart * part)
 {
-  return this->Cylinders.size();
-}
-
-size_t PinCell::NumberOfFrustums() const
-{
-  return this->Frustums.size();
-}
-
-Cylinder* PinCell::GetCylinder(int i) const
-{
-  if(static_cast<size_t>(i) < this->Cylinders.size()) return Cylinders[i];
-  return NULL;
-}
-
-Frustum * PinCell::GetFrustum(int i) const
-{
-  if(static_cast<size_t>(i) < this->Frustums.size()) return Frustums[i];
-  return NULL;
+  QObject::connect(part->GetConnection(), SIGNAL(Changed()),
+                   this->Connection, SIGNAL(Changed()));
 }
 
 PinSubPart* PinCell::GetPart(int i) const
 {
-  if(static_cast<size_t>(i) < this->Cylinders.size()) return Cylinders[i];
-  i = i - static_cast<int>(this->Cylinders.size());
-  if(static_cast<size_t>(i) < this->Frustums.size()) return Frustums[i];
+  if(static_cast<size_t>(i) < this->Parts.size()) return this->Parts[i];
   return NULL;
 }
 
 size_t PinCell::GetNumberOfParts() const
 {
-  return this->Cylinders.size() + this->Frustums.size();
+  return this->Parts.size();
 }
 
 PinConnection* PinCell::GetConnection() const
@@ -532,13 +444,9 @@ PinConnection* PinCell::GetConnection() const
 QSet< cmbNucMaterial* > PinCell::getMaterials()
 {
   QSet< cmbNucMaterial* > result;
-  for(size_t at = 0; at < this->Cylinders.size(); at++)
+  for(size_t at = 0; at < this->Parts.size(); at++)
   {
-    result.unite(Cylinders[at]->getMaterials());
-  }
-  for(size_t at = 0; at < this->Frustums.size(); at++)
-  {
-    result.unite(Frustums[at]->getMaterials());
+    result.unite(Parts[at]->getMaterials());
   }
   if(this->cellMaterialSet())
   {
@@ -558,48 +466,39 @@ bool PinCell::fill(PinCell const* other)
     this->CellMaterial.changeMaterial(other->CellMaterial.getMaterial());
   }
 
-  if(other->Cylinders.size() < this->Cylinders.size())
+  if(other->Parts.size() < this->Parts.size())
   {
     changed = true;
-    unsigned int i = other->Cylinders.size();
-    for(;i < this->Cylinders.size(); ++i)
+    unsigned int i = other->Parts.size();
+    for(;i < this->Parts.size(); ++i)
     {
-      delete this->Cylinders[i];
+      delete this->Parts[i];
     }
-    this->Cylinders.resize(other->Cylinders.size());
-  }
-  while (other->Cylinders.size() > this->Cylinders.size())
-  {
-    changed = true;
-    Cylinder * c = new Cylinder(0,0,0);
-    this->AddCylinder(c);
-  }
-  for(unsigned int i = 0; i < this->Cylinders.size(); ++i)
-  {
-    changed |= this->Cylinders[i]->fill(other->Cylinders[i]);
+    this->Parts.resize(other->Parts.size());
   }
 
-  if(other->Frustums.size() < this->Frustums.size())
+  while (other->Parts.size() > this->Parts.size())
   {
     changed = true;
-    unsigned int i = other->Frustums.size();
-    for(;i < this->Frustums.size(); ++i)
+    this->AddPart(other->Parts[this->Parts.size()]->clone());
+  }
+
+  for(unsigned int i = 0; i < this->Parts.size(); ++i)
+  {
+    if(this->Parts[i]->GetType() == other->Parts[i]->GetType())
     {
-      delete this->Frustums[i];
+      changed |= this->Parts[i]->fill(other->Parts[i]);
     }
-    this->Frustums.resize(other->Frustums.size());
+    else if(!this->Parts[i]->equal(other->Parts[i]))
+    {
+      changed = true;
+      delete this->Parts[i];
+      PinSubPart * tmp = other->Parts[i]->clone();
+      this->connectSubPart(tmp);
+      this->Parts[i] = tmp;
+    }
   }
-  while (other->Frustums.size() > this->Frustums.size())
-  {
-    changed = true;
-    double r[2] = {1,1};
-    Frustum * f = new Frustum(r, 0, 0);
-    this->AddFrustum(f);
-  }
-  for(unsigned int i = 0; i < this->Frustums.size(); ++i)
-  {
-    changed |= this->Frustums[i]->fill(other->Frustums[i]);
-  }
+  this->sort();
 
   return changed;
 }
@@ -626,7 +525,8 @@ void PinCell::InsertLayer(int layer)
     }
     SetRadius(layer, 1.0);
   }
-  else if(layer == 0) SetRadius(layer, Radius(layer+1)*0.5);
+  else if(layer == 0)
+    SetRadius(layer, Radius(layer+1)*0.5);
   else
   {
     double r1 = Radius(layer-1);
@@ -702,6 +602,7 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
 
 std::vector<double> PinCell::getPinLayers() const
 {
+  //TODO: Simplify this, we can now assume order
   std::set<double> unique_levels;
   for(int i = 0; i < static_cast<int>(this->GetNumberOfParts()); i++)
   {
@@ -720,11 +621,10 @@ std::vector<double> PinCell::getPinLayers() const
 void PinCell::splitPin(std::vector<double> const& layers)
 {
   //TODO: handel when the pin is not alligned with the top and bottom of the duct
-  std::vector<Cylinder*> c = this->Cylinders;
-  this->Cylinders.clear();
-  for(unsigned int i = 0; i < c.size(); ++i)
+  for(unsigned int i = 0; i < Parts.size(); ++i)
   {
-    double z1 = c[i]->z1, z2 = c[i]->z2;
+    PinSubPart * ati = this->Parts[i];
+    double z1 = ati->z1, z2 = ati->z2;
     std::vector<double>::const_iterator b = layers.begin();
     for(; b!= layers.end(); ++b)
     {
@@ -737,64 +637,68 @@ void PinCell::splitPin(std::vector<double> const& layers)
       if(*e == z2) break;
     }
     assert(e != layers.end());
-    std::vector<Cylinder*> tmp = c[i]->split(b, e+1);
+    std::vector<PinSubPart*> tmp = ati->split(b, e+1);
     for(unsigned int k = 0; k < tmp.size(); ++k)
     {
-      this->AddCylinder(tmp[k]);
+      this->AddPart(tmp[k]);
     }
-    delete c[i];
-  }
-  std::vector<Frustum*> f = this->Frustums;
-  this->Frustums.clear();
-  for(unsigned int i = 0; i < f.size(); ++i)
-  {
-    double z1 = f[i]->z1, z2 = f[i]->z2;
-    std::vector<double>::const_iterator b = layers.begin();
-    for(; b!= layers.end(); ++b)
-    {
-      if(*b == z1) break;
-    }
-    assert(b != layers.end());
-    std::vector<double>::const_iterator e = b+1;
-    for(; e!= layers.end(); ++e)
-    {
-      if(*e == z2) break;
-    }
-    assert(e != layers.end());
-    std::vector<Frustum*> tmp = f[i]->split(b, e+1);
-    for(unsigned int k = 0; k < tmp.size(); ++k)
-    {
-      this->AddFrustum(tmp[k]);
-    }
-    delete f[i];
+    delete ati;
   }
 }
 
 void PinCell::setHeight(double nh)
 {
-  std::vector<double> layers = this->getPinLayers();
-  double oldH = *(layers.rbegin()) - *(layers.begin());
-  assert( oldH > 0 );
+  if(this->Parts.empty()) return;
+  double z0 = this->GetPart(0)->z1;
+  double oldH = (*(this->Parts.rbegin()))->z2 - z0;
+  if(oldH == nh) return;
   for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
   {
     PinSubPart* p = this->GetPart(i);
-    p->z1 = p->z1/oldH * nh;
-    p->z2 = p->z2/oldH * nh;
-    //TODO: look into new way of z1 and z2.  Turn pins sections into relative heights
+    double l = p->z2 - p->z1;
+    p->z1 = z0;
+    z0 = p->z2 = z0 + l/oldH * nh;
   }
 }
 
 bool PinCell::operator==(PinCell const& other)
 {
-  if(other.Cylinders.size() != this->Cylinders.size()) return false;
-  if(other.Frustums.size() != this->Frustums.size()) return false;
-  for(unsigned int i = 0; i < this->Cylinders.size(); ++i)
+  if(other.Parts.size() != this->Parts.size()) return false;
+  for(unsigned int i = 0; i < this->Parts.size(); ++i)
   {
-    if(!this->Cylinders[i]->equal(other.Cylinders[i])) return false;
-  }
-  for(unsigned int i = 0; i < this->Frustums.size(); ++i)
-  {
-    if(!this->Frustums[i]->equal(other.Frustums[i])) return false;
+    if(!this->Parts[i]->equal(other.Parts[i])) return false;
   }
   return other.CellMaterial == this->CellMaterial;
+}
+
+namespace
+{
+  bool sort_by_z1(const PinSubPart * a, const PinSubPart * b)
+  {
+    return a->z1 < b->z1;
+  }
+}
+
+void PinCell::sort()
+{
+  std::sort(Parts.begin(), Parts.end(), sort_by_z1);
+}
+
+double PinCell::getZ0() const
+{
+  if(this->Parts.empty()) return 0;
+  return (*(this->Parts.begin()))->z1;
+}
+
+void PinCell::setZ0(double z0)
+{
+  if(this->Parts.empty()) return;
+  double d = z0 - this->GetPart(0)->z1;
+  if(d == 0) return;
+  for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
+  {
+    PinSubPart* p = this->GetPart(i);
+    p->z1 += d;
+    p->z2 += d;
+  }
 }

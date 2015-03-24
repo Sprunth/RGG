@@ -461,7 +461,7 @@ void cmbNucInputListWidget::onNewPin()
   if(assy != NULL) assy->calculateRadius(r);
   PinCell* newpin = new PinCell();
   newpin->SetLegendColor(QColor::fromRgbF(rgb[0],rgb[1],rgb[2]));
-  newpin->AddCylinder(new Cylinder(r, 0, h));
+  newpin->AddPart(new Cylinder(r, 0, h));
   int i = this->NuclearCore->getPinLibrary()->GetNumberOfPinCells()+1;
   QString pinname = QString("PinCell").append(QString::number(i));
   while(this->NuclearCore->getPinLibrary()->labelConflicts(pinname.toStdString()) ||

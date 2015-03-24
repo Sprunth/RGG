@@ -72,6 +72,9 @@ public:
 
   virtual bool equal(PinSubPart const* other) const;
 
+  virtual std::vector<PinSubPart *> split(std::vector<double>::const_iterator b,
+                                          std::vector<double>::const_iterator end) = 0;
+
   double x;
   double y;
   double z1;
@@ -123,8 +126,8 @@ public:
     this->r = rin;
   }
 
-  std::vector<Cylinder *> split(std::vector<double>::const_iterator b,
-                               std::vector<double>::const_iterator end);
+  std::vector<PinSubPart *> split(std::vector<double>::const_iterator b,
+                                  std::vector<double>::const_iterator end);
 
   double r;
 };
@@ -147,8 +150,8 @@ public:
   }
 
 
-  std::vector<Frustum *> split(std::vector<double>::const_iterator b,
-                               std::vector<double>::const_iterator end);
+  std::vector<PinSubPart *> split(std::vector<double>::const_iterator b,
+                                  std::vector<double>::const_iterator end);
 
   PinSubPart * clone() const;
 
@@ -188,10 +191,6 @@ public:
 
   void RemoveSection(AssyPartObj* obj);
 
-  void RemoveCylinder(Cylinder* cylinder);
-
-  void RemoveFrustum(Frustum* frustum);
-
   double Radius(int idx) const;
   QPointer<cmbNucMaterial> Material(int layer);
 
@@ -212,15 +211,7 @@ public:
   bool fill(PinCell const* other);
 
   //These take ownership
-  void AddCylinder(Cylinder* cylinder);
-  void AddFrustum(Frustum* frustum);
   void AddPart(PinSubPart * part);
-
-  size_t NumberOfCylinders() const;
-  size_t NumberOfFrustums() const;
-
-  Cylinder* GetCylinder(int i) const;
-  Frustum * GetFrustum(int i) const;
 
   PinSubPart* GetPart(int i) const;
   size_t GetNumberOfParts() const;
@@ -246,13 +237,18 @@ public:
 
   void setHeight(double nh);
 
+  double getZ0() const;
+  void setZ0(double z0);
+
   bool operator==(PinCell const& other);
 
 protected:
-  std::vector<Cylinder*> Cylinders;
-  std::vector<Frustum*> Frustums;
+  std::vector<PinSubPart*> Parts;
   PinConnection * Connection;
   cmbNucMaterialLayer CellMaterial;
+
+  void sort();
+  void connectSubPart(PinSubPart * part);
 };
 
 #endif

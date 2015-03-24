@@ -907,6 +907,9 @@ public:
 
     point loc;
     cylinder->GetBaseCenter(loc.xyz);
+    double z0;
+    core->GetDefaults()->getZ0(z0);
+    loc.xyz[2] += z0;
 
     key k;
     GeoToPoints & geo = geometry[k];

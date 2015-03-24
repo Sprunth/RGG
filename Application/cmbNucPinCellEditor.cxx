@@ -192,11 +192,6 @@ public:
   PinCell* Pin;
 };
 
-bool sort_by_z1(const PinSubPart * a, const PinSubPart * b)
-{
-  return a->z1 < b->z1;
-}
-
 cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
   : QWidget(p),
     Ui(new Ui::cmbNucPinCellEditor)
@@ -205,10 +200,6 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
   InternalPinCell = new PinCell;
   ExternalPinCell = NULL;
   this->Ui->setupUi(this);
-
-  //Hide pitch calculation for pitch
-  this->Ui->label_3->setVisible(false);
-  this->Ui->pitchInputBox->setVisible(false);
 
   this->Ui->layersTable->setRowCount(0);
   this->Ui->layersTable->setColumnCount(2);
@@ -286,8 +277,8 @@ void cmbNucPinCellEditor::Reset()
   this->Ui->nameLineEdit->setText(this->InternalPinCell->getName().c_str());
   this->Ui->labelLineEdit->setText(this->InternalPinCell->getLabel().c_str());
   this->Ui->cutAwayViewCheckBox->setChecked(this->InternalPinCell->cutaway);
-  this->Ui->label_7->setVisible(!isHex);
-  this->Ui->label_8->setVisible(!isHex);
+
+  this->Ui->Z0->setValue(this->InternalPinCell->getZ0());
 
   this->Ui->piecesTable->blockSignals(true);
 
@@ -297,21 +288,13 @@ void cmbNucPinCellEditor::Reset()
                                                    << "Top\nRadius" << "Origin\nX"
                                                    << "Origin\nY");
 
-  std::vector<PinSubPart *> components;
-  for(size_t i = 0; i < this->InternalPinCell->NumberOfCylinders(); i++){
-    components.push_back(this->InternalPinCell->GetCylinder(i));
-  }
-  for(size_t i = 0; i < this->InternalPinCell->NumberOfFrustums(); i++){
-    components.push_back(this->InternalPinCell->GetFrustum(i));
-  }
-  std::sort(components.begin(), components.end(), sort_by_z1);
-
-  this->Ui->piecesTable->setRowCount(components.size());
-  for(size_t i = 0; i < components.size(); i++)
-    {
-    PinSubPart *component = components[i];
+  this->Ui->piecesTable->setRowCount(this->InternalPinCell->GetNumberOfParts());
+  for(size_t i = 0; i < this->InternalPinCell->GetNumberOfParts(); i++)
+  {
+    PinSubPart *component = this->InternalPinCell->GetPart(i);
     this->createComponentItem(i, component);
-    }
+  }
+
   this->Ui->piecesTable->resizeColumnsToContents();
 
   this->Ui->piecesTable->blockSignals(false);
@@ -377,7 +360,7 @@ void cmbNucPinCellEditor::Apply()
 void cmbNucPinCellEditor::UpdatePinCell()
 {
   // update components
-  double z = 0;
+  double z = this->Ui->Z0->value();
   this->Ui->piecesTable->blockSignals(true);
   for(int i = 0; i < this->Ui->piecesTable->rowCount(); i++)
   {

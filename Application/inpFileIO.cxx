@@ -1059,7 +1059,7 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     // count of attribute lines for the pincell. equal to the number
     // of frustums plus cylinders plus one for the pitch.
     // We are writing multiple cylinders/frustums on one line.
-    size_t count = pincell->NumberOfCylinders() + pincell->NumberOfFrustums() + 1;
+    size_t count = pincell->GetNumberOfParts() + 1;
     if(pincell->cellMaterialSet()) count++;
 
     output << pincell->getName() << " " << pincell->getLabel() << " " << count << "\n";
@@ -1078,50 +1078,33 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     double minZ = 1e23;
     double maxZ = 0;
 
-    for(size_t j = 0; j < pincell->NumberOfCylinders(); j++)
-      {
-      output << "cylinder " << pincell->GetNumberOfLayers() << " ";
-      Cylinder* cylinder = pincell->GetCylinder(j);
-      if(minZ > cylinder->z1) minZ = cylinder->z1;
-      if(maxZ < cylinder->z2) maxZ = cylinder->z2;
+    for(size_t j = 0; j < pincell->GetNumberOfParts(); j++)
+    {
+      PinSubPart* part  = pincell->GetPart(j);
+      bool iscylinder = part->GetType() == CMBNUC_ASSY_CYLINDER_PIN;
+      output << ((iscylinder)?("cylinder "):("frustum ")) << pincell->GetNumberOfLayers() << " ";
+      if(minZ > part->z1) minZ = part->z1;
+      if(maxZ < part->z2) maxZ = part->z2;
       output << std::showpoint
-             << cylinder->x << " "
-             << cylinder->y << " "
-             << cylinder->z1 << " "
-             << cylinder->z2 << " ";
-      for(unsigned int material = 0; material < cylinder->GetNumberOfLayers(); material++)
+             << part->x << " "
+             << part->y << " "
+             << part->z1 << " "
+             << part->z2 << " ";
+      for(unsigned int l = 0; l < part->GetNumberOfLayers(); l++)
+      {
+        output << std::showpoint << part->getRadius(l, Frustum::BOTTOM) << " ";
+        if(!iscylinder)
         {
-        output << std::showpoint << cylinder->getRadius(material) << " ";
+          output << std::showpoint << part->getRadius(l, Frustum::TOP) << " ";
         }
-      for(unsigned int material = 0; material < cylinder->GetNumberOfLayers(); material++)
+      }
+      for(unsigned int material = 0; material < part->GetNumberOfLayers(); material++)
         {
-        output << cylinder->GetMaterial(material)->getLabel().toStdString() << " ";
+        output << part->GetMaterial(material)->getLabel().toStdString() << " ";
         }
       output << "\n";
-      }
+    }
 
-    for(size_t j = 0; j < pincell->NumberOfFrustums(); j++)
-      {
-      output << "frustum " << pincell->GetNumberOfLayers() << " ";
-      Frustum* frustum = pincell->GetFrustum(j);
-      if(minZ > frustum->z1) minZ = frustum->z1;
-      if(maxZ < frustum->z2) maxZ = frustum->z2;
-      output << std::showpoint
-             << frustum->x << " "
-             << frustum->y << " "
-             << frustum->z1 << " "
-             << frustum->z2 << " ";
-      for(unsigned int atr = 0; atr < frustum->GetNumberOfLayers(); atr++)
-        {
-        output << std::showpoint << frustum->getRadius(atr, Frustum::BOTTOM) << " ";
-        output << std::showpoint << frustum->getRadius(atr, Frustum::TOP) << " ";
-        }
-      for(unsigned int material = 0; material < frustum->GetNumberOfLayers(); material++)
-        {
-        output << frustum->GetMaterial(material)->getLabel().toStdString() << " ";
-        }
-      output << "\n";
-      }
     if(pincell->cellMaterialSet())
       {
         output << "cellmaterial " << minZ << " " << maxZ << " "
@@ -1213,7 +1196,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         }
 
         cylinder->r = radii.back();
-        pincell->AddCylinder(cylinder);
+        pincell->AddPart(cylinder);
 
         // let alpha be the normalization factor for the layers (outer most would be 1.0)
         double alpha = 1.0 / cylinder->r;
@@ -1283,7 +1266,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
 
         frustum->r[Frustum::TOP]    = radii[(2*layers) - Frustum::TOP - 1];
         frustum->r[Frustum::BOTTOM] = radii[(2*layers) - Frustum::BOTTOM - 1];
-        pincell->AddFrustum(frustum);
+        pincell->AddPart(frustum);
 
         // let alpha be the normalization factor for the layers (outer most would be 1.0) for first end of the frustrum
         // let beta be the normalization factor for the layers (outer most would be 1.0) for other end of the frustrum
