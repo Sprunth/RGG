@@ -54,7 +54,7 @@ bool cmbNucDuctLibrary
   //check equivelence
   while(this->nameConflicts(n))
   {
-    n = (QString(n.c_str()) + QString::number(count++)).toStdString();
+    n = (QString((dc)->getName().c_str()) + QString::number(count++)).toStdString();
   }
   if(n != (dc)->getName()) nameChange[(dc)->getName()] = n;
   (dc)->setName(n);

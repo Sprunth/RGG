@@ -345,7 +345,7 @@ bool cmbNucImporter::importXMLAssembly()
       int count = 0;
       while(!mainWindow->NuclearCore->label_unique(n))
       {
-        n = (QString(n.c_str()) + QString::number(count++)).toStdString();
+        n = (QString(assy->getLabel().c_str()) + QString::number(count++)).toStdString();
       }
       assy->setLabel(n);
       mainWindow->NuclearCore->AddAssembly(assy);
