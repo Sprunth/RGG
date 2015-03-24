@@ -192,11 +192,6 @@ public:
   PinCell* Pin;
 };
 
-bool sort_by_z1(const PinSubPart * a, const PinSubPart * b)
-{
-  return a->z1 < b->z1;
-}
-
 cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
   : QWidget(p),
     Ui(new Ui::cmbNucPinCellEditor)
@@ -297,21 +292,13 @@ void cmbNucPinCellEditor::Reset()
                                                    << "Top\nRadius" << "Origin\nX"
                                                    << "Origin\nY");
 
-  std::vector<PinSubPart *> components;
-  for(size_t i = 0; i < this->InternalPinCell->NumberOfCylinders(); i++){
-    components.push_back(this->InternalPinCell->GetCylinder(i));
-  }
-  for(size_t i = 0; i < this->InternalPinCell->NumberOfFrustums(); i++){
-    components.push_back(this->InternalPinCell->GetFrustum(i));
-  }
-  std::sort(components.begin(), components.end(), sort_by_z1);
-
-  this->Ui->piecesTable->setRowCount(components.size());
-  for(size_t i = 0; i < components.size(); i++)
-    {
-    PinSubPart *component = components[i];
+  this->Ui->piecesTable->setRowCount(this->InternalPinCell->GetNumberOfParts());
+  for(size_t i = 0; i < this->InternalPinCell->GetNumberOfParts(); i++)
+  {
+    PinSubPart *component = this->InternalPinCell->GetPart(i);
     this->createComponentItem(i, component);
-    }
+  }
+
   this->Ui->piecesTable->resizeColumnsToContents();
 
   this->Ui->piecesTable->blockSignals(false);

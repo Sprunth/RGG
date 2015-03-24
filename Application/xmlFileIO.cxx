@@ -359,19 +359,21 @@ bool xmlHelperClass::write(pugi::xml_node & node, PinCell * dc)
   r &= write(node, LABEL_TAG.c_str(), dc->getLabel());
   r &= write(node, LEGEND_COLOR_TAG.c_str(), dc->GetLegendColor());
 
-  size_t num = dc->NumberOfCylinders();
-  for(unsigned int i = 0; i < num; ++i)
+  for(unsigned int i = 0; i < dc->GetNumberOfParts(); ++i)
   {
-    pugi::xml_node xn = node.append_child(CYLINDER_TAG.c_str());
-    r &= this->write(xn, dc->GetCylinder(i));
+    PinSubPart * part = dc->GetPart(i);
+    if(part->GetType() == CMBNUC_ASSY_CYLINDER_PIN)
+    {
+      pugi::xml_node xn = node.append_child(CYLINDER_TAG.c_str());
+      r &= this->write(xn, dynamic_cast<Cylinder*>(part));
+    }
+    else
+    {
+      pugi::xml_node xn = node.append_child(FRUSTRUM_TAG.c_str());
+      r &= this->write(xn, dynamic_cast<Frustum*>(part));
+    }
   }
 
-  num = dc->NumberOfFrustums();
-  for(unsigned int i = 0; i < num; ++i)
-  {
-    pugi::xml_node xn = node.append_child(FRUSTRUM_TAG.c_str());
-    r &= this->write(xn, dc->GetFrustum(i));
-  }
   return r;
 }
 
@@ -838,7 +840,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc,
   {
     Cylinder * c = new Cylinder(0,0,0);
     r &= this->read(tnode, c, materials);
-    dc->AddCylinder(c);
+    dc->AddPart(c);
   }
 
   double junk[2] = {0,0};
@@ -847,7 +849,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc,
   {
     Frustum * f = new Frustum(junk, 0, 0);
     r &= this->read(tnode, f, materials);
-    dc->AddFrustum(f);
+    dc->AddPart(f);
   }
 
   return r;
