@@ -139,6 +139,7 @@ cmbNucAssembly::Section::write(std::ostream& os) const
 void cmbNucAssemblyConnection::dataChanged()
 {
   v->setAndTestDiffFromFiles(true);
+  if(v->KeepPinsCentered) v->centerPins();
   emit dataChangedSig();
 }
 
@@ -575,22 +576,6 @@ void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
     Parameters->MeshType = tmp;
   }
 
-  double tmpd2;
-  if(d->getDuctThickness(tmpD,tmpd2))
-  {
-    change |= this->AssyDuct->setDuctThickness(tmpD,tmpd2);
-    this->Defaults->setDuctThickness(tmpD,tmpd2);
-    if(KeepPinsCentered) this->centerPins();
-  }
-  if(d->getHeight(tmpD))
-  {
-    if(tmpD != AssyDuct->getLength())
-    {
-      change = true;
-      AssyDuct->setLength(tmpD);
-    }
-    this->Defaults->setHeight(tmpD);
-  }
   if(change) this->Connection->dataChanged();
 }
 

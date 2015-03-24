@@ -359,44 +359,48 @@ Duct * DuctCell::getPrevious()
 double DuctCell::getLength()
 {
   if(this->Ducts.size() == 0) return 10;
-  double z1 = this->Ducts[0]->z1;
-  double z2 = this->Ducts[0]->z2;
-  for (unsigned int i = 0; i < this->Ducts.size(); ++i)
-  {
-    Duct * duct = Ducts[i];
-    if(duct->z1<z1) z1 = duct->z1;
-    if(duct->z2>z2) z2 = duct->z2;
-  }
+  double z1, z2;
+  this->getZRange(z1, z2);
   return z2 - z1;
 }
 
 void DuctCell::setLength(double l)
 {
   if(this->Ducts.size() == 0) return;
-  double z1 = this->Ducts[0]->z1;
-  double z2 = this->Ducts[0]->z2;
-  for (unsigned int i = 1; i < this->Ducts.size(); ++i)
-  {
-    Duct * duct = Ducts[i];
-    if(duct->z1<z1) z1 = duct->z1;
-    if(duct->z2>z2) z2 = duct->z2;
-  }
-  double prevL = z2 - z1;
+  double z2 = (*(this->Ducts.begin()))->z1;
+  double prevL = this->getLength();
+  if(prevL == l) return;
+
   for (unsigned int i = 0; i < this->Ducts.size(); ++i)
   {
     Duct * duct = Ducts[i];
-    if(duct->z1==z1) duct->z1 = 0;
-    else duct->z1 = (duct->z1  - z1) / prevL * l;
-    if(duct->z2 == z2) duct->z2 = l;
-    else duct->z2 = (duct->z2 - z1) / prevL * l;
+    double l2 = duct->z2 - duct->z1;
+    duct->z1 = z2;
+    z2 = duct->z2 = duct->z1 + l2/prevL * l;
   }
+
+  this->Connection->sendChange();
+}
+
+void DuctCell::setZ0(double z0)
+{
+  if(this->Ducts.size() == 0) return;
+  if((*(this->Ducts.begin()))->z1 == z0) return;
+  for (unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    Duct * duct = Ducts[i];
+    double l = duct->z2 - duct->z1;
+    duct->z1 = z0;
+    z0 = duct->z2 = duct->z1 + l;
+  }
+  this->Connection->sendChange();
 }
 
 void DuctCell::getZRange(double & z1, double & z2)
 {
-  Duct * d = *(this->Ducts.begin());
-  z1 = d->z1;
-  z2 = z1 + getLength();
+  if(this->Ducts.size() == 0) return;
+  z1 = (*(this->Ducts.begin()))->z1;
+  z2 = (*(this->Ducts.rbegin()))->z2;
 }
 
 vtkBoundingBox DuctCell::computeBounds(bool hex)
@@ -443,6 +447,7 @@ bool DuctCell::setDuctThickness(double t1, double t2)
     change |= t2 != duct->thickness[1];
     duct->thickness[1] = t2;
   }
+  if(change) this->Connection->sendChange();
   return change;
 }
 

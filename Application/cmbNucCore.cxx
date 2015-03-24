@@ -468,9 +468,11 @@ void cmbNucCore::initDefaults()
   double DuctThickX = 10;
   double DuctThickY = 10;
   double length = 10;
+  double z0 = 0;
   delete this->Defaults;
   this->Defaults = new cmbNucDefaults();
   this->Defaults->setHeight(length);
+  this->Defaults->setZ0(z0);
 
   this->Defaults->setDuctThickness(DuctThickX, DuctThickY);
 }
@@ -487,11 +489,13 @@ void cmbNucCore::calculateDefaults()
   double DuctThickX = -1;
   double DuctThickY = -1;
   double length = -1;
+  double z0 = -1e23;
   QString MeshType;
 
   for(unsigned int i = 0; i < assys.size(); ++i)
   {
     cmbNucAssembly * assy = assys[i];
+    DuctCell & dc = assy->getAssyDuct();
     cmbAssyParameters* params =  assy->GetParameters();
     if(params->isValueSet(params->AxialMeshSize) &&
        params->AxialMeshSize < AxialMeshSize)
@@ -503,7 +507,11 @@ void cmbNucCore::calculateDefaults()
     {
       MeshType = params->MeshType.c_str();
     }
-    if(length < assy->getAssyDuct().getLength()) length = assy->getAssyDuct().getLength();
+    if(length < dc.getLength()) length = dc.getLength();
+    double z[2];
+    dc.getZRange(z[0], z[1]);
+    if(z0 < z[0]) z0 = z[0];
+    
     double r[2];
     assy->GetDuctWidthHeight(r);
     if( r[0] > DuctThickX ) DuctThickX = r[0];
@@ -515,6 +523,7 @@ void cmbNucCore::calculateDefaults()
     this->Defaults->setEdgeInterval(EdgeInterval);
   if(!MeshType.isEmpty()) this->Defaults->setMeshType(MeshType);
   if(length != -1) this->Defaults->setHeight(length);
+  if(z0 != -1e23) this->Defaults->setZ0(z0);
 
   this->Defaults->setDuctThickness(DuctThickX, DuctThickY);
   this->sendDefaults();
@@ -528,18 +537,17 @@ void cmbNucCore::sendDefaults()
     assys[i]->setFromDefaults(this->Defaults);
   }
 
-  double dt1, dt2, l;
+  double dt1, dt2, l, z0;
   this->Defaults->getDuctThickness(dt1,dt2);
   this->Defaults->getHeight(l);
+  this->Defaults->getZ0(z0);
 
   for(size_t i = 0; i < this->DuctLibrary->GetNumberOfDuctCells(); ++i)
   {
     DuctCell * dc = this->DuctLibrary->GetDuctCell(i);
-    if(!dc->isUsed())
-    {
-      dc->setDuctThickness(dt1,dt2);
-      dc->setLength(l);
-    }
+    dc->setDuctThickness(dt1,dt2);
+    dc->setLength(l);
+    dc->setZ0(z0);
   }
 }
 

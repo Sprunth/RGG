@@ -107,6 +107,7 @@ public:
   vtkBoundingBox computeBounds(bool hex);
   double getLength();
   void setLength(double l);
+  void setZ0(double z0);
   virtual std::string getTitle(){ return "Duct: " + AssyPartObj::getName(); }
   bool operator==(const DuctCell& obj);
   void sort();
