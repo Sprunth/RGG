@@ -36,6 +36,7 @@ public:
   bool keepGoing;
   bool renamePin;
   cmbNucPinLibrary::AddMode pinAddMode;
+  std::vector<std::string> log;
   template <typename TYPE>
   bool readGeometryType( std::stringstream & input,
                          TYPE &v, Lattice &lat)
@@ -293,7 +294,6 @@ bool inpFileReader
   std::map<std::string, std::string> newLabel;
   DuctCell * dc = new DuctCell;
   dc->setName(assembly.getLabel() + "_Duct");
-  assembly.setDuctCell(dc);
 
   while(!input.eof())
   {
@@ -397,6 +397,13 @@ bool inpFileReader
       if(!helper.readUnknown(input, value, assembly.Parameters->UnknownParams)) return false;
       }
     }
+  DuctCell * dcp = dc;
+  dl->addDuct(&dc);
+  if(dcp != dc)
+  {
+    log.push_back("Duct " + (dc)->getName() + " matches current duct");
+  }
+  assembly.setDuctCell(dc);
   assembly.computeDefaults();
   assembly.setAndTestDiffFromFiles(helper.labelIsDifferent);
   if(!newLabel.empty())
@@ -406,10 +413,10 @@ bool inpFileReader
       assembly.getLattice().replaceLabel(iter->first, iter->second);
     }
   }
-  dl->addDuct(dc);
   this->keepGoing  = helper.keepGoing;
   this->renamePin  = helper.renamePin;
   this->pinAddMode = helper.pinAddMode;
+  log.insert(log.end(), helper.log.begin(), helper.log.end());
   return dc->getDuct(0) != NULL;
 }
 
@@ -516,6 +523,7 @@ bool inpFileReader
     core.sendDefaults();
   }
   core.setAndTestDiffFromFiles(false);
+  log = helper.log;
   return true;
 }
 
@@ -1133,6 +1141,7 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
   // for Hex type, the pitch is next input.
   double hexPicth = -1.0;
   bool pitchSet = false;
+  bool material_not_found = false;
   if(assembly.IsHexType())
   {
     std::string hexPicthStr;
@@ -1217,9 +1226,14 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
           map_iter it = materialLabelMap.find(mlabel);
           if(it != materialLabelMap.end())
+          {
             tmp = it->second;
+          }
           else
+          {
+            material_not_found = mlabel != tmp->getLabel().toStdString();
             labelIsDifferent = true;
+          }
           // Lets save the first material to use to set the pin's color legend
           if (firstMaterial == NULL)
           {
@@ -1241,7 +1255,10 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         if(it != materialLabelMap.end())
           mat = it->second;
         else
+        {
+          material_not_found = mlabel != mat->getLabel().toStdString();
           labelIsDifferent = true;
+        }
         pincell->setCellMaterial(mat);
       }
       else if(value == "frustum")
@@ -1278,11 +1295,17 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           // maps to the actual material
           std::string mname;
           input >> mlabel;
-          QPointer<cmbNucMaterial> tmp = matColorMap->getMaterialByLabel(mlabel.c_str());
-          // Lets save the first material to use to set the pin's color legend
-          if (firstMaterial == NULL)
+          QPointer< cmbNucMaterial > tmp = cmbNucMaterialColors::instance()->getUnknownMaterial();
+          std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+          map_iter it = materialLabelMap.find(mlabel);
+          if(it != materialLabelMap.end())
           {
-            firstMaterial = tmp;
+            tmp = it->second;
+          }
+          else
+          {
+            material_not_found = mlabel != tmp->getLabel().toStdString();
+            labelIsDifferent = true;
           }
           frustum->SetMaterial(c,tmp);
           frustum->setNormalizedThickness( c, Frustum::TOP,
@@ -1292,13 +1315,49 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         }
       }
     }
+    if(material_not_found)
+    {
+      QMessageBox msgBox;
+      msgBox.setText( QString("One or more of the pincell's materials were not found, defaulting to unknown material") );
+      msgBox.exec();
+    }
     if(firstMaterial != NULL)
     {
       pincell->SetLegendColor(firstMaterial->getColor());
     }
+    std::string old_name = pincell->getName(), old_label = pincell->getLabel();
 
-    pl->addPin(&pincell, newLabel);
-    assembly.AddPinCell(pincell);
+    switch(pl->addPin(&pincell, false, newLabel))
+    {
+      case cmbNucPinLibrary::PinAddFailed:
+        log.push_back(pincell->getName() + " " + pincell->getLabel() + " Failed to be added to pin library");
+        delete pincell;
+        pincell = NULL;
+        break;
+      case cmbNucPinLibrary::PinNull:
+        log.push_back("Null Pin");
+        break;
+      case cmbNucPinLibrary::PinRenamed:
+        log.push_back(old_name + " " + old_label + " had a name conflict, renamed to " +
+                      pincell->getName() + " " + pincell->getLabel());
+        assembly.AddPinCell(pincell);
+        break;
+      case cmbNucPinLibrary::PinExists:
+        if( old_label != pincell->getLabel() || old_name != pincell->getName())
+        {
+          log.push_back(old_name + " " + old_label + " had a name conflict, renamed to " +
+                        pincell->getName() + " " + pincell->getLabel() + ".  Matching pin already exists.");
+        }
+        else
+        {
+          log.push_back(old_name + " " + old_label + " A matching pin already exists");
+        }
+        assembly.AddPinCell(pincell);
+        break;
+      case cmbNucPinLibrary::PinAdded:
+        assembly.AddPinCell(pincell);
+        break;
+    }
   }
   return true;
 }
@@ -1636,6 +1695,11 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
       this->pinAddMode = freader.pinAddMode;
       this->renamePin = freader.renamePin;
       core.AddAssembly(assembly);
+      std::vector< std::string > tlog = freader.getLog();
+      for(unsigned int i = 0; i < tlog.size(); ++i)
+      {
+        log.push_back( assyQString.toStdString() + " " + tlog[i] );
+      }
     }
   }
   QDir::setCurrent( current );

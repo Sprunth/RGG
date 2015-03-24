@@ -1,6 +1,7 @@
 #include "cmbNucMainWindow.h"
 
 #include "ui_qNucMainWindow.h"
+#include "ui_qImportLog.h"
 
 #include <vtkActor.h>
 #include <vtkAlgorithm.h>
@@ -462,6 +463,8 @@ cmbNucMainWindow::cmbNucMainWindow()
   connect(this->ui->ExportImpFiles, SIGNAL(triggered()), this, SLOT(onExportINPFiles()));
 
   connect(this->ui->actionView_Axis,      SIGNAL(triggered(bool)), this, SLOT(setAxis(bool)));
+
+  connect(this->ui->actionImporter_Log, SIGNAL(triggered()), this, SLOT(onShowImportLog()));
 
   connect(this->ui->actionRecord,         SIGNAL(triggered(bool)), this, SLOT(onStartRecordTest()));
   connect(this->ui->actionStop_Recording, SIGNAL(triggered(bool)), this, SLOT(onStopRecordingTest()));
@@ -1912,4 +1915,30 @@ void cmbNucMainWindow::checkExporter()
   this->Internal->inpExporter.updateCoreLayers();
   this->InputsWidget->emitCheckSavedAndGenerage();
   this->InputsWidget->repaintList();
+}
+
+void cmbNucMainWindow::onShowImportLog()
+{
+  Ui_qImportLog * importLogDisplay = new Ui_qImportLog;
+  QDialog tmp;
+  importLogDisplay->setupUi(&tmp);
+
+  connect(importLogDisplay->clear, SIGNAL(clicked()),
+          importLogDisplay->logArea, SLOT(clear()));
+  connect(importLogDisplay->clear, SIGNAL(clicked()),
+          this, SLOT(clearImporterLog()));
+
+  std::vector<std::string> log = importer->getLog();
+  importLogDisplay->logArea->clear();
+  for(unsigned int i = 0; i < log.size(); ++i)
+  {
+    importLogDisplay->logArea->appendPlainText(QString(log[i].c_str()));
+  }
+  tmp.exec();
+  delete importLogDisplay;
+}
+
+void cmbNucMainWindow::clearImporterLog()
+{
+  importer->clearLog();
 }

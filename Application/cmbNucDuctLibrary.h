@@ -34,9 +34,10 @@ public:
   cmbNucDuctLibraryConnection * GetConnection() {return this->Connection; }
 
   //takes ownership when successful. Returns true if successful.
-  bool addDuct(DuctCell* dc);
+  bool addDuct(DuctCell * dc);
+  bool addDuct(DuctCell ** dc); //Adds a duct if it is unique.  if not returns the previous added duct
   bool addDuct(DuctCell * dc,
-               std::map<std::string, std::string> & nameChange);
+               std::map<std::string, std::string> & nameChange );
   void removeDuctcell(DuctCell* dc);
   DuctCell* GetDuctCell(const std::string &name);
   DuctCell* GetDuctCell(int pc) const;

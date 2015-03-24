@@ -29,14 +29,15 @@ class cmbNucPinLibrary: public AssyPartObj
 public:
   enum AddMode{KeepOriginal, Replace};
   enum ConflictMode{No_Conflict = 0, Name_Conflict, Label_Conflict, Both_Conflict};
+  enum PinAddedMode{PinAddFailed = 0, PinNull, PinRenamed, PinExists, PinAdded};
   cmbNucPinLibrary();
   ~cmbNucPinLibrary();
 
   cmbNucPinLibraryConnection * GetConnection() {return this->Connection; }
 
   //takes ownership when successful. Returns true if successful.
-  bool addPin(PinCell** pc, AddMode mode);
-  bool addPin(PinCell** pc, std::map<std::string, std::string> & nameChange);
+  PinAddedMode addPin(PinCell** pc, AddMode mode);
+  PinAddedMode addPin(PinCell** pc, bool keepEqualent, std::map<std::string, std::string> & nameChange);
   void resetConflictResolution();
   void setKeepGoingAsRename()
   {
@@ -57,8 +58,13 @@ public:
 
   cmbNucPinLibrary * clone() const;
 
+  void clearRenameEquivelence();
+
+  bool isEquivelence(PinCell* pc) const;
+
 protected:
   std::vector<PinCell*> PinCells;
+  std::map<std::string, PinCell*> OldLabelToNewPincell;
   std::map<std::string, size_t> NameToPin;
   std::map<std::string, size_t> LabelToPin;
   cmbNucPinLibraryConnection * Connection;

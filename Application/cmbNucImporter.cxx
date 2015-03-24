@@ -202,6 +202,7 @@ bool cmbNucImporter::importInpFile()
         // clear old assembly
         if(!mainWindow->checkFilesBeforePreceeding()) return false;
         mainWindow->doClearAll();
+        log.clear();
         mainWindow->PropertyWidget->setObject(NULL, NULL);
         mainWindow->PropertyWidget->setAssembly(NULL);
         if(!freader.read(*(mainWindow->NuclearCore)))
@@ -236,6 +237,8 @@ bool cmbNucImporter::importInpFile()
       default:
         qDebug() << "could not open" << fileNames[i];
     }
+    std::vector<std::string> tlog = freader.getLog();
+    log.insert(log.end(), tlog.begin(), tlog.end());
   }
   int numNewAssy = mainWindow->NuclearCore->GetNumberOfAssemblies() - numExistingAssy;
   if(numNewAssy)
@@ -248,6 +251,7 @@ bool cmbNucImporter::importInpFile()
 
   // In case the loaded core adds new materials
   mainWindow->InputsWidget->updateUI(numNewAssy);
+
   return true;
 }
 
@@ -341,7 +345,7 @@ bool cmbNucImporter::importXMLAssembly()
       int count = 0;
       while(!mainWindow->NuclearCore->label_unique(n))
       {
-        n = (QString(n.c_str()) + QString::number(count++)).toStdString();
+        n = (QString(assy->getLabel().c_str()) + QString::number(count++)).toStdString();
       }
       assy->setLabel(n);
       mainWindow->NuclearCore->AddAssembly(assy);
@@ -373,7 +377,7 @@ void cmbNucImporter::addPin(PinCell * pc, double dh, std::map<std::string, std::
     assert(tmpm != cmbNucMaterialColors::instance()->getUnknownMaterial());
     pc->SetMaterial(k, tmpm);
   }
-  mainWindow->NuclearCore->getPinLibrary()->addPin(&pc, nc);
+  mainWindow->NuclearCore->getPinLibrary()->addPin(&pc, true, nc);
 }
 
 void cmbNucImporter::addDuct(DuctCell * dc, double dh, double dt[2], std::map<std::string, std::string> & nc)
