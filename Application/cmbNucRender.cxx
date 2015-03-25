@@ -811,9 +811,10 @@ public:
 
     vtkSmartPointer<vtkCmbLayeredConeSource> cylinder = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
 
-    cmbNucAssembly * assy = core->GetAssembly(0);
-    double outerDuctWidth = assy->getAssyDuct().getDuct(0)->thickness[1];
-    double outerDuctHeight = assy->getAssyDuct().getDuct(0)->thickness[0];
+    double outerDuctWidth;
+    double outerDuctHeight;
+    core->GetDefaults()->getDuctThickness(outerDuctWidth, outerDuctHeight);
+
     double extraXTrans = 0, extraYTrans = 0;
 
     if(core->IsHexType())
@@ -827,10 +828,12 @@ public:
     }
     else
     {
-      double tx = outerDuctWidth*(core->getLattice().getSize()-1)*0.5;
-      double ty = outerDuctHeight*(core->getLattice().getSize(0)-1)*0.5;
-      extraXTrans = ty,
-      extraYTrans = tx-outerDuctWidth*(core->getLattice().getSize()-1);
+      double w = core->getLattice().getSize(0);
+      double h = core->getLattice().getSize();
+      double tx = outerDuctWidth*(w-1)*0.5;
+      double ty = outerDuctHeight*(h-1)*0.5;
+      extraXTrans = tx;//-outerDuctWidth*(core->getLattice().getSize()-1);
+      extraYTrans = ty - outerDuctHeight*(h-1);
     }
 
     cylinder->SetHeight(1);
@@ -893,8 +896,10 @@ public:
     }
     else
     {
-      double height = outerDuctWidth*(core->getLattice().getSize())*0.5;
-      double width = outerDuctHeight*(core->getLattice().getSize(0))*0.5;
+      double h = core->getLattice().getSize();
+      double w = core->getLattice().getSize(0);
+      double width = outerDuctWidth*(w)*0.5;
+      double height = outerDuctHeight*(h)*0.5;
 
       cylinder->addInnerPoint( width,-height);
       cylinder->addInnerPoint( width, height);

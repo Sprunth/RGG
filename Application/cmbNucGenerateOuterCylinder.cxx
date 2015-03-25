@@ -81,24 +81,48 @@ cmbNucGenerateOuterCylinder
   double z0;
   this->Core->GetDefaults()->getZ0(z0);
   output << "{include(\"" << QFileInfo(fname).completeBaseName().toStdString() << ".template.jou\")}\n";
-  output << "#{rings = " << Core->getLattice().getSize() << "}\n";
   output << "#{OUTER_CYL_EDGE_INTERVAL = " << this->Core->getCylinderOuterSpacing() << "}\n";
   output << "#{rd = " << this->Core->getCylinderRadius() << "}\n";
   output << "#{z0 = " << z0 << "}\n";
   output << "#{tol = 1e-2}\n";
   output << "#{TOTAL_VOLS_LARGE = 4000}\n";
-  output << "#{xmove = rings*PITCH}\n";
-  output << "#{y0 = (rings-1)*PITCH*cosd(30)}\n";
+  if(this->Core->IsHexType())
+  {
+    output << "#{rings = " << Core->getLattice().getSize() << "}\n";
+    output << "#{xmove = rings*PITCH}\n";
+    output << "#{y0 = (rings-1)*PITCH*cosd(30)}\n";
+  }
+  else
+  {
+    /*double outerDuctWidth;
+    double outerDuctHeight;
+    this->Core->GetDefaults()->getDuctThickness(outerDuctWidth, outerDuctHeight);
+    double tx = outerDuctWidth*(core->getLattice().getSize()-1)*0.5;
+    double ty = outerDuctHeight*(core->getLattice().getSize(0)-1)*0.5;
+    double extraXTrans = ty,
+    double extraYTrans = tx-outerDuctWidth*(core->getLattice().getSize()-1);*/
+    output << "#{latwidth = " << this->Core->getLattice().getSize(0) << "}\n";
+    output << "#{latheight = " << this->Core->getLattice().getSize() << "}\n";
+    output << "#{xmove = (PITCHX*(latwidth-1))*0.5}\n";
+    output << "#{y0 = (((-1*PITCHY*(latheight-1))*0.5) + (PITCHY*(latheight-1)))}\n";
+  }
   output << "create cylinder radius {rd} height {Z_HEIGHT}\n";
   output << "move vol 1 x {xmove} y {-y0}  z {Z_HEIGHT/2+z0}\n";
-  //output << "group 'one' equals vol 1\n";
   output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString() << ".sat'\n";
   output << "group 'gall' equals vol 2 to {TOTAL_VOLS_LARGE}\n";
   output << "subtract vol 2 to 4000 from vol 1\n";
   output << "export acis '" << QFileInfo(jouname).completeBaseName().toStdString() << ".sat' over\n";
   output << "surface with z_coord > {Z_MID -.1*Z_HEIGHT} and z_coord < {Z_MID + .1*Z_HEIGHT} size {AXIAL_MESH_SIZE}\n";
-  output << "curve with z_coord > {Z_HEIGHT - tol} and length < {PITCH} interval {TOP_EDGE_INTERVAL}\n";
-  output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCH} interval {OUTER_CYL_EDGE_INTERVAL}\n";
+  if(this->Core->IsHexType())
+  {
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length < {PITCH} interval {TOP_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCH} interval {OUTER_CYL_EDGE_INTERVAL}\n";
+  }
+  else
+  {
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length < {PITCHX} interval {TOP_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHX} interval {OUTER_CYL_EDGE_INTERVAL}\n";
+  }
   output << "mesh vol all\n";
   output << "block 9999 vol all\n";
   output << "save as '" << fi.fileName().toStdString() << "' over\n";
