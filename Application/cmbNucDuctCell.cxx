@@ -507,6 +507,7 @@ void DuctCell::uniformizeMaterialLayers()
 
 void DuctCell::splitDucts( std::vector<double> const& layers )
 {
+  if(!isUsed()) return;
   std::vector<Duct*> addedDucts;
   int ductLoc = 0;
   int layersStart = 0;

@@ -127,6 +127,7 @@ private:
   cmbNucCore * v;
 public slots:
   void dataChanged();
+  void justFileChanged();
   void assemblyChanged();
 signals:
   void dataChangedSig();
@@ -214,6 +215,7 @@ public:
 
   //Set the different from file and tests the h5m file;
   void setAndTestDiffFromFiles(bool diffFromFile);
+  void fileChanged();
   bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
 

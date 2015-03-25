@@ -22,6 +22,9 @@ bool cmbNucDuctLibrary
   size_t s = this->DuctCells.size();
   this->DuctCells.push_back(dc);
   this->NameToDuct[name] = s;
+  this->Connection->libraryChanged();
+  QObject::connect(dc->GetConnection(), SIGNAL(Changed()),
+                   this->Connection, SIGNAL(libraryChanged()));
   return true;
 }
 
@@ -76,6 +79,7 @@ void cmbNucDuctLibrary
     NameToDuct[dc->getName()] = i;
   }
   this->Connection->DuctRemoved(dc);
+  this->Connection->libraryChanged();
   delete dc;
 }
 

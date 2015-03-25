@@ -818,8 +818,6 @@ bool inpFileWriter::write(std::string fname,
 
   output.close();
 
-  core.setAndTestDiffFromFiles(false);
-
   //Write Defaults
   QPointer<cmbNucDefaults> defaults = core.GetDefaults();
   if(defaults!=NULL)

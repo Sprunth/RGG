@@ -22,6 +22,7 @@ private:
 signals:
   void pinRemoved(PinCell *);
   void labelChanged(QString o, QString n);
+  void libraryChanged();
 };
 
 class cmbNucPinLibrary: public AssyPartObj

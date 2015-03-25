@@ -905,6 +905,8 @@ void cmbNucMainWindow::onNewCore()
 
 void cmbNucMainWindow::onFileOpen()
 {
+  if(!checkFilesBeforePreceeding()) return;
+
   //TODO the new File format
   doClearAll();
   this->PropertyWidget->setObject(NULL, NULL);

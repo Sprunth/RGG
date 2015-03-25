@@ -354,7 +354,11 @@ void cmbNucPinCellEditor::Apply()
   }
 
   this->Reset();
-  if(change) emit valueChange();
+  if(change)
+  {
+    this->ExternalPinCell->GetConnection()->EmitChangeSignal();
+    emit valueChange();
+  }
 }
 
 void cmbNucPinCellEditor::UpdatePinCell()

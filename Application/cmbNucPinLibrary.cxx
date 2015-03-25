@@ -52,6 +52,9 @@ cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
     std::string name = pc->getName();
     NameToPin[name] = loc;
     LabelToPin[label] = loc;
+    this->Connection->libraryChanged();
+    QObject::connect(pc->GetConnection(), SIGNAL(Changed()),
+                     this->Connection, SIGNAL(libraryChanged()));
     return PinAdded;
   }
   else if(cm == Both_Conflict)
@@ -155,6 +158,7 @@ void cmbNucPinLibrary::removePincell(PinCell* pc)
   NameToPin.erase(ni);
   LabelToPin.erase(li);
   this->Connection->pinRemoved(pc);
+  this->Connection->libraryChanged();
   delete pc;
 }
 
