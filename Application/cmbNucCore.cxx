@@ -36,6 +36,12 @@ void cmbNucCoreConnection::dataChanged()
   emit dataChangedSig();
 }
 
+void cmbNucCoreConnection::justFileChanged()
+{
+  v->fileChanged();
+  emit dataChangedSig();
+}
+
 void cmbNucCoreConnection::assemblyChanged()
 {
   v->setAndTestDiffFromFiles(true);
@@ -69,6 +75,9 @@ cmbNucCore::cmbNucCore(bool needSaved)
   hasCylinder = false;
   cylinderRadius = 0;
   cylinderOuterSpacing = 0;
+
+  QObject::connect(this->PinLibrary->GetConnection(), SIGNAL(libraryChanged()),
+                   this->Connection, SLOT(justFileChanged()));
 }
 
 cmbNucCore::~cmbNucCore()
@@ -392,11 +401,16 @@ int cmbNucCore::GetNumberOfAssemblies() const
   return static_cast<int>(this->Assemblies.size());
 }
 
+void cmbNucCore::fileChanged()
+{
+  this->DifferentFromFile = true;
+}
+
 void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
 {
   if(diffFromFile)
   {
-    this->DifferentFromFile = true;
+    this->fileChanged();
     this->DifferentFromH5M = true;
     return;
   }
@@ -405,7 +419,7 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   QFileInfo inpInfo(this->CurrentFileName.c_str());
   if(!inpInfo.exists())
   {
-    this->DifferentFromFile = true;
+    this->fileChanged();
     this->DifferentFromH5M = true;
     return;
   }

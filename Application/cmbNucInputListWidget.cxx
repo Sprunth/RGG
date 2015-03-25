@@ -445,7 +445,9 @@ void cmbNucInputListWidget::onNewDuct()
   this->NuclearCore->getDuctLibrary()->addDuct(cd);
   this->initCoreRootNode();
   this->updateWithDuct(cd);
+  //this->NuclearCore->setAndTestDiffFromFiles(true);
   emit assembliesModified(this->NuclearCore);
+  emit checkSavedAndGenerate();
 }
 
 //----------------------------------------------------------------------------
@@ -477,7 +479,9 @@ void cmbNucInputListWidget::onNewPin()
   this->NuclearCore->getPinLibrary()->addPin(&newpin, cmbNucPinLibrary::KeepOriginal);
   this->initCoreRootNode();
   this->updateWithPin(newpin);
+  //this->NuclearCore->setAndTestDiffFromFiles(true);
   emit assembliesModified(this->NuclearCore);
+  emit checkSavedAndGenerate();
 }
 
 //----------------------------------------------------------------------------
@@ -1177,6 +1181,7 @@ void cmbNucInputListWidget::onClone()
         this->NuclearCore->getPinLibrary()->addPin(&clonePin, cmbNucPinLibrary::KeepOriginal);
         this->initCoreRootNode();
         this->updateWithPin(clonePin);
+        //this->NuclearCore->setAndTestDiffFromFiles(true);
         emit assembliesModified(this->NuclearCore);
       }
       break;
@@ -1200,6 +1205,7 @@ void cmbNucInputListWidget::onClone()
         this->NuclearCore->getDuctLibrary()->addDuct(cloneDuct);
         this->initCoreRootNode();
         this->updateWithDuct(cloneDuct);
+        //this->NuclearCore->setAndTestDiffFromFiles(true);
         emit assembliesModified(this->NuclearCore);
       }
       break;

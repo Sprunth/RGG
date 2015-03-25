@@ -464,6 +464,13 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 {
+  QPalette c_palette = this->Internal->colorSwatch->palette();
+  QColor c = c_palette.color(this->Internal->colorSwatch->backgroundRole());
+  if(c != pincell->GetLegendColor())
+  {
+    pincell->SetLegendColor(c);
+    pincell->GetConnection()->EmitChangeSignal();
+  }
   this->Internal->PinCellEditor->Apply();
   emit this->objGeometryChanged(pincell);
   this->Internal->PinCellEditor->UpdateData();
@@ -820,21 +827,21 @@ void cmbNucInputPropertiesWidget::choosePinLegendColor()
 {
   PinCell* pincell = dynamic_cast<PinCell*>(this->CurrentObject);
   if(!pincell)
-    {
+  {
     std::cerr << "Error: don't have pincell" << std::endl;
     return;
-    }
+  }
   QColor selected = QColorDialog::getColor(pincell->GetLegendColor(), this,
-    "Select key color for pin cell type");
+                                           "Select key color for pin cell type");
   if(selected.isValid())
-    {
-    pincell->SetLegendColor(selected);
+  {
+    //pincell->SetLegendColor(selected);
     QPalette c_palette = this->Internal->colorSwatch->palette();
     c_palette.setColor(this->Internal->colorSwatch->backgroundRole(), selected);
     this->Internal->colorSwatch->setPalette(c_palette);
 
     this->resetAssemblyLattice();
-    }
+  }
 }
 
 void cmbNucInputPropertiesWidget::chooseAssyLegendColor()

@@ -621,6 +621,7 @@ std::vector<double> PinCell::getPinLayers() const
 void PinCell::splitPin(std::vector<double> const& layers)
 {
   //TODO: handel when the pin is not alligned with the top and bottom of the duct
+  std::vector<PinSubPart*> newParts;
   for(unsigned int i = 0; i < Parts.size(); ++i)
   {
     PinSubPart * ati = this->Parts[i];
@@ -638,11 +639,14 @@ void PinCell::splitPin(std::vector<double> const& layers)
     }
     assert(e != layers.end());
     std::vector<PinSubPart*> tmp = ati->split(b, e+1);
-    for(unsigned int k = 0; k < tmp.size(); ++k)
-    {
-      this->AddPart(tmp[k]);
-    }
+    newParts.insert(newParts.end(), tmp.begin(), tmp.end());
     delete ati;
+    this->Parts[i] = NULL;
+  }
+  this->Parts.resize(0);
+  for(unsigned int i = 0; i < newParts.size(); ++i)
+  {
+    this->AddPart(newParts[i]);
   }
 }
 
