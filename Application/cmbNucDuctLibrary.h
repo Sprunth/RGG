@@ -23,6 +23,7 @@ private:
 signals:
   void DuctRemoved(DuctCell *);
   void labelChanged(QString n);
+  void libraryChanged();
 };
 
 class cmbNucDuctLibrary: public AssyPartObj

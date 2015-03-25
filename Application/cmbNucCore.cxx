@@ -78,6 +78,8 @@ cmbNucCore::cmbNucCore(bool needSaved)
 
   QObject::connect(this->PinLibrary->GetConnection(), SIGNAL(libraryChanged()),
                    this->Connection, SLOT(justFileChanged()));
+  QObject::connect(this->DuctLibrary->GetConnection(), SIGNAL(libraryChanged()),
+                   this->Connection, SLOT(justFileChanged()));
 }
 
 cmbNucCore::~cmbNucCore()
