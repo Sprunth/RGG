@@ -1396,7 +1396,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
               {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
               std::string label = lat.GetCell(k,layerIdx).label;
-              if( !forceLabel.empty() )
+              if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
                 {
                 label = forceLabel;
                 }
@@ -1408,7 +1408,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
             std::string label =lat.GetCell(k,layerIdx).label;
-            if( !forceLabel.empty() )
+            if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
             {
               label = forceLabel;
             }
@@ -1416,7 +1416,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             layerIdx = k+(i-startRow);
             size_t colIdx = hexArray[i].size() -1 - startCol;
             label =lat.GetCell(k,layerIdx).label;
-            if( !forceLabel.empty() )
+            if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
               {
               label = forceLabel;
               }
@@ -1461,7 +1461,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
           {
             label = "xx";
           }
-          if( !forceLabel.empty() )
+          if( !lat.GetCell(i,j).isBlank() && !forceLabel.empty() )
           {
             label = forceLabel;
           }
@@ -1485,7 +1485,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
       for(size_t j = 0; j < sizeati; j++)
         {
         std::string label = lat.GetCell(ati,j).label;
-        if( !forceLabel.empty() )
+        if( !lat.GetCell(ati,j).isBlank() && !forceLabel.empty() )
           {
           label = forceLabel;
           }

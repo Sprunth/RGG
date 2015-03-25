@@ -126,7 +126,8 @@ public:
 
   static void hexHelper(cmbNucCore * input,
                         double & extraXTrans, double & extraYTrans,
-                        std::map< CellKey, std::vector<point> > & idToPoint)
+                        std::map< CellKey, std::vector<point> > & idToPoint,
+                        bool markblank)
   {
     Lattice & lat = input->getLattice();
     extraYTrans = 0;
@@ -186,11 +187,9 @@ public:
 
       for(size_t j = 0; j < lat.getSize(i); j++) //index on ring
       {
-        if(!lat.GetCell(i,j).isBlank())
+        if(!lat.GetCell(i,j).isBlank() || markblank)
         {
           CellKey key( lat.GetCell(i,j).label, lat.getDrawMode(/*index*/j, /*Layer*/ i) );
-          cmbNucAssembly* assembly = input->GetAssembly(key.str);
-          if(assembly == NULL) continue;
 
           // For hex geometry type, figure out the six corners first
 
@@ -233,7 +232,8 @@ public:
 
   static void hexHelper(cmbNucAssembly * input,
                         double & extraXTrans, double & extraYTrans,
-                        std::map< CellKey, std::vector<point> > & idToPoint)
+                        std::map< CellKey, std::vector<point> > & idToPoint,
+                        bool /*markblank*/)  //fornow only support hex core
   {
     extraXTrans = 0;
     extraYTrans = 0;
@@ -295,7 +295,8 @@ public:
   template<class T>
   static void helperRect(T * input,
                          double & extraXTrans, double & extraYTrans,
-                         std::map< CellKey, std::vector<point> > & idToPoint)
+                         std::map< CellKey, std::vector<point> > & idToPoint,
+                         bool markblank)
   {
     double currentLaticePoint[] = {0,0};
 
@@ -306,7 +307,7 @@ public:
       for(size_t j = 0; j < lat.getSize(i); j++)
       {
         input->calculateRectPt(i, j, currentLaticePoint);
-        if(!lat.GetCell(i,j).isBlank())
+        if(!lat.GetCell(i,j).isBlank() || markblank)
         {
           CellKey key( lat.GetCell(i,j).label, lat.getDrawMode(j, i));
           idToPoint[key].push_back(point( currentLaticePoint[0],
@@ -319,17 +320,18 @@ public:
 
   template<class T>
   static void calculatePoints( T * input, double & extraXTrans, double & extraYTrans,
-                               std::map< CellKey, std::vector<point> > & idToPoint)
+                               std::map< CellKey, std::vector<point> > & idToPoint,
+                              bool markblank)
   {
     extraXTrans = 0;
     extraYTrans = 0;
     if(input->IsHexType())
     {
-      hexHelper(input, extraXTrans, extraYTrans, idToPoint);
+      hexHelper(input, extraXTrans, extraYTrans, idToPoint, markblank);
     }
     else
     {
-      helperRect(input, extraXTrans, extraYTrans, idToPoint);
+      helperRect(input, extraXTrans, extraYTrans, idToPoint, markblank);
     }
   }
 
@@ -450,7 +452,7 @@ public:
     double extraYTrans = 0;
     double pitchX = input->getPinPitchX();
     double pitchY = input->getPinPitchY();
-    calculatePoints(input, extraXTrans, extraYTrans, idToPoint);
+    calculatePoints(input, extraXTrans, extraYTrans, idToPoint, false);
     point xformR;
     point xformS;
     bool hasSectioning = false;
@@ -515,16 +517,6 @@ public:
         hasSectioning = false;
     }
 
-      /*
-      else
-      {
-        hasSectioning = true;
-        point plane;
-        plane.xyz[tmpxf->getAxis()] = (tmpxf->reverse())?-1:1;
-        transformNormal(plane.xyz, xformS.xyz);
-        sectioningPlanes.push_back(plane);
-      }
-      */
     //Duct
     {
       std::map<key, GeoToPoints> tmpGeo;
@@ -655,23 +647,52 @@ public:
     std::map< CellKey, std::vector<point> > idToPoint;
     double extraXTrans;
     double extraYTrans;
-    calculatePoints(input, extraXTrans, extraYTrans, idToPoint);
+    calculatePoints(input, extraXTrans, extraYTrans, idToPoint, input->getHasCylinder());
+
     for( std::map< CellKey, std::vector<point> >::const_iterator iter = idToPoint.begin();
         iter != idToPoint.end(); ++iter)
     {
       cmbNucAssembly* assembly = input->GetAssembly(iter->first.str);
-      if(!assembly)
+      std::map<key, GeoToPoints> tmpGeo;
+      if(assembly)
+      {
+        //prepopulate the keys
+        for(std::map<key, GeoToPoints>::const_iterator i = geometry.begin(); i != geometry.end(); ++i)
+        {
+          tmpGeo[i->first].geo = i->second.geo;
+        }
+        createGeo(assembly, iter->first.mode, tmpGeo);
+      }
+      else if(input->getHasCylinder())
+      {
+        point xformR = point();
+        std::map<key, GeoToPoints> dGeo;
+        for(std::map<key, GeoToPoints>::const_iterator i = geometry.begin(); i != geometry.end(); ++i)
+        {
+          dGeo[i->first].geo = i->second.geo;
+        }
+        DuctCell dc;
+        double dt1, dt2, l, z0;
+        input->GetDefaults()->getDuctThickness(dt1,dt2);
+        input->GetDefaults()->getHeight(l);
+        input->GetDefaults()->getZ0(z0);
+        dc.AddDuct(new Duct(l, dt1, dt2));
+        dc.setZ0(z0);
+        createGeo(&dc, input->IsHexType(), dGeo);
+        if(input->IsHexType() &&
+           !( input->getLattice().GetGeometrySubType() & ANGLE_60 &&
+              input->getLattice().GetGeometrySubType() & VERTEX) )
+        {
+          xformR.xyz[2] = 30;
+        }
+        std::vector<point> pts(1);
+        mergeGeometry(dGeo, pts, 0, 0, tmpGeo, xformR);
+      }
+      else
       {
         continue;
       }
-      std::map<key, GeoToPoints> tmpGeo;
-      //prepopulate the keys
-      for(std::map<key, GeoToPoints>::const_iterator i = geometry.begin(); i != geometry.end(); ++i)
-      {
-        tmpGeo[i->first].geo = i->second.geo;
-      }
 
-      createGeo(assembly, iter->first.mode, tmpGeo);
       std::vector<point> const& points = iter->second;
       mergeGeometry(tmpGeo, points, extraXTrans, extraYTrans, geometry);
     }

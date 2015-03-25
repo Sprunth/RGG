@@ -120,7 +120,7 @@ cmbNucGenerateOuterCylinder
   }
   else
   {
-    output << "curve with z_coord > {Z_HEIGHT - tol} and length < {PITCHX} interval {TOP_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and x_length < {PITCHX} interval {TOP_EDGE_INTERVAL}\n";
     output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHX} interval {OUTER_CYL_EDGE_INTERVAL}\n";
   }
   output << "mesh vol all\n";
