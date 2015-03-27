@@ -10,13 +10,15 @@ if (BUILD_WITH_MPI)
 endif ()
 
 add_external_project(moab
-  DEPENDS hdf5 cgm netcdf zlib ${extra_deps}
+  DEPENDS szip hdf5 cgm netcdf zlib ${extra_deps}
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>
     -DENABLE_IMESH:BOOL=ON
     -DMOAB_USE_CGM:BOOL=ON
     -DMOAB_USE_NETCDF:BOOL=ON
     -DMOAB_USE_HDF:BOOL=ON
+    -DMOAB_USE_SZIP:BOOL=ON
+    -DMOAB_ENABLE_TESTING:BOOL=OFF
     "-DCUBITROOT:PATH=${CUBITROOT}"
     -DMOAB_USE_MPI:BOOL=${BUILD_WITH_MPI}
   ${suppress_build_out}
