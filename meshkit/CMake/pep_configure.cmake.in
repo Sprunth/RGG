@@ -4,7 +4,7 @@ set (command @step_command@)
 set (suppress_output @process_suppress_output@)
 
 set (key)
-foreach (arg IN ITEMS ${environment})
+foreach (arg IN LISTS environment)
   if (NOT key)
     set (key "${arg}")
   else ()
