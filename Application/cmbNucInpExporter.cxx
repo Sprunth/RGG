@@ -33,12 +33,14 @@ bool cmbNucInpExporter
   if(coreName.isEmpty()) return false;
 
   //clone the pins and ducts.  These are needed for determining layers
+  cmbNucDuctLibrary * odl = this->NuclearCore->getDuctLibrary();
   cmbNucPinLibrary * pl = this->NuclearCore->getPinLibrary()->clone();
-  cmbNucDuctLibrary * dl = this->NuclearCore->getDuctLibrary()->clone();
+  cmbNucDuctLibrary * dl = odl->clone();
 
   //split ducts if needed
   for(unsigned int i = 0; i < dl->GetNumberOfDuctCells(); ++i)
   {
+    if(!odl->GetDuctCell(i)->isUsed()) continue;
     dl->GetDuctCell(i)->uniformizeMaterialLayers();
     dl->GetDuctCell(i)->splitDucts(this->coreLevelLayers.levels);
   }
@@ -100,12 +102,14 @@ bool cmbNucInpExporter
 ::exportCylinderINPFile(QString filename, QString random)
 {
   //clone the pins and ducts.  These are needed for determining layers
+  cmbNucDuctLibrary * odl = this->NuclearCore->getDuctLibrary();
   cmbNucPinLibrary * pl = this->NuclearCore->getPinLibrary()->clone();
-  cmbNucDuctLibrary * dl = this->NuclearCore->getDuctLibrary()->clone();
+  cmbNucDuctLibrary * dl = odl->clone();
 
   //split ducts if needed
   for(unsigned int i = 0; i < dl->GetNumberOfDuctCells(); ++i)
   {
+    if(!odl->GetDuctCell(i)->isUsed()) continue;
     dl->GetDuctCell(i)->splitDucts(this->coreLevelLayers.levels);
   }
 
