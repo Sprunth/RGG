@@ -57,7 +57,7 @@ private slots:
   void addLayerAfter();
   void deleteLayer();
   void sectionTypeComboBoxChanged(const QString &type);
-  void setupMaterialComboBox(QComboBox *comboBox);
+  void setupMaterialComboBox(QComboBox *comboBox, bool isCell);
   void onPieceSelected();
   PinSubPart* createComponentObject(int i, PinSubPart * );
   void createComponentItem(int row, PinSubPart *);
