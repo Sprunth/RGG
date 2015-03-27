@@ -110,7 +110,22 @@ cmbNucGenerateOuterCylinder
   output << "move vol 1 x {xmove} y {-y0}  z {Z_HEIGHT/2+z0}\n";
   output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString() << ".sat'\n";
   output << "group 'gall' equals vol 2 to {TOTAL_VOLS_LARGE}\n";
+  if(!this->Core->IsHexType())
+  {
+    output << "imprint vol all\n";
+  }
   output << "subtract vol 2 to 4000 from vol 1\n";
+  if(!this->Core->IsHexType())
+  {
+    output << "group 'g1' equals vol all\n";
+    output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString() << ".sat'\n";
+    output << "imprint vol all\n";
+    output << "group 'g2' vol all\n";
+    output << "group 'g2' equals vol all\n";
+    output << "group 'g3' subtract vol in g2 from g1\n";
+    output << "group 'g3' subtract vol in g1 from g2\n";
+    output << "delete vol in g3\n";
+  }
   output << "export acis '" << QFileInfo(jouname).completeBaseName().toStdString() << ".sat' over\n";
   output << "surface with z_coord > {Z_MID -.1*Z_HEIGHT} and z_coord < {Z_MID + .1*Z_HEIGHT} size {AXIAL_MESH_SIZE}\n";
   if(this->Core->IsHexType())
@@ -120,8 +135,9 @@ cmbNucGenerateOuterCylinder
   }
   else
   {
-    output << "curve with z_coord > {Z_HEIGHT - tol} and length < {PITCHX} interval {TOP_EDGE_INTERVAL}\n";
-    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHX} interval {OUTER_CYL_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHX - tol} interval {TOP_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHY - tol} interval {TOP_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHX + PITCHY} interval {OUTER_CYL_EDGE_INTERVAL}\n";
   }
   output << "mesh vol all\n";
   output << "block 9999 vol all\n";
