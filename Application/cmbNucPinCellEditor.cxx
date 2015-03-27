@@ -268,7 +268,7 @@ void cmbNucPinCellEditor::Reset()
 
 
   this->Ui->CellMaterial->blockSignals(true);
-  this->setupMaterialComboBox(this->Ui->CellMaterial);
+  this->setupMaterialComboBox(this->Ui->CellMaterial, true);
   this->Ui->CellMaterial->blockSignals(false);
 
   cmbNucMaterialColors::instance()->selectIndex(this->Ui->CellMaterial,
@@ -602,11 +602,14 @@ void cmbNucPinCellEditor::sectionTypeComboBoxChanged(const QString &/*type*/)
     }
 }
 
-void cmbNucPinCellEditor::setupMaterialComboBox(QComboBox *comboBox)
+void cmbNucPinCellEditor::setupMaterialComboBox(QComboBox *comboBox, bool iscell)
 {
   cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
   matColorMap->setUp(comboBox);
-  comboBox->setItemText(0, "No Cell Material");
+  if(iscell)
+  {
+    comboBox->setItemText(0, "No Cell Material");
+  }
 }
 
 void cmbNucPinCellEditor::onUpdateLayerMaterial()
@@ -729,11 +732,11 @@ void cmbNucPinCellEditor::createMaterialRow(int row, PinSubPart * obj)
       comboBox = new QComboBox;
       comboBox->setObjectName("PinMaterialBox_" + QString::number(row));
       tmpTable->setCellWidget(row, 0, comboBox);
-      this->setupMaterialComboBox(comboBox);
       QObject::connect(comboBox, SIGNAL(currentIndexChanged(int)),
                        this, SLOT(onUpdateLayerMaterial()));
     }
     comboBox->blockSignals(true);
+    this->setupMaterialComboBox(comboBox, false);
     QPointer<cmbNucMaterial> selMat;
     selMat = obj->GetMaterial(row);
     cmbNucMaterialColors::instance()->selectIndex(comboBox, selMat);
