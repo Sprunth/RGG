@@ -14,8 +14,8 @@ add_revision(mpich2
   URL_MD5 b470666749bcb4a0449a072a18e2c204)
 
 add_revision(ftgl
-  GIT_REPOSITORY "https://github.com/mathstuf/ftgl.git"
-  GIT_TAG windows-preprocessor-define
+  GIT_REPOSITORY "https://github.com/ulrichard/ftgl"
+  GIT_TAG master
   )
 
 add_revision(OCE
