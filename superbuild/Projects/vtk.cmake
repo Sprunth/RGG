@@ -10,7 +10,7 @@ add_external_project(vtk
   DEPENDS qt
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-    -DBUILD_TESTING:BOOL=OFF
+    -DBUILD_TESTING:BOOL=ON
     -DModule_vtkGUISupportQt:bool=ON
     -DModule_vtkGUISupportQtOpenGL2:bool=ON
     -DModule_vtkRenderingQt:bool=ON
