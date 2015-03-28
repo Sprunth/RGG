@@ -385,6 +385,16 @@ bool inpFileReader
         assembly.Parameters->CenterXYZ = tmp;
         }
       }
+    else if(value == "save_exodus")
+    {
+      std::string tmp;
+      std::getline(input, tmp);
+      assembly.Parameters->Save_Exodus = true;
+      if(!tmp.empty() && (tmp == "off" || tmp == "no"))
+      {
+        assembly.Parameters->Save_Exodus = false;
+      }
+    }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)\
     else if(value == #Key)\
       { \
@@ -619,7 +629,6 @@ bool inpFileReader::read_defaults(cmbNucDefaults & defaults)
        geometry
        createsideset
        createfiles
-       save_exodus
        mergetolerance
        radialmeshsize
        tetmeshsize  */
@@ -1652,7 +1661,19 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
     QString assyQString;
     input >> assyfilename >> assylabel;
     assyQString = QString(assyfilename.c_str());
-    assyQString.replace(".cub",".inp");
+    if(assyQString.endsWith(".cub", Qt::CaseInsensitive))
+    {
+      assyQString.replace(".cub",".inp");
+    }
+    else if(assyQString.endsWith(".exo", Qt::CaseInsensitive))
+    {
+      assyQString.replace(".exo",".inp");
+    }
+    else
+    {
+      //do not recognize the file, continue
+      continue;
+    }
     QFileInfo assyInfo(assyQString);
     if(!assyInfo.exists())
     {
@@ -1732,7 +1753,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
           assemblyName = (temp.dir().path() + "/" + temp.completeBaseName()).toStdString();
         }
       }
-      output << assemblyName << ".cub " << Lattice::generate_string(assembly.label, mode) << "\n";
+      output << assemblyName << assembly.getOutputExtension() << " " << Lattice::generate_string(assembly.label, mode) << "\n";
     }
   }
   output.flush();

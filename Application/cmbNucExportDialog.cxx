@@ -48,10 +48,8 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
   connect( this->ui->forceCore, SIGNAL(clicked(bool)),
           this, SLOT(GetRunnableCoreFile(bool)));
 
-  connect( this, SIGNAL(process( const QStringList &, const QString, const QString,
-                                 const QString, const QString, const QString, const QString, const QString, bool)),
-          this->Exporter, SLOT(run( const QStringList &, const QString, const QString,
-                                    const QString, const QString, const QString, const QString, const QString, bool)));
+  connect( this, SIGNAL(process( Message const& )),
+          this->Exporter, SLOT(run( Message const& )));
   connect( this->Exporter, SIGNAL(fileDone()), this, SIGNAL(fileFinish()));
   Thread.start();
 }
@@ -90,6 +88,7 @@ void cmbNucExportDialog::exportFile(cmbNucCore * core, cmbNucInpExporter & inpEx
 void cmbNucExportDialog::sendSignalToProcess()
 {
   qDebug() << "SENDING TO THREAD";
+
   int numberOfThreads;
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
@@ -100,7 +99,6 @@ void cmbNucExportDialog::sendSignalToProcess()
     return;
   }
 
-
   Exporter->setAssygen(assygenExe,assyGenLibs);
   Exporter->setCubit(cubitExe);
   Exporter->setNumberOfProcessors(numberOfThreads);
@@ -108,7 +106,7 @@ void cmbNucExportDialog::sendSignalToProcess()
   Exporter->setCoregen(coregenExe, coreGenLibs);
 
   send_core_mesh = true;
-  if(this->AssygenFileList.empty())
+  if(TasksToSend.empty())
   {
     this->runCoregen();
     return;
@@ -120,16 +118,21 @@ void cmbNucExportDialog::sendSignalToProcess()
     send_core_mesh = true;
     return;
   }
+
+  Message message;
+  message.assemblyTasks = TasksToSend;
+  message.coregenFile   = this->CoregenFile;
+  message.keepGoingAfterError = this->ui->keepGoingOnError->isChecked();
+  
   send_core_mesh = true;
 
   this->Progress->show();
-  QString outputMesh;
   if(Core == NULL || Core->h5mFile.empty())
   {
     QFileInfo fi(CoregenFile);
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
-    outputMesh = path + '/' + name + ".h5m";
+    message.CoreGenOutputFile = path + '/' + name + ".h5m";
     Core->h5mFile = name.toStdString();
   }
   else
@@ -137,25 +140,20 @@ void cmbNucExportDialog::sendSignalToProcess()
     QFileInfo fi(CoregenFile);
     QString path = fi.absolutePath();
     qDebug() << Core->h5mFile.c_str();
-    outputMesh = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
-    qDebug() << outputMesh;
+    message.CoreGenOutputFile = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
+    qDebug() << message.CoreGenOutputFile;
   }
 
   OuterCylinder->exportFiles(this->Core, *InpExporter);
   if(OuterCylinder->generateCylinder())
   {
-    emit process(this->AssygenFileList, CoregenFile, outputMesh,
-                 OuterCylinder->getAssygenFileName(), OuterCylinder->getCubitFileName(),
-                 this->Core->Params.BackgroundFullPath.c_str(),
-                 OuterCylinder->getCoreGenFileName(), OuterCylinder->getSATFileName(),
-                 this->ui->keepGoingOnError->isChecked());
-                 
+    message.cylinderTask = Message::CylinderTask(OuterCylinder->getAssygenFileName(),
+                                                 OuterCylinder->getCoreGenFileName(),
+                                                 OuterCylinder->getSATFileName(),
+                                                 OuterCylinder->getCubitFileName(),
+                                                 this->Core->Params.BackgroundFullPath.c_str());
   }
-  else
-  {
-    emit process(this->AssygenFileList, CoregenFile, outputMesh, QString(), QString(), QString(), QString(), QString(),
-                 this->ui->keepGoingOnError->isChecked());
-  }
+  emit process(message);
 }
 
 void cmbNucExportDialog::runAssygen()
@@ -174,24 +172,27 @@ void cmbNucExportDialog::runAssygen()
   Exporter->setCubit(cubitExe);
   Exporter->setNumberOfProcessors(thread_count);
 
-  if(this->AssygenFileList.empty())
+  if(TasksToSend.empty())
   {
     return;
   }
+  Message message;
+  message.assemblyTasks = TasksToSend;
+  message.keepGoingAfterError = this->ui->keepGoingOnError->isChecked();
 
   this->Progress->show();
   send_core_mesh = false;
-  emit process(this->AssygenFileList, QString(), QString(), QString(), QString(), QString(), QString(), QString(),
-               this->ui->keepGoingOnError->isChecked());
+  emit process(message);
 }
 
 void cmbNucExportDialog::runSelectedAssygen()
 {
   QList<QListWidgetItem *> selectedItems = this->ui->assygenFileList->selectedItems();
-  this->AssygenFileList.clear();
+  this->TasksToSend.clear();
   for (int i = 0; i < selectedItems.size(); ++i)
   {
-    this->AssygenFileList.append(selectedItems[i]->text());
+    int r = this->ui->assygenFileList->row( selectedItems[i] );
+    this->TasksToSend.push_back(AllUsableAssyTasks[r]);
   }
   send_core_mesh = false;
   this->runAssygen();
@@ -210,6 +211,10 @@ void cmbNucExportDialog::runCoregen()
     emit error("One of the export exe is missing");
     return;
   }
+
+  Message message;
+  message.coregenFile = CoregenFile;
+  
   coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe,coreGenLibs);
   Exporter->setNumberOfProcessors(thread_count);
@@ -221,13 +226,13 @@ void cmbNucExportDialog::runCoregen()
     return;
   }
   this->Progress->show();
-  QString outputMesh;
+  message.CoreGenOutputFile = QString();
   if(Core == NULL || Core->h5mFile.empty())
   {
-    QFileInfo fi(CoregenFile);
+    QFileInfo fi(message.coregenFile);
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
-    outputMesh = path + '/' + name + ".h5m";
+    message.CoreGenOutputFile = path + '/' + name + ".h5m";
     Core->h5mFile = name.toStdString();
   }
   else
@@ -235,53 +240,58 @@ void cmbNucExportDialog::runCoregen()
     QFileInfo fi(CoregenFile);
     QString path = fi.absolutePath();
     qDebug() << Core->h5mFile.c_str();
-    outputMesh = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
-    qDebug() << outputMesh;
+    message.CoreGenOutputFile = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
+    qDebug() << message.CoreGenOutputFile;
   }
+
+  message.keepGoingAfterError = this->ui->keepGoingOnError->isChecked();
+  message.cylinderTask.valid = false;
 
   OuterCylinder->exportFiles(this->Core, *InpExporter);
   if(OuterCylinder->generateCylinder())
   {
-    emit process(QStringList(), CoregenFile, outputMesh,
-                 OuterCylinder->getAssygenFileName(), OuterCylinder->getCubitFileName(),
-                 this->Core->Params.BackgroundFullPath.c_str(),
-                 OuterCylinder->getCoreGenFileName(), OuterCylinder->getSATFileName(),
-                 this->ui->keepGoingOnError->isChecked());
+    message.cylinderTask = Message::CylinderTask(OuterCylinder->getAssygenFileName(),
+                                                 OuterCylinder->getCoreGenFileName(),
+                                                 OuterCylinder->getSATFileName(),
+                                                 OuterCylinder->getCubitFileName(),
+                                                 this->Core->Params.BackgroundFullPath.c_str());
+  }
 
-  }
-  else
-  {
-    emit process( QStringList(), CoregenFile, outputMesh, QString(), QString(), QString(), QString(), QString(),
-                  this->ui->keepGoingOnError->isChecked());
-  }
+  emit process( message );
 }
 
 void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
 {
-  this->AssygenFileList.clear();
+  this->AllUsableAssyTasks.clear();
   MainWindow->checkForNewCUBH5MFiles();
+  QStringList AssygenFileList;
   for (int i = 0; i < Core->GetNumberOfAssemblies(); ++i)
   {
     cmbNucAssembly * assy = this->Core->GetAssembly(i);
     if(force || assy->changeSinceLastGenerate())
     {
-      for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = assy->ExportFileNames.begin(); iter != assy->ExportFileNames.end(); ++iter)
+      for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = assy->ExportFileNames.begin();
+          iter != assy->ExportFileNames.end(); ++iter)
       {
-        this->AssygenFileList.append(QString(iter->second.c_str()));
+        AssygenFileList.append(QString(iter->second.c_str()));
+        Message::AssygenTask task( QString(iter->second.c_str()),
+                                   QString(assy->getOutputExtension().c_str()), false);
+        this->AllUsableAssyTasks.push_back(task);
       }
     }
   }
+  this->TasksToSend = AllUsableAssyTasks;
   this->ui->assygenFileList->clear();
   this->ui->assygenFileList->addItems(AssygenFileList);
 }
 
 void cmbNucExportDialog::GetRunnableCoreFile(bool force)
 {
-  CoregenFile = QString();
+  this->CoregenFile = QString();
   MainWindow->checkForNewCUBH5MFiles();
   if(force || Core->changeSinceLastGenerate())
   {
-    CoregenFile = Core->ExportFileName.c_str();
+    this->CoregenFile = Core->ExportFileName.c_str();
   }
   this->ui->coregenInputFile->setText(CoregenFile);
 }

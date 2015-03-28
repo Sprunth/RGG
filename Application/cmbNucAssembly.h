@@ -34,7 +34,7 @@ FUN_SIMPLE(std::string, QString, StartPinId,               startpinid,          
 FUN_SIMPLE(std::string, QString, MeshType,                 meshtype,                 ASSY_NOT_SET_KEY, "")\
 FUN_SIMPLE(std::string, QString, CellMaterial,             cellmaterial,             ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, CreateMatFiles,           creatematfiles,           ASSY_NOT_SET_KEY, "") \
-FUN_SIMPLE(std::string, QString, Save_Exodus,              save_exodus,              ASSY_NOT_SET_KEY, "") \
+FUN_SIMPLE(bool,        bool,    Save_Exodus,              save_exodus,              false,            "on") \
 FUN_SIMPLE(std::string, QString, NeumannSet_StartId,       neumannset_startid,       ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, List_NeumannSet_StartId,  list_neumannset_startid,  ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, MaterialSet_StartId,      materialset_startid,      ASSY_NOT_SET_KEY, "") \
@@ -53,12 +53,11 @@ public:
   {
   this->Geometry = this->MeshType
     = this->CenterXYZ = this->HBlock
-    = this->Info = this->SectionXYZ = ASSY_NOT_SET_KEY;
+    = this->Info = ASSY_NOT_SET_KEY;
   this->RadialMeshSize = this->AxialMeshSize
     = this->TetMeshSize = this->CreateFiles
-    = this->SectionOffset = ASSY_NOT_SET_VALUE;
+    = ASSY_NOT_SET_VALUE;
   MoveXYZ[0] = MoveXYZ[1] = MoveXYZ[2] = 0.0;
-  this->SectionReverse = false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) Var = DEFAULT;
     ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
@@ -68,6 +67,8 @@ public:
   { return key != ASSY_NOT_SET_KEY; }
   static bool isValueSet(const std::string& val)
   { return val != ASSY_NOT_SET_KEY; }
+  static bool isValueSet(const bool& val)
+  { return val; }
   template<typename T> static bool isValueSet(const T& val)
   { return val != ASSY_NOT_SET_VALUE; }
 
@@ -88,10 +89,6 @@ public:
   std::string Info;
   // [CreateFiles <block-number-shifted>]
   int CreateFiles;
-  // [Section {x | y | z} <offset> [reverse] ]
-  std::string SectionXYZ;
-  int SectionOffset;
-  bool SectionReverse;
   // [Move <x> <y> <z> ]
   double MoveXYZ[3];
   // HBlock
@@ -204,6 +201,8 @@ public:
 
   // Creates an empty assembly.
   cmbNucAssembly();
+
+  std::string getOutputExtension();
 
   // Destroys the assembly.
   virtual ~cmbNucAssembly();

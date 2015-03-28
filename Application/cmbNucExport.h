@@ -39,39 +39,46 @@ signals:
   void doNextStep(QString, int);
 };
 
+struct Message
+{
+  struct AssygenTask
+  {
+    QString assygenFile;
+    QString outFileExtension;
+    bool justRunCubit;
+    AssygenTask(QString af, QString ofe, bool jrc)
+    :assygenFile(af), outFileExtension(ofe), justRunCubit(jrc)
+    {}
+  };
+
+  struct CylinderTask
+  {
+    QString assygenFile;
+    QString coregenFile;
+    QString coregenResultFile;
+    QString cubitFile;
+    QString cubitOutputFile;
+    bool valid;
+    CylinderTask(): valid(false){}
+    CylinderTask(QString af, QString cf, QString crf, QString cuf, QString cuof)
+    : assygenFile(af), coregenFile(cf), coregenResultFile(crf),
+    cubitFile(cuf), cubitOutputFile(cuof)
+    {
+      valid = !(assygenFile.isEmpty() || cubitFile.isEmpty() || coregenFile.isEmpty());
+    }
+  };
+  std::vector<AssygenTask> assemblyTasks;
+  CylinderTask cylinderTask;
+  QString coregenFile;
+  QString CoreGenOutputFile;
+  bool keepGoingAfterError;
+};
+
 class cmbNucExport : public QObject
 {
   Q_OBJECT
   QThread workerThread;
 public:
-  /*struct Message //Going to use this to clean up the connection
-  {
-    struct AssygenTask
-    {
-      QString assygenFile;
-      bool justRunCubit;
-      AssygenTask(QString af, bool jrc):assygenFile(af), justRunCubit(jrc)
-      {}
-    };
-
-    struct CylinderTask
-    {
-      QString assygenFile;
-      QString coregenFile;
-      QString coregenResultFile;
-      QString cubitFile;
-      QString cubitOutputFile;
-      bool valid;
-      CylinderTask(): valid(false){}
-      CylinderTask(QString af, QString cf, QString crf, QString cuf, QString cuof)
-        : assygenFile(af), coregenFile(cf), coregenResultFile(crf),
-          cubitFile(cuf), cubitOutputFile(cuof)
-      {}
-    };
-    std::vector<AssygenTask> assemblyTasks;
-    CylinderTask cylinderTask;
-    QString coregenFile;
-  };*/
 
   friend class cmbNucExportWorkerRunner;
   cmbNucExport();
@@ -83,15 +90,7 @@ public:
   void setCubit(QString cubitExe);
   void waitTillDone();
 public slots:
-  void run( const QStringList &assygenFile,
-            const QString coregenFile,
-            const QString CoreGenOutputFile,
-            const QString assygenFileCylinder,
-            const QString cubitFileCylinder,
-            const QString cubitOutputFileCylinder,
-            const QString coregenFileCylinder,
-            const QString coregenResultFileCylinder,
-            bool keepGoingAfterError );
+  void run( Message const& message );
   void cancel();
 signals:
   void done();
@@ -110,7 +109,7 @@ signals:
   void endWorkers();
 
 private:
-  std::vector<JobHolder*> runAssyHelper( const QStringList &assygenFile);
+  std::vector<JobHolder*> runAssyHelper( std::vector<Message::AssygenTask> const& msg );
   std::vector<JobHolder*> runCubitHelper(const QString cubitFile,
                                          std::vector<JobHolder*> debIn,
                                          const QString cubitOutputFile);
@@ -118,11 +117,7 @@ private:
                                          std::vector<JobHolder*> debIn,
                                          const QString CoreGenOutputFile,
                                          bool use_cylinder_version );
-  std::vector<JobHolder*> exportCylinder( const QString assygenFile,
-                                          const QString cubitFile,
-                                          const QString cubitOutputFile,
-                                          const QString coregenFile,
-                                          const QString coregenResultFile );
+  std::vector<JobHolder*> exportCylinder( Message::CylinderTask const& msg );
   JobHolder* makeAssyJob(const QString assygenFile);
 
   void finish();
@@ -150,5 +145,7 @@ private:
   bool isDone;
   bool keepGoingAfterError;
 };
+
+//Q_DECLARE_METATYPE(Message);
 
 #endif //cmbNucExport_H
