@@ -395,7 +395,6 @@ function(add_external_project_internal name)
       -DCMAKE_PREFIX_PATH:PATH=${prefix_path}
       -DCMAKE_C_FLAGS:STRING=${project_c_flags}
       -DCMAKE_CXX_FLAGS:STRING=${project_cxx_flags}
-      -DCMAKE_SHARED_LINKER_FLAGS:STRING=${project_ld_flags}
       ${cmake_params}
     )
 
