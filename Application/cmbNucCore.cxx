@@ -249,7 +249,7 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
                    this->Connection, SLOT(assemblyChanged()));
   if(this->Assemblies.size() == 1)
   {
-    this->SetAssemblyLabel(0, 0, assembly->label, assembly->GetLegendColor());
+    this->SetAssemblyLabel(0, 0, assembly->getLabel(), assembly->GetLegendColor());
   }
   // the new assembly need to be in the grid
 }
@@ -258,13 +258,33 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
 {
   for(size_t i = 0; i < this->Assemblies.size(); i++)
     {
-    if(this->Assemblies[i]->label == label)
+    if(this->Assemblies[i]->getLabel() == label)
       {
       delete this->Assemblies[i];
       this->Assemblies.erase(this->Assemblies.begin() + i);
+      this->fileChanged();
       break;
       }
     }
+  // update the Grid
+  if(this->lattice.ClearCell(label))
+  {
+    this->setAndTestDiffFromFiles(true);
+  }
+}
+
+void cmbNucCore::RemoveAssemblyLink(const std::string &label)
+{
+  for(size_t i = 0; i < this->AssemblyLinks.size(); i++)
+  {
+    if(this->Assemblies[i]->getLabel() == label)
+    {
+      delete this->Assemblies[i];
+      this->AssemblyLinks.erase(this->AssemblyLinks.begin() + i);
+      this->fileChanged();
+      break;
+    }
+  }
   // update the Grid
   if(this->lattice.ClearCell(label))
   {
@@ -276,7 +296,7 @@ cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
 {
   for(size_t i = 0; i < this->Assemblies.size(); i++)
     {
-    if(this->Assemblies[i]->label == label)
+    if(this->Assemblies[i]->getLabel() == label)
       {
       return this->Assemblies[i];
       }
@@ -322,7 +342,7 @@ std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
   for (unsigned int i = 0; i < this->Assemblies.size(); ++i)
     {
     if(this->Assemblies[i]!=NULL &&
-       usedDict.find(this->Assemblies[i]->label) != usedDict.end())
+       usedDict.find(this->Assemblies[i]->getLabel()) != usedDict.end())
       {
       result.push_back(Assemblies[i]);
       }
@@ -436,7 +456,7 @@ void cmbNucCore::RebuildGrid()
 {
   for(unsigned int i = 0; i < Assemblies.size(); ++i)
   {
-    this->lattice.SetCellColor(this->Assemblies[i]->label,
+    this->lattice.SetCellColor(this->Assemblies[i]->getLabel(),
                                this->Assemblies[i]->GetLegendColor());
   }
 }
@@ -630,7 +650,7 @@ void cmbNucCore::sendDefaults()
   }
 }
 
-bool cmbNucCore::label_unique(std::string & n)
+bool cmbNucCore::label_unique(std::string const& n)
 {
   {
     std::vector< cmbNucAssembly* > assys = this->Assemblies;
@@ -657,7 +677,7 @@ void cmbNucCore::fillList(QStringList & l)
   for(int i = 0; i < this->GetNumberOfAssemblies(); i++)
   {
     cmbNucAssembly *t = this->GetAssembly(i);
-    l.append(t->label.c_str());
+    l.append(t->getLabel().c_str());
   }
   for(int i = 0; i < this->GetNumberOfAssemblyLinks(); i++)
   {

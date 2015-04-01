@@ -278,13 +278,8 @@ public:
     return KeepPinsCentered;
   }
 
-  std::string getLabel(){return label;}
-  void setLabel(std::string & n);
   //std::string getFileName(){return "";}
-  virtual std::string getTitle(){ return "Assembly: " + label; }
-
-  // Expose assembly parts for UI access
-  std::string label;
+  virtual std::string getTitle(){ return "Assembly: " + Label; }
 
   std::string ExportFileName;
   std::map< Lattice::CellDrawMode, std::string > ExportFileNames;

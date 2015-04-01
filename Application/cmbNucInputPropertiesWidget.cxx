@@ -386,6 +386,8 @@ void cmbNucInputPropertiesWidget::colorChanged()
   AssyPartObj* selObj = this->CurrentObject;
   switch(selObj->GetType())
   {
+    case CMBNUC_ASSEMBLY_LINK:
+      selObj = dynamic_cast<cmbNucAssemblyLink*>(selObj)->getLink();
     case CMBNUC_CORE:
     case CMBNUC_ASSEMBLY:
       emit objGeometryChanged(selObj);
@@ -402,9 +404,6 @@ void cmbNucInputPropertiesWidget::colorChanged()
     case CMBNUC_ASSY_BASEOBJ:
     case CMBNUC_ASSY_DUCT:
       this->setEnabled(0);
-      break;
-    case CMBNUC_ASSEMBLY_LINK:
-      //TODO:
       break;
   }
 }
@@ -884,7 +883,7 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
     for(int i = 0; i < nucCore->GetNumberOfAssemblies(); i++)
     {
       cmbNucAssembly *assy = nucCore->GetAssembly(i);
-      actionList.append(assy->label.c_str());
+      actionList.append(assy->getLabel().c_str());
     }
   }
 }

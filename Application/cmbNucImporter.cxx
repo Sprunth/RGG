@@ -135,7 +135,7 @@ bool cmbNucImporter::importInpFile()
         QFileInfo finfo(fileNames[i]);
         std::string label = finfo.completeBaseName().toStdString();
         cmbNucAssembly *assembly = new cmbNucAssembly();
-        assembly->label = label;
+        assembly->setLabel(label);
         if(!freader.read(*assembly, mainWindow->NuclearCore->getPinLibrary(),
                          mainWindow->NuclearCore->getDuctLibrary()))
         {

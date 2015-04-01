@@ -616,14 +616,6 @@ bool cmbNucAssembly::addTransform(cmbNucAssembly::Transform * in)
   return false;
 }
 
-void cmbNucAssembly::setLabel(std::string & n)
-{
-  if(this->label != n)
-  {
-    this->label = n;
-  }
-}
-
 bool cmbNucAssembly::updateTransform(int at, Transform * in)
 {
   if(in != NULL && in->isValid() &&
@@ -771,7 +763,7 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
                                        cmbNucDuctLibrary * dl)
 {
   cmbNucAssembly * result = new cmbNucAssembly();
-  result->label = this->label;
+  result->Label = this->Label;
   result->setPinLibrary(pl);
   result->setDuctLibrary(dl);
   for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin(); iter != this->PinCells.end(); ++iter)

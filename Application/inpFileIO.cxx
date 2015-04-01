@@ -1693,7 +1693,7 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
       {
         cmbNucAssembly* assembly = new cmbNucAssembly;
         fnameToAssy[assyfilename] = assembly;
-        assembly->label = assylabel;
+        assembly->setLabel(assylabel);
         inpFileReader freader;
         freader.keepGoing = this->keepGoing;
         freader.pinAddMode = this->pinAddMode;
@@ -1800,7 +1800,8 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
           assemblyName = (temp.dir().path() + "/" + temp.completeBaseName()).toStdString();
         }
       }
-      output << assemblyName << assembly.getOutputExtension() << " " << Lattice::generate_string(assembly.label, mode) << "\n";
+      output << assemblyName << assembly.getOutputExtension() << " "
+             << Lattice::generate_string(assembly.getLabel(), mode) << "\n";
     }
   }
   for(unsigned int i = 0; i < usedLinks.size(); ++i)

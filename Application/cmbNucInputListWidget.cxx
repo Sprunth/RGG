@@ -97,6 +97,7 @@ public:
   virtual ~cmbNucInputListWidgetInternal()
   {
     delete this->Action_NewAssembly;
+    delete this->Action_NewAssemblyLink;
     delete this->Action_NewPin;
     delete this->Action_NewDuct;
     delete this->Action_DeletePart;
@@ -106,11 +107,13 @@ public:
   void initActions()
   {
     this->Action_NewAssembly = new QAction("Create Assembly", this->PartsList);
+    this->Action_NewAssemblyLink = new QAction("Create Same As Assembly", this->PartsList);
     this->Action_NewPin = new QAction("Create Pin", this->PartsList);
     this->Action_NewDuct = new QAction("Create Duct", this->PartsList);
     this->Action_DeletePart = new QAction("Delete Selected", this->PartsList);
     this->Action_Clone = new QAction("Clone Selected", this->PartsList);
     this->PartsList->addAction(this->Action_NewAssembly);
+    this->PartsList->addAction(this->Action_NewAssemblyLink);
     this->PartsList->addAction(this->Action_NewPin);
     this->PartsList->addAction(this->Action_NewDuct);
     this->PartsList->addAction(this->Action_Clone);
@@ -118,6 +121,7 @@ public:
   }
 
   QPointer<QAction> Action_NewAssembly;
+  QPointer<QAction> Action_NewAssemblyLink;
   QPointer<QAction> Action_NewPin;
   QPointer<QAction> Action_NewDuct;
   QPointer<QAction> Action_DeletePart;
@@ -158,9 +162,11 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
 
   // context menu for parts tree
   QObject::connect(this->Internal->Action_NewAssembly, SIGNAL(triggered()),
-    this, SLOT(onNewAssembly()));
+                   this, SLOT(onNewAssembly()));
+  QObject::connect(this->Internal->Action_NewAssemblyLink, SIGNAL(triggered()),
+                   this, SLOT(onNewAssemblyLink()));
   QObject::connect(this->Internal->Action_NewPin, SIGNAL(triggered()),
-    this, SLOT(onNewPin()));
+                   this, SLOT(onNewPin()));
   QObject::connect(this->Internal->Action_NewDuct, SIGNAL(triggered()),
                    this, SLOT(onNewDuct()));
   QObject::connect(this->Internal->Action_Clone, SIGNAL(triggered()),
@@ -415,16 +421,21 @@ void cmbNucInputListWidget::onNewAssembly()
   cmbNucAssembly* assembly = new cmbNucAssembly;
   assembly->SetLegendColor(QColor::fromRgbF(r,g,b));
   if(this->NuclearCore->IsHexType())
-    {
+  {
     assembly->setGeometryLabel("Hexagonal");
     assembly->getLattice().SetDimensions(1, 0, true);
-    }
+  }
   else
-    {
+  {
     assembly->setGeometryLabel("Rectangular");
-    }
-  assembly->label = QString("Assy").append(
-    QString::number(this->NuclearCore->GetNumberOfAssemblies()+1)).toStdString();
+  }
+  int count = 1;
+  QString label = "Assy_0";
+  while(!this->NuclearCore->label_unique(label))
+  {
+    label = ("Assy_" + QString::number(count++));
+  }
+  assembly->setLabel(label.toStdString());
 
   this->NuclearCore->AddAssembly(assembly);
   assembly->computeDefaults();
@@ -442,7 +453,32 @@ void cmbNucInputListWidget::onNewAssembly()
 //----------------------------------------------------------------------------
 void cmbNucInputListWidget::onNewAssemblyLink()
 {
-  //TODO
+  cmbNucAssembly * assy = this->getCurrentAssembly();
+  if(assy == NULL)
+  {
+    assy = this->NuclearCore->GetAssembly(0);
+  }
+
+  cmbNucAssemblyLink * link = new cmbNucAssemblyLink(assy, "0", "0");
+
+  int count = 1;
+  QString label = "Assy_0";
+  while(!this->NuclearCore->label_unique(label))
+  {
+    label = ("Assy_" + QString::number(count++));
+  }
+  link->setLabel(label.toStdString());
+
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+  double r,g,b;
+  matColorMap->CalcRGB(r,g,b);
+  link->SetLegendColor(QColor::fromRgbF(r,g,b));
+
+  this->NuclearCore->AddAssemblyLink(link);
+  this->initCoreRootNode();
+  this->updateWithAssemblyLink(link);
+  this->NuclearCore->GetConnection()->justFileChanged();
+  emit assembliesModified(this->NuclearCore);
 }
 
 void cmbNucInputListWidget::onNewDuct()
@@ -560,7 +596,7 @@ void cmbNucInputListWidget::onRemoveSelectedPart()
       break;
     }
     case CMBNUC_ASSEMBLY_LINK:
-      //TODO
+      this->onDeleteAssemblyLink(selItem);
       break;
     case CMBNUC_ASSY_DUCT:
     case CMBNUC_ASSY_CYLINDER_PIN:
@@ -588,7 +624,17 @@ void cmbNucInputListWidget::onDeleteAssembly(QTreeWidgetItem* item)
 
 void cmbNucInputListWidget::onDeleteAssemblyLink(QTreeWidgetItem* item)
 {
-  //TODO
+  this->setCursor(Qt::BusyCursor);
+  std::string selText = item->text(0).toStdString();
+  this->Internal->PartsList->blockSignals(true);
+  delete item;
+  this->NuclearCore->RemoveAssemblyLink(selText);
+  this->Internal->PartsList->setCurrentItem(this->Internal->RootCoreNode);
+  emit assembliesModified(this->NuclearCore);
+  this->Internal->PartsList->blockSignals(false);
+  this->Internal->RootCoreNode->setSelected(true);
+  this->onPartsSelectionChanged();
+  this->unsetCursor();
 }
 
 //----------------------------------------------------------------------------
@@ -1228,6 +1274,7 @@ void cmbNucInputListWidget::onClone()
         this->NuclearCore->AddAssembly(clone_assy);
         this->initCoreRootNode();
         this->updateWithAssembly(clone_assy);
+        this->NuclearCore->GetConnection()->justFileChanged();
         emit assembliesModified(this->NuclearCore);
       }
       break;
@@ -1245,16 +1292,17 @@ void cmbNucInputListWidget::onClone()
         matColorMap->CalcRGB(r,g,b);
 
         link->SetLegendColor(QColor::fromRgbF(r,g,b));
-        std::string name = link->getLabel();
+        std::string name = original->getLabel();
         unsigned int count = 0;
         while(!this->NuclearCore->label_unique(name))
         {
-          name = (QString(link->getLabel().c_str()) + "_" + QString::number(count++)).toStdString();
+          name = (QString(original->getLabel().c_str()) + "_" + QString::number(count++)).toStdString();
         }
         link->setLabel(name);
         this->NuclearCore->AddAssemblyLink(link);
         this->initCoreRootNode();
         this->updateWithAssemblyLink(link);
+        this->NuclearCore->GetConnection()->justFileChanged();
         emit assembliesModified(this->NuclearCore);
       }
       break;

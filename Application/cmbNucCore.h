@@ -6,6 +6,7 @@
 #include <map>
 #include <set>
 #include <QColor>
+#include <QString>
 #include <QObject>
 #include <QPointer>
 #include <QStringList>
@@ -169,6 +170,7 @@ public:
 
   // Remove the Assembly with label from the Core.
   void RemoveAssembly(const std::string &label);
+  void RemoveAssemblyLink(const std::string &label);
 
   // Returns the Assembly with label or index.
   // Returns 0 if no Assembly with label or index exists.
@@ -177,7 +179,11 @@ public:
   cmbNucAssemblyLink* GetAssemblyLink(const std::string &label);
   cmbNucAssemblyLink* GetAssemblyLink(int idx);
 
-  bool label_unique(std::string & n);
+  bool label_unique(std::string const& n);
+  bool label_unique(QString const& n)
+  {
+    return label_unique( n.toStdString() );
+  }
 
   std::vector< cmbNucAssembly* > GetUsedAssemblies();
   std::vector< cmbNucAssemblyLink* > GetUsedLinks();
