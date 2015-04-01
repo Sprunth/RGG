@@ -11,6 +11,7 @@
 class cmbNucInputPropertiesWidgetInternal;
 class cmbNucMainWindow;
 class cmbNucAssembly;
+class cmbNucAssemblyLink;
 class cmbNucCore;
 class PinCell;
 class Frustum;
@@ -85,6 +86,7 @@ protected slots:
   void resetLattice(Lattice* lattice);
   void resetAssemblyLattice();
   void resetAssembly(cmbNucAssembly* assy);
+  void resetAssemblyLink(cmbNucAssemblyLink* link);
 
   void xSizeChanged(int i);
   void ySizeChanged(int i);
@@ -96,6 +98,7 @@ protected slots:
   void applyToPinCell(PinCell* pincell);
   void applyToLattice(Lattice* lattice);
   void applyToAssembly(cmbNucAssembly* assy);
+  void applyToAssemblyLink(cmbNucAssemblyLink* link);
   void applyToCore(cmbNucCore* nucCore);
 
   void setAutoPitch(bool);
@@ -105,8 +108,7 @@ protected slots:
   void showPinCellEditor();
   void showDuctCellEditor();
 
-  void choosePinLegendColor();
-  void chooseAssyLegendColor();
+  void chooseLegendColor();
 
   void onCalculateCylinderDefaults(bool checkOld = false);
   void displayBackgroundControls(int);

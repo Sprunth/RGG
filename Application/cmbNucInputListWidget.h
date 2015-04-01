@@ -6,6 +6,7 @@
 #include "cmbNucPartDefinition.h"
 
 class cmbNucAssembly;
+class cmbNucAssemblyLink;
 class cmbNucCore;
 class cmbNucPinLibrary;
 class cmbNucDuctLibrary;
@@ -80,6 +81,7 @@ signals:
 
 public slots:
   void onNewAssembly();
+  void onNewAssemblyLink();
   void valueChanged();
   void onRemoveSelectedPart();
   void meshIsLoaded(bool);
@@ -93,6 +95,7 @@ public slots:
   void updateWithPinLibrary();
   void updateWithDuctLibrary();
   void updateWithAssembly();
+  void updateWithAssemblyLink();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -100,11 +103,13 @@ protected:
   void updateContextMenu(AssyPartObj* selObj);
   void setActionsEnabled(bool val);
   void updateWithAssembly(cmbNucAssembly* assy, bool select=true);
+  void updateWithAssemblyLink(cmbNucAssemblyLink* assy, bool select=true);
   void updateWithPinLibrary(cmbNucPinLibrary * pl);
   void updateWithPin(PinCell * pc, bool select=false);
   void updateWithDuctLibrary(cmbNucDuctLibrary * dl);
   void updateWithDuct(DuctCell * dc, bool select=false);
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
+  cmbNucPartsTreeItem* getCurrentAssemblyLinkNode();
   void initCoreRootNode();
   void createMaterialItem( const QString& name, const QString& label,
                            const QColor& color );
@@ -119,6 +124,7 @@ private slots:
   virtual void onTabChanged(int);
   void onMaterialClicked(QTreeWidgetItem*, int col);
   void onDeleteAssembly(QTreeWidgetItem*);
+  void onDeleteAssemblyLink(QTreeWidgetItem*);
   void labelChanged(QString);
 
   // Description:
@@ -132,6 +138,7 @@ private slots:
 
 signals:
   void deleteAssembly(QTreeWidgetItem*);
+  void deleteAssemblyLink(QTreeWidgetItem*);
 
 private:
   cmbNucInputListWidgetInternal* Internal;

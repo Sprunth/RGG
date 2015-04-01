@@ -25,7 +25,8 @@ public:
   QColor GetLegendColor() const;
   void SetLegendColor(const QColor& color);
 
-  virtual std::string getTitle(){ return "Assembly: " + AssyPartObj::getTitle(); } //todo rethink title
+  virtual std::string getTitle()
+  { return "Assembly: " + AssyPartObj::getTitle() + " --> (" + getLink()->getLabel() +")"; }
 
 protected:
   cmbNucAssembly * link;

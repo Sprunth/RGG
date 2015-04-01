@@ -51,6 +51,7 @@
 #include <pqEventSource.h>
 
 #include "cmbNucAssembly.h"
+#include "cmbNucAssemblyLink.h"
 #include "cmbNucCore.h"
 #include "cmbNucInputPropertiesWidget.h"
 #include "cmbNucInputListWidget.h"
@@ -515,12 +516,10 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   //setup camera interaction to render more quickly and less precisely
   vtkInteractorObserver *iStyle = renderWindow->GetInteractor()->GetInteractorStyle();
-  this->VTKToQt->Connect(
-    iStyle, vtkCommand::StartInteractionEvent,
-    this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
-  this->VTKToQt->Connect(
-    iStyle, vtkCommand::EndInteractionEvent,
-    this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
+  this->VTKToQt->Connect(iStyle, vtkCommand::StartInteractionEvent,
+                         this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
+  this->VTKToQt->Connect(iStyle, vtkCommand::EndInteractionEvent,
+                         this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
   iStyle = meshRenderWindow->GetInteractor()->GetInteractorStyle();
   this->VTKToQt->Connect(iStyle, vtkCommand::StartInteractionEvent,
                          this, SLOT(onInteractionTransition( vtkObject*, unsigned long)));
@@ -714,96 +713,57 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
   // update RenderWindow for Core or selected Assembly.
   // Eventually, the pin editor will also be replaced using MainWindow's
   // UI panel and render window.
-  if(selObj->GetType() == CMBNUC_CORE)
-    {
-    this->updateCoreMaterialColors();
-    this->ResetView();
-    this->setCameras(true, this->Internal->IsFullMesh);
-    }
-  else if( selObj->GetType() == CMBNUC_ASSY_PINCELL ||
-          selObj->GetType() == CMBNUC_ASSY_CYLINDER_PIN ||
-          selObj->GetType() == CMBNUC_ASSY_FRUSTUM_PIN )
-    {
-    this->setCameras(false, this->Internal->IsFullMesh);
-    PinCell* selPin = NULL;
-    if(selObj->GetType() == CMBNUC_ASSY_PINCELL)
-      {
-      selPin = dynamic_cast<PinCell*>(selObj);
-      }
-    else
-      {
-      cmbNucPartsTreeItem* selItem = this->InputsWidget->getSelectedPartNode();
-      cmbNucPartsTreeItem* pItem = dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent());
-      if(pItem && pItem->getPartObject())
-        {
-        selPin = dynamic_cast<PinCell*>(pItem->getPartObject());
-        }
-      }
-    if(selPin)
-      {
+  switch( selObj->GetType() )
+  {
+    case CMBNUC_CORE:
+      this->updateCoreMaterialColors();
       this->ResetView();
-      }
-    }
-  else if( selObj->GetType() == CMBNUC_ASSY_DUCTCELL)
-    {
-    this->setCameras(false, this->Internal->IsFullMesh);
-    DuctCell* selDuct = dynamic_cast<DuctCell*>(selObj);
-    if(selDuct)
-    {
+      this->setCameras(true, this->Internal->IsFullMesh);
+      break;
+    case CMBNUC_ASSY_PINCELL:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_DUCTCELL:
+      this->setCameras(false, this->Internal->IsFullMesh);
       this->ResetView();
-    }
-    }
-  else // assemblies
-    {
-    this->setCameras(false, this->Internal->IsFullMesh);
-    cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
-    this->updateAssyMaterialColors(assy);
-    this->ResetView();
-    }
+      break;
+    case CMBNUC_ASSEMBLY:
+    case CMBNUC_ASSEMBLY_LINK:
+      this->setCameras(false, this->Internal->IsFullMesh);
+      this->updateAssyMaterialColors(this->InputsWidget->getCurrentAssembly());
+      this->ResetView();
+  }
 }
 
 void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
 {
   if(!obj)
-    {
+  {
     return;
-    }
-
-  if(obj->GetType() == CMBNUC_CORE)
-    {
-    this->onObjectModified(obj);
-    }
-  else
-    {
-    // recreate Assembly geometry.
-    cmbNucAssembly* assy = this->InputsWidget->getCurrentAssembly();
-    if( obj->GetType() == CMBNUC_ASSY_PINCELL )
-      {
-      PinCell* selPin = dynamic_cast<PinCell*>(obj);
-      if(selPin)
-        {
-        this->setCameras(false, this->Internal->IsFullMesh);
-        this->Internal->CurrentPinCell = selPin;
-        this->updatePinCellMaterialColors(selPin);
-        }
-      }
-    else if(obj->GetType() == CMBNUC_ASSY_DUCTCELL)
-    {
-      DuctCell * dc = dynamic_cast<DuctCell*>(obj);
-      if(dc)
-      {
-        this->setCameras(false, this->Internal->IsFullMesh);
-        this->Internal->CurrentDuctCell = dc;
-        this->updateDuctCellMaterialColors(dc);
-      }
-    }
-    else if(assy)
-      {
-      this->updateAssyMaterialColors(assy);
-      }
-    //this->Render();
-    this->ui->qvtkWidget->update();
-    }
+  }
+  this->ui->qvtkWidget->update();
+  switch(obj->GetType())
+  {
+    case CMBNUC_CORE:
+      this->onObjectModified(obj);
+      return;
+    case CMBNUC_ASSY_PINCELL:
+      this->setCameras(false, this->Internal->IsFullMesh);
+      this->Internal->CurrentPinCell = dynamic_cast<PinCell*>(obj);
+      this->updatePinCellMaterialColors(this->Internal->CurrentPinCell);
+      break;
+    case CMBNUC_ASSY_DUCTCELL:
+      this->setCameras(false, this->Internal->IsFullMesh);
+      this->Internal->CurrentDuctCell = dynamic_cast<DuctCell*>(obj);
+      this->updateDuctCellMaterialColors(this->Internal->CurrentDuctCell);
+      break;
+    case CMBNUC_ASSEMBLY:
+      this->updateAssyMaterialColors(dynamic_cast<cmbNucAssembly*>(obj));
+      break;
+    case CMBNUC_ASSEMBLY_LINK:
+      this->updateAssyMaterialColors((dynamic_cast<cmbNucAssemblyLink*>(obj))->getLink());
+      break;
+  }
 }
 
 void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)

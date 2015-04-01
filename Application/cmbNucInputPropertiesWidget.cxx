@@ -3,6 +3,7 @@
 #include "ui_qInputPropertiesWidget.h"
 
 #include "cmbNucAssembly.h"
+#include "cmbNucAssemblyLink.h"
 #include "cmbNucCore.h"
 #include "cmbNucPinCellEditor.h"
 #include "cmbNucDuctCellEditor.h"
@@ -117,9 +118,11 @@ void cmbNucInputPropertiesWidget::initUI()
 
   // pincell related connections
   QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
-    this, SLOT(choosePinLegendColor()));
+                   this, SLOT(chooseLegendColor()));
   QObject::connect(this->Internal->assyColorSelectButton, SIGNAL(clicked()),
-    this, SLOT(chooseAssyLegendColor()));
+                   this, SLOT(chooseLegendColor()));
+  QObject::connect(this->Internal->assyLinkColorSelectButton, SIGNAL(clicked()),
+                   this, SLOT(chooseLegendColor()));
 
   CoreDefaults = new cmbNucDefaultWidget();
   this->Internal->CoreDefaults->addWidget(CoreDefaults);
@@ -189,25 +192,27 @@ void cmbNucInputPropertiesWidget::onApply()
     return;
     }
   AssyPartObj* selObj = this->CurrentObject;
-  PinCell* pincell = NULL;
-  cmbNucCore* nucCore = NULL;
-  cmbNucAssembly* assy = NULL;
   switch(selObj->GetType())
-    {
+  {
     case CMBNUC_CORE:
+    {
       emit(apply());
-      nucCore = dynamic_cast<cmbNucCore*>(selObj);
-      this->applyToCore(nucCore);
+      this->applyToCore(this->Core);
       break;
+    }
     case CMBNUC_ASSEMBLY:
+    {
       emit(apply());
-      assy = dynamic_cast<cmbNucAssembly*>(selObj);
+      cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(selObj);
       this->applyToAssembly(assy);
       break;
+    }
     case CMBNUC_ASSY_PINCELL:
-      pincell = dynamic_cast<PinCell*>(selObj);
+    {
+      PinCell* pincell = dynamic_cast<PinCell*>(selObj);
       this->applyToPinCell(pincell);
       break;
+    }
     case CMBNUC_ASSY_FRUSTUM_PIN:
     case CMBNUC_ASSY_CYLINDER_PIN:
       /*handled in the pin editor*/
@@ -215,10 +220,16 @@ void cmbNucInputPropertiesWidget::onApply()
     case CMBNUC_ASSY_DUCTCELL:
       this->Internal->DuctCellEditor->Apply();
       break;
+    case CMBNUC_ASSEMBLY_LINK:
+    {
+      cmbNucAssemblyLink * link= dynamic_cast<cmbNucAssemblyLink*>(selObj);
+      this->applyToAssemblyLink(link);
+      break;
+    }
     default:
       this->setEnabled(0);
       break;
-    }
+  }
 }
 
 // Invoked when Reset button clicked
@@ -279,6 +290,16 @@ void cmbNucInputPropertiesWidget::onReset()
       this->setAssembly(assy);
       this->resetAssembly(assy);
       emit(sendLattice(assy));
+      break;
+    }
+    case CMBNUC_ASSEMBLY_LINK:
+    {
+      QStringList list;
+      cmbNucAssemblyLink* link = dynamic_cast<cmbNucAssemblyLink*>(selObj);
+      this->resetAssemblyLink(link);
+      this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageLink);
+      emit(select3DModelView());
+      emit(sendLattice(NULL));
       break;
     }
     case CMBNUC_ASSY_PINCELL:
@@ -382,6 +403,9 @@ void cmbNucInputPropertiesWidget::colorChanged()
     case CMBNUC_ASSY_DUCT:
       this->setEnabled(0);
       break;
+    case CMBNUC_ASSEMBLY_LINK:
+      //TODO:
+      break;
   }
 }
 
@@ -470,6 +494,7 @@ void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
   {
     pincell->SetLegendColor(c);
     pincell->GetConnection()->EmitChangeSignal();
+    this->resetAssemblyLattice();
   }
   this->Internal->PinCellEditor->Apply();
   emit this->objGeometryChanged(pincell);
@@ -521,6 +546,14 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
       this->Internal->AssyLabel->setText(old_label.c_str());
     }
   }
+  QPalette c_palette = this->Internal->assyColorSwatch->palette();
+  QColor c = c_palette.color(this->Internal->assyColorSwatch->backgroundRole());
+  if(c != assy->GetLegendColor())
+  {
+    assy->SetLegendColor(c);
+    this->Core->setAndTestDiffFromFiles(true);
+    this->RebuildCoreGrid = true;
+  }
   this->assyConf->applyToAssembly(assy);
   double px, py;
   px = this->Internal->pitchX->value();
@@ -552,6 +585,75 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 
   assy->setCenterPins(checked);
   emit this->objGeometryChanged(assy);
+}
+
+void cmbNucInputPropertiesWidget::applyToAssemblyLink(cmbNucAssemblyLink* link)
+{
+  bool changed = false;
+  std::string new_label = this->Internal->AssyLinkLabel->text().toStdString();
+  std::string old_label = link->getLabel();
+  std::replace(new_label.begin(), new_label.end(), ' ', '_');
+  if( old_label != new_label)
+  {
+    if(this->Core->label_unique(new_label))
+    {
+      //change label
+      if(this->Core->getLattice().replaceLabel(old_label,new_label))
+      {
+        changed = true;
+      }
+      link->setLabel(new_label);
+      this->Internal->AssyLabel->setText(new_label.c_str());
+      emit currentObjectNameChanged( link->getTitle().c_str() );
+      emit sendLabelChange( QString(new_label.c_str()) );
+    }
+    else
+    {
+      this->Internal->AssyLinkLabel->setText(old_label.c_str());
+    }
+  }
+
+  QPalette c_palette = this->Internal->assyLinkColorSwatch->palette();
+  QColor c = c_palette.color(this->Internal->assyLinkColorSwatch->backgroundRole());
+  if(c != link->GetLegendColor())
+  {
+    link->SetLegendColor(c);
+    this->RebuildCoreGrid = true;
+    changed = true;
+  }
+
+  std::string tmp = this->Internal->MaterialSetId->text().toStdString();
+  if(tmp != link->getMaterialStartID())
+  {
+    changed = true;
+    link->setMaterialStartID(tmp);
+  }
+
+  tmp = this->Internal->NeumannSetId->text().toStdString();
+  if(tmp != link->getNeumannStartID())
+  {
+    changed = true;
+    link->setNeumannStartID(tmp);
+  }
+
+  tmp = this->Internal->AssemblyOptions->currentText().toStdString();
+  cmbNucAssembly * assy = Core->GetAssembly(tmp);
+  if(assy && assy != link->getLink())
+  {
+    link->setLink(assy);
+    emit this->objGeometryChanged(assy);
+    changed = true;
+  }
+  else if(assy == NULL)
+  {
+    this->Internal->AssemblyOptions->setCurrentIndex( this->Internal->AssemblyOptions->findData(QString(link->getLink()->getLabel().c_str())));
+  }
+
+  if(changed)
+  {
+    this->Core->setAndTestDiffFromFiles(true);
+    checkSaveAndGenerate();
+  }
 }
 
 void cmbNucInputPropertiesWidget::setAutoPitch(bool v)
@@ -714,6 +816,30 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
   swatch->setPalette(c_palette);
   this->resetLattice(&assy->getLattice());
 }
+
+void cmbNucInputPropertiesWidget::resetAssemblyLink(cmbNucAssemblyLink* link)
+{
+  QStringList list;
+  QString tmp(link->getLink()->getLabel().c_str());
+  for(unsigned int i = 0; i < this->Core->GetNumberOfAssemblies(); ++i)
+  {
+    list.append(this->Core->GetAssembly(i)->getLabel().c_str());
+  }
+  int i = list.indexOf(tmp);
+  this->Internal->AssemblyOptions->clear();
+  this->Internal->AssemblyOptions->addItems(list);
+  this->Internal->AssemblyOptions->setCurrentIndex(i);
+
+  QLabel* swatch = this->Internal->assyLinkColorSwatch;
+  QPalette c_palette = swatch->palette();
+  c_palette.setColor(swatch->backgroundRole(), link->GetLegendColor());
+  swatch->setPalette(c_palette);
+
+  this->Internal->AssyLinkLabel->setText(link->getLabel().c_str());
+  this->Internal->MaterialSetId->setText(link->getMaterialStartID().c_str());
+  this->Internal->NeumannSetId->setText(link->getNeumannStartID().c_str());
+}
+
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
 {
@@ -823,48 +949,31 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
   this->Internal->PinCellEditor->SetPinCell(pincell, this->Core->IsHexType());
 }
 
-void cmbNucInputPropertiesWidget::choosePinLegendColor()
+void cmbNucInputPropertiesWidget::chooseLegendColor()
 {
-  PinCell* pincell = dynamic_cast<PinCell*>(this->CurrentObject);
-  if(!pincell)
+  QLabel * swatch = NULL;
+  QColor oc = this->CurrentObject->GetLegendColor();
+  if(dynamic_cast<PinCell*>(this->CurrentObject) != NULL)
   {
-    std::cerr << "Error: don't have pincell" << std::endl;
-    return;
+    swatch = this->Internal->colorSwatch;
   }
-  QColor selected = QColorDialog::getColor(pincell->GetLegendColor(), this,
-                                           "Select key color for pin cell type");
+  else if(dynamic_cast<cmbNucAssembly*>(this->CurrentObject) != NULL)
+  {
+    swatch = this->Internal->assyColorSwatch;
+  }
+  else if(dynamic_cast<cmbNucAssemblyLink*>(this->CurrentObject) != NULL)
+  {
+    swatch = this->Internal->assyLinkColorSwatch;
+  }
+  if(swatch == NULL) return;
+  QColor selected = QColorDialog::getColor(oc, this,
+                                           "Select key color");
   if(selected.isValid())
   {
-    //pincell->SetLegendColor(selected);
-    QPalette c_palette = this->Internal->colorSwatch->palette();
-    c_palette.setColor(this->Internal->colorSwatch->backgroundRole(), selected);
-    this->Internal->colorSwatch->setPalette(c_palette);
-
-    this->resetAssemblyLattice();
+    QPalette c_palette = swatch->palette();
+    c_palette.setColor(swatch->backgroundRole(), selected);
+    swatch->setPalette(c_palette);
   }
-}
-
-void cmbNucInputPropertiesWidget::chooseAssyLegendColor()
-{
-  cmbNucAssembly* assy = dynamic_cast<cmbNucAssembly*>(this->CurrentObject);
-  if(!assy)
-    {
-    std::cerr << "Error: don't have assy" << std::endl;
-    return;
-    }
-  QColor selected = QColorDialog::getColor(assy->GetLegendColor(), this,
-    "Select key color for assembly type");
-  if(selected.isValid())
-    {
-    assy->SetLegendColor(selected);
-    QPalette c_palette = this->Internal->assyColorSwatch->palette();
-    c_palette.setColor(this->Internal->assyColorSwatch->backgroundRole(), selected);
-    this->Internal->assyColorSwatch->setPalette(c_palette);
-
-    // We set this flag to denote that the grid should be rebuilt the
-    // next time we select the core
-    this->RebuildCoreGrid = true;
-    }
 }
 
 void cmbNucInputPropertiesWidget::ductNameChanged(DuctCell* dc, QString previous, QString current)

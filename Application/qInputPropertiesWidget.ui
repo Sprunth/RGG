@@ -47,7 +47,7 @@
       </size>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pageCore">
       <layout class="QGridLayout" name="gridLayout_13">
@@ -730,7 +730,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="pageUniqueSetID">
+     <widget class="QWidget" name="pageLink">
       <layout class="QGridLayout" name="gridLayout">
        <item row="4" column="0">
         <spacer name="verticalSpacer">
@@ -755,7 +755,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="comboBox"/>
+          <widget class="QComboBox" name="AssemblyOptions"/>
          </item>
         </layout>
        </item>
@@ -783,10 +783,10 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="AssyLabel_2"/>
+          <widget class="QLineEdit" name="AssyLinkLabel"/>
          </item>
          <item>
-          <widget class="QLabel" name="assyColorSwatch_2">
+          <widget class="QLabel" name="assyLinkColorSwatch">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -814,7 +814,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="assyColorSelectButton_2">
+          <widget class="QPushButton" name="assyLinkColorSelectButton">
            <property name="text">
             <string>Change Key Color...</string>
            </property>
