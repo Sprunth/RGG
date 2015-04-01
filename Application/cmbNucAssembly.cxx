@@ -797,5 +797,4 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
   result->ExportFileNames = this->ExportFileNames;
 
   return result;
-
 }

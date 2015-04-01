@@ -19,6 +19,7 @@
 #include "vtkBoundingBox.h"
 
 class cmbNucAssembly;
+class cmbNucAssemblyLink;
 class cmbNucPinLibrary;
 class cmbNucDuctLibrary;
 class inpFileReader;
@@ -164,6 +165,7 @@ public:
   // Adds a new Assembly to the core. After adding the Assembly it
   // can be placed in the Core with the SetAssembly() method.
   void AddAssembly(cmbNucAssembly *assembly);
+  bool AddAssemblyLink(cmbNucAssemblyLink * assemblyLink);
 
   // Remove the Assembly with label from the Core.
   void RemoveAssembly(const std::string &label);
@@ -172,13 +174,17 @@ public:
   // Returns 0 if no Assembly with label or index exists.
   cmbNucAssembly* GetAssembly(const std::string &label);
   cmbNucAssembly* GetAssembly(int idx);
+  cmbNucAssemblyLink* GetAssemblyLink(const std::string &label);
+  cmbNucAssemblyLink* GetAssemblyLink(int idx);
 
   bool label_unique(std::string & n);
 
   std::vector< cmbNucAssembly* > GetUsedAssemblies();
+  std::vector< cmbNucAssemblyLink* > GetUsedLinks();
 
   // Return the number of assemblies in the core
   int GetNumberOfAssemblies() const;
+  int GetNumberOfAssemblyLinks() const;
 
   // Sets the dimensions of the Assembly Core.
   void SetDimensions(int i, int j);
@@ -302,6 +308,7 @@ private:
   int cylinderOuterSpacing;
 
   std::vector<cmbNucAssembly*> Assemblies;
+  std::vector<cmbNucAssemblyLink*> AssemblyLinks;
   cmbNucPinLibrary * PinLibrary;
   cmbNucDuctLibrary * DuctLibrary;
   cmbNucCoreConnection * Connection;

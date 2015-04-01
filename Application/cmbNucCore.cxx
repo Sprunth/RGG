@@ -12,6 +12,7 @@
 #include "cmbNucPinLibrary.h"
 #include "cmbNucDuctLibrary.h"
 #include "cmbNucAssembly.h"
+#include "cmbNucAssemblyLink.h"
 
 #include "vtkTransform.h"
 #include "vtkInformation.h"
@@ -200,6 +201,22 @@ void cmbNucCore::clearExceptAssembliesAndGeom()
   Params.clear();
 }
 
+bool cmbNucCore::AddAssemblyLink(cmbNucAssemblyLink * assemblyLink)
+{
+  if(!assemblyLink) return false;
+  if(this->Assemblies.empty()) return false;
+  if(!assemblyLink->isValid()) return false;
+  cmbNucAssembly *a1 = assemblyLink->getLink();
+  cmbNucAssembly *a2 = this->GetAssembly(a1->getLabel());
+  if(a2 == NULL) return false;
+  if(a2 != a1)
+  {
+    assemblyLink->setLink(a2);
+  }
+  AssemblyLinks.push_back(assemblyLink);
+  return true;
+}
+
 void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 {
   if(!assembly) return;
@@ -273,6 +290,24 @@ cmbNucAssembly* cmbNucCore::GetAssembly(int idx)
   return idx< static_cast<int>(this->Assemblies.size()) ? this->Assemblies[idx] : NULL;
 }
 
+cmbNucAssemblyLink* cmbNucCore::GetAssemblyLink(const std::string &label)
+{
+  for(size_t i = 0; i < this->AssemblyLinks.size(); i++)
+  {
+    if(this->AssemblyLinks[i]->getLabel() == label)
+    {
+      return this->AssemblyLinks[i];
+    }
+  }
+
+  return NULL;
+}
+
+cmbNucAssemblyLink* cmbNucCore::GetAssemblyLink(int idx)
+{
+  return idx< static_cast<int>(this->AssemblyLinks.size()) ? this->AssemblyLinks[idx] : NULL;
+}
+
 std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
 {
   std::set<std::string> usedDict;
@@ -294,6 +329,29 @@ std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
     }
   return result;
 }
+
+std::vector< cmbNucAssemblyLink* > cmbNucCore::GetUsedLinks()
+{
+  std::set<std::string> usedDict;
+  for(size_t i = 0; i < this->lattice.getSize(); i++)
+  {
+    for(size_t j = 0; j < this->lattice.getSize(i); j++)
+    {
+      usedDict.insert(this->lattice.GetCell(i, j).label);
+    }
+  }
+  std::vector< cmbNucAssemblyLink* > result;
+  for (unsigned int i = 0; i < this->AssemblyLinks.size(); ++i)
+  {
+    if(this->AssemblyLinks[i]!=NULL &&
+       usedDict.find(this->AssemblyLinks[i]->getLabel()) != usedDict.end())
+    {
+      result.push_back(this->AssemblyLinks[i]);
+    }
+  }
+  return result;
+}
+
 
 void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
 {
@@ -401,6 +459,11 @@ void cmbNucCore::computePitch()
 int cmbNucCore::GetNumberOfAssemblies() const
 {
   return static_cast<int>(this->Assemblies.size());
+}
+
+int cmbNucCore::GetNumberOfAssemblyLinks() const
+{
+  return static_cast<int>(this->AssemblyLinks.size());
 }
 
 void cmbNucCore::fileChanged()
@@ -569,11 +632,22 @@ void cmbNucCore::sendDefaults()
 
 bool cmbNucCore::label_unique(std::string & n)
 {
-  std::vector< cmbNucAssembly* > assys = this->Assemblies;
-  for(unsigned int i = 0; i < assys.size(); ++i)
   {
-    if(assys[i]->getLabel() == n) return false;
+    std::vector< cmbNucAssembly* > assys = this->Assemblies;
+    for(unsigned int i = 0; i < assys.size(); ++i)
+    {
+      if(assys[i]->getLabel() == n) return false;
+    }
   }
+
+  {
+    std::vector< cmbNucAssemblyLink* > assys = this->AssemblyLinks;
+    for(unsigned int i = 0; i < assys.size(); ++i)
+    {
+      if(assys[i]->getLabel() == n) return false;
+    }
+  }
+
   return true;
 }
 
@@ -585,11 +659,18 @@ void cmbNucCore::fillList(QStringList & l)
     cmbNucAssembly *t = this->GetAssembly(i);
     l.append(t->label.c_str());
   }
+  for(int i = 0; i < this->GetNumberOfAssemblyLinks(); i++)
+  {
+    cmbNucAssemblyLink *t = this->GetAssemblyLink(i);
+    l.append(t->getLabel().c_str());
+  }
 }
 
 AssyPartObj * cmbNucCore::getFromLabel(const std::string & s)
 {
-  return this->GetAssembly(s);
+  cmbNucAssembly * assy = this->GetAssembly(s);
+  if(assy == NULL) return this->GetAssemblyLink(s);
+  return assy;
 }
 
 void cmbNucCore::drawCylinder(double r, int i)

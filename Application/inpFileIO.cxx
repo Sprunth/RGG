@@ -1,5 +1,6 @@
 #include "inpFileIO.h"
 #include "cmbNucAssembly.h"
+#include "cmbNucAssemblyLink.h"
 #include "cmbNucCore.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucDefaults.h"
@@ -1653,6 +1654,9 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
   QString current = QDir::currentPath();
   QDir::setCurrent( strPath.c_str() );
 
+  std::map<std::string, cmbNucAssemblyLink*> assemblyIdToLink;
+  std::map<std::string, cmbNucAssembly *> fnameToAssy;
+
   // read in assembly files
   for(int i = 0; i < count; i++)
   {
@@ -1674,34 +1678,74 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
       //do not recognize the file, continue
       continue;
     }
-    QFileInfo assyInfo(assyQString);
-    if(!assyInfo.exists())
+    std::string tmp;
+    std::getline(input, tmp);
+    tmp = QString(tmp.c_str()).trimmed().toStdString();
+    if(tmp.empty())
     {
-      //relative path
-      assyInfo = QFileInfo(QString(tmpPath.c_str()) + "/" + assyQString);
+      QFileInfo assyInfo(assyQString);
+      if(!assyInfo.exists())
+      {
+        //relative path
+        assyInfo = QFileInfo(QString(tmpPath.c_str()) + "/" + assyQString);
+      }
+      if(assyInfo.exists() && readAssy)
+      {
+        cmbNucAssembly* assembly = new cmbNucAssembly;
+        fnameToAssy[assyfilename] = assembly;
+        assembly->label = assylabel;
+        inpFileReader freader;
+        freader.keepGoing = this->keepGoing;
+        freader.pinAddMode = this->pinAddMode;
+        freader.renamePin = this->renamePin;
+        if(!freader.open(assyInfo.absoluteFilePath().toStdString()))
+        {
+          return false;
+        }
+        if(!freader.read(*assembly, core.getPinLibrary(), core.getDuctLibrary())) return false;
+        this->keepGoing = freader.keepGoing;
+        this->pinAddMode = freader.pinAddMode;
+        this->renamePin = freader.renamePin;
+        core.AddAssembly(assembly);
+        std::vector< std::string > tlog = freader.getLog();
+        for(unsigned int i = 0; i < tlog.size(); ++i)
+        {
+          log.push_back( assyQString.toStdString() + " " + tlog[i] );
+        }
+      }
     }
-    if(assyInfo.exists() && readAssy)
+    else
     {
-      cmbNucAssembly* assembly = new cmbNucAssembly;
-      assembly->label = assylabel;
-      inpFileReader freader;
-      freader.keepGoing = this->keepGoing;
-      freader.pinAddMode = this->pinAddMode;
-      freader.renamePin = this->renamePin;
-      if(!freader.open(assyInfo.absoluteFilePath().toStdString()))
+      std::stringstream ss(tmp.c_str());
+      std::string sameAs, assyfilename;
+      std::string msid, nsid;
+      ss >> sameAs >> assyfilename >> msid >> nsid;
+      std::map<std::string, cmbNucAssembly *>::const_iterator it = fnameToAssy.find(assyfilename);
+      if(it == fnameToAssy.end())
       {
-        return false;
+        cmbNucAssemblyLink * tmp = new cmbNucAssemblyLink(NULL, msid, nsid);
+        tmp->setLabel(assylabel);
+        assemblyIdToLink[assyfilename] = tmp;
       }
-      if(!freader.read(*assembly, core.getPinLibrary(), core.getDuctLibrary())) return false;
-      this->keepGoing = freader.keepGoing;
-      this->pinAddMode = freader.pinAddMode;
-      this->renamePin = freader.renamePin;
-      core.AddAssembly(assembly);
-      std::vector< std::string > tlog = freader.getLog();
-      for(unsigned int i = 0; i < tlog.size(); ++i)
+      else
       {
-        log.push_back( assyQString.toStdString() + " " + tlog[i] );
+        cmbNucAssemblyLink * tmp = new cmbNucAssemblyLink(it->second, msid, nsid);
+        tmp->setLabel(assylabel);
+        core.AddAssemblyLink(tmp);
       }
+    }
+  }
+  for(std::map<std::string, cmbNucAssemblyLink*>::const_iterator iter = assemblyIdToLink.begin(); iter != assemblyIdToLink.end(); ++iter)
+  {
+    std::map<std::string, cmbNucAssembly *>::const_iterator it = fnameToAssy.find(iter->first);
+    if(it == fnameToAssy.end())
+    {
+    }
+    else
+    {
+      cmbNucAssemblyLink * tmp = iter->second;
+      tmp->setLink(it->second);
+      core.AddAssemblyLink(tmp);
     }
   }
   QDir::setCurrent( current );
@@ -1721,6 +1765,9 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   {
     count += usedAssemblies[i]->ExportFileNames.size();
   }
+
+  std::vector< cmbNucAssemblyLink* > usedLinks = core.GetUsedLinks();
+  count += usedLinks.size();
 
   output << "Assemblies " << count;
   output << " " << core.AssyemblyPitchX;
@@ -1755,6 +1802,20 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       }
       output << assemblyName << assembly.getOutputExtension() << " " << Lattice::generate_string(assembly.label, mode) << "\n";
     }
+  }
+  for(unsigned int i = 0; i < usedLinks.size(); ++i)
+  {
+    cmbNucAssemblyLink * link = usedLinks[i];
+    cmbNucAssembly * assembly = link->getLink();
+    std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = usedAssemblies[i]->ExportFileNames.begin();
+    std::string assemblyName = iter->second;
+    Lattice::CellDrawMode mode = iter->first;
+    QFileInfo temp(assemblyName.c_str());
+    assemblyName = temp.completeBaseName().toStdString();
+
+    output << link->getLabel() << assembly->getOutputExtension() << " " << link->getLabel() << " same_as "
+           << assemblyName << assembly->getOutputExtension() << " "
+           << link->getMaterialStartID() << " " << link->getNeumannStartID() << "\n";
   }
   output.flush();
   qDebug() << "wrote assemplies";

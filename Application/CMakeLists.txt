@@ -25,6 +25,7 @@ SET(RGGNuclear_Srcs
   cmbNucMain.cxx
   cmbNucMainWindow.cxx
   cmbNucAssembly.cxx
+  cmbNucAssemblyLink.cxx
   cmbNucCore.cxx
   cmbNucDuctCellEditor.cxx
   cmbNucDefaults.cxx
@@ -81,6 +82,7 @@ SET(RGGNuclear_UI
 
 SET(RGGNuclear_Headers
   cmbNucAssembly.h
+  cmbNucAssemblyLink.h
   cmbNucCore.h
   cmbNucDuctCellEditor.h
   cmbNucDefaults.h
