@@ -20,6 +20,7 @@ enum enumNucPartsType
   CMBNUC_ASSY_PINCELL,
   CMBNUC_ASSY_CYLINDER_PIN,
   CMBNUC_ASSY_FRUSTUM_PIN,
+  CMBNUC_ASSEMBLY_LINK,
   CMBNUC_ASSY_BASEOBJ
 };
 
@@ -76,9 +77,9 @@ public:
   { return this->Name + " (" + this->Label + ")"; }
   virtual std::string const& getName() const
   { return this->Name; }
-  virtual void setLabel(std::string l)
+  virtual void setLabel(std::string const& l)
   { this->Label = l; }
-  virtual void setName(std::string n)
+  virtual void setName(std::string const& n)
   { this->Name = n; }
   virtual std::string getFileName(){return "";}
   virtual QColor GetLegendColor() const

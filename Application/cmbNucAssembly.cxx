@@ -46,16 +46,14 @@ void cmbAssyParameters::fill(cmbAssyParameters * other)
   this->CenterXYZ = other->CenterXYZ;
   this->HBlock = other->HBlock;
   this->Info = other->Info;
-  this->SectionXYZ = other->SectionXYZ;
   this->RadialMeshSize = other->RadialMeshSize;
   this->AxialMeshSize = other->AxialMeshSize;
   this->TetMeshSize = other->TetMeshSize;
   this->CreateFiles = other->CreateFiles;
-  this->SectionOffset = other->SectionOffset;
   this->MoveXYZ[0] = other->MoveXYZ[0];
   this->MoveXYZ[1] = other->MoveXYZ[1];
   this->MoveXYZ[2] = other->MoveXYZ[2];
-  this->SectionReverse = false;
+  //this->SectionReverse = false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) this->Var = other->Var;
   ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
@@ -509,14 +507,21 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
     this->DifferentFromCub = true;
     return;
   }
-  QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".cub");
-  if(!cubInfo.exists())
+  QFileInfo outInfo(inpInfo.dir(), inpInfo.baseName().toLower() + getOutputExtension().c_str());
+  if(!outInfo.exists())
   {
     this->DifferentFromCub = true;
     return;
   }
-  QDateTime cubLM = cubInfo.lastModified();
+  QDateTime cubLM = outInfo.lastModified();
   this->DifferentFromCub = cubLM < jrlInfo.lastModified();;
+}
+
+std::string cmbNucAssembly::getOutputExtension()
+{
+  if(this->Parameters->Save_Exodus)
+    return ".exo";
+  return ".cub";
 }
 
 bool cmbNucAssembly::changeSinceLastGenerate() const
@@ -609,14 +614,6 @@ bool cmbNucAssembly::addTransform(cmbNucAssembly::Transform * in)
     return true;
   }
   return false;
-}
-
-void cmbNucAssembly::setLabel(std::string & n)
-{
-  if(this->label != n)
-  {
-    this->label = n;
-  }
 }
 
 bool cmbNucAssembly::updateTransform(int at, Transform * in)
@@ -766,7 +763,7 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
                                        cmbNucDuctLibrary * dl)
 {
   cmbNucAssembly * result = new cmbNucAssembly();
-  result->label = this->label;
+  result->Label = this->Label;
   result->setPinLibrary(pl);
   result->setDuctLibrary(dl);
   for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin(); iter != this->PinCells.end(); ++iter)
@@ -792,5 +789,4 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
   result->ExportFileNames = this->ExportFileNames;
 
   return result;
-
 }

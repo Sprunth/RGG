@@ -6,6 +6,7 @@
 #include "cmbNucDuctLibrary.h"
 #include "cmbNucPinLibrary.h"
 #include "cmbNucDefaults.h"
+#include "cmbNucAssemblyLink.h"
 
 #define PUGIXML_HEADER_ONLY
 #include "src/pugixml.cpp"
@@ -75,6 +76,7 @@ namespace
   const std::string BACKGROUND_FILENAME_TAG = "BackgroundFileName";
   const std::string MESH_FILENAME_TAG = "MeshFileName";
   const std::string ROTATE_TAG = "Rotate";
+  const std::string ASSEMBLY_LINK_TAG = "AssemblyAlternative";
 }
 
 class xmlHelperClass
@@ -98,6 +100,8 @@ public:
   bool write(pugi::xml_node & node, Cylinder * dc);
   bool write(pugi::xml_node & node, Frustum * dc);
   bool writePSP(pugi::xml_node & node, PinSubPart * dc);
+
+  bool write(pugi::xml_node & node, cmbNucAssemblyLink * link);
 
   bool write(pugi::xml_node & node, Lattice & lattice);
 
@@ -171,6 +175,8 @@ public:
   bool read(pugi::xml_node & node, Duct * dc, cmbNucMaterialColors * materials);
 
   bool read(pugi::xml_node & node, cmbNucAssembly* assy);
+
+  bool read(pugi::xml_node & node, cmbNucAssemblyLink * link, cmbNucCore & core);
 
   bool read(pugi::xml_node & node, Lattice & lattice, std::map<QString, int> & used);
 
@@ -491,6 +497,17 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucAssembly * assy)
 }
 #undef WRITE_PARAM_VALUE
 
+bool xmlHelperClass::write(pugi::xml_node & node, cmbNucAssemblyLink * link)
+{
+  bool r = true;
+  r &= write(node, LABEL_TAG.c_str(), link->getLabel());
+  r &= write(node, ASSEMBLY_TAG.c_str(), link->getLink()->getLabel());
+  r &= write(node, LEGEND_COLOR_TAG.c_str(), link->GetLegendColor());
+  r &= write(node, "MaterialStartID", link->getMaterialStartID());
+  r &= write(node, "NeumannStartID", link->getNeumannStartID());
+  return r;
+}
+
 bool xmlHelperClass::write(pugi::xml_node & node, std::string attName,
                            std::vector<cmbNucCoreParams::NeumannSetStruct> const& nssv)
 {
@@ -568,6 +585,14 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
     cmbNucAssembly* assy = core.GetAssembly(i);
     pugi::xml_node assyNode = rootElement.append_child(ASSEMBLY_TAG.c_str());
     if(!write(assyNode, assy)) return false;
+  }
+
+  num = core.GetNumberOfAssemblyLinks();
+  for(int i = 0; i < num; ++i)
+  {
+    cmbNucAssemblyLink* al = core.GetAssemblyLink(i);
+    pugi::xml_node assyNode = rootElement.append_child(ASSEMBLY_LINK_TAG.c_str());
+    if(!write(assyNode, al)) return false;
   }
 
   //write the background
@@ -731,6 +756,17 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
     cmbNucAssembly* assy = new cmbNucAssembly;
     core.AddAssembly(assy);
     if(!read(tnode, assy)) return false;
+  }
+
+  for(pugi::xml_node tnode = rootElement.child(ASSEMBLY_LINK_TAG.c_str()); tnode;
+      tnode = tnode.next_sibling(ASSEMBLY_LINK_TAG.c_str()))
+  {
+    cmbNucAssemblyLink* al = new cmbNucAssemblyLink;
+    if(!read(tnode, al, core))
+    {
+      return false;
+    }
+    core.AddAssemblyLink(al);
   }
 
   //Read parameters
@@ -1055,6 +1091,27 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
   return true;
 }
 #undef READ_PARAM_VALUE
+
+bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssemblyLink * link, cmbNucCore & core)
+{
+  std::string tmp;
+  bool r = true;
+  r &= read(node, LABEL_TAG.c_str(), tmp);
+  link->setLabel(tmp);
+  r &= read(node, ASSEMBLY_TAG.c_str(), tmp);
+  cmbNucAssembly * a = core.GetAssembly(tmp);
+  if(a == NULL) return false;
+  link->setLink(a);
+  QColor color;
+  if(!read(node, LEGEND_COLOR_TAG.c_str(), color)) return false;
+  link->SetLegendColor(color);
+  r &= read(node, "MaterialStartID", tmp);
+  link->setMaterialStartID(tmp);
+  r &= read(node, "NeumannStartID", tmp);
+  link->setNeumannStartID(tmp);
+  return r;
+
+}
 
 bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice, std::map<QString, int> & used)
 {

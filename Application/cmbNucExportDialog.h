@@ -59,8 +59,7 @@ protected slots:
   void GetRunnableCoreFile(bool);
 
 signals:
-  void process( const QStringList assyFile, const QString coregenFile, const QString CoreGenOutputFile,
-                const QString, const QString, const QString, const QString, const QString, bool keepGoingAfterError );
+  void process( Message const& msg );
 public:
 signals:
   void error(QString);
@@ -76,8 +75,10 @@ private:
 
   bool send_core_mesh;
 
+  std::vector<Message::AssygenTask> AllUsableAssyTasks;
+  std::vector<Message::AssygenTask> TasksToSend;
+
   cmbProgressDialog *Progress;
-  QStringList AssygenFileList;
   QString CoregenFile;
   cmbNucExport * Exporter;
   cmbNucGenerateOuterCylinder * OuterCylinder;

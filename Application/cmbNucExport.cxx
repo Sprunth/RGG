@@ -24,6 +24,7 @@
 #include <QThreadPool>
 #include <QProcess>
 #include <QTime>
+#include <QMetaType>
 
 #include <iostream>
 #include <sstream>
@@ -639,6 +640,7 @@ cmbNucExport::cmbNucExport()
   internal = new cmbNucExportInternal(this);
   this->isDone = false;
   this->keepGoingAfterError = false;
+  qRegisterMetaType< Message >();
 }
 
 cmbNucExport::~cmbNucExport()
@@ -649,32 +651,23 @@ cmbNucExport::~cmbNucExport()
 }
 
 void
-cmbNucExport::run( const QStringList &assygenFile,
-                   const QString coregenFile,
-                   const QString CoreGenOutputFile,
-                   const QString assygenFileCylinder,
-                   const QString cubitFileCylinder,
-                   const QString cubitOutputFileCylinder,
-                   const QString coregenFileCylinder,
-                   const QString coregenResultFileCylinder,
-                   bool kgae )
+cmbNucExport::run( Message const& message )
 {
   {
     QMutexLocker locker(&end_control);
     this->isDone = false;
-    this->keepGoingAfterError = kgae;
+    this->keepGoingAfterError = message.keepGoingAfterError;
   }
   this->clearJobs();
   if(!this->startUpHelper()) return;
 
-  std::vector<JobHolder*> deps = exportCylinder( assygenFileCylinder, cubitFileCylinder, cubitOutputFileCylinder,
-                                                 coregenFileCylinder, coregenResultFileCylinder );
+  std::vector<JobHolder*> deps = exportCylinder( message.cylinderTask );
 
-  std::vector<JobHolder*> assy = this->runAssyHelper( assygenFile );
+  std::vector<JobHolder*> assy = this->runAssyHelper( message.assemblyTasks );
 
   deps.insert(deps.end(), assy.begin(), assy.end());
 
-  this->runCoreHelper( coregenFile, deps, CoreGenOutputFile, false );
+  this->runCoreHelper( message.coregenFile, deps, message.CoreGenOutputFile, false );
   processJobs();
   {
     QMutexLocker locker(&end_control);
@@ -732,18 +725,19 @@ JobHolder* cmbNucExport::makeAssyJob(const QString assygenFile)
 }
 
 std::vector<JobHolder*>
-cmbNucExport::runAssyHelper( const QStringList &assygenFile )
+cmbNucExport::runAssyHelper( std::vector<Message::AssygenTask> const& msg )
 {
   std::vector<JobHolder*> dependencies;
-  for (QStringList::const_iterator iter = assygenFile.constBegin();
-       iter != assygenFile.constEnd(); ++iter)
+  for (std::vector<Message::AssygenTask>::const_iterator iter = msg.begin();
+       iter != msg.end(); ++iter)
   {
-    QFileInfo fi(*iter);
+    Message::AssygenTask const& m = *iter;
+    QFileInfo fi(m.assygenFile);
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
     QString pass = path + '/' + name;
-    QString cubFullFile = path + '/' + name.toLower()+".cub";
-    JobHolder * assyJob = makeAssyJob(*iter);
+    QString cubFullFile = path + '/' + name.toLower()+m.outFileExtension;
+    JobHolder * assyJob = makeAssyJob(m.assygenFile);
 
     std::vector<JobHolder*> cjobs =
         runCubitHelper( pass + ".jou", std::vector<JobHolder*>(1, assyJob), cubFullFile );
@@ -828,22 +822,18 @@ cmbNucExport::runCoreHelper( const QString coregenFile,
 }
 
 std::vector<JobHolder*>
-cmbNucExport::exportCylinder( const QString assygenFile,
-                              const QString cubitFile,
-                              const QString cubitOutputFile,
-                              const QString coregenFile,
-                              const QString coregenResultFile )
+cmbNucExport::exportCylinder( Message::CylinderTask const& msg )
 {
   std::vector<JobHolder*> result;
-  if(assygenFile.isEmpty() || cubitFile.isEmpty() || coregenFile.isEmpty())
+  if(!msg.valid)
   {
     return result;
   }
-  JobHolder* assyJob = makeAssyJob(assygenFile);
-  std::vector<JobHolder*> tmp = this->runCoreHelper( coregenFile, std::vector<JobHolder*>(1,assyJob),
-                                                     coregenResultFile, true );
-  qDebug() << cubitFile << cubitOutputFile;
-  result = runCubitHelper(cubitFile, tmp, cubitOutputFile);
+  JobHolder* assyJob = makeAssyJob(msg.assygenFile);
+  std::vector<JobHolder*> tmp = this->runCoreHelper( msg.coregenFile, std::vector<JobHolder*>(1,assyJob),
+                                                     msg.coregenResultFile, true );
+  qDebug() << msg.cubitFile << msg.cubitOutputFile;
+  result = runCubitHelper(msg.cubitFile, tmp, msg.cubitOutputFile);
   return result;
 }
 
@@ -1178,5 +1168,7 @@ cmbNucExport::waitTillDone()
     this->isDone = false;
   }
 }
+
+Q_DECLARE_METATYPE(Message);
 
 #endif //#ifndef cmbNucExport_cxx

@@ -24,6 +24,7 @@
 #include "vtkCmbLayeredConeSource.h"
 #include "cmbNucMaterialColors.h"
 #include "cmbNucPartDefinition.h"
+#include "cmbNucAssemblyLink.h"
 
 #define PI           3.14159265358979323846  /* pi */
 
@@ -653,6 +654,11 @@ public:
         iter != idToPoint.end(); ++iter)
     {
       cmbNucAssembly* assembly = input->GetAssembly(iter->first.str);
+      if(assembly == NULL)
+      {
+        cmbNucAssemblyLink * link = input->GetAssemblyLink(iter->first.str);
+        if(link != NULL) assembly = link->getLink();
+      }
       std::map<key, GeoToPoints> tmpGeo;
       if(assembly)
       {
