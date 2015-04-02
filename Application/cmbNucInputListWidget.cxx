@@ -970,7 +970,7 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
   {
     case CMBNUC_ASSEMBLY:
       //TODO: make sure there is no link before one can delete
-      this->Internal->Action_DeletePart->setEnabled(true);
+      this->Internal->Action_DeletePart->setEnabled(this->NuclearCore->okToDelete(selObj->getLabel()));
       this->Internal->Action_Clone->setEnabled(true);
       break;
     case CMBNUC_ASSEMBLY_LINK:

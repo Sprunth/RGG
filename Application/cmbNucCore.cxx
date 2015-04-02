@@ -277,9 +277,9 @@ void cmbNucCore::RemoveAssemblyLink(const std::string &label)
 {
   for(size_t i = 0; i < this->AssemblyLinks.size(); i++)
   {
-    if(this->Assemblies[i]->getLabel() == label)
+    if(this->AssemblyLinks[i]->getLabel() == label)
     {
-      delete this->Assemblies[i];
+      delete this->AssemblyLinks[i];
       this->AssemblyLinks.erase(this->AssemblyLinks.begin() + i);
       this->fileChanged();
       break;
@@ -732,4 +732,15 @@ cmbNucCore::getDrawModesForAssemblies()
     }
   }
   return result;
+}
+
+bool cmbNucCore::okToDelete(std::string const& label)
+{
+  //NOTE: We might want to make this more effient
+  if(this->Assemblies.size() == 1) return false;
+  for(unsigned int i = 0; i < this->AssemblyLinks.size(); ++i)
+  {
+    if(this->AssemblyLinks[i]->getLink()->getLabel() == label) return false;
+  }
+  return true;
 }
