@@ -124,6 +124,9 @@ void cmbNucInputPropertiesWidget::initUI()
   QObject::connect(this->Internal->assyLinkColorSelectButton, SIGNAL(clicked()),
                    this, SLOT(chooseLegendColor()));
 
+  QObject::connect(this->Internal->AssemblyOptions, SIGNAL(currentIndexChanged(const QString&)),
+                   this,                            SLOT(linkedAssemblyChanged(QString const&)));
+
   CoreDefaults = new cmbNucDefaultWidget();
   this->Internal->CoreDefaults->addWidget(CoreDefaults);
 
@@ -1164,4 +1167,11 @@ void cmbNucInputPropertiesWidget::coreYSizeChanged(int i)
   {
     this->onCalculateCylinderDefaults(true);
   }
+}
+
+void cmbNucInputPropertiesWidget::linkedAssemblyChanged(QString const& label)
+{
+  cmbNucAssembly * a = this->Core->GetAssembly(label.toStdString());
+  if(a!=NULL)
+    emit this->objGeometryChanged(a);
 }
