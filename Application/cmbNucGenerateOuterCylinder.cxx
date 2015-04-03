@@ -30,12 +30,12 @@ cmbNucGenerateOuterCylinder
 ::cmbNucGenerateOuterCylinder()
 : Core(NULL)
 {
+  random = "_gen_for_cylinder";
 }
 
 cmbNucGenerateOuterCylinder
 ::~cmbNucGenerateOuterCylinder()
 {
-  deleteTempFiles();
 }
 
 void
@@ -44,7 +44,6 @@ cmbNucGenerateOuterCylinder
 {
   this->Core = core;
   if(this->Core == NULL) return;
-  deleteTempFiles();
   if(this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate)
   {
     QFileInfo qi(this->Core->ExportFileName.c_str());
@@ -59,7 +58,6 @@ cmbNucGenerateOuterCylinder
     {
       FileName = qi.dir().absolutePath() + "/" + tmp.c_str();
       this->Core->Params.BackgroundFullPath = FileName.toStdString();
-      random = GetRandomString(8);
       Generate(inpExporter);
     }
   }
@@ -116,6 +114,10 @@ cmbNucGenerateOuterCylinder
   output << "group 'g1' equals vol all\n";
   output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString() << ".sat'\n";
   output << "imprint vol all\n";
+  if(!this->Core->IsHexType())
+  {
+    output << "group 'g2' vol all\n";
+  }
   output << "group 'g2' equals vol all\n";
   if(!this->Core->IsHexType())
   {
@@ -208,23 +210,4 @@ QString cmbNucGenerateOuterCylinder
   QFileInfo fi(FileName);
   QString corename = QString("core") + random + ".inp";
   return fi.dir().absoluteFilePath(QFileInfo(corename).completeBaseName() + ".sat");
-}
-
-void cmbNucGenerateOuterCylinder
-::deleteTempFiles()
-{
-  return;
-  if(this->generateCylinder())
-  {
-    if(random.isEmpty()) return;
-    QString path = QFileInfo(FileName).dir().absolutePath();;
-    QDir dir(path);
-    dir.setNameFilters(QStringList() << ("*" + random + ".*"));
-    dir.setFilter(QDir::Files);
-    foreach(QString dirFile, dir.entryList())
-    {
-      dir.remove(dirFile);
-    }
-    random = QString();
-  }
 }
