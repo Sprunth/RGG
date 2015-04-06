@@ -70,7 +70,7 @@ public:
 
 
 //forward declare this->Moab for Tag
-struct Interface;
+class Interface;
 
 //forward declare the DataSetConverter so it can be a friend of Interface
 class DataSetConverter;

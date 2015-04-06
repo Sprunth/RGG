@@ -30,7 +30,7 @@ class cmbNucDuctLibrary: public AssyPartObj
 {
 public:
   cmbNucDuctLibrary();
-  ~cmbNucDuctLibrary();
+  virtual ~cmbNucDuctLibrary();
 
   cmbNucDuctLibraryConnection * GetConnection() {return this->Connection; }
 

@@ -842,7 +842,6 @@ void cmbNucMainWindow::onNewCore()
     }
     else if(type.contains("Rectilinear"))
     {
-      Lattice::CellDrawMode dmode = Lattice::RECT;
       geoType = "Rectangular";
     }
     else

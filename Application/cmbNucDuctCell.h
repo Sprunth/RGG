@@ -28,7 +28,7 @@ public:
   friend class DuctCell;
   Duct(double height, double thickX, double thickY);
   Duct(Duct * previous, bool resize = true);
-  ~Duct();
+  virtual ~Duct();
   DuctConnection * GetConnection();
   enumNucPartsType GetType() const;
   double GetLayerThick(size_t layer, size_t t = 0) const;
@@ -91,7 +91,7 @@ class DuctCell : public AssyPartObj
 {
 public:
   DuctCell();
-  ~DuctCell();
+  virtual ~DuctCell();
   void fill(DuctCell* other);
   DuctConnection * GetConnection();
   enumNucPartsType GetType() const;

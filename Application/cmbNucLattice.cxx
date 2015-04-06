@@ -85,10 +85,6 @@ void Lattice::setUpGrid(Lattice const & other)
   this->computeValidRange();
 }
 
-
-std::string Lattice::getLabel()
-{ return "Lattice"; }
-
 std::string Lattice::getTitle(){ return "Lattice"; }
 
 void Lattice::setInvalidCells()

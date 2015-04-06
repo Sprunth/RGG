@@ -41,7 +41,6 @@ public:
   enum End{BOTTOM=0, TOP=1};
   PinSubPart(double z1 = 0, double z2= 10);
   virtual ~PinSubPart();
-  std::string getLabel(){return "PinPart";}
   virtual std::string getTitle(){ return "PinPart"; }
 
   PinConnection* GetConnection() const;
@@ -93,6 +92,7 @@ class Cylinder : public PinSubPart
 public:
   Cylinder(double rin, double z1, double z2);
   Cylinder(PinSubPart const* other);
+  virtual ~Cylinder() {}
   virtual enumNucPartsType GetType() const;
   bool operator==(const Cylinder& obj);
   double getNormalizedThickness(int layer);
@@ -137,6 +137,7 @@ class Frustum : public PinSubPart
 public:
   Frustum(double const* rin, double z1, double z2);
   Frustum(PinSubPart const* other);
+  virtual ~Frustum(){}
   virtual enumNucPartsType GetType() const;
   bool operator==(const Frustum& obj);
   double getNormalizedThickness(int layer, PinSubPart::End end);
@@ -183,7 +184,7 @@ class PinCell : public AssyPartObj
 public:
   PinCell();
 
-  ~PinCell();
+  virtual ~PinCell();
 
   enumNucPartsType GetType() const;
 

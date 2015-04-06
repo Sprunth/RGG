@@ -19,6 +19,7 @@ void PinConnection::clearOldData()
 
 PinSubPart::PinSubPart(double z1in, double z2in) : Materials(1, new cmbNucMaterialLayer())
 {
+  this->Label = "PinPart";
   x=0.0; y=0.0; z1=z1in; z2=z2in;
   Connection = new PinConnection();
   this->setConnection(Materials[0]);

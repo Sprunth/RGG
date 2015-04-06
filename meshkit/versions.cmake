@@ -36,7 +36,7 @@ add_revision(szip
   URL_MD5 902f831bcefb69c6b635374424acbead)
 
 add_revision(netcdf
-  URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.0.tar.gz"
+  URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/old/netcdf-4.3.0.tar.gz"
   URL_MD5 40c0e53433fc5dc59296ee257ff4a813)
 
 add_revision(hdf5

@@ -32,7 +32,7 @@ public:
   enum ConflictMode{No_Conflict = 0, Name_Conflict, Label_Conflict, Both_Conflict};
   enum PinAddedMode{PinAddFailed = 0, PinNull, PinRenamed, PinExists, PinAdded};
   cmbNucPinLibrary();
-  ~cmbNucPinLibrary();
+  virtual ~cmbNucPinLibrary();
 
   cmbNucPinLibraryConnection * GetConnection() {return this->Connection; }
 

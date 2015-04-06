@@ -66,8 +66,6 @@ void cmbNucPartsTreeItem::checkSaveAndGenerate()
     return;
   }
   enumNucPartsType selType = PartObject->GetType();
-  bool need_to_save = false;
-  bool need_to_generate = false;
   switch(selType)
     {
     case CMBNUC_CORE:

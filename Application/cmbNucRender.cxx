@@ -241,7 +241,6 @@ public:
     Duct *hexDuct = input->getAssyDuct().getDuct(0);
     Lattice & lat = input->getLattice();
     double pitchX = input->getPinPitchX();
-    double pitchY = input->getPinPitchY();
 
     for(size_t i = 0; i < lat.getSize(); i++)
     {

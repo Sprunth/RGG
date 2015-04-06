@@ -276,8 +276,6 @@ bool xmlHelperClass::openReadFile(std::string fname, pugi::xml_document & docume
   in.read(&content[0], content.size());
   in.close();
 
-  xmlHelperClass helper;
-
   pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
   if (presult.status != pugi::status_ok)
   {
@@ -1028,7 +1026,6 @@ read(paramNode, #KEY, params->VALUE);
 
 bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
 {
-  bool r = true;
   std::string tmp;
   if(!read(node, LABEL_TAG.c_str(), tmp)) return false;
   assy->setLabel(tmp);

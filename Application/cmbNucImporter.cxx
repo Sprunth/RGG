@@ -78,8 +78,6 @@ bool cmbNucImporter::importXMLDucts()
 
   cmbNucMaterialColors * materials = new cmbNucMaterialColors;
 
-  cmbNucDuctLibrary * dl = mainWindow->NuclearCore->getDuctLibrary();
-
   for( int i = 0; i < fileNames.count(); ++i)
   {
     materials->clear();

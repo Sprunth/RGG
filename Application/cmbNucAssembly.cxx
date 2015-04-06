@@ -365,7 +365,6 @@ void cmbNucAssembly::calculateRectPt(unsigned int i, unsigned j,
                                      double pt[2])
 {
   double pitch_ij[2] = {this->pinPitchX,this->pinPitchY};
-  PinCell* pincell = NULL;
 
   if(i==0)
   {
@@ -595,7 +594,6 @@ void cmbNucAssembly::setCenterPins(bool t)
 
 void cmbNucAssembly::centerPins()
 {
-  bool change = false;
   double px, py;
   calculatePitch(px,py);
   if(px != pinPitchX || py != pinPitchY)

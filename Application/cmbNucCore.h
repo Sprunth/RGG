@@ -153,7 +153,7 @@ public:
   const static double CosSinAngles[6][2];
 
   // Destroys the Core.
-  ~cmbNucCore();
+  virtual ~cmbNucCore();
 
   vtkBoundingBox computeBounds();
 
@@ -233,7 +233,6 @@ public:
   bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
 
-  std::string getLabel(){return "Core";}
   std::string getFileName(){return CurrentFileName;}
   virtual std::string getTitle(){ return "Core"; }
 

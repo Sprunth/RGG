@@ -54,7 +54,7 @@ protected slots:
   void runSelectedAssygen();
   void runCoregen();
   void cancel();
-  void done();
+  void exportDone();
   void GetRunnableAssyFiles(bool);
   void GetRunnableCoreFile(bool);
 

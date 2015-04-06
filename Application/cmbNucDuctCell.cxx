@@ -508,7 +508,6 @@ void DuctCell::uniformizeMaterialLayers()
 void DuctCell::splitDucts( std::vector<double> const& layers )
 {
   std::vector<Duct*> addedDucts;
-  int ductLoc = 0;
   int layersStart = 0;
   //find the the bottom
   double z1 = this->Ducts[0]->z1;

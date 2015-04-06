@@ -1146,8 +1146,6 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
     }
   }
 
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-
   for(int i = 0; i < count; i++)
   {
     PinCell* pincell = new PinCell();
@@ -1810,7 +1808,6 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     cmbNucAssembly * assembly = link->getLink();
     std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = usedAssemblies[i]->ExportFileNames.begin();
     std::string assemblyName = iter->second;
-    Lattice::CellDrawMode mode = iter->first;
     QFileInfo temp(assemblyName.c_str());
     assemblyName = temp.completeBaseName().toStdString();
 

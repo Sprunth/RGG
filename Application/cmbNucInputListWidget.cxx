@@ -1237,7 +1237,6 @@ void cmbNucInputListWidget::onClone()
     return;
   }
   AssyPartObj* selObj = selItem->getPartObject();
-  DuctCell* ductcell = NULL;
 
   enumNucPartsType selType = selObj->GetType();
   std::string selText = selItem->text(0).toStdString();
@@ -1342,7 +1341,6 @@ void cmbNucInputListWidget::onClone()
       DuctCell* ductcell = dynamic_cast<DuctCell *>(selObj);
       if(ductcell)
       {
-        cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
         DuctCell* cloneDuct = new DuctCell();
         cloneDuct->fill(ductcell);
         std::string name = cloneDuct->getName();

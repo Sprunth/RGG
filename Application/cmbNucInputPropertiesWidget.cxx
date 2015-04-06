@@ -809,7 +809,6 @@ void cmbNucInputPropertiesWidget::resetAssemblyLink(cmbNucAssemblyLink* link)
   {
     list.append(this->Core->GetAssembly(i)->getLabel().c_str());
   }
-  int i = list.indexOf(tmp);
 
   QLabel* swatch = this->Internal->assyLinkColorSwatch;
   QPalette c_palette = swatch->palette();

@@ -30,7 +30,7 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
   connect( this->Exporter, SIGNAL(statusMessage(QString)),
            this->Progress->ui->OutputArea, SLOT(appendPlainText(const QString&)));
   connect( this->Exporter, SIGNAL(successful()),
-           this, SLOT(done()));
+           this, SLOT(exportDone()));
   connect( this->Exporter, SIGNAL(currentProcess(QString)),
            this->Progress->ui->command, SLOT(setText(const QString &)));
   connect( this->Progress->ui->cancel, SIGNAL(clicked()),
@@ -305,7 +305,7 @@ void cmbNucExportDialog::cancel()
   this->Progress->hide();
 }
 
-void cmbNucExportDialog::done()
+void cmbNucExportDialog::exportDone()
 {
   this->Progress->ui->command->setText("");
   this->Progress->hide();
