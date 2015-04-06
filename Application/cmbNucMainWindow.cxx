@@ -732,6 +732,12 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
       this->setCameras(false, this->Internal->IsFullMesh);
       this->updateAssyMaterialColors(this->InputsWidget->getCurrentAssembly());
       this->ResetView();
+      break;
+    case CMBNUC_ASSY_DUCT:
+    case CMBNUC_ASSY_LATTICE:
+    case CMBNUC_ASSY_BASEOBJ:
+      break;
+      //do nothing
   }
 }
 
@@ -762,6 +768,12 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
       break;
     case CMBNUC_ASSEMBLY_LINK:
       this->updateAssyMaterialColors((dynamic_cast<cmbNucAssemblyLink*>(obj))->getLink());
+      break;
+    case CMBNUC_ASSY_DUCT:
+    case CMBNUC_ASSY_LATTICE:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_BASEOBJ:
       break;
   }
 }

@@ -256,16 +256,31 @@ void cmbNucCore::AddAssembly(cmbNucAssembly *assembly)
 
 void cmbNucCore::RemoveAssembly(const std::string &label)
 {
-  for(size_t i = 0; i < this->Assemblies.size(); i++)
+  //remove links
+  for(size_t i = 0; i < this->AssemblyLinks.size();)
+  {
+    if(this->AssemblyLinks[i]->getLink()->getLabel() == label)
     {
+      delete this->AssemblyLinks[i];
+      this->AssemblyLinks.erase(this->AssemblyLinks.begin() + i);
+      this->fileChanged();
+    }
+    else
+    {
+      ++i;
+    }
+  }
+  //remove assy
+  for(size_t i = 0; i < this->Assemblies.size(); i++)
+  {
     if(this->Assemblies[i]->getLabel() == label)
-      {
+    {
       delete this->Assemblies[i];
       this->Assemblies.erase(this->Assemblies.begin() + i);
       this->fileChanged();
       break;
-      }
     }
+  }
   // update the Grid
   if(this->lattice.ClearCell(label))
   {
