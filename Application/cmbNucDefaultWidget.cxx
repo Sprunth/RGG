@@ -28,19 +28,13 @@ cmbNucDefaultWidget::~cmbNucDefaultWidget()
   delete Internal;
 }
 
-void cmbNucDefaultWidget::set(QPointer<cmbNucDefaults> c, bool isCore, bool isHex)
+void cmbNucDefaultWidget::set(QPointer<cmbNucDefaults> c, bool isHex)
 {
   this->disConnect();
   this->Current = c;
-  this->Internal->ui->AxialMeshLayout->setVisible(isCore);
-  this->Internal->ui->DuctThicknessLayout->setVisible(isCore);
   this->Internal->ui->ductX->setVisible(!isHex);
   this->Internal->ui->ductY->setVisible(!isHex);
   this->Internal->ui->DuctThickY->setVisible(!isHex);
-  this->Internal->ui->EdgeIntervalLayout->setVisible(isCore);
-  this->Internal->ui->HeightLayout->setVisible(isCore);
-  this->Internal->ui->MeshTypeLayout->setVisible(isCore);
-  this->Internal->ui->UserDefinedArea->setVisible(isCore);
   this->setConnections();
   this->reset();
 }

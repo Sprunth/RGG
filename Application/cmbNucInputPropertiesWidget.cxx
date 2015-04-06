@@ -247,7 +247,7 @@ void cmbNucInputPropertiesWidget::onReset()
     {
       cmbNucCore* nucCore = dynamic_cast<cmbNucCore*>(selObj);
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageCore);
-      this->CoreDefaults->set(nucCore->GetDefaults(), true, nucCore->IsHexType());
+      this->CoreDefaults->set(nucCore->GetDefaults(), nucCore->IsHexType());
       this->Internal->coreLabelY->setVisible(!nucCore->IsHexType());
       this->Internal->coreLatticeY->setVisible(!nucCore->IsHexType());
       if(nucCore->IsHexType())

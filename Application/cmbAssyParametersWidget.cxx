@@ -26,9 +26,6 @@ cmbAssyParametersWidget::cmbAssyParametersWidget(QWidget *p)
   this->Internal->setupUi(this);
   this->initUI();
   this->Assembly = NULL;
-  this->Internal->AxialMeshLayout->setVisible(false);
-  this->Internal->EdgeIntervalLayout->setVisible(false);
-  this->Internal->MeshTypeLayout_2->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -222,10 +219,8 @@ void setValue(QCheckBox * to, bool &from)
 #define EASY_ASSY_PARAMS_MACRO()\
   FUN(TetMeshSize) \
   FUN(RadialMeshSize) \
-  FUN(AxialMeshSize) \
   FUN(NeumannSet_StartId) \
   FUN(MaterialSet_StartId) \
-  FUN(EdgeInterval)\
   FUN(MergeTolerance) \
   FUN(CreateFiles) \
   FUN(CenterXYZ) \
@@ -238,7 +233,6 @@ void setValue(QCheckBox * to, bool &from)
   FUN(List_MaterialSet_StartId) \
   FUN(NumSuperBlocks) \
   FUN(SuperBlocks) \
-  FUN(MeshType)\
   FUN(CreateSideset)\
   FUN2(MoveXYZ[0],MoveX)\
   FUN2(MoveXYZ[1],MoveY)\
