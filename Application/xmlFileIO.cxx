@@ -251,7 +251,7 @@ public:
     QString str;
     if(!read(node, attName, str)) return false;
     QStringList list1 = str.split(",");
-    for(unsigned int at = 0; at < size; ++at)
+    for(int at = 0; at < size; ++at)
     {
       v[at] = list1.value(at).toDouble();
     }
@@ -794,7 +794,7 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
   if(core.IsHexType())
   {
     core.getLattice().setFullCellMode(Lattice::HEX_FULL);
-    for(unsigned int i = 0; i < core.GetNumberOfAssemblies(); ++i)
+    for(int i = 0; i < core.GetNumberOfAssemblies(); ++i)
     {
       if( core.getLattice().GetGeometrySubType() & ANGLE_60 &&
           core.getLattice().GetGeometrySubType() & VERTEX )
@@ -1125,7 +1125,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice, std::map<QSt
   if(!read(node, GRID_TAG.c_str(), sgrid)) return false;
   QStringList rs = sgrid.split(";");
 
-  for(unsigned int i = 0; i < rs.size(); ++i)
+  for(int i = 0; i < rs.size(); ++i)
   {
     QString & t = rs[i];
     if(t.isEmpty()) continue;
@@ -1133,7 +1133,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice, std::map<QSt
     grid.resize(grid.size() + 1);
     std::vector<std::string> & v = grid[at];
     QStringList tl = t.split(",");
-    for(unsigned int j = 0; j < tl.size(); ++j)
+    for(int j = 0; j < tl.size(); ++j)
     {
       v.push_back(tl[j].toStdString());
     }

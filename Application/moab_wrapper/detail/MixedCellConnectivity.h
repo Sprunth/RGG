@@ -20,7 +20,7 @@ public:
     {
     int count = 0;
     const std::size_t cellSize=cells.size();
-    while(count != cellSize)
+    while(static_cast<std::size_t>(count) != cellSize)
       {
       EntityHandle* connectivity;
       int numVerts=0, iterationCount=0;

@@ -78,7 +78,8 @@ void PinSubPart::SetNumberOfLayers(int numLayers)
 void PinSubPart::setMaterialLayer(int i, cmbNucMaterialLayer * m)
 {
   if(m == NULL) return;
-  if(i >= this->Materials.size()) this->SetNumberOfLayers(i+1);
+  if(i < 0) return;
+  if(static_cast<std::size_t>(i) >= this->Materials.size()) this->SetNumberOfLayers(i+1);
   *(this->Materials[i]) = *m;
   delete m;
 }

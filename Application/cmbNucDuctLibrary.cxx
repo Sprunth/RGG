@@ -94,7 +94,7 @@ DuctCell* cmbNucDuctLibrary
 DuctCell* cmbNucDuctLibrary
 ::GetDuctCell(int pc) const
 {
-  if(pc >= this->DuctCells.size()) return NULL;
+  if(static_cast<std::size_t>(pc) >= this->DuctCells.size()) return NULL;
   return this->DuctCells[pc];
 }
 

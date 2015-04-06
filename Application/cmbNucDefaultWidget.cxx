@@ -217,11 +217,3 @@ void cmbNucDefaultWidget::disConnect()
 {
   if(this->Current == NULL) return;
 }
-
-void cmbNucDefaultWidget::recievePitch(double xin, double yin)
-{
-}
-
-void cmbNucDefaultWidget::setPitchAvail(bool v)
-{
-}

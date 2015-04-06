@@ -247,7 +247,7 @@ void cmbNucAssembly::AddPinCell(PinCell *pincell)
 
 void cmbNucAssembly::SetPinCell(int i, PinCell *pc)
 {
-  if(i > this->PinCells.size()) return;
+  if(static_cast<std::size_t>(i) > this->PinCells.size()) return;
   if(pc == NULL) return;
   PinCell * old = this->PinCells[i];
   if(old == pc) return;

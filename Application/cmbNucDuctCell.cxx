@@ -200,7 +200,7 @@ cmbNucMaterialLayer const& Duct::getMaterialLayer(int i) const
 
 void Duct::setMaterialLayer(int i, cmbNucMaterialLayer * ml)
 {
-  if(i >= this->Materials.size()) this->SetNumberOfLayers(i+1);
+  if(static_cast<std::size_t>(i) >= this->Materials.size()) this->SetNumberOfLayers(i+1);
   Materials[i] = *ml;
   delete ml;
 }
@@ -212,9 +212,9 @@ void Duct::splitMaterialLayer( std::vector<double> const& lx, std::vector<double
   assert(lx.size() > this->Materials.size());
   std::vector< QPointer<cmbNucMaterial> > materials;
   int at = 0;
-  for(unsigned int i = 0; i < lx.size(); ++i)
+  for(std::size_t i = 0; i < lx.size(); ++i)
   {
-    assert(at < this->Materials.size());
+    assert(static_cast<std::size_t>(at) < this->Materials.size());
     assert(lx[i] <= getNormThick(at)[0]);
     if(lx[i] < getNormThick(at)[0])
     {
@@ -508,7 +508,7 @@ void DuctCell::uniformizeMaterialLayers()
 void DuctCell::splitDucts( std::vector<double> const& layers )
 {
   std::vector<Duct*> addedDucts;
-  int layersStart = 0;
+  std::size_t layersStart = 0;
   //find the the bottom
   double z1 = this->Ducts[0]->z1;
   for(;layersStart < layers.size(); ++layersStart)
@@ -516,7 +516,7 @@ void DuctCell::splitDucts( std::vector<double> const& layers )
     if(layers[layersStart] == z1) break;
   }
   assert(layersStart != layers.size());
-  for(int i = 0; i < layersStart; ++i)
+  for(std::size_t i = 0; i < layersStart; ++i)
   {
     Duct * d = new Duct(this->Ducts[0], false);
     d->setZ1(layers[i]);
@@ -527,10 +527,10 @@ void DuctCell::splitDucts( std::vector<double> const& layers )
     }
     addedDucts.push_back(d);
   }
-  for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+  for(std::size_t i = 0; i < this->Ducts.size(); ++i)
   {
     double z2 = this->Ducts[i]->z2;
-    int layerEnd = layersStart + 1;
+    std::size_t layerEnd = layersStart + 1;
     for(;layerEnd < layers.size(); ++layerEnd)
     {
       if(layers[layerEnd] == z2) break;
@@ -539,7 +539,7 @@ void DuctCell::splitDucts( std::vector<double> const& layers )
     if( layerEnd != layersStart + 1)
     {
       this->Ducts[i]->setZ2(layers[layersStart + 1]);
-      for(unsigned int j = layersStart + 1; j < layerEnd; ++j)
+      for(std::size_t j = layersStart + 1; j < layerEnd; ++j)
       {
         Duct * d = new Duct(this->Ducts[i], false);
         d->setZ1(layers[j]);
@@ -549,7 +549,7 @@ void DuctCell::splitDucts( std::vector<double> const& layers )
     }
     layersStart = layerEnd;
   }
-  for(int i = layersStart; i < layers.size()-1; ++i)
+  for(std::size_t i = layersStart; i < layers.size()-1; ++i)
   {
     Duct * d = new Duct(this->Ducts[0], false);
     d->setZ1(layers[i]);

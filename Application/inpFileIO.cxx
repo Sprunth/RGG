@@ -6,7 +6,6 @@
 #include "cmbNucDefaults.h"
 #include "cmbNucPinLibrary.h"
 #include "cmbNucDuctLibrary.h"
-#include "cmbNucConflictDialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -1365,52 +1364,52 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
   output << " " << dim.first;
   output << "\n";
   if(type == HEXAGONAL)
-    {
+  {
     if(subType & ANGLE_360)
-      {
-      size_t x = dim.first;
+    {
+      const size_t x = dim.first;
       size_t maxN = 2*x - 1;
       std::vector<std::vector<std::string> > hexArray;
       hexArray.resize(maxN);
       size_t numCols = 0;
       size_t delta=0;
       for(size_t i = 0; i < maxN; i++)
+      {
+        if(i<x) // first half of HEX
         {
-        if(i<dim.first) // first half of HEX
-          {
           numCols = i+x;
-          }
+        }
         else // second half of HEX
-          {
+        {
           delta++;
           numCols = maxN - delta;
-          }
-        hexArray[i].resize(numCols);
         }
+        hexArray[i].resize(numCols);
+      }
 
       for(int k = x-1; k >= 0; k--) // HEX layers
-        {
+      {
         size_t numRows = 2*k + 1;
         size_t startRow = x-1-k;
         size_t startCol = startRow;
         size_t layerIdx;
         for(size_t i = startRow; i < numRows+startRow; i++) // array rows
-          {
+        {
           if(i==startRow || i==numRows+startRow - 1) // first row or last row
-            {
+          {
             for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
-              {
+            {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
               std::string label = lat.GetCell(k,layerIdx).label;
               if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
-                {
+              {
                 label = forceLabel;
-                }
-              hexArray[i][j] = label;
               }
+              hexArray[i][j] = label;
             }
+          }
           else // rows between first and last
-            {
+          {
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
             std::string label =lat.GetCell(k,layerIdx).label;
@@ -1423,45 +1422,45 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             size_t colIdx = hexArray[i].size() -1 - startCol;
             label =lat.GetCell(k,layerIdx).label;
             if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
-              {
+            {
               label = forceLabel;
-              }
-            hexArray[i][colIdx] = label;
             }
+            hexArray[i][colIdx] = label;
           }
         }
+      }
 
       for(size_t i = 0; i < hexArray.size(); ++i)
-        {
+      {
         for (size_t j = 0; j < hexArray[i].size(); ++j)
-          {
+        {
           std::string label = hexArray[i][j];
           if(label.empty())
-            {
+          {
             label = "xx";
-            }
-          output << label << " ";
           }
+          output << label << " ";
+        }
         if(i < hexArray.size()-1 && useAmp)
           output << "&";
         output << "\n";
-        }
       }
+    }
     else if(subType & (ANGLE_60|ANGLE_30))
-      {
+    {
       size_t x = lat.getSize();
       std::string tmpVal;
       for(size_t i = 0; i < x; i++)
-        {
+      {
         size_t start = (subType & FLAT)?(i):(i-(i)/2);
         size_t cols = ((subType & FLAT)?(i+1):(((i+1)-(i+2)%2)))+start;
         if(subType & ANGLE_30)
-          {
+        {
           start = 2*i - i/2;
           cols = (i%2 ? (i+1)/2 :(i+2)/2) + start;
-          }
+        }
         for( size_t j = start; j < cols; j++)
-          {
+        {
           std::string label = lat.GetCell(i,j).label;
           if(label.empty())
           {
@@ -1479,35 +1478,35 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
           }
         if(i < x-1 && useAmp) output << "&";
         output << "\n";
-        }
       }
     }
+  }
   else
-    {
+  {
     for(size_t i = 0; i < lat.getSize(); i++)
-      {
+    {
       const size_t sizeati = lat.getSize(i);
       size_t ati = lat.getSize() - i - 1;
       for(size_t j = 0; j < sizeati; j++)
-        {
+      {
         std::string label = lat.GetCell(ati,j).label;
         if( !lat.GetCell(ati,j).isBlank() && !forceLabel.empty() )
-          {
-          label = forceLabel;
-          }
-        if(label.empty())
-          {
-          label = "xx";
-          }
-        output << label << " ";
-        }
-      if(useAmp && i < lat.getSize()-1)
         {
-        output << "&";
+          label = forceLabel;
         }
-      output << "\n";
+        if(label.empty())
+        {
+          label = "xx";
+        }
+        output << label << " ";
       }
+      if(useAmp && i < lat.getSize()-1)
+      {
+        output << "&";
+      }
+      output << "\n";
     }
+  }
 }
 
 

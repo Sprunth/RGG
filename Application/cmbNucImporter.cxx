@@ -218,7 +218,7 @@ bool cmbNucImporter::importInpFile()
         mainWindow->PropertyWidget->resetCore(mainWindow->NuclearCore);
         mainWindow->NuclearCore->getLattice().setFullCellMode(Lattice::HEX_FULL);
 
-        for(unsigned int j = 0; j < mainWindow->NuclearCore->GetNumberOfAssemblies(); ++j)
+        for(int j = 0; j < mainWindow->NuclearCore->GetNumberOfAssemblies(); ++j)
         {
           mainWindow->NuclearCore->GetAssembly(j)->adjustRotation();
           if( mainWindow->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
@@ -316,7 +316,7 @@ bool cmbNucImporter::importXMLAssembly()
       std::map<std::string, std::string> jnk;
 
       //update pins
-      for(int k = 0; k < assy->GetNumberOfPinCells(); ++k)
+      for(std::size_t k = 0; k < assy->GetNumberOfPinCells(); ++k)
       {
         PinCell* old = assy->GetPinCell(k);
         PinCell* newpc = NULL;

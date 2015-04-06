@@ -1,5 +1,4 @@
 #include "cmbNucPinLibrary.h"
-#include "cmbNucConflictDialog.h"
 
 cmbNucPinLibrary::cmbNucPinLibrary()
 {

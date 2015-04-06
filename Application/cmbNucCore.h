@@ -304,7 +304,7 @@ public:
     return s;
   }
 
-  virtual void setUsedLabels(std::map<QString, int> const& labels)
+  virtual void setUsedLabels(std::map<QString, int> const& /*labels*/)
   {}
 
   std::map< std::string, std::set< Lattice::CellDrawMode > > getDrawModesForAssemblies();

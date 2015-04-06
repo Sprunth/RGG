@@ -20,8 +20,6 @@ public slots:
   void set(QPointer<cmbNucDefaults> c, bool isCore, bool isHex);
   void apply();
   void reset();
-  void recievePitch(double, double);
-  void setPitchAvail(bool);
 signals:
   void commonChanged();
 protected:
