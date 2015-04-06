@@ -58,8 +58,6 @@ public:
 
   Lattice& operator=(Lattice const& arg);
 
-  std::string getLabel();
-
   virtual std::string getTitle();
 
   void setInvalidCells();

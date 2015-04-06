@@ -115,7 +115,7 @@ bool cmbNucInpExporter
 
   //Generate temp inp file of outer cores of an assembly
   QFileInfo fi(filename);
-  cmbNucAssembly * temp = this->NuclearCore->GetUsedAssemblies()[0]->clone(this->NuclearCore->getPinLibrary()->clone(),dl);
+  cmbNucAssembly * temp = this->NuclearCore->GetUsedAssemblies()[0]->clone(pl,dl);
   QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
   fname = fname.toLower();
   QString fullPath =fi.dir().absoluteFilePath(fname);
@@ -125,6 +125,8 @@ bool cmbNucInpExporter
   this->exportInpFile(temp, true);
 
   delete temp;
+  delete pl;
+  delete dl;
 
   //Generate temp inp file of type geometry of core
   QString corename = QString("core") + random + ".inp";
@@ -250,6 +252,10 @@ bool cmbNucInpExporter
         assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, -30));
         assy->addTransform(new cmbNucAssembly::Section( cmbNucAssembly::Transform::Y, 0, -1));
         assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, 30));
+        break;
+      case Lattice::RECT:
+      case Lattice::HEX_FULL:
+      case Lattice::HEX_FULL_30:
         break;
     }
     QFileInfo assyFile(fname.c_str());

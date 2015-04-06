@@ -130,8 +130,6 @@ public:
     //For now taken care of by Editor
   }
 private:
-  double *X;
-
 };
 
 

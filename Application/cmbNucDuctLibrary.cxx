@@ -75,8 +75,8 @@ void cmbNucDuctLibrary
   this->NameToDuct.erase(iter);
   for(size_t i = iter->second; i < this->DuctCells.size(); ++i)
   {
-    DuctCell * dc = this->DuctCells[i];
-    NameToDuct[dc->getName()] = i;
+    DuctCell * dci = this->DuctCells[i];
+    NameToDuct[dci->getName()] = i;
   }
   this->Connection->DuctRemoved(dc);
   this->Connection->libraryChanged();
@@ -94,7 +94,7 @@ DuctCell* cmbNucDuctLibrary
 DuctCell* cmbNucDuctLibrary
 ::GetDuctCell(int pc) const
 {
-  if(pc >= this->DuctCells.size()) return NULL;
+  if(static_cast<std::size_t>(pc) >= this->DuctCells.size()) return NULL;
   return this->DuctCells[pc];
 }
 

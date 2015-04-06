@@ -11,7 +11,7 @@
 
 class cmbNucExporterWorker;
 class cmbNucExporterClient;
-class cmbNucExportInternal;
+struct cmbNucExportInternal;
 class cmbNucExportWorkerRunner;
 struct JobHolder;
 

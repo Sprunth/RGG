@@ -241,7 +241,6 @@ public:
     Duct *hexDuct = input->getAssyDuct().getDuct(0);
     Lattice & lat = input->getLattice();
     double pitchX = input->getPinPitchX();
-    double pitchY = input->getPinPitchY();
 
     for(size_t i = 0; i < lat.getSize(); i++)
     {
@@ -591,7 +590,7 @@ public:
             for(unsigned int z = 0; z < points.size(); ++z)
             {
               GeoToPoints::data cp = computeData( dp, points[z], extraXTrans, extraYTrans, 0);
-              enum {KEEP_PT, CROPPED_PT, IGNORE_PT} mode = KEEP_PT;
+              enum {KEEP_PT, CROPPED_PT, IGNORE_PT} modePt = KEEP_PT;
               key k = i->first;
               k.type = cmbNucRender::key::Sectioned;
               k.sides = sectionedCount++;
@@ -606,12 +605,12 @@ public:
                 double tpdist = testPlane->EvaluateFunction(cp.pt.xyz);
                 if( tpdist < -currentR )
                 {
-                  mode = IGNORE_PT;
+                  modePt = IGNORE_PT;
                   continue;
                 }
-                else if( std::abs(tpdist) <= currentR && mode != IGNORE_PT )
+                else if( std::abs(tpdist) <= currentR && modePt != IGNORE_PT )
                 {
-                  mode = CROPPED_PT;
+                  modePt = CROPPED_PT;
                   double tmXf[3] = {-dp.rotation.xyz[0],
                                     -dp.rotation.xyz[1],
                                     -dp.rotation.xyz[2]};
@@ -619,7 +618,7 @@ public:
                   clip(ndp.geo, ndp.geo, plane.xyz, 1);
                 }
               }
-              switch(mode)
+              switch(modePt)
               {
                 case KEEP_PT:
                   keep.points.push_back(cp);

@@ -118,6 +118,7 @@ public:
             VTKGridType* grid,
             const int materialId=0) const
     {
+    (void)(materialId);
     //create a helper datastructure which can determines all the unique point ids
     //and converts moab connecitvity info to vtk connectivity
 

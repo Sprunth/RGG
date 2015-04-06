@@ -251,7 +251,7 @@ public:
     QString str;
     if(!read(node, attName, str)) return false;
     QStringList list1 = str.split(",");
-    for(unsigned int at = 0; at < size; ++at)
+    for(int at = 0; at < size; ++at)
     {
       v[at] = list1.value(at).toDouble();
     }
@@ -275,8 +275,6 @@ bool xmlHelperClass::openReadFile(std::string fname, pugi::xml_document & docume
   in.seekg(0, std::ios::beg);
   in.read(&content[0], content.size());
   in.close();
-
-  xmlHelperClass helper;
 
   pugi::xml_parse_result presult = document.load_buffer(content.c_str(), content.size());
   if (presult.status != pugi::status_ok)
@@ -796,7 +794,7 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
   if(core.IsHexType())
   {
     core.getLattice().setFullCellMode(Lattice::HEX_FULL);
-    for(unsigned int i = 0; i < core.GetNumberOfAssemblies(); ++i)
+    for(int i = 0; i < core.GetNumberOfAssemblies(); ++i)
     {
       if( core.getLattice().GetGeometrySubType() & ANGLE_60 &&
           core.getLattice().GetGeometrySubType() & VERTEX )
@@ -1028,7 +1026,6 @@ read(paramNode, #KEY, params->VALUE);
 
 bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
 {
-  bool r = true;
   std::string tmp;
   if(!read(node, LABEL_TAG.c_str(), tmp)) return false;
   assy->setLabel(tmp);
@@ -1077,9 +1074,9 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
     for(pugi::xml_node tnode = node.child(UNKNOWN_TAG.c_str()); tnode;
         tnode = tnode.next_sibling(UNKNOWN_TAG.c_str()))
     {
-      std::string tmp;
-      if(read(tnode, STR_TAG.c_str(), tmp))
-        params->UnknownParams.push_back(tmp);
+      std::string tmp_str;
+      if(read(tnode, STR_TAG.c_str(), tmp_str))
+        params->UnknownParams.push_back(tmp_str);
     }
   }
 
@@ -1128,7 +1125,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice, std::map<QSt
   if(!read(node, GRID_TAG.c_str(), sgrid)) return false;
   QStringList rs = sgrid.split(";");
 
-  for(unsigned int i = 0; i < rs.size(); ++i)
+  for(int i = 0; i < rs.size(); ++i)
   {
     QString & t = rs[i];
     if(t.isEmpty()) continue;
@@ -1136,7 +1133,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice, std::map<QSt
     grid.resize(grid.size() + 1);
     std::vector<std::string> & v = grid[at];
     QStringList tl = t.split(",");
-    for(unsigned int j = 0; j < tl.size(); ++j)
+    for(int j = 0; j < tl.size(); ++j)
     {
       v.push_back(tl[j].toStdString());
     }

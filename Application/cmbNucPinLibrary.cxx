@@ -1,5 +1,4 @@
 #include "cmbNucPinLibrary.h"
-#include "cmbNucConflictDialog.h"
 
 cmbNucPinLibrary::cmbNucPinLibrary()
 {
@@ -143,7 +142,6 @@ void cmbNucPinLibrary::resetConflictResolution()
 void cmbNucPinLibrary::removePincell(PinCell* pc)
 {
   if(pc == NULL) return;
-  bool found = false;
 
   std::map<std::string, size_t>::iterator ni = NameToPin.find(pc->getName());
   std::map<std::string, size_t>::iterator li = LabelToPin.find(pc->getLabel());
@@ -151,9 +149,9 @@ void cmbNucPinLibrary::removePincell(PinCell* pc)
   this->PinCells.erase(this->PinCells.begin() + ni->second);
   for(size_t i = ni->second; i < this->PinCells.size(); ++i)
   {
-    PinCell * pc = this->PinCells[i];
-    NameToPin[pc->getName()] = i;
-    LabelToPin[pc->getLabel()] = i;
+    PinCell * pci = this->PinCells[i];
+    NameToPin[pci->getName()] = i;
+    LabelToPin[pci->getLabel()] = i;
   }
   NameToPin.erase(ni);
   LabelToPin.erase(li);

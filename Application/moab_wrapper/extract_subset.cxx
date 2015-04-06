@@ -60,7 +60,7 @@ namespace
       std::string name =
         COLOR::instance()->getMaterialByName(COLOR::createMaterialLabel(interface.name(*i).c_str()))->getName().toStdString();
       qDebug() << name.c_str() << c << visible.size();
-      assert(c < visible.size());
+      assert(static_cast<std::size_t>(c) < visible.size());
       bool remove = !visible[c];
       std::transform(name.begin(), name.end(), name.begin(), ::tolower);
       for(unsigned int j = 0; j < remove_material.size(); ++j)

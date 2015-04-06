@@ -19,6 +19,7 @@ void PinConnection::clearOldData()
 
 PinSubPart::PinSubPart(double z1in, double z2in) : Materials(1, new cmbNucMaterialLayer())
 {
+  this->Label = "PinPart";
   x=0.0; y=0.0; z1=z1in; z2=z2in;
   Connection = new PinConnection();
   this->setConnection(Materials[0]);
@@ -77,7 +78,8 @@ void PinSubPart::SetNumberOfLayers(int numLayers)
 void PinSubPart::setMaterialLayer(int i, cmbNucMaterialLayer * m)
 {
   if(m == NULL) return;
-  if(i >= this->Materials.size()) this->SetNumberOfLayers(i+1);
+  if(i < 0) return;
+  if(static_cast<std::size_t>(i) >= this->Materials.size()) this->SetNumberOfLayers(i+1);
   *(this->Materials[i]) = *m;
   delete m;
 }

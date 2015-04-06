@@ -79,15 +79,11 @@ void Lattice::setUpGrid(Lattice const & other)
       LatticeCell * c = this->getCell(other.Grid[i][j].getCell()->label);
       int oc = c->getCount();
       this->Grid[i][j].setCell(c);
-      assert(c->getCount() == oc + 1);
+      assert(c->getCount() == static_cast<unsigned int>(oc) + 1);
     }
   }
   this->computeValidRange();
 }
-
-
-std::string Lattice::getLabel()
-{ return "Lattice"; }
 
 std::string Lattice::getTitle(){ return "Lattice"; }
 
@@ -196,7 +192,7 @@ void Lattice::computeValidRange()
   if(this->enGeometryType == HEXAGONAL)
   {
     this->validRange.resize(Grid.size());
-    for( int layer = 0; layer < Grid.size(); ++layer)
+    for( std::size_t layer = 0; layer < Grid.size(); ++layer)
     {
       this->validRange[layer].first = 0;
       if(layer == 0)
@@ -509,7 +505,7 @@ bool Lattice::fillRing(int r, int c, std::string const& label)
   {
     int ring = std::min(r, std::min(c, std::min(static_cast<int>(this->Grid.size()-1-r),
                                                 static_cast<int>(this->Grid[0].size()-1-c))));
-    for( int i = ring; i < this->Grid.size()-ring; ++i )
+    for( std::size_t i = ring; i < this->Grid.size()-ring; ++i )
     {
       if(label != Grid[i][ring].getCell()->label)
       {
@@ -517,7 +513,7 @@ bool Lattice::fillRing(int r, int c, std::string const& label)
         this->SetCell(i,ring,label);
       }
     }
-    for( int i = ring; i < this->Grid[0].size()-ring; ++i )
+    for( std::size_t i = ring; i < this->Grid[0].size()-ring; ++i )
     {
       if(label != Grid[ring][i].getCell()->label)
       {
@@ -526,7 +522,7 @@ bool Lattice::fillRing(int r, int c, std::string const& label)
       }
     }
     int tmp = this->Grid.size()-1-ring;
-    for( int i = ring; i < this->Grid[0].size()-ring; ++i )
+    for( std::size_t i = ring; i < this->Grid[0].size()-ring; ++i )
     {
       if(label != Grid[tmp][i].getCell()->label)
       {
@@ -535,7 +531,7 @@ bool Lattice::fillRing(int r, int c, std::string const& label)
       }
     }
     tmp = this->Grid[0].size()-1-ring;
-    for( int i = ring; i < this->Grid.size()-ring; ++i )
+    for( std::size_t i = ring; i < this->Grid.size()-ring; ++i )
     {
       if(label != Grid[i][tmp].getCell()->label)
       {

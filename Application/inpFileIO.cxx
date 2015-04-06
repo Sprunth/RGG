@@ -6,7 +6,6 @@
 #include "cmbNucDefaults.h"
 #include "cmbNucPinLibrary.h"
 #include "cmbNucDuctLibrary.h"
-#include "cmbNucConflictDialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -1146,20 +1145,20 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
     }
   }
 
-  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
-
   for(int i = 0; i < count; i++)
   {
     PinCell* pincell = new PinCell();
     QPointer<cmbNucMaterial> firstMaterial = NULL;
     int attribute_count = 0;
-    std::string tmp;
-    input >> tmp;
-    pincell->setName(tmp);
+    {
+      std::string tmp;
+      input >> tmp;
+      pincell->setName(tmp);
 
-    input >> tmp;
-    pincell->setLabel(tmp);
-    input >> attribute_count;
+      input >> tmp;
+      pincell->setLabel(tmp);
+      input >> attribute_count;
+    }
 
     // initialize for HEX pincell pitch
 
@@ -1213,24 +1212,24 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           // Get the material of the layer - note that we read in the material label that
           // maps to the actual material
           input >> mlabel;
-          QPointer< cmbNucMaterial > tmp = cmbNucMaterialColors::instance()->getUnknownMaterial();
+          QPointer< cmbNucMaterial > tmp_mat = cmbNucMaterialColors::instance()->getUnknownMaterial();
           std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
           map_iter it = materialLabelMap.find(mlabel);
           if(it != materialLabelMap.end())
           {
-            tmp = it->second;
+            tmp_mat = it->second;
           }
           else
           {
-            material_not_found = mlabel != tmp->getLabel().toStdString();
+            material_not_found = mlabel != tmp_mat->getLabel().toStdString();
             labelIsDifferent = true;
           }
           // Lets save the first material to use to set the pin's color legend
           if (firstMaterial == NULL)
           {
-            firstMaterial = tmp;
+            firstMaterial = tmp_mat;
           }
-          cylinder->SetMaterial(c,tmp);
+          cylinder->SetMaterial(c,tmp_mat);
           cylinder->setNormalizedThickness(c, radii[c] * alpha);
         }
       }
@@ -1367,52 +1366,52 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
   output << " " << dim.first;
   output << "\n";
   if(type == HEXAGONAL)
-    {
+  {
     if(subType & ANGLE_360)
-      {
-      size_t x = dim.first;
+    {
+      const size_t x = dim.first;
       size_t maxN = 2*x - 1;
       std::vector<std::vector<std::string> > hexArray;
       hexArray.resize(maxN);
       size_t numCols = 0;
       size_t delta=0;
       for(size_t i = 0; i < maxN; i++)
+      {
+        if(i<x) // first half of HEX
         {
-        if(i<dim.first) // first half of HEX
-          {
           numCols = i+x;
-          }
+        }
         else // second half of HEX
-          {
+        {
           delta++;
           numCols = maxN - delta;
-          }
-        hexArray[i].resize(numCols);
         }
+        hexArray[i].resize(numCols);
+      }
 
       for(int k = x-1; k >= 0; k--) // HEX layers
-        {
+      {
         size_t numRows = 2*k + 1;
         size_t startRow = x-1-k;
         size_t startCol = startRow;
         size_t layerIdx;
         for(size_t i = startRow; i < numRows+startRow; i++) // array rows
-          {
+        {
           if(i==startRow || i==numRows+startRow - 1) // first row or last row
-            {
+          {
             for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
-              {
+            {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
               std::string label = lat.GetCell(k,layerIdx).label;
               if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
-                {
+              {
                 label = forceLabel;
-                }
-              hexArray[i][j] = label;
               }
+              hexArray[i][j] = label;
             }
+          }
           else // rows between first and last
-            {
+          {
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
             std::string label =lat.GetCell(k,layerIdx).label;
@@ -1425,45 +1424,45 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             size_t colIdx = hexArray[i].size() -1 - startCol;
             label =lat.GetCell(k,layerIdx).label;
             if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
-              {
+            {
               label = forceLabel;
-              }
-            hexArray[i][colIdx] = label;
             }
+            hexArray[i][colIdx] = label;
           }
         }
+      }
 
       for(size_t i = 0; i < hexArray.size(); ++i)
-        {
+      {
         for (size_t j = 0; j < hexArray[i].size(); ++j)
-          {
+        {
           std::string label = hexArray[i][j];
           if(label.empty())
-            {
+          {
             label = "xx";
-            }
-          output << label << " ";
           }
+          output << label << " ";
+        }
         if(i < hexArray.size()-1 && useAmp)
           output << "&";
         output << "\n";
-        }
       }
+    }
     else if(subType & (ANGLE_60|ANGLE_30))
-      {
+    {
       size_t x = lat.getSize();
       std::string tmpVal;
       for(size_t i = 0; i < x; i++)
-        {
+      {
         size_t start = (subType & FLAT)?(i):(i-(i)/2);
         size_t cols = ((subType & FLAT)?(i+1):(((i+1)-(i+2)%2)))+start;
         if(subType & ANGLE_30)
-          {
+        {
           start = 2*i - i/2;
           cols = (i%2 ? (i+1)/2 :(i+2)/2) + start;
-          }
+        }
         for( size_t j = start; j < cols; j++)
-          {
+        {
           std::string label = lat.GetCell(i,j).label;
           if(label.empty())
           {
@@ -1481,35 +1480,35 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
           }
         if(i < x-1 && useAmp) output << "&";
         output << "\n";
-        }
       }
     }
+  }
   else
-    {
+  {
     for(size_t i = 0; i < lat.getSize(); i++)
-      {
+    {
       const size_t sizeati = lat.getSize(i);
       size_t ati = lat.getSize() - i - 1;
       for(size_t j = 0; j < sizeati; j++)
-        {
+      {
         std::string label = lat.GetCell(ati,j).label;
         if( !lat.GetCell(ati,j).isBlank() && !forceLabel.empty() )
-          {
-          label = forceLabel;
-          }
-        if(label.empty())
-          {
-          label = "xx";
-          }
-        output << label << " ";
-        }
-      if(useAmp && i < lat.getSize()-1)
         {
-        output << "&";
+          label = forceLabel;
         }
-      output << "\n";
+        if(label.empty())
+        {
+          label = "xx";
+        }
+        output << label << " ";
       }
+      if(useAmp && i < lat.getSize()-1)
+      {
+        output << "&";
+      }
+      output << "\n";
     }
+  }
 }
 
 
@@ -1708,30 +1707,30 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
         this->renamePin = freader.renamePin;
         core.AddAssembly(assembly);
         std::vector< std::string > tlog = freader.getLog();
-        for(unsigned int i = 0; i < tlog.size(); ++i)
+        for(unsigned int tlat = 0; tlat < tlog.size(); ++tlat)
         {
-          log.push_back( assyQString.toStdString() + " " + tlog[i] );
+          log.push_back( assyQString.toStdString() + " " + tlog[tlat] );
         }
       }
     }
     else
     {
       std::stringstream ss(tmp.c_str());
-      std::string sameAs, assyfilename;
+      std::string sameAs, assyfilenameOther;
       std::string msid, nsid;
-      ss >> sameAs >> assyfilename >> msid >> nsid;
-      std::map<std::string, cmbNucAssembly *>::const_iterator it = fnameToAssy.find(assyfilename);
+      ss >> sameAs >> assyfilenameOther >> msid >> nsid;
+      std::map<std::string, cmbNucAssembly *>::const_iterator it = fnameToAssy.find(assyfilenameOther);
       if(it == fnameToAssy.end())
       {
-        cmbNucAssemblyLink * tmp = new cmbNucAssemblyLink(NULL, msid, nsid);
-        tmp->setLabel(assylabel);
-        assemblyIdToLink[assyfilename] = tmp;
+        cmbNucAssemblyLink * link = new cmbNucAssemblyLink(NULL, msid, nsid);
+        link->setLabel(assylabel);
+        assemblyIdToLink[assyfilenameOther] = link;
       }
       else
       {
-        cmbNucAssemblyLink * tmp = new cmbNucAssemblyLink(it->second, msid, nsid);
-        tmp->setLabel(assylabel);
-        core.AddAssemblyLink(tmp);
+        cmbNucAssemblyLink * link = new cmbNucAssemblyLink(it->second, msid, nsid);
+        link->setLabel(assylabel);
+        core.AddAssemblyLink(link);
       }
     }
   }
@@ -1810,7 +1809,6 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     cmbNucAssembly * assembly = link->getLink();
     std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = usedAssemblies[i]->ExportFileNames.begin();
     std::string assemblyName = iter->second;
-    Lattice::CellDrawMode mode = iter->first;
     QFileInfo temp(assemblyName.c_str());
     assemblyName = temp.completeBaseName().toStdString();
 

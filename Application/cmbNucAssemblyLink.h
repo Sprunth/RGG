@@ -13,6 +13,7 @@ class cmbNucAssemblyLink : public AssyPartObj
 public:
   cmbNucAssemblyLink(cmbNucAssembly *l, std::string const& msid, std::string const& nsid);
   cmbNucAssemblyLink();
+  virtual ~cmbNucAssemblyLink(){}
   bool isValid();
   cmbNucAssembly * getLink() const;
   std::string const& getMaterialStartID() const;

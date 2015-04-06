@@ -66,8 +66,6 @@ void cmbNucPartsTreeItem::checkSaveAndGenerate()
     return;
   }
   enumNucPartsType selType = PartObject->GetType();
-  bool need_to_save = false;
-  bool need_to_generate = false;
   switch(selType)
     {
     case CMBNUC_CORE:
@@ -138,9 +136,9 @@ void cmbNucPartsTreeItem::setHighlights(bool fc, bool ng)
   this->setHighlights(NeedGeneration);
 }
 
-void cmbNucPartsTreeItem::setHighlights(bool NeedGeneration)
+void cmbNucPartsTreeItem::setHighlights(bool ng)
 {
-  if(NeedGeneration)
+  if(ng)
   {
     QBrush b;
     setForeground( 2 , b );
