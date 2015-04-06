@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>480</width>
-    <height>667</height>
+    <width>466</width>
+    <height>747</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="margin">
     <number>0</number>
    </property>
-   <item row="0" column="0" colspan="2">
+   <item row="0" column="0">
     <widget class="QScrollArea" name="scrollArea">
      <property name="widgetResizable">
       <bool>true</bool>
@@ -27,143 +27,216 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>463</width>
-        <height>848</height>
+        <width>464</width>
+        <height>745</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="33" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <item row="30" column="1">
+        <widget class="QComboBox" name="Info">
          <item>
-          <widget class="QLabel" name="label_8">
-           <property name="text">
-            <string>CreateSideSet</string>
-           </property>
-          </widget>
+          <property name="text">
+           <string>NotSet</string>
+          </property>
          </item>
          <item>
-          <widget class="QComboBox" name="CreateSideset">
-           <item>
-            <property name="text">
-             <string>NotSet</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Yes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>No</string>
-            </property>
-           </item>
-          </widget>
+          <property name="text">
+           <string>On</string>
+          </property>
          </item>
          <item>
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
+          <property name="text">
+           <string>Off</string>
+          </property>
          </item>
-        </layout>
+        </widget>
        </item>
        <item row="27" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_9">
-         <item>
-          <widget class="QLabel" name="label_21">
-           <property name="text">
-            <string>NumSuperBlocks</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="NumSuperBlocks"/>
-         </item>
-        </layout>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Center</string>
+         </property>
+        </widget>
        </item>
-       <item row="23" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_11">
-         <item>
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>MergeTolerance</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="MergeTolerance"/>
-         </item>
-        </layout>
+       <item row="11" column="0">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>List of Neumann Set Start Ids</string>
+         </property>
+        </widget>
        </item>
-       <item row="25" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_10">
-         <item>
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>CreateFiles</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="CreateFiles"/>
-         </item>
-        </layout>
+       <item row="21" column="1">
+        <widget class="QLineEdit" name="NumSuperBlocks"/>
        </item>
-       <item row="34" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_7">
-         <item>
-          <widget class="QLabel" name="label_9">
-           <property name="text">
-            <string>Info</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="Info">
-           <item>
-            <property name="text">
-             <string>NotSet</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>On</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Off</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_4">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
+       <item row="22" column="1">
+        <widget class="QLineEdit" name="SuperBlocks"/>
        </item>
-       <item row="36" column="0">
+       <item row="12" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Material Set Start Id</string>
+         </property>
+        </widget>
+       </item>
+       <item row="29" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>CreateSideSet</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="1">
+        <widget class="QLineEdit" name="MaterialSet_StartId"/>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Neumann Set StartId</string>
+         </property>
+        </widget>
+       </item>
+       <item row="27" column="1">
+        <widget class="QComboBox" name="CenterXYZ">
+         <item>
+          <property name="text">
+           <string>NotSet</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>X</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Y</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Z</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="31" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>MeshScheme</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="TetMeshSize">
+         <property name="inputMethodHints">
+          <set>Qt::ImhNone</set>
+         </property>
+        </widget>
+       </item>
+       <item row="29" column="1">
+        <widget class="QComboBox" name="CreateSideset">
+         <item>
+          <property name="text">
+           <string>NotSet</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Yes</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>No</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="21" column="0">
+        <widget class="QLabel" name="label_21">
+         <property name="text">
+          <string>NumSuperBlocks</string>
+         </property>
+        </widget>
+       </item>
+       <item row="36" column="0" colspan="2">
         <widget class="QLabel" name="label_23">
          <property name="text">
           <string>User Defined</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>CreateFiles</string>
+         </property>
+        </widget>
+       </item>
+       <item row="14" column="1">
+        <widget class="QLineEdit" name="MergeTolerance"/>
+       </item>
+       <item row="13" column="1">
+        <widget class="QLineEdit" name="List_MaterialSet_StartId"/>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Radial Mesh Size</string>
+         </property>
+        </widget>
+       </item>
+       <item row="30" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>Info</string>
+         </property>
+        </widget>
+       </item>
+       <item row="22" column="0">
+        <widget class="QLabel" name="label_22">
+         <property name="text">
+          <string>SuperBlocks</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="CreateMatFiles"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>StartPinId</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="1">
+        <widget class="QLineEdit" name="CreateFiles"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="StartPinId"/>
+       </item>
+       <item row="13" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="text">
+          <string>List of Material Set Start Ids</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QLineEdit" name="RadialMeshSize"/>
+       </item>
+       <item row="14" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>MergeTolerance</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="text">
+          <string>CreateMatFiles</string>
          </property>
         </widget>
        </item>
@@ -178,76 +251,52 @@
          </item>
         </layout>
        </item>
-       <item row="37" column="0">
+       <item row="37" column="0" colspan="2">
         <widget class="QPlainTextEdit" name="Unknown"/>
        </item>
        <item row="0" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_23">
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>TetMeshSize</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="TetMeshSize">
-           <property name="inputMethodHints">
-            <set>Qt::ImhNone</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>TetMeshSize</string>
+         </property>
+        </widget>
        </item>
-       <item row="15" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_15">
-         <item>
-          <widget class="QLabel" name="label_19">
-           <property name="text">
-            <string>List of Neumann Set Start Ids</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="List_NeumannSet_StartId"/>
-         </item>
-        </layout>
+       <item row="10" column="1">
+        <widget class="QLineEdit" name="NeumannSet_StartId"/>
        </item>
-       <item row="31" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item row="11" column="1">
+        <widget class="QLineEdit" name="List_NeumannSet_StartId"/>
+       </item>
+       <item row="31" column="1">
+        <widget class="QComboBox" name="MeshScheme">
          <item>
-          <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>NotSet</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Pave</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hole</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="35" column="0" colspan="2">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="label_6">
            <property name="text">
-            <string>Center</string>
+            <string>Move</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="CenterXYZ">
-           <item>
-            <property name="text">
-             <string>NotSet</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>X</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Y</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Z</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_2">
+          <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -258,213 +307,6 @@
             </size>
            </property>
           </spacer>
-         </item>
-        </layout>
-       </item>
-       <item row="2" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_22">
-         <item>
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>StartPinId</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="StartPinId"/>
-         </item>
-        </layout>
-       </item>
-       <item row="5" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_20">
-         <item>
-          <widget class="QLabel" name="label_17">
-           <property name="text">
-            <string>CreateMatFiles</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="CreateMatFiles"/>
-         </item>
-        </layout>
-       </item>
-       <item row="19" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_13">
-         <item>
-          <widget class="QLabel" name="label_20">
-           <property name="text">
-            <string>List of Material Set Start Ids</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="List_MaterialSet_StartId"/>
-         </item>
-        </layout>
-       </item>
-       <item row="29" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_8">
-         <item>
-          <widget class="QLabel" name="label_22">
-           <property name="text">
-            <string>SuperBlocks</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="SuperBlocks"/>
-         </item>
-        </layout>
-       </item>
-       <item row="9" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_18">
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Radial Mesh Size</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="RadialMeshSize"/>
-         </item>
-        </layout>
-       </item>
-       <item row="11" column="0">
-        <widget class="QWidget" name="AxialMeshLayout" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout_17">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Axial Mesh Size</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="AxialMeshSize"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="30" column="0">
-        <widget class="QWidget" name="MeshTypeLayout_2" native="true">
-         <layout class="QHBoxLayout" name="MeshTypeLayout">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_24">
-            <property name="text">
-             <string>Mesh Type</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="MeshType">
-            <item>
-             <property name="text">
-              <string>NotSet</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Hex</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Tet</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="35" column="0">
-        <widget class="QWidget" name="MeshSchemeLayout" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>MeshScheme</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="MeshScheme">
-            <item>
-             <property name="text">
-              <string>NotSet</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Pave</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Hole</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="13" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_16">
-         <item>
-          <widget class="QLabel" name="label_10">
-           <property name="text">
-            <string>Neumann Set StartId</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="NeumannSet_StartId"/>
-         </item>
-        </layout>
-       </item>
-       <item row="32" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Move</string>
-           </property>
-          </widget>
          </item>
          <item>
           <widget class="QLabel" name="label_25">
@@ -526,52 +368,6 @@
            </property>
           </widget>
          </item>
-         <item>
-          <spacer name="horizontalSpacer_5">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item row="21" column="0">
-        <widget class="QWidget" name="EdgeIntervalLayout" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout_12">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Edge Interval</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="EdgeInterval"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="17" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_14">
-         <item>
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Material Set Start Id</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="MaterialSet_StartId"/>
-         </item>
         </layout>
        </item>
       </layout>
@@ -584,24 +380,23 @@
   <tabstop>TetMeshSize</tabstop>
   <tabstop>StartPinId</tabstop>
   <tabstop>CreateMatFiles</tabstop>
+  <tabstop>Save_Exodus</tabstop>
   <tabstop>RadialMeshSize</tabstop>
-  <tabstop>AxialMeshSize</tabstop>
   <tabstop>NeumannSet_StartId</tabstop>
   <tabstop>List_NeumannSet_StartId</tabstop>
   <tabstop>MaterialSet_StartId</tabstop>
   <tabstop>List_MaterialSet_StartId</tabstop>
-  <tabstop>EdgeInterval</tabstop>
   <tabstop>MergeTolerance</tabstop>
   <tabstop>CreateFiles</tabstop>
   <tabstop>NumSuperBlocks</tabstop>
   <tabstop>SuperBlocks</tabstop>
-  <tabstop>MeshType</tabstop>
   <tabstop>CenterXYZ</tabstop>
+  <tabstop>CreateSideset</tabstop>
+  <tabstop>Info</tabstop>
+  <tabstop>MeshScheme</tabstop>
   <tabstop>MoveX</tabstop>
   <tabstop>MoveY</tabstop>
   <tabstop>MoveZ</tabstop>
-  <tabstop>CreateSideset</tabstop>
-  <tabstop>Info</tabstop>
   <tabstop>Unknown</tabstop>
   <tabstop>scrollArea</tabstop>
  </tabstops>

@@ -72,7 +72,6 @@ SET(RGGNuclear_UI
   qCoregenModel.ui
   qDefaults.ui
   Preferences.ui
-  CylinderCreateGui.ui
   qAssyParameters.ui
   qCoreParameters.ui
   qImportLog.ui

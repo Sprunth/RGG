@@ -17,7 +17,7 @@ public:
   ~cmbNucDefaultWidget();
   bool assyPitchChanged();
 public slots:
-  void set(QPointer<cmbNucDefaults> c, bool isCore, bool isHex);
+  void set(QPointer<cmbNucDefaults> c, bool isHex);
   void apply();
   void reset();
 signals:
