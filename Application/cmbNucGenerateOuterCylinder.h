@@ -15,7 +15,6 @@ public:
   ~cmbNucGenerateOuterCylinder();
 
   void exportFiles(cmbNucCore * core, cmbNucInpExporter & inpExporter);
-  void deleteTempFiles();
 
   QString getAssygenFileName();
   QString getCubitFileName();

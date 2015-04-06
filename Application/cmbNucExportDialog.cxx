@@ -298,10 +298,6 @@ void cmbNucExportDialog::GetRunnableCoreFile(bool force)
 
 void cmbNucExportDialog::cancel()
 {
-  if(OuterCylinder->generateCylinder())
-  {
-    OuterCylinder->deleteTempFiles();
-  }
   this->Progress->ui->command->setText("");
   qDebug() << "CANCELING";
   Exporter->cancel();
@@ -311,10 +307,6 @@ void cmbNucExportDialog::cancel()
 
 void cmbNucExportDialog::done()
 {
-  if(OuterCylinder->generateCylinder())
-  {
-    OuterCylinder->deleteTempFiles();
-  }
   this->Progress->ui->command->setText("");
   this->Progress->hide();
   QFileInfo fi(CoregenFile);
