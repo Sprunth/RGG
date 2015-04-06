@@ -1074,9 +1074,9 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
     for(pugi::xml_node tnode = node.child(UNKNOWN_TAG.c_str()); tnode;
         tnode = tnode.next_sibling(UNKNOWN_TAG.c_str()))
     {
-      std::string tmp;
-      if(read(tnode, STR_TAG.c_str(), tmp))
-        params->UnknownParams.push_back(tmp);
+      std::string tmp_str;
+      if(read(tnode, STR_TAG.c_str(), tmp_str))
+        params->UnknownParams.push_back(tmp_str);
     }
   }
 

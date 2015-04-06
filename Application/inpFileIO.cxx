@@ -1150,13 +1150,15 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
     PinCell* pincell = new PinCell();
     QPointer<cmbNucMaterial> firstMaterial = NULL;
     int attribute_count = 0;
-    std::string tmp;
-    input >> tmp;
-    pincell->setName(tmp);
+    {
+      std::string tmp;
+      input >> tmp;
+      pincell->setName(tmp);
 
-    input >> tmp;
-    pincell->setLabel(tmp);
-    input >> attribute_count;
+      input >> tmp;
+      pincell->setLabel(tmp);
+      input >> attribute_count;
+    }
 
     // initialize for HEX pincell pitch
 
@@ -1210,24 +1212,24 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
           // Get the material of the layer - note that we read in the material label that
           // maps to the actual material
           input >> mlabel;
-          QPointer< cmbNucMaterial > tmp = cmbNucMaterialColors::instance()->getUnknownMaterial();
+          QPointer< cmbNucMaterial > tmp_mat = cmbNucMaterialColors::instance()->getUnknownMaterial();
           std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
           map_iter it = materialLabelMap.find(mlabel);
           if(it != materialLabelMap.end())
           {
-            tmp = it->second;
+            tmp_mat = it->second;
           }
           else
           {
-            material_not_found = mlabel != tmp->getLabel().toStdString();
+            material_not_found = mlabel != tmp_mat->getLabel().toStdString();
             labelIsDifferent = true;
           }
           // Lets save the first material to use to set the pin's color legend
           if (firstMaterial == NULL)
           {
-            firstMaterial = tmp;
+            firstMaterial = tmp_mat;
           }
-          cylinder->SetMaterial(c,tmp);
+          cylinder->SetMaterial(c,tmp_mat);
           cylinder->setNormalizedThickness(c, radii[c] * alpha);
         }
       }
@@ -1705,30 +1707,30 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
         this->renamePin = freader.renamePin;
         core.AddAssembly(assembly);
         std::vector< std::string > tlog = freader.getLog();
-        for(unsigned int i = 0; i < tlog.size(); ++i)
+        for(unsigned int tlat = 0; tlat < tlog.size(); ++tlat)
         {
-          log.push_back( assyQString.toStdString() + " " + tlog[i] );
+          log.push_back( assyQString.toStdString() + " " + tlog[tlat] );
         }
       }
     }
     else
     {
       std::stringstream ss(tmp.c_str());
-      std::string sameAs, assyfilename;
+      std::string sameAs, assyfilenameOther;
       std::string msid, nsid;
-      ss >> sameAs >> assyfilename >> msid >> nsid;
-      std::map<std::string, cmbNucAssembly *>::const_iterator it = fnameToAssy.find(assyfilename);
+      ss >> sameAs >> assyfilenameOther >> msid >> nsid;
+      std::map<std::string, cmbNucAssembly *>::const_iterator it = fnameToAssy.find(assyfilenameOther);
       if(it == fnameToAssy.end())
       {
-        cmbNucAssemblyLink * tmp = new cmbNucAssemblyLink(NULL, msid, nsid);
-        tmp->setLabel(assylabel);
-        assemblyIdToLink[assyfilename] = tmp;
+        cmbNucAssemblyLink * link = new cmbNucAssemblyLink(NULL, msid, nsid);
+        link->setLabel(assylabel);
+        assemblyIdToLink[assyfilenameOther] = link;
       }
       else
       {
-        cmbNucAssemblyLink * tmp = new cmbNucAssemblyLink(it->second, msid, nsid);
-        tmp->setLabel(assylabel);
-        core.AddAssemblyLink(tmp);
+        cmbNucAssemblyLink * link = new cmbNucAssemblyLink(it->second, msid, nsid);
+        link->setLabel(assylabel);
+        core.AddAssemblyLink(link);
       }
     }
   }

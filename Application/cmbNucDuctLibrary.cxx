@@ -75,8 +75,8 @@ void cmbNucDuctLibrary
   this->NameToDuct.erase(iter);
   for(size_t i = iter->second; i < this->DuctCells.size(); ++i)
   {
-    DuctCell * dc = this->DuctCells[i];
-    NameToDuct[dc->getName()] = i;
+    DuctCell * dci = this->DuctCells[i];
+    NameToDuct[dci->getName()] = i;
   }
   this->Connection->DuctRemoved(dc);
   this->Connection->libraryChanged();

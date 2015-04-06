@@ -149,9 +149,9 @@ void cmbNucPinLibrary::removePincell(PinCell* pc)
   this->PinCells.erase(this->PinCells.begin() + ni->second);
   for(size_t i = ni->second; i < this->PinCells.size(); ++i)
   {
-    PinCell * pc = this->PinCells[i];
-    NameToPin[pc->getName()] = i;
-    LabelToPin[pc->getLabel()] = i;
+    PinCell * pci = this->PinCells[i];
+    NameToPin[pci->getName()] = i;
+    LabelToPin[pci->getLabel()] = i;
   }
   NameToPin.erase(ni);
   LabelToPin.erase(li);

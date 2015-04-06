@@ -21,9 +21,9 @@ public:
   {
     emit Changed();
   }
-  void EmitDeleted(PinCell * pc)
+  void EmitDeleted(PinCell * pincell)
   {
-    emit Deleted(pc);
+    emit Deleted(pincell);
   }
 public slots:
   void clearOldData();

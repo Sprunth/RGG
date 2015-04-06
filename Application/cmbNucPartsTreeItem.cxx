@@ -136,9 +136,9 @@ void cmbNucPartsTreeItem::setHighlights(bool fc, bool ng)
   this->setHighlights(NeedGeneration);
 }
 
-void cmbNucPartsTreeItem::setHighlights(bool NeedGeneration)
+void cmbNucPartsTreeItem::setHighlights(bool ng)
 {
-  if(NeedGeneration)
+  if(ng)
   {
     QBrush b;
     setForeground( 2 , b );
