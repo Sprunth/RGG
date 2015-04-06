@@ -95,7 +95,6 @@ public slots:
   void updateWithPinLibrary();
   void updateWithDuctLibrary();
   void updateWithAssembly();
-  void updateWithAssemblyLink();
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
@@ -115,6 +114,7 @@ protected:
                            const QColor& color );
   void assemblyModified(cmbNucPartsTreeItem* assyNode);
   void coreModified();
+  void updateWithAssemblyLink();
 
 
 private slots:

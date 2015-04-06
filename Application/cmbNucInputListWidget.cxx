@@ -131,11 +131,11 @@ public:
   cmbNucPartsTreeItem* AssemblyNode;
   cmbNucPartsTreeItem* PinsNode;
   cmbNucPartsTreeItem* DuctsNode;
-  cmbNucPartsTreeItem* AssemblyLinkNode;
 
   PartsItemDelegate * TreeItemDelegate;
   MaterialItemDelegate * MaterialDelegate;
   int previousMeshOrModelTab; //contains the previous tab except for material
+  std::map<std::string, cmbNucPartsTreeItem*> idToNode;
 };
 
 //-----------------------------------------------------------------------------
@@ -229,6 +229,7 @@ void cmbNucInputListWidget::setPartOptions(QMenu * qm) const
 {
   qm->clear();
   qm->addAction(this->Internal->Action_NewAssembly);
+  qm->addAction(this->Internal->Action_NewAssemblyLink);
   qm->addAction(this->Internal->Action_NewPin);
   qm->addAction(this->Internal->Action_NewDuct);
   qm->addAction(this->Internal->Action_Clone);
@@ -370,12 +371,10 @@ void cmbNucInputListWidget::initUI()
   {
     delete this->Internal->RootCoreNode;
     delete this->Internal->AssemblyNode;
-    delete this->Internal->AssemblyLinkNode;
     delete this->Internal->DuctsNode;
     delete this->Internal->PinsNode;
     this->Internal->RootCoreNode = NULL;
     this->Internal->AssemblyNode = NULL;
-    this->Internal->AssemblyLinkNode = NULL;
     this->Internal->DuctsNode = NULL;
     this->Internal->PinsNode = NULL;
   }
@@ -405,6 +404,7 @@ void cmbNucInputListWidget::onTabChanged(int currentTab)
 void cmbNucInputListWidget::setActionsEnabled(bool val)
 {
   this->Internal->Action_NewAssembly->setEnabled(val);
+  this->Internal->Action_NewAssemblyLink->setEnabled(val);
   this->Internal->Action_NewPin->setEnabled(val);
   this->Internal->Action_NewDuct->setEnabled(val);
   this->Internal->Action_Clone->setEnabled(val);
@@ -456,7 +456,7 @@ void cmbNucInputListWidget::onNewAssemblyLink()
   cmbNucAssembly * assy = this->getCurrentAssembly();
   if(assy == NULL)
   {
-    assy = this->NuclearCore->GetAssembly(0);
+    return;
   }
 
   cmbNucAssemblyLink * link = new cmbNucAssemblyLink(assy, "0", "0");
@@ -786,15 +786,8 @@ void cmbNucInputListWidget::initCoreRootNode()
     this->Internal->AssemblyNode = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, NULL);
     this->Internal->AssemblyNode->setText(0, "Assemblies");
     this->Internal->AssemblyNode->setFlags(itemFlags); // not editable
-    this->Internal->AssemblyNode->setChildIndicatorPolicy(
-                                                          QTreeWidgetItem::DontShowIndicatorWhenChildless);
+    this->Internal->AssemblyNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
     this->Internal->AssemblyNode->setExpanded(false);
-
-    this->Internal->AssemblyLinkNode = new cmbNucPartsTreeItem(this->Internal->RootCoreNode, NULL);
-    this->Internal->AssemblyLinkNode->setText(0, "Same As Assemblies");
-    this->Internal->AssemblyLinkNode->setFlags(itemFlags); // not editable
-    this->Internal->AssemblyLinkNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
-    this->Internal->AssemblyLinkNode->setExpanded(false);
   }
 }
 
@@ -805,19 +798,17 @@ void cmbNucInputListWidget::updateWithAssembly()
   {
     delete *i;
   }
+  this->Internal->idToNode.clear();
   for(int i=0; i<this->NuclearCore->GetNumberOfAssemblies(); i++)
   {
     this->updateWithAssembly(this->NuclearCore->GetAssembly(i), false);
   }
+  this->updateWithAssemblyLink();
 }
 
 void cmbNucInputListWidget::updateWithAssemblyLink()
 {
-  QList<QTreeWidgetItem *> tmpl = this->Internal->AssemblyLinkNode->takeChildren();
-  for(QList<QTreeWidgetItem *>::iterator i = tmpl.begin(); i != tmpl.end(); ++i)
-  {
-    delete *i;
-  }
+  //TODO:
   for(int i=0; i<this->NuclearCore->GetNumberOfAssemblyLinks(); i++)
   {
     this->updateWithAssemblyLink(this->NuclearCore->GetAssemblyLink(i), false);
@@ -828,15 +819,15 @@ void cmbNucInputListWidget::updateWithAssembly(cmbNucAssembly* assy, bool select
 {
   this->Internal->PartsList->blockSignals(true);
   // Assembly node
-  Qt::ItemFlags itemFlags(
-    Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-  cmbNucPartsTreeItem* assyNode = new cmbNucPartsTreeItem(
-    this->Internal->AssemblyNode, assy);
-  connect(this, SIGNAL(checkSavedAndGenerate()),
-          assyNode->connection, SLOT(checkSaveAndGenerate()));
-  connect(assy->GetConnection(), SIGNAL(dataChangedSig()),
-          assyNode->connection, SLOT(checkSaveAndGenerate()));
-  connect(assy->GetConnection(), SIGNAL(dataChangedSig()),
+  Qt::ItemFlags itemFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+  cmbNucPartsTreeItem* assyNode = new cmbNucPartsTreeItem(this->Internal->AssemblyNode,
+                                                          assy);
+  this->Internal->idToNode[assy->getLabel()] = assyNode;
+  connect(this,                      SIGNAL(checkSavedAndGenerate()),
+          assyNode->connection,      SLOT(checkSaveAndGenerate()));
+  connect(assy->GetConnection(),     SIGNAL(dataChangedSig()),
+          assyNode->connection,      SLOT(checkSaveAndGenerate()));
+  connect(assy->GetConnection(),     SIGNAL(dataChangedSig()),
           this->Internal->PartsList, SLOT(update()));
   assyNode->setText(0, assy->getLabel().c_str());
   assyNode->setFlags(itemFlags); // not editable
@@ -859,8 +850,14 @@ void cmbNucInputListWidget::updateWithAssemblyLink(cmbNucAssemblyLink* link, boo
   this->Internal->PartsList->blockSignals(true);
   // Assembly node
   Qt::ItemFlags itemFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-  cmbNucPartsTreeItem* assyNode = new cmbNucPartsTreeItem(this->Internal->AssemblyLinkNode, link);
-  std::string label = link->getLabel();// + " ---> " + link->getLink()->getLabel();
+  std::map<std::string, cmbNucPartsTreeItem*>::const_iterator node =
+        this->Internal->idToNode.find(link->getLink()->getLabel());
+  if( node == this->Internal->idToNode.end())
+  {
+    return;
+  }
+  cmbNucPartsTreeItem* assyNode = new cmbNucPartsTreeItem(node->second, link);
+  std::string label = link->getLabel();
   assyNode->setText(0, label.c_str());
   assyNode->setFlags(itemFlags); // not editable
   assyNode->setChildIndicatorPolicy(QTreeWidgetItem::DontShowIndicatorWhenChildless);
@@ -969,9 +966,9 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
   switch(selObj->GetType())
   {
     case CMBNUC_ASSEMBLY:
-      //TODO: make sure there is no link before one can delete
-      this->Internal->Action_DeletePart->setEnabled(this->NuclearCore->okToDelete(selObj->getLabel()));
+      this->Internal->Action_DeletePart->setEnabled(true);
       this->Internal->Action_Clone->setEnabled(true);
+      this->Internal->Action_NewAssemblyLink->setEnabled(true);
       break;
     case CMBNUC_ASSEMBLY_LINK:
       this->Internal->Action_DeletePart->setEnabled(true);

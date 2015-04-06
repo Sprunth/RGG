@@ -732,7 +732,7 @@
      </widget>
      <widget class="QWidget" name="pageLink">
       <layout class="QGridLayout" name="gridLayout">
-       <item row="4" column="0">
+       <item row="3" column="0">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -746,20 +746,6 @@
         </spacer>
        </item>
        <item row="1" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_14">
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>Assembly:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="AssemblyOptions"/>
-         </item>
-        </layout>
-       </item>
-       <item row="2" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_15">
          <item>
           <widget class="QLabel" name="label_8">
@@ -822,7 +808,7 @@
          </item>
         </layout>
        </item>
-       <item row="3" column="0">
+       <item row="2" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_16">
          <item>
           <widget class="QLabel" name="label_9">

@@ -124,9 +124,6 @@ void cmbNucInputPropertiesWidget::initUI()
   QObject::connect(this->Internal->assyLinkColorSelectButton, SIGNAL(clicked()),
                    this, SLOT(chooseLegendColor()));
 
-  QObject::connect(this->Internal->AssemblyOptions, SIGNAL(currentIndexChanged(const QString&)),
-                   this,                            SLOT(linkedAssemblyChanged(QString const&)));
-
   CoreDefaults = new cmbNucDefaultWidget();
   this->Internal->CoreDefaults->addWidget(CoreDefaults);
 
@@ -301,8 +298,7 @@ void cmbNucInputPropertiesWidget::onReset()
       cmbNucAssemblyLink* link = dynamic_cast<cmbNucAssemblyLink*>(selObj);
       this->resetAssemblyLink(link);
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageLink);
-      emit(select3DModelView());
-      emit(sendLattice(NULL));
+      emit(sendLattice(link->getLink()));
       break;
     }
     case CMBNUC_ASSY_PINCELL:
@@ -316,15 +312,14 @@ void cmbNucInputPropertiesWidget::onReset()
       emit(sendLattice(NULL));
       break;
     }
-    case CMBNUC_ASSY_FRUSTUM_PIN:
-    case CMBNUC_ASSY_CYLINDER_PIN:
-      /*handled in pin editor*/
-      break;
     case CMBNUC_ASSY_DUCTCELL:
       this->Internal->stackedWidget->setCurrentWidget(this->Internal->pageDuctCell);
       this->showDuctCellEditor();
       emit(sendLattice(NULL));
       break;
+    case CMBNUC_ASSY_FRUSTUM_PIN:
+    case CMBNUC_ASSY_CYLINDER_PIN:
+      /*handled in pin editor*/
     default:
       emit(sendLattice(NULL));
       this->setEnabled(0);
@@ -638,19 +633,6 @@ void cmbNucInputPropertiesWidget::applyToAssemblyLink(cmbNucAssemblyLink* link)
     link->setNeumannStartID(tmp);
   }
 
-  tmp = this->Internal->AssemblyOptions->currentText().toStdString();
-  cmbNucAssembly * assy = Core->GetAssembly(tmp);
-  if(assy && assy != link->getLink())
-  {
-    link->setLink(assy);
-    emit this->objGeometryChanged(assy);
-    changed = true;
-  }
-  else if(assy == NULL)
-  {
-    this->Internal->AssemblyOptions->setCurrentIndex( this->Internal->AssemblyOptions->findData(QString(link->getLink()->getLabel().c_str())));
-  }
-
   if(changed)
   {
     this->Core->setAndTestDiffFromFiles(true);
@@ -828,9 +810,6 @@ void cmbNucInputPropertiesWidget::resetAssemblyLink(cmbNucAssemblyLink* link)
     list.append(this->Core->GetAssembly(i)->getLabel().c_str());
   }
   int i = list.indexOf(tmp);
-  this->Internal->AssemblyOptions->clear();
-  this->Internal->AssemblyOptions->addItems(list);
-  this->Internal->AssemblyOptions->setCurrentIndex(i);
 
   QLabel* swatch = this->Internal->assyLinkColorSwatch;
   QPalette c_palette = swatch->palette();
@@ -1167,11 +1146,4 @@ void cmbNucInputPropertiesWidget::coreYSizeChanged(int i)
   {
     this->onCalculateCylinderDefaults(true);
   }
-}
-
-void cmbNucInputPropertiesWidget::linkedAssemblyChanged(QString const& label)
-{
-  cmbNucAssembly * a = this->Core->GetAssembly(label.toStdString());
-  if(a!=NULL)
-    emit this->objGeometryChanged(a);
 }
