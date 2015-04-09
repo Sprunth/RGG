@@ -1000,7 +1000,7 @@ void cmbNucInputPropertiesWidget::onCalculateCylinderDefaults(bool checkOld)
   {
     double a = ductsize[0] * 0.2;
     double tmp = (this->Internal->coreLatticeX->value()-0.5)*ductsize[0]+a;
-    double tmp2 = ((ductsize[0]+a)/std::sqrt(3))*0.5;
+    double tmp2 = ((ductsize[0]+a)/std::sqrt(3.0))*0.5;
     double h = std::sqrt(tmp*tmp + tmp2*tmp2);
     initRadius = h;
     this->Internal->OuterEdgeInterval->setValue(this->Internal->coreLatticeX->value()*ei*12);
