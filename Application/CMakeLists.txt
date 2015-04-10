@@ -79,7 +79,6 @@ SET(RGGNuclear_UI
 
 SET(RGGNuclear_Headers
   cmbNucAssembly.h
-  cmbNucAssemblyLink.h
   cmbNucCore.h
   cmbNucDuctCellEditor.h
   cmbNucDefaults.h
