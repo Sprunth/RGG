@@ -16,5 +16,10 @@ add_external_project_step(patch_zlib_cmakelists
   DEPENDERS patch  # do before patch
 )
 
-add_extra_cmake_args(
-  "-DZLIB_LIBRARY:FILEPATH=<INSTALL_DIR>/lib/zlib${CMAKE_STATIC_LIBRARY_SUFFIX}")
+if (WIN32)
+  add_extra_cmake_args(
+    "-DZLIB_LIBRARY:FILEPATH=<INSTALL_DIR>/lib/zlib${CMAKE_STATIC_LIBRARY_SUFFIX}")
+else ()
+  add_extra_cmake_args(
+    "-DZLIB_LIBRARY:FILEPATH=<INSTALL_DIR>/lib/libz${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endif ()
