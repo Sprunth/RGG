@@ -64,10 +64,9 @@ if(BUILD_MESHKIT_MASTER)
     GIT_TAG master
   )
 else()
-  add_revision(moab
-    GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-    GIT_TAG 4.8.0
-  )
+  add_revision( moab
+                GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
+                GIT_TAG add_verdict_support )
 
   add_revision(lasso
     GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
@@ -75,7 +74,9 @@ else()
   )
 
   add_revision(meshkit
-    GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-    GIT_TAG MeshKitv1.3
+    #GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
+    GIT_REPOSITORY https://bitbucket.org/judajake/meshkit.git
+    #GIT_TAG MeshKitv1.3
+    GIT_TAG add_postbl_exe
   )
 endif()

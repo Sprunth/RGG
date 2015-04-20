@@ -37,8 +37,7 @@ class vtkPolyData;
    FUN_SIMPLE(bool, bool, Info, info, false, "on") \
    FUN_SIMPLE(bool, bool, MeshInfo, meshinfo, false, "on") \
    FUN_STRUCT(std::vector<cmbNucCoreParams::NeumannSetStruct>, cmbNucCoreParams::NeumannSetStruct, NeumannSet, neumannset, false, "") \
-   FUN_STRUCT(cmbNucCoreParams::ExtrudeStruct,                 cmbNucCoreParams::ExtrudeStruct,    Extrude,    extrude,    false, "") \
-   FUN_SIMPLE(std::string, QString, OutputFileName, outputfilename, "", "")
+   FUN_STRUCT(cmbNucCoreParams::ExtrudeStruct,                 cmbNucCoreParams::ExtrudeStruct,    Extrude,    extrude,    false, "") 
 
 template<class TYPE>
 bool operator!=(std::vector<TYPE> const& vec, bool v)
@@ -142,10 +141,25 @@ class cmbNucCore : public LatticeContainer
 {
 public:
 
-  friend class inpFileReader;
-  friend class inpFileHelper;
-  friend class inpFileWriter;
   friend class cmbNucCoreConnection;
+
+  class boundryLayer
+  {
+  public:
+    boundryLayer()//TODO update this when there is better understanding
+    {
+      NeumannSet = 14;
+      Fixmat = 4;
+      Thickness = 0.1;
+      Intervals = 6;
+      Bias = 0.7;
+    }
+    int NeumannSet;
+    int Fixmat;
+    double Thickness;
+    int Intervals;
+    double Bias;
+  };
 
   // Creates an empty Core.
   cmbNucCore(bool needSaved = true);
@@ -242,14 +256,20 @@ public:
 
   void setGeometryLabel(std::string geomType);
 
-  std::string CurrentFileName;
-  std::string ExportFileName;
-  std::string GenerateDirectory;
-  std::string h5mFile;
-  void setHexSymmetry(int sym);
+  void setFileName( std::string const& fname );
 
-  bool DifferentFromFile;
-  bool DifferentFromH5M;
+  void setGenerateDirectory(std::string const& dir);
+  std::string const& getGenerateDirectory() const;
+
+  std::string getCoregenMeshOutputFilename() const;
+  std::string getFinalMeshOutputFilename() const;
+  std::string getMeshFilename(size_t i) const;
+  void setFinalMeshOutputFilename(std::string const& fname);
+
+  std::string const& getExportFileName() const;
+  void setExportFileName(std::string const& fname);
+
+  void setHexSymmetry(int sym);
 
   cmbNucCoreParams Params;
 
@@ -309,6 +329,12 @@ public:
 
   std::map< std::string, std::set< Lattice::CellDrawMode > > getDrawModesForAssemblies();
 
+  void addBoundryLayer(boundryLayer * bl); //Takes ownership
+  int getNumberOfBoundryLayers() const;
+  void removeBoundryLayer(size_t bl);
+  void clearBoundryLayer();
+  boundryLayer const* getBoundryLayer(int bl) const;
+
 private:
   bool hasCylinder;
   double cylinderRadius;
@@ -316,13 +342,25 @@ private:
 
   std::vector<cmbNucAssembly*> Assemblies;
   std::vector<cmbNucAssemblyLink*> AssemblyLinks;
+  std::vector<boundryLayer *> BoundryLayers;
+
   cmbNucPinLibrary * PinLibrary;
   cmbNucDuctLibrary * DuctLibrary;
   cmbNucCoreConnection * Connection;
 
   QPointer<cmbNucDefaults> Defaults;
 
+  std::string meshFilePrefix;
+  std::string meshFileExtention;
+
+  bool DifferentFromFile;
+  bool DifferentFromH5M;
+
   int HexSymmetry;
+
+  std::string CurrentFileName;
+  std::string GenerateDirectory;
+  std::string ExportFileName;
 
 };
 

@@ -7,6 +7,7 @@
 #include <set>
 #include <QObject>
 #include <QThread>
+#include <QStringList>
 #include <QMutex>
 
 class cmbNucExporterWorker;
@@ -70,7 +71,8 @@ struct Message
   std::vector<AssygenTask> assemblyTasks;
   CylinderTask cylinderTask;
   QString coregenFile;
-  QString CoreGenOutputFile;
+  QStringList boundryFiles;
+  QStringList CoreGenOutputFile;
   bool keepGoingAfterError;
 };
 
@@ -86,6 +88,7 @@ public:
   void setKeepGoing(bool);
   void setAssygen(QString assygenExe,QString assygenLib);
   void setCoregen(QString coregenExe,QString coregenLib);
+  void setPostBL(QString postBLExe, QString postBLLib);
   void setNumberOfProcessors(int v);
   void setCubit(QString cubitExe);
   void waitTillDone();
@@ -117,6 +120,9 @@ private:
                                          std::vector<JobHolder*> debIn,
                                          const QString CoreGenOutputFile,
                                          bool use_cylinder_version );
+  std::vector<JobHolder*> runPostBLHelper( const QStringList boundryControlFiles,
+                                           std::vector<JobHolder*> debIn,
+                                           const QStringList CoreGenOutputFile );
   std::vector<JobHolder*> exportCylinder( Message::CylinderTask const& msg );
   JobHolder* makeAssyJob(const QString assygenFile);
 
@@ -134,6 +140,7 @@ private:
   QString CylinderCoregenExe;
   QString CoregenExe, CoregenLib;
   QString CubitExe;
+  QString PostBLExe, PostBLLib;
 
   cmbNucExportInternal * internal;
 

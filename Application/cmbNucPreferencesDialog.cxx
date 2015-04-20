@@ -23,6 +23,8 @@ cmbNucPreferencesDialog::cmbNucPreferencesDialog(QMainWindow *mainWindow)
           this, SLOT(browserCubitExecutable()) );
   connect( this->ui->coregenExeBrowseButton, SIGNAL(clicked()),
           this, SLOT(browserCoregenExecutable()) );
+  connect( this->ui->postBLBrowseButton, SIGNAL(clicked()),
+          this, SLOT(browserPostBLExectuable()) );
   connect( this->ui->buttonBox, SIGNAL(accepted()),
           this, SLOT(setValues() ));
   connect(this->ui->parallel_Projection, SIGNAL(clicked(bool)),
@@ -36,6 +38,8 @@ cmbNucPreferencesDialog::cmbNucPreferencesDialog(QMainWindow *mainWindow)
   connect(this->ui->coregenExecutable, SIGNAL(editingFinished()),
           this, SLOT(checkValues()));
   connect(this->ui->cubitExecutable, SIGNAL(editingFinished()),
+          this, SLOT(checkValues()));
+  connect(this->ui->postBLExecutable, SIGNAL(editingFinished()),
           this, SLOT(checkValues()));
 }
 
@@ -61,6 +65,11 @@ void cmbNucPreferencesDialog::setPreferences(bool e)
   this->ui->cubitExecutable->setText(cubitexe);
   libs = settings.value("coregen_libs").toString();
   this->ui->CoreGenLib->setText(libs);
+  QString postBL_exe = settings.value("PostBL_exe").toString();
+  libs = settings.value("PostBL_libs").toString();
+  this->ui->postBLExecutable->setText(postBL_exe);
+  this->ui->postBLLib->setText(libs);
+
   bool useCustom = settings.value("custom_meshkit",
                                   QVariant(!cmbNucPreferencesDialog::hasPackaged())).toBool();
   int nop = settings.value("number_of_processors", QVariant(3)).toInt();
@@ -69,46 +78,44 @@ void cmbNucPreferencesDialog::setPreferences(bool e)
   this->ui->customMeshkit->setVisible(cmbNucPreferencesDialog::hasPackaged());
   this->ui->AssygenGroup->setVisible(useCustom || !cmbNucPreferencesDialog::hasPackaged());
   this->ui->CoregenGroup->setVisible(useCustom || !cmbNucPreferencesDialog::hasPackaged());
+  this->ui->PostBLGroup->setVisible(useCustom || !cmbNucPreferencesDialog::hasPackaged());
   this->checkValues();
   this->show();
 }
 
-void cmbNucPreferencesDialog::browserAssygenExecutable()
+void cmbNucPreferencesDialog::browserExectuable( QLineEdit* line)
 {
   QFileDialog dialog(this);
   dialog.setFileMode(QFileDialog::ExistingFiles);
   dialog.setAcceptMode(QFileDialog::AcceptOpen);
   QStringList fileNames;
   QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this->ui->assygenExecutable, SLOT(setText(const QString&)));
+                   line, SLOT(setText(const QString&)));
   QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
                    this, SLOT(checkValues()));
   dialog.exec();
+}
+
+void cmbNucPreferencesDialog::browserAssygenExecutable()
+{
+  this->browserExectuable(this->ui->assygenExecutable);
 }
 
 void cmbNucPreferencesDialog::browserCubitExecutable()
 {
-  QFileDialog dialog(this);
-  dialog.setFileMode(QFileDialog::ExistingFiles);
-  dialog.setAcceptMode(QFileDialog::AcceptOpen);
-  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this->ui->cubitExecutable, SLOT(setText(const QString&)));
-  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this, SLOT(checkValues()));
-  dialog.exec();
+  this->browserExectuable(this->ui->cubitExecutable);
 }
 
 void cmbNucPreferencesDialog::browserCoregenExecutable()
 {
-  QFileDialog dialog(this);
-  dialog.setFileMode(QFileDialog::ExistingFiles);
-  dialog.setAcceptMode(QFileDialog::AcceptOpen);
-  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this->ui->coregenExecutable, SLOT(setText(const QString&)));
-  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this, SLOT(checkValues()));
-  dialog.exec();
+  this->browserExectuable(this->ui->coregenExecutable);
 }
+
+void cmbNucPreferencesDialog::browserPostBLExectuable()
+{
+  this->browserExectuable(this->ui->postBLExecutable);
+}
+
 
 void cmbNucPreferencesDialog::setValues()
 {
@@ -117,6 +124,8 @@ void cmbNucPreferencesDialog::setValues()
   QString cubitExe = ui->cubitExecutable->text();
   QString coregenExe = ui->coregenExecutable->text();
   QString coregenLibs = ui->CoreGenLib->toPlainText();
+  QString postBLExe = ui->postBLExecutable->text();
+  QString postBLLibs = ui->postBLLib->toPlainText();
   int numberOfProcessors = ui->numberOfProccessors->value();
   QSettings settings(NAME_PROJECT, EXPORTER_NAME);
   settings.setValue("assygen_exe", assygenExe);
@@ -124,6 +133,8 @@ void cmbNucPreferencesDialog::setValues()
   settings.setValue("coregen_exe", coregenExe);
   settings.setValue("cubit_exe", cubitExe);
   settings.setValue("coregen_libs", coregenLibs);
+  settings.setValue("PostBL_exe", postBLExe);
+  settings.setValue("PostBL_libs", postBLLibs);
   settings.setValue("custom_meshkit", this->ui->customMeshkit->isChecked());
   settings.setValue("number_of_processors", numberOfProcessors);
   if(EmitValuesSet) emit valuesSet();
@@ -136,12 +147,16 @@ void cmbNucPreferencesDialog::checkValues()
   {
     QString assygenExe = ui->assygenExecutable->text();
     QString coregenExe = ui->coregenExecutable->text();
+    QString postBLExe = ui->postBLExecutable->text();
     QFileInfo ainfo(assygenExe);
     QFileInfo cinfo(coregenExe);
+    QFileInfo pinfo(postBLExe);
     enabled &= (!assygenExe.isEmpty() && ainfo.exists() &&
-                  ainfo.isExecutable() && !ainfo.isDir()) &&
-                 (!coregenExe.isEmpty() && cinfo.exists() &&
-                  cinfo.isExecutable() && !cinfo.isDir());
+                 ainfo.isExecutable() && !ainfo.isDir()) &&
+               (!coregenExe.isEmpty() && cinfo.exists() &&
+                 cinfo.isExecutable() && !cinfo.isDir()) &&
+               (!postBLExe.isEmpty() && pinfo.exists() &&
+                 pinfo.isExecutable() && !pinfo.isDir());
   }
   QString cubitExe = ui->cubitExecutable->text();
 #if __APPLE__
@@ -164,10 +179,12 @@ bool cmbNucPreferencesDialog::isOk()
   QString assygenexe = settings.value("assygen_exe").toString();
   QString coregenexe = settings.value("coregen_exe").toString();
   QString cubitexe = settings.value("cubit_exe").toString();
+  QString postBLExe = settings.value("PostBL_exe").toString();
   bool useCustom = settings.value("custom_meshkit", QVariant(false)).toBool();
   bool hasCubit = !cubitexe.isEmpty() && QFileInfo(cubitexe).exists();
   bool hasAssygen = !assygenexe.isEmpty() && QFileInfo(assygenexe).exists();
   bool hasCoregen = !coregenexe.isEmpty() && QFileInfo(coregenexe).exists();
+  bool hasPostBL = !postBLExe.isEmpty() && QFileInfo(postBLExe).exists();
   bool hasPack = cmbNucPreferencesDialog::hasPackaged();
   bool hasRgg = (!useCustom && hasPack) || ((!hasPack || useCustom) && hasAssygen && hasCoregen);
   return hasRgg && hasCubit;
@@ -213,6 +230,23 @@ bool cmbNucPreferencesDialog::getExecutable(QString & assygenExe, QString & assy
   return cmbNucPreferencesDialog::isOk();
 }
 
+bool cmbNucPreferencesDialog::getPostBL(QString & exe, QString & lib)
+{
+  QSettings settings(NAME_PROJECT, EXPORTER_NAME);
+  bool useCustom = settings.value("custom_meshkit", QVariant(false)).toBool();
+  if(useCustom || !cmbNucPreferencesDialog::hasPackaged())
+  {
+    exe = settings.value("PostBL_exe").toString();
+    lib = settings.value("PostBL_libs").toString();
+  }
+  else
+  {
+    qDebug() << "use packaged exe";
+    cmbNucPreferencesDialog::getPackaged(exe);
+  }
+  return cmbNucPreferencesDialog::isOk();
+}
+
 bool cmbNucPreferencesDialog::getPackaged(QString & assygenExe, QString & coregenExe)
 {
 #if __APPLE__
@@ -243,6 +277,31 @@ bool cmbNucPreferencesDialog::getPackaged(QString & assygenExe, QString & corege
   qDebug() << assygenExe << coregenExe;
   return ((!assygenExe.isEmpty() && QFileInfo(assygenExe).exists()) &&
           (!coregenExe.isEmpty() && QFileInfo(coregenExe).exists()));
+#else
+  return false;
+#endif
+}
+
+bool cmbNucPreferencesDialog::getPackaged(QString & postBL)
+{
+#if __APPLE__
+  QDir appDir(QCoreApplication::applicationDirPath());
+  postBL = QDir::cleanPath(appDir.absoluteFilePath("../../meshkit/postbl/Contents/bin/PostBL"));
+  return (!postBL.isEmpty() && QFileInfo(postBL).exists());
+#elif __linux__
+  QDir appDir(QCoreApplication::applicationDirPath());
+  postBL = QDir::cleanPath(appDir.absoluteFilePath("PostBL"));
+  if (!postBL.isEmpty() && QFileInfo(postBL).exists())
+  {
+    return true;
+  }
+  postBL = QDir::cleanPath(appDir.absoluteFilePath("../bin/PostBL"));
+  if (!postBL.isEmpty() && QFileInfo(postBL).exists())
+  {
+    return true;
+  }
+  postBL = QDir::cleanPath(appDir.absoluteFilePath("../meshkit/PostBL"));
+  return (!postBL.isEmpty() && QFileInfo(postBL).exists());
 #else
   return false;
 #endif

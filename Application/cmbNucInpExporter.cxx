@@ -25,7 +25,7 @@ void cmbNucInpExporter
 bool cmbNucInpExporter
 ::exportInpFiles()
 {
-  QString coreName = this->NuclearCore->ExportFileName.c_str();
+  QString coreName = this->NuclearCore->getExportFileName().c_str();
   if(coreName.isEmpty())
   {
     coreName = requestInpFileName("","Core");
@@ -66,8 +66,8 @@ bool cmbNucInpExporter
     if(fileName.isEmpty())
     {
       fileName = coreinfo.dir().path() + QString("/assembly_") +
-      QString(assembly->getLabel().c_str()).toLower() +
-      ".inp";
+                 QString(assembly->getLabel().c_str()).toLower() +
+                 ".inp";
     }
     QFileInfo assyFileInfo(fileName);
     assembly->ExportFileName = fileName.toStdString();
@@ -91,9 +91,19 @@ bool cmbNucInpExporter
     this->exportInpFile(assemblyClone, false);
     delete assemblyClone;
   }
-  if(this->NuclearCore->changeSinceLastGenerate())
+  if(this->NuclearCore->changeSinceLastGenerate()) //TODO, Boundry Layer check
   {
     inpFileWriter::write(coreName.toStdString(), *(this->NuclearCore));
+    {
+      QString path = coreinfo.absolutePath();
+      for(int i = 0; i < this->NuclearCore->getNumberOfBoundryLayers(); ++i)
+      {
+        std::string prev = this->NuclearCore->getMeshFilename(static_cast<size_t>(i));
+        std::string curent = this->NuclearCore->getMeshFilename(static_cast<size_t>(i+1));
+        QString fname = path + "/" + coreinfo.baseName() + ".bl" + QString::number(i) + ".inp";
+        inpFileWriter::write(fname.toStdString(), this->NuclearCore->getBoundryLayer(i), prev, curent);
+      }
+    }
   }
   return true;
 }

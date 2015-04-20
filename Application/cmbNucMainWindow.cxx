@@ -1135,13 +1135,13 @@ void cmbNucMainWindow::onSaveSelectedAs()
 void cmbNucMainWindow::saveXML(cmbNucCore* core, bool request_file_name, bool force)
 {
   if(core == NULL) return;
-  QString fileName = core->CurrentFileName.c_str();
+  QString fileName = core->getFileName().c_str();
   if(request_file_name || fileName.isEmpty())
   {
     fileName = cmbNucMainWindow::requestXMLFileName("","Core");
   }
   if(fileName.isEmpty()) return;
-  core->CurrentFileName = fileName.toStdString();
+  core->setFileName( fileName.toStdString() );
   if(force || core->changeSinceLastSave())
   {
     xmlFileWriter::write(fileName.toStdString(), *core);
@@ -1231,7 +1231,7 @@ void cmbNucMainWindow::onExportINPFiles()
     NuclearCore->GetAssembly(i)->ExportFileName = dir.toStdString() +
     "/assembly_" + tmpl + ".inp";
   }
-  NuclearCore->ExportFileName =dir.toStdString() + "/core.inp";
+  NuclearCore->setExportFileName(dir.toStdString() + "/core.inp");
   if( this->NuclearCore->Params.BackgroundMode == cmbNucCoreParams::External  &&
       QFileInfo(this->NuclearCore->Params.BackgroundFullPath.c_str()).exists() )
   {
@@ -1243,7 +1243,7 @@ void cmbNucMainWindow::onExportINPFiles()
 
 void cmbNucMainWindow::onUpdateINPFiles()
 {
-  if(this->NuclearCore->ExportFileName.empty())
+  if(this->NuclearCore->getExportFileName().empty())
   {
     this->onExportINPFiles();
     return;

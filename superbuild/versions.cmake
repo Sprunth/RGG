@@ -85,7 +85,7 @@ add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
-  GIT_TAG v6.2.0.rc1
+  GIT_TAG v6.2.0
 )
 
 if (UNIX)
@@ -208,8 +208,10 @@ else()
                  GIT_TAG master)
   else(BUILD_MESHKIT_MASTER)
     add_revision(meshkit
-                 GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-                 GIT_TAG MeshKitv1.3)
+                 #GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
+                  GIT_REPOSITORY https://bitbucket.org/judajake/meshkit.git
+                 #GIT_TAG MeshKitv1.3
+                  GIT_TAG add_postbl_exe )
   endif(BUILD_MESHKIT_MASTER)
 endif()
 
@@ -242,7 +244,13 @@ if(BUILD_MESHKIT_MASTER)
                  GIT_TAG fix_windows )
   endif(WIN32)
 else()
-  add_revision( moab
-                GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
-                GIT_TAG 4.8.0 )
+  if(WIN32)
+    add_revision( moab
+                  GIT_REPOSITORY https://bitbucket.org/fathomteam/moab.git
+                  GIT_TAG 4.8.0 )
+  else()
+    add_revision( moab
+                  GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
+                  GIT_TAG add_verdict_support )
+  endif()
 endif()

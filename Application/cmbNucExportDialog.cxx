@@ -87,12 +87,15 @@ void cmbNucExportDialog::exportFile(cmbNucCore * core, cmbNucInpExporter & inpEx
 
 void cmbNucExportDialog::sendSignalToProcess()
 {
+  if(Core == NULL) return;
   qDebug() << "SENDING TO THREAD";
 
   int numberOfThreads;
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  QString postBLExe, postBLLib;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
-                                             coregenExe, coreGenLibs, numberOfThreads))
+                                             coregenExe, coreGenLibs, numberOfThreads)||
+     !cmbNucPreferencesDialog::getPostBL(postBLExe, postBLLib))
   {
     qDebug() << "One of the export exe is missing";
     emit error("One of the export exe is missing");
@@ -101,6 +104,7 @@ void cmbNucExportDialog::sendSignalToProcess()
 
   Exporter->setAssygen(assygenExe,assyGenLibs);
   Exporter->setCubit(cubitExe);
+  Exporter->setPostBL(postBLExe, postBLLib);
   Exporter->setNumberOfProcessors(numberOfThreads);
   coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe, coreGenLibs);
@@ -127,21 +131,18 @@ void cmbNucExportDialog::sendSignalToProcess()
   send_core_mesh = true;
 
   this->Progress->show();
-  if(Core == NULL || Core->h5mFile.empty())
+  message.CoreGenOutputFile.clear();
+  message.boundryFiles.clear();
   {
     QFileInfo fi(CoregenFile);
     QString path = fi.absolutePath();
-    QString name = fi.completeBaseName();
-    message.CoreGenOutputFile = path + '/' + name + ".h5m";
-    Core->h5mFile = name.toStdString();
-  }
-  else
-  {
-    QFileInfo fi(CoregenFile);
-    QString path = fi.absolutePath();
-    qDebug() << Core->h5mFile.c_str();
-    message.CoreGenOutputFile = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
-    qDebug() << message.CoreGenOutputFile;
+    for(int i = 0; i < this->Core->getNumberOfBoundryLayers(); ++i)
+    {
+      std::string currentOf = this->Core->getMeshFilename(static_cast<size_t>(i));
+      message.CoreGenOutputFile << path + "/" + QString(currentOf.c_str()).trimmed();
+      message.boundryFiles << path + "/" + fi.baseName() + ".bl" + QString::number(i) + ".inp";
+    }
+    message.CoreGenOutputFile << path + "/" + QString(this->Core->getFinalMeshOutputFilename().c_str()).trimmed();
   }
 
   OuterCylinder->exportFiles(this->Core, *InpExporter);
@@ -159,9 +160,10 @@ void cmbNucExportDialog::sendSignalToProcess()
 void cmbNucExportDialog::runAssygen()
 {
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+
   int thread_count;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
-                                             coregenExe, coreGenLibs, thread_count))
+                                             coregenExe, coreGenLibs, thread_count) )
   {
     qDebug() << "One of the export exe is missing";
     emit error("One of the export exe is missing");
@@ -200,12 +202,15 @@ void cmbNucExportDialog::runSelectedAssygen()
 
 void cmbNucExportDialog::runCoregen()
 {
+  if(Core == NULL) return;
   qDebug() << "SENDING TO THREAD";
   send_core_mesh = true;
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
+  QString postBLExe, postBLLib;
   int thread_count;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
-                                             coregenExe, coreGenLibs, thread_count))
+                                             coregenExe, coreGenLibs, thread_count)||
+     !cmbNucPreferencesDialog::getPostBL(postBLExe, postBLLib))
   {
     qDebug() << "One of the export exe is missing";
     emit error("One of the export exe is missing");
@@ -217,6 +222,7 @@ void cmbNucExportDialog::runCoregen()
   
   coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe,coreGenLibs);
+  Exporter->setPostBL(postBLExe, postBLLib);
   Exporter->setNumberOfProcessors(thread_count);
   this->hide();
   if(CoregenFile.isEmpty())
@@ -226,22 +232,18 @@ void cmbNucExportDialog::runCoregen()
     return;
   }
   this->Progress->show();
-  message.CoreGenOutputFile = QString();
-  if(Core == NULL || Core->h5mFile.empty())
-  {
-    QFileInfo fi(message.coregenFile);
-    QString path = fi.absolutePath();
-    QString name = fi.completeBaseName();
-    message.CoreGenOutputFile = path + '/' + name + ".h5m";
-    Core->h5mFile = name.toStdString();
-  }
-  else
+  message.CoreGenOutputFile.clear();
+  message.boundryFiles.clear();
   {
     QFileInfo fi(CoregenFile);
     QString path = fi.absolutePath();
-    qDebug() << Core->h5mFile.c_str();
-    message.CoreGenOutputFile = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
-    qDebug() << message.CoreGenOutputFile;
+    for(int i = 0; i <= this->Core->getNumberOfBoundryLayers(); ++i)
+    {
+      std::string currentOf = this->Core->getMeshFilename(static_cast<size_t>(i));
+      message.CoreGenOutputFile << path + "/" + QString(currentOf.c_str()).trimmed();
+      message.boundryFiles << path + "/" + fi.baseName() + ".bl" + QString::number(i) + ".inp";
+    }
+    message.CoreGenOutputFile << path + "/" + QString(this->Core->getFinalMeshOutputFilename().c_str()).trimmed();
   }
 
   message.keepGoingAfterError = this->ui->keepGoingOnError->isChecked();
@@ -291,7 +293,7 @@ void cmbNucExportDialog::GetRunnableCoreFile(bool force)
   MainWindow->checkForNewCUBH5MFiles();
   if(force || Core->changeSinceLastGenerate())
   {
-    this->CoregenFile = Core->ExportFileName.c_str();
+    this->CoregenFile = Core->getExportFileName().c_str();
   }
   this->ui->coregenInputFile->setText(CoregenFile);
 }
@@ -311,8 +313,7 @@ void cmbNucExportDialog::exportDone()
   this->Progress->hide();
   QFileInfo fi(CoregenFile);
   QString path = fi.absolutePath();
-  qDebug() << Core->h5mFile.c_str();
-  QString outputMesh = path + "/" + QString(Core->h5mFile.c_str()).trimmed();
+  QString outputMesh = path + "/" + QString(Core->getFinalMeshOutputFilename().c_str()).trimmed();
   if(send_core_mesh)
     emit(finished(outputMesh));
 }

@@ -10,6 +10,7 @@
 
 // Forward Qt class declarations
 class QMainWindow;
+class QLineEdit;
 
 class cmbNucPreferencesDialog : public QDialog
 {
@@ -25,7 +26,9 @@ public:
                             QString & cubitExe,
                             QString & coregenExe, QString & coregenLib,
                             int & numberOfProcessors);
+  static bool getPostBL(QString & exe, QString & lib);
   static bool getPackaged(QString & assygenExe, QString & coregenExe);
+  static bool getPackaged(QString & postBL);
 
 public slots:
   void setPreferences(bool e = false);
@@ -38,11 +41,13 @@ protected slots:
   void browserAssygenExecutable();
   void browserCubitExecutable();
   void browserCoregenExecutable();
+  void browserPostBLExectuable();
   void setValues();
   void checkValues();
 
 private:
   // Designer form
+  void browserExectuable( QLineEdit* );
   Ui_Preferences *ui;
   bool EmitValuesSet;
 };

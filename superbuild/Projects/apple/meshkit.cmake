@@ -24,7 +24,7 @@ if(BUILD_MESHKIT_MASTER)
       --with-itaps=<INSTALL_DIR>
       --enable-algs
       --enable-optimize
-      --disable-src
+      --enable-src
       --enable-utils
       --enable-rgg
     --enable-shared
@@ -42,7 +42,7 @@ else()
       --with-itaps=<INSTALL_DIR>
       --enable-algs
       --enable-optimize
-      --disable-src
+      --enable-src
       --enable-utils
       --enable-rgg
       --enable-shared

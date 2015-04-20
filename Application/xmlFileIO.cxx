@@ -605,7 +605,7 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
   //Write parameters
   {
     pugi::xml_node node = rootElement.append_child(PARAMETERS_TAG.c_str());
-    if(!write(node, MESH_FILENAME_TAG.c_str(), core.h5mFile)) return false;
+    if(!write(node, MESH_FILENAME_TAG.c_str(), core.getFinalMeshOutputFilename())) return false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     if( core.Params.Var##IsSet() ) \
     {\
@@ -688,7 +688,7 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
       {
         core.Params.BackgroundMode = cmbNucCoreParams::External;
         //check to make sure the file exists.
-        QFileInfo tmpFI( QFileInfo(core.CurrentFileName.c_str()).dir(),
+        QFileInfo tmpFI( QFileInfo(core.getFileName().c_str()).dir(),
                          core.Params.Background.c_str() );
         //qDebug() << tmpFI;
         if(!tmpFI.exists())
@@ -770,7 +770,11 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
   //Read parameters
   {
     pugi::xml_node node = rootElement.child(PARAMETERS_TAG.c_str());
-    read(node, MESH_FILENAME_TAG.c_str(), core.h5mFile);
+    {
+      std::string outf;
+      read(node, MESH_FILENAME_TAG.c_str(), outf);
+      core.setFinalMeshOutputFilename(outf);
+    }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     read(node, #Key, core.Params.Var);
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
@@ -1203,7 +1207,7 @@ bool xmlFileReader::read(std::string fname, cmbNucCore & core)
 
   xmlHelperClass helper;
 
-  core.CurrentFileName = fname;
+  core.setFileName(fname);
 
   return helper.read(content, core);
 }

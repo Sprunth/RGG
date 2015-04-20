@@ -439,8 +439,8 @@ bool inpFileReader
   std::string strPath = info.dir().path().toStdString();
 
   inpFileHelper helper;
-  core.ExportFileName = FileName;
-  core.h5mFile = (info.completeBaseName() + ".h5m").toStdString();
+  core.setExportFileName(FileName);
+  core.setFinalMeshOutputFilename((info.completeBaseName() + ".h5m").toStdString());
   std::stringstream input(CleanFile);
   while(!input.eof())
   {
@@ -450,78 +450,77 @@ bool inpFileReader
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
     if(input.eof())
-      {
+    {
       break;
-      }
+    }
     else if(value == "end")
-      {
+    {
       break;
-      }
+    }
     else if(value.empty())
-      {
+    {
       input.clear();
       continue;
-      }
+    }
     else if(value == "geometrytype")
-      {
+    {
       helper.readGeometryType( input, core, core.getLattice() );
-      }
+    }
     else if(value == "symmetry")
-      {
+    {
       int sym;
       input >> sym;
       core.setHexSymmetry(sym);
-      }
+    }
     else if(value == "assemblies")
-      {
+    {
       if(!helper.readAssemblies( input, core, strPath, read_assemblies )) return false;
-      }
+    }
     else if(value == "lattice")
-      {
+    {
       if(!helper.readLattice( input, core.getLattice() )) return false;
-      }
+    }
     else if(value == "background")
-      {
+    {
       getline(input, core.Params.Background);
       core.Params.Background = QString(core.Params.Background.c_str()).trimmed().toStdString();
       //check to make sure the file exists.
       QFileInfo tmpFI( QDir(strPath.c_str()),
                        core.Params.Background.c_str() );
       if(!tmpFI.exists())
-        {
+      {
         core.Params.BackgroundMode = cmbNucCoreParams::None;
         QMessageBox msgBox;
         msgBox.setText( QString(core.Params.Background.c_str()) +
                         QString(" was not found in same director as the core inp file.  Will be ingored."));
         msgBox.exec();
-        }
+      }
       else
       {
         core.Params.BackgroundMode = cmbNucCoreParams::External;
       }
       core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
-
-      }
+    }
     else if(value == "outputfilename")
-      {
-      core.h5mFile.clear();
-      getline(input, core.h5mFile);
-      core.h5mFile = QString(core.h5mFile.c_str()).trimmed().toStdString();
-      }
+    {
+      std::string tmp_outFile;
+      getline(input, tmp_outFile);
+      core.setFinalMeshOutputFilename(QString(tmp_outFile.c_str()).trimmed().toStdString());
+    }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     else if( value == #Key) \
-      {\
+    {\
         helper.read(input, core.IsHexType(), MSG, core.Params.Var);\
-      }
+    }
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
       EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
 #undef FUN_STRUCT
     else //unknown
-      {
+    {
       if(!helper.readUnknown(input, value, core.Params.UnknownKeyWords)) return false;
-      }
     }
+  }
   core.calculateDefaults();
   QDir at = info.absoluteDir();
   info = QFileInfo(at, "common.inp");
@@ -742,16 +741,12 @@ bool inpFileWriter::write(std::string fname,
   QFileInfo info(fname.c_str());
   std::ofstream output(fname.c_str());
   if(!output)
-    {
-    return false;
-    }
-  if(updateFname)
-    {
-    core.ExportFileName = fname;
-    }
-  if(core.h5mFile.empty())
   {
-    core.h5mFile = (info.completeBaseName() + ".h5m").toStdString();
+    return false;
+  }
+  if(updateFname)
+  {
+    core.setExportFileName(fname);
   }
   core.computePitch();
   helper.writeHeader(output,"Assembly");
@@ -775,8 +770,8 @@ bool inpFileWriter::write(std::string fname,
   if( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
       core.Params.BackgroundFullPath.empty())
   {
-    QFileInfo tmpFI( QFileInfo(core.CurrentFileName.c_str()).dir(),
-                    core.Params.Background.c_str() );
+    QFileInfo tmpFI( QFileInfo(core.getFileName().c_str()).dir(),
+                     core.Params.Background.c_str() );
     core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
   }
   if( ( ( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
@@ -817,7 +812,7 @@ bool inpFileWriter::write(std::string fname,
 #undef FUN_STRUCT
 
   output << "outputfilename "
-         << core.h5mFile << "\n";
+         << core.getCoregenMeshOutputFilename() << "\n";
 
   helper.writeUnknown(output, core.Params.UnknownKeyWords);
 
@@ -859,6 +854,26 @@ bool inpFileWriter::write(std::string fname,
     outDef << "end\n";
   }
 
+  return true;
+}
+
+bool inpFileWriter::write(std::string fname, cmbNucCore::boundryLayer const* bl, std::string src_file, std::string dest_file)
+{
+  QFileInfo info(fname.c_str());
+  std::ofstream output(fname.c_str());
+  if(!output)
+  {
+    return false;
+  }
+  output << "MeshFile " <<  src_file << std::endl;
+  output << "NeumannSet " << bl->NeumannSet << std::endl;
+  output << "Fixmat " << bl->Fixmat << std::endl;
+  output << "Thickness " << bl->Thickness << std::endl;
+  output << "Intervals " << bl->Intervals << std::endl;
+  output << "Bias " << bl->Bias << std::endl;
+  output << "Outfile " <<  dest_file << std::endl;
+  output << "debug 0" << std::endl;
+  output << "END" << std::endl;
   return true;
 }
 

@@ -231,9 +231,9 @@ changed |= setValue(corein->Params.Var, Internal->Var);
 #undef FUN_SIMPLE
 
   std::string meshFile = Internal->OutputFile->text().toStdString();
-  if(meshFile != corein->h5mFile)
+  if(meshFile != corein->getFinalMeshOutputFilename())
   {
-    corein->h5mFile = meshFile;
+    corein->setFinalMeshOutputFilename(meshFile);
     changed = true;
   }
 
@@ -285,7 +285,7 @@ else{ setValue(Internal->Var, DEFAULT); }
 
 #undef FUN_SIMPLE
 
-  Internal->OutputFile->setText(corein->h5mFile.c_str());
+  Internal->OutputFile->setText(corein->getFinalMeshOutputFilename().c_str());
 
 
 

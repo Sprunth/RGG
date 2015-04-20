@@ -51,6 +51,15 @@ if(ENABLE_meshkit)
                         \"${install_location}/plugins\")
     "
     COMPONENT superbuild)
+  install(CODE "
+               file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/postbl/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES
+                  \"${install_location}/bin/PostBL\")
+               execute_process( COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
+                                \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/postbl\"
+                                \"${SEARCH_LOC}\"
+                                \"${install_location}/plugins\")
+               "
+          COMPONENT superbuild)
   if(BUILD_WITH_CUBIT)
     install(CODE "
               file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES

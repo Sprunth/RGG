@@ -77,6 +77,10 @@ cmbNucCore::cmbNucCore(bool needSaved)
   cylinderRadius = 0;
   cylinderOuterSpacing = 0;
 
+  //TODO REMOVE THIS JUNK
+  this->BoundryLayers.resize(1, new boundryLayer());
+  //DONE
+
   QObject::connect(this->PinLibrary->GetConnection(), SIGNAL(libraryChanged()),
                    this->Connection, SLOT(justFileChanged()));
   QObject::connect(this->DuctLibrary->GetConnection(), SIGNAL(libraryChanged()),
@@ -94,6 +98,7 @@ cmbNucCore::~cmbNucCore()
       }
     }
   this->Assemblies.clear();
+  this->clearBoundryLayer();
   delete this->Defaults;
   delete this->PinLibrary;
   delete this->DuctLibrary;
@@ -197,7 +202,8 @@ void cmbNucCore::clearExceptAssembliesAndGeom()
   this->setAndTestDiffFromFiles(true);
   CurrentFileName = "";
   ExportFileName = "";
-  h5mFile = "";
+  meshFilePrefix = "";
+  meshFileExtention = "";
   Params.clear();
 }
 
@@ -532,7 +538,7 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   //QFileInfo h5mFI();
   QDateTime inpLM = inpInfo.lastModified();
   QFileInfo exportInfo(this->ExportFileName.c_str());
-  QFileInfo h5mInfo(exportInfo.dir(), h5mFile.c_str());
+  QFileInfo h5mInfo(exportInfo.dir(), this->getFinalMeshOutputFilename().c_str());
   if(!h5mInfo.exists())
   {
     this->DifferentFromH5M = true;
@@ -546,7 +552,8 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
 void cmbNucCore::checkUsedAssembliesForGen()
 {
   if(this->DifferentFromH5M) return;
-  QFileInfo h5mInfo(QFileInfo(this->ExportFileName.c_str()).dir(), this->h5mFile.c_str());
+  QFileInfo h5mInfo(QFileInfo(this->ExportFileName.c_str()).dir(),
+                    this->getFinalMeshOutputFilename().c_str());
   std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
   for(unsigned int i = 0; i < assy.size() && !this->DifferentFromH5M; ++i)
   {
@@ -758,4 +765,103 @@ bool cmbNucCore::okToDelete(std::string const& label)
     if(this->AssemblyLinks[i]->getLink()->getLabel() == label) return false;
   }
   return true;
+}
+
+void cmbNucCore::addBoundryLayer(boundryLayer * bl)
+{
+  if(bl == NULL) return;
+  this->BoundryLayers.push_back(bl);
+}
+
+int cmbNucCore::getNumberOfBoundryLayers() const
+{
+  return static_cast<int>(this->BoundryLayers.size());
+}
+
+void cmbNucCore::removeBoundryLayer(size_t bl)
+{
+  if(static_cast<size_t>(bl)>= this->BoundryLayers.size())
+  {
+    return;
+  }
+  this->BoundryLayers.erase(this->BoundryLayers.begin() + bl);
+}
+
+void cmbNucCore::clearBoundryLayer()
+{
+  for(size_t i = 0; i < this->BoundryLayers.size(); ++i)
+  {
+    delete this->BoundryLayers[i];
+  }
+  BoundryLayers.clear();
+}
+
+cmbNucCore::boundryLayer const* cmbNucCore::getBoundryLayer(int bl) const
+{
+  if(static_cast<size_t>(bl)>= this->BoundryLayers.size())
+  {
+    return NULL;
+  }
+  return BoundryLayers[bl];
+}
+
+std::string cmbNucCore::getCoregenMeshOutputFilename() const
+{
+  return cmbNucCore::getMeshFilename(0);
+}
+
+std::string cmbNucCore::getFinalMeshOutputFilename() const
+{
+  if(meshFilePrefix.empty()) return "";
+  return meshFilePrefix + "." + meshFileExtention;
+}
+
+std::string cmbNucCore::getMeshFilename(size_t i) const
+{
+  if(i >= BoundryLayers.size())
+  {
+    return this->getFinalMeshOutputFilename();
+  }
+  else
+  {
+    return meshFilePrefix + ".tbl" + QString::number(i).toStdString() + ".h5m";
+  }
+}
+
+void cmbNucCore::setFinalMeshOutputFilename(std::string const& fname)
+{
+  QFileInfo qf(fname.c_str());
+  this->meshFilePrefix = qf.completeBaseName().toStdString();
+  this->meshFileExtention = qf.suffix().toStdString();
+}
+
+std::string const& cmbNucCore::getExportFileName() const
+{
+  return this->ExportFileName;
+}
+
+void cmbNucCore::setExportFileName(std::string const& fname)
+{
+  this->ExportFileName = fname;
+  if(meshFilePrefix.empty())
+  {
+    QFileInfo qf(fname.c_str());
+    this->meshFilePrefix = qf.completeBaseName().toStdString();
+    this->meshFileExtention = "h5m";
+  }
+}
+
+void cmbNucCore::setFileName( std::string const& fname )
+{
+  this->CurrentFileName = fname;
+}
+
+void cmbNucCore::setGenerateDirectory(std::string const& dir)
+{
+  this->GenerateDirectory = dir;
+}
+
+std::string const& cmbNucCore::getGenerateDirectory() const
+{
+  return this->GenerateDirectory;
 }
