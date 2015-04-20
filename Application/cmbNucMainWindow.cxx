@@ -878,8 +878,6 @@ void cmbNucMainWindow::onFileOpen()
 {
   if(!checkFilesBeforePreceeding()) return;
 
-  //TODO the new File format
-  doClearAll();
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
   QSettings settings("CMBNuclear", "CMBNuclear");
@@ -894,6 +892,8 @@ void cmbNucMainWindow::onFileOpen()
   {
     return;
   }
+
+  doClearAll();
 
   this->setCursor(Qt::BusyCursor);
   // Cache the directory for the next time the dialog is opened
