@@ -106,6 +106,23 @@ QSet< cmbNucMaterial* > PinSubPart::getMaterials()
   }
   return result;
 }
+
+QSet< cmbNucMaterial* > PinSubPart::getOuterMaterials(QPointer<cmbNucMaterial> blMat)
+{
+  QSet< cmbNucMaterial* > result;
+  for(std::vector< cmbNucMaterialLayer * >::const_reverse_iterator i = this->Materials.rbegin();
+      i != this->Materials.rend(); ++i)
+  {
+    QPointer<cmbNucMaterial> mat = (*i)->getMaterial();
+    if(mat != blMat)
+    {
+      result.insert(mat);
+      break;
+    }
+  }
+  return result;
+}
+
 namespace
 {
 
@@ -453,6 +470,23 @@ QSet< cmbNucMaterial* > PinCell::getMaterials()
   if(this->cellMaterialSet())
   {
     result.insert(this->CellMaterial.getMaterial());
+  }
+  return result;
+}
+
+QSet< cmbNucMaterial* > PinCell::getOuterMaterials(QPointer<cmbNucMaterial> blMat)
+{
+  QSet< cmbNucMaterial* > result;
+  if(this->cellMaterialSet() && this->CellMaterial.getMaterial() != blMat)
+  {
+    result.insert(this->CellMaterial.getMaterial());
+  }
+  else
+  {
+    for(size_t at = 0; at < this->Parts.size(); at++)
+    {
+      result.unite(Parts[at]->getOuterMaterials(blMat));
+    }
   }
   return result;
 }

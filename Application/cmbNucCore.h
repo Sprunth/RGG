@@ -19,6 +19,8 @@
 #include "vtkTransform.h"
 #include "vtkBoundingBox.h"
 
+#include "cmbNucMaterialColors.h"
+
 class cmbNucAssembly;
 class cmbNucAssemblyLink;
 class cmbNucPinLibrary;
@@ -148,17 +150,22 @@ public:
   public:
     boundryLayer()//TODO update this when there is better understanding
     {
+      interface_material = cmbNucMaterialColors::instance()->getMaterialByName("water");
       NeumannSet = 14;
       Fixmat = 4;
-      Thickness = 0.1;
+      Thickness = 0.05;
       Intervals = 6;
       Bias = 0.7;
     }
+    QPointer<cmbNucMaterial> interface_material;
+    QPointer<cmbNucMaterial> fixed_material;
     int NeumannSet;
     int Fixmat;
     double Thickness;
     int Intervals;
     double Bias;
+    //used for export purposes
+    std::string jou_file_name;
   };
 
   // Creates an empty Core.
@@ -244,8 +251,10 @@ public:
   //Set the different from file and tests the h5m file;
   void setAndTestDiffFromFiles(bool diffFromFile);
   void fileChanged();
+  void boundryLayerChanged();
   bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
+  bool boundryLayerChangedSinceLastGenerate() const;
 
   std::string getFileName(){return CurrentFileName;}
   virtual std::string getTitle(){ return "Core"; }
@@ -261,9 +270,9 @@ public:
   void setGenerateDirectory(std::string const& dir);
   std::string const& getGenerateDirectory() const;
 
-  std::string getCoregenMeshOutputFilename() const;
+  std::string getCoregenMeshOutputFilename();
   std::string getFinalMeshOutputFilename() const;
-  std::string getMeshFilename(size_t i) const;
+  std::string getMeshFilename(size_t i);
   void setFinalMeshOutputFilename(std::string const& fname);
 
   std::string const& getExportFileName() const;
@@ -333,7 +342,11 @@ public:
   int getNumberOfBoundryLayers() const;
   void removeBoundryLayer(size_t bl);
   void clearBoundryLayer();
-  boundryLayer const* getBoundryLayer(int bl) const;
+  boundryLayer * getBoundryLayer(int bl) const;
+
+  int getNumberOfExportBoundryLayers() const;
+  void generateExportBoundryLayers();
+  boundryLayer const* getExportBoundryLayer(int bl) const;
 
 private:
   bool hasCylinder;
@@ -343,6 +356,7 @@ private:
   std::vector<cmbNucAssembly*> Assemblies;
   std::vector<cmbNucAssemblyLink*> AssemblyLinks;
   std::vector<boundryLayer *> BoundryLayers;
+  std::vector<boundryLayer> ExportBoundryLayers;
 
   cmbNucPinLibrary * PinLibrary;
   cmbNucDuctLibrary * DuctLibrary;
@@ -353,8 +367,12 @@ private:
   std::string meshFilePrefix;
   std::string meshFileExtention;
 
+  //TODO: we need to redo this.  We should move to a mode form, to keep state
+  //of saved file, output mesh, and boundry layers.
+  //Maybe move the diff from file outside of this.
   bool DifferentFromFile;
   bool DifferentFromH5M;
+  bool DifferentFromGenBoundryLayer;
 
   int HexSymmetry;
 

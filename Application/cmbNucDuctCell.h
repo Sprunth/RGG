@@ -80,6 +80,9 @@ public:
   double x;
   double y;
   double thickness[2];
+
+  bool isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat);
+  QSet< cmbNucMaterial* > getInterfaceMaterials(QPointer<cmbNucMaterial> blMat);
 protected:
   std::vector<cmbNucMaterialLayer> Materials;
   DuctConnection * Connection;
@@ -119,6 +122,8 @@ public:
   void uniformizeMaterialLayers();
   //assumes that the ducts z1 and z2 are in layers
   void splitDucts( std::vector<double> const& layers );
+  bool isInnerDuctMaterial( QPointer<cmbNucMaterial> blMat );
+  QSet< cmbNucMaterial* > getInterfaceMaterials(QPointer<cmbNucMaterial> blMat);
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

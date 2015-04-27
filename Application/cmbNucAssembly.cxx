@@ -481,7 +481,7 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
   }
   //make sure file exits
   //check to see if a cub file has been generate and is older than this file
-  QFileInfo inpInfo(this->ExportFileName.c_str());
+  QFileInfo inpInfo(this->getFileName().c_str());
   if(!inpInfo.exists())
   {
     this->DifferentFromCub = true;
@@ -554,6 +554,32 @@ QSet< cmbNucMaterial* > cmbNucAssembly::getMaterials()
     result.unite(PinCells[i]->getMaterials());
   }
   return result;
+}
+
+QSet< cmbNucMaterial* > cmbNucAssembly::getInterfaceMaterials(QPointer<cmbNucMaterial> blmat)
+{
+  if(this->AssyDuct->isInnerDuctMaterial(blmat))
+  {
+    QSet< cmbNucMaterial* > result = AssyDuct->getInterfaceMaterials(blmat);
+    for(unsigned int i = 0; i < PinCells.size(); ++i)
+    {
+      result.unite(PinCells[i]->getOuterMaterials(blmat));
+      //TODO inner materials
+    }
+    return result;
+  }
+  else
+  {
+    //TODO all inner materials
+    return QSet< cmbNucMaterial* >();
+  }
+}
+
+QSet< cmbNucMaterial* > cmbNucAssembly::getOtherFixed(QPointer<cmbNucMaterial> boundryLayerMaterial,
+                                                      QPointer<cmbNucMaterial> fixedMaterial)
+{
+  //TODO
+  return QSet< cmbNucMaterial* >();
 }
 
 void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
@@ -783,8 +809,49 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
 
   result->lattice = Lattice(this->lattice);
 
-  result->ExportFileName = this->ExportFileName;
-  result->ExportFileNames = this->ExportFileNames;
+  result->ExportFilename = this->ExportFilename;
+  result->Path = this->Path;
 
   return result;
+}
+
+void cmbNucAssembly::setPath(std::string const& path)
+{
+  this->Path = path;
+}
+
+void cmbNucAssembly::setFileName(std::string const& fname)
+{
+  //NOTE: we are stripping directory information from filename
+  QFileInfo fi(fname.c_str());
+  this->ExportFilename = fi.fileName().toStdString();
+}
+
+std::string cmbNucAssembly::getFileName()
+{
+  if(this->IsHexType())
+  {
+    return cmbNucAssembly::getFileName(Lattice::HEX_FULL);
+  }
+  else
+  {
+    return cmbNucAssembly::getFileName(Lattice::RECT);
+  }
+}
+
+std::string cmbNucAssembly::getFileName(Lattice::CellDrawMode mode, size_t nom)
+{
+  if(mode == Lattice::RECT || mode == Lattice::HEX_FULL || mode == Lattice::HEX_FULL_30 || nom == 1)
+  {
+    if(this->ExportFilename.empty())
+    {
+      this->ExportFilename = (QString( "assembly_") +
+                              QString(this->getLabel().c_str()).toLower() + ".inp").toStdString();
+    }
+    return this->Path +  "/" + this->ExportFilename;
+  }
+  return (QString((this->Path + "/assembly_").c_str()) +
+          QString(Lattice::generate_string(this->getLabel(),
+                                           mode).c_str()).toLower() +
+          ".inp").toStdString();
 }

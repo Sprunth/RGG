@@ -306,3 +306,37 @@ bool cmbNucPreferencesDialog::getPackaged(QString & postBL)
   return false;
 #endif
 }
+
+bool cmbNucPreferencesDialog::getPostBLInpFileGenerator(QString & exe)
+{
+  if(cmbNucPreferencesDialog::usePackaged())
+  {
+    QDir appDir(QCoreApplication::applicationDirPath());
+    exe = QDir::cleanPath(appDir.absoluteFilePath("cmbGeneratePostBLFile"));
+    if (!exe.isEmpty() && QFileInfo(exe).exists())
+    {
+      return true;
+    }
+    exe = QDir::cleanPath(appDir.absoluteFilePath("../bin/cmbGeneratePostBLFile"));
+    if (!exe.isEmpty() && QFileInfo(exe).exists())
+    {
+      return true;
+    }
+    exe = QDir::cleanPath(appDir.absoluteFilePath("../meshkit/cmbGeneratePostBLFile"));
+    return (!exe.isEmpty() && QFileInfo(exe).exists());
+  }
+  //else
+#if __APPLE__
+  QDir appDir(QCoreApplication::applicationDirPath());
+  exe = QDir::cleanPath(appDir.absoluteFilePath("../../../cmbGeneratePostBLFile"));
+  return (!exe.isEmpty() && QFileInfo(exe).exists());
+#else
+  QDir appDir(QCoreApplication::applicationDirPath());
+  exe = QDir::cleanPath(appDir.absoluteFilePath("cmbGeneratePostBLFile"));
+  if (!exe.isEmpty() && QFileInfo(exe).exists())
+  {
+    return true;
+  }
+#endif
+  return false;
+}

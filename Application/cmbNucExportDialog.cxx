@@ -31,6 +31,8 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
            this->Progress->ui->OutputArea, SLOT(appendPlainText(const QString&)));
   connect( this->Exporter, SIGNAL(successful()),
            this, SLOT(exportDone()));
+  connect( this->Exporter, SIGNAL(sendPartialBoundryLayer(QString)),
+           this, SLOT(sendParialMesh(QString)));
   connect( this->Exporter, SIGNAL(currentProcess(QString)),
            this->Progress->ui->command, SLOT(setText(const QString &)));
   connect( this->Progress->ui->cancel, SIGNAL(clicked()),
@@ -93,9 +95,11 @@ void cmbNucExportDialog::sendSignalToProcess()
   int numberOfThreads;
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
   QString postBLExe, postBLLib;
+  QString generatePostBLInput;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
                                              coregenExe, coreGenLibs, numberOfThreads)||
-     !cmbNucPreferencesDialog::getPostBL(postBLExe, postBLLib))
+     !cmbNucPreferencesDialog::getPostBL(postBLExe, postBLLib) ||
+     !cmbNucPreferencesDialog::getPostBLInpFileGenerator(generatePostBLInput))
   {
     qDebug() << "One of the export exe is missing";
     emit error("One of the export exe is missing");
@@ -105,6 +109,7 @@ void cmbNucExportDialog::sendSignalToProcess()
   Exporter->setAssygen(assygenExe,assyGenLibs);
   Exporter->setCubit(cubitExe);
   Exporter->setPostBL(postBLExe, postBLLib);
+  Exporter->setPostBLGenerator(generatePostBLInput);
   Exporter->setNumberOfProcessors(numberOfThreads);
   coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe, coreGenLibs);
@@ -133,14 +138,15 @@ void cmbNucExportDialog::sendSignalToProcess()
   this->Progress->show();
   message.CoreGenOutputFile.clear();
   message.boundryFiles.clear();
+  if(this->Core->boundryLayerChangedSinceLastGenerate())
   {
     QFileInfo fi(CoregenFile);
     QString path = fi.absolutePath();
-    for(int i = 0; i < this->Core->getNumberOfBoundryLayers(); ++i)
+    for(int i = 0; i < this->Core->getNumberOfExportBoundryLayers(); ++i)
     {
       std::string currentOf = this->Core->getMeshFilename(static_cast<size_t>(i));
       message.CoreGenOutputFile << path + "/" + QString(currentOf.c_str()).trimmed();
-      message.boundryFiles << path + "/" + fi.baseName() + ".bl" + QString::number(i) + ".inp";
+      message.boundryFiles << path + "/" + QString(this->Core->getMeshFilename(static_cast<size_t>(i+1)).c_str());
     }
     message.CoreGenOutputFile << path + "/" + QString(this->Core->getFinalMeshOutputFilename().c_str()).trimmed();
   }
@@ -234,10 +240,11 @@ void cmbNucExportDialog::runCoregen()
   this->Progress->show();
   message.CoreGenOutputFile.clear();
   message.boundryFiles.clear();
+  if(this->Core->boundryLayerChangedSinceLastGenerate())
   {
     QFileInfo fi(CoregenFile);
     QString path = fi.absolutePath();
-    for(int i = 0; i <= this->Core->getNumberOfBoundryLayers(); ++i)
+    for(int i = 0; i < this->Core->getNumberOfBoundryLayers(); ++i)
     {
       std::string currentOf = this->Core->getMeshFilename(static_cast<size_t>(i));
       message.CoreGenOutputFile << path + "/" + QString(currentOf.c_str()).trimmed();
@@ -267,21 +274,26 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
   this->AllUsableAssyTasks.clear();
   MainWindow->checkForNewCUBH5MFiles();
   QStringList AssygenFileList;
-  for (int i = 0; i < Core->GetNumberOfAssemblies(); ++i)
+
+  std::map< std::string, std::set< Lattice::CellDrawMode > > cells = this->Core->getDrawModesForAssemblies();
+
+  for(std::map< std::string, std::set< Lattice::CellDrawMode > >::const_iterator iter = cells.begin();
+      iter != cells.end(); ++iter)
   {
-    cmbNucAssembly * assy = this->Core->GetAssembly(i);
-    if(force || assy->changeSinceLastGenerate())
+    cmbNucAssembly* assembly = this->Core->GetAssembly(iter->first);
+    std::set< Lattice::CellDrawMode > const& forms = iter->second;
+
+    for(std::set< Lattice::CellDrawMode >::const_iterator iter = forms.begin();
+        iter != forms.end(); ++iter)
     {
-      for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = assy->ExportFileNames.begin();
-          iter != assy->ExportFileNames.end(); ++iter)
-      {
-        AssygenFileList.append(QString(iter->second.c_str()));
-        Message::AssygenTask task( QString(iter->second.c_str()),
-                                   QString(assy->getOutputExtension().c_str()), false);
-        this->AllUsableAssyTasks.push_back(task);
-      }
+      QString assyname = assembly->getFileName(*iter, forms.size()).c_str();
+      AssygenFileList.append(assyname);
+      Message::AssygenTask task( assyname,
+                                 QString(assembly->getOutputExtension().c_str()), false);
+      this->AllUsableAssyTasks.push_back(task);
     }
   }
+
   this->TasksToSend = AllUsableAssyTasks;
   this->ui->assygenFileList->clear();
   this->ui->assygenFileList->addItems(AssygenFileList);
@@ -316,4 +328,21 @@ void cmbNucExportDialog::exportDone()
   QString outputMesh = path + "/" + QString(Core->getFinalMeshOutputFilename().c_str()).trimmed();
   if(send_core_mesh)
     emit(finished(outputMesh));
+}
+
+void cmbNucExportDialog::sendParialMesh(QString fname)
+{
+  QMessageBox msgBox;
+  msgBox.setText("There was an error with generating boundary layers");
+  msgBox.setInformativeText("One of the boundary layers failed to generate.  Do you want to last successfull mesh: " + QFileInfo(fname).fileName());
+  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No );
+  msgBox.setDefaultButton(QMessageBox::Yes);
+  int ret = msgBox.exec();
+  switch (ret)
+  {
+    case QMessageBox::Yes:
+      emit(finished(fname));
+    default:
+      break;
+  }
 }

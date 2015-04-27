@@ -193,6 +193,29 @@ QSet< cmbNucMaterial* > Duct::getMaterials()
   return result;
 }
 
+QSet< cmbNucMaterial* > Duct::getInterfaceMaterials(QPointer<cmbNucMaterial> blMat)
+{
+  unsigned int at = 0;
+  QSet< cmbNucMaterial* > result;
+  for(; at< this->Materials.size(); ++at )
+  {
+    if(this->Materials[at].getMaterial() == blMat)
+    {
+      break;
+    }
+  }
+  if(at == this->Materials.size()) return result;
+  if(at > 0)
+  {
+    result.insert(this->Materials[at-1].getMaterial());
+  }
+  if(at < this->Materials.size()-1)
+  {
+    result.insert(this->Materials[at+1].getMaterial());
+  }
+  return result;
+}
+
 cmbNucMaterialLayer const& Duct::getMaterialLayer(int i) const
 {
   return this->Materials[i];
@@ -235,6 +258,11 @@ void Duct::splitMaterialLayer( std::vector<double> const& lx, std::vector<double
     ntat[0] = lx[i];
     ntat[1] = ly[i];
   }
+}
+
+bool Duct::isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat)
+{
+  return (Materials[0].getMaterial() == blMat);
 }
 
 /*******************************************************************************/
@@ -333,6 +361,16 @@ QSet< cmbNucMaterial* > DuctCell::getMaterials()
   for(unsigned int i = 0; i < Ducts.size(); ++i)
   {
     result.unite(Ducts[i]->getMaterials());
+  }
+  return result;
+}
+
+QSet< cmbNucMaterial* > DuctCell::getInterfaceMaterials(QPointer<cmbNucMaterial> blMat)
+{
+  QSet< cmbNucMaterial* > result;
+  for(unsigned int i = 0; i < Ducts.size(); ++i)
+  {
+    result.unite(Ducts[i]->getInterfaceMaterials(blMat));
   }
   return result;
 }
@@ -564,4 +602,13 @@ void DuctCell::splitDucts( std::vector<double> const& layers )
   {
     this->AddDuct(addedDucts[i]);
   }
+}
+
+bool DuctCell::isInnerDuctMaterial( QPointer<cmbNucMaterial> blMat )
+{
+  for (unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    if(this->Ducts[i]->isInnerDuctMaterial(blMat)) return true;
+  }
+  return false;
 }

@@ -57,6 +57,7 @@ protected slots:
   void exportDone();
   void GetRunnableAssyFiles(bool);
   void GetRunnableCoreFile(bool);
+  void sendParialMesh(QString fname);
 
 signals:
   void process( Message const& msg );

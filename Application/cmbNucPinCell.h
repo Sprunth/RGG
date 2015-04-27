@@ -50,6 +50,7 @@ public:
   void SetNumberOfLayers(int numLayers);
   std::size_t GetNumberOfLayers() const;
   QSet< cmbNucMaterial* > getMaterials();
+  QSet< cmbNucMaterial* > getOuterMaterials(QPointer<cmbNucMaterial> blMat);
 
   //sets others values here if they are different.
   //If values have changed, we return true.
@@ -219,6 +220,7 @@ public:
 
   PinConnection* GetConnection() const;
   QSet< cmbNucMaterial* > getMaterials();
+  QSet< cmbNucMaterial* > getOuterMaterials(QPointer<cmbNucMaterial> blMat);
 
   virtual std::string getTitle(){ return "PinCell: " + AssyPartObj::getTitle(); }
 

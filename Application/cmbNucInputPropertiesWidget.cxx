@@ -739,6 +739,40 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     changed = true;
   }
 
+  if(Internal->boundaryLayer->isChecked())
+  {
+    cmbNucCore::boundryLayer * bl = NULL;
+    if(nucCore->getNumberOfBoundryLayers() != 0)
+    {
+      bl = nucCore->getBoundryLayer(0);
+    }
+    else
+    {
+      bl = new cmbNucCore::boundryLayer();
+      nucCore->addBoundryLayer(bl);
+      nucCore->boundryLayerChanged();
+    }
+    double tmpbias = this->Internal->bias->value();
+    double tmpthichness = this->Internal->thickness->value();
+    int tmpinterval = this->Internal->interval->value();
+    QPointer<cmbNucMaterial> tmpmat =
+       cmbNucMaterialColors::instance()->getMaterial(this->Internal->boundaryMaterials);
+    if(tmpbias != bl->Bias || tmpthichness != bl->Thickness ||
+       tmpinterval != bl->Intervals || tmpmat != bl->interface_material)
+    {
+      bl->Bias = tmpbias;
+      bl->Thickness = tmpthichness;
+      bl->Intervals = tmpinterval;
+      bl->interface_material = tmpmat;
+      nucCore->boundryLayerChanged();
+    }
+  }
+  else if(nucCore->getNumberOfBoundryLayers() != 0)
+  {
+    nucCore->clearBoundryLayer();
+    nucCore->boundryLayerChanged();
+  }
+
   if(changed)
   {
     emit valuesChanged();
@@ -865,6 +899,24 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
     {
       cmbNucAssembly *assy = nucCore->GetAssembly(i);
       actionList.append(assy->getLabel().c_str());
+    }
+    {
+      cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+      matColorMap->setUp(this->Internal->boundaryMaterials);
+    }
+    if(nucCore->getNumberOfBoundryLayers() != 0)
+    {
+      Internal->boundaryLayer->setChecked(true);
+      cmbNucCore::boundryLayer * bl = nucCore->getBoundryLayer(0);
+      this->Internal->bias->setValue(bl->Bias);
+      this->Internal->thickness->setValue(bl->Thickness);
+      this->Internal->interval->setValue(bl->Intervals);
+      cmbNucMaterialColors::instance()->selectIndex(this->Internal->boundaryMaterials,
+                                                    bl->interface_material);
+    }
+    else
+    {
+      Internal->boundaryLayer->setChecked(true);
     }
   }
 }

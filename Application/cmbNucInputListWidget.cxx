@@ -1265,8 +1265,7 @@ void cmbNucInputListWidget::onClone()
           name = (QString(clone_assy->getLabel().c_str()) + "_" + QString::number(count++)).toStdString();
         }
         clone_assy->setLabel(name);
-        clone_assy->ExportFileName = "";
-        clone_assy->ExportFileNames.clear();
+        clone_assy->setFileName("");
         this->NuclearCore->AddAssembly(clone_assy);
         this->initCoreRootNode();
         this->updateWithAssembly(clone_assy);

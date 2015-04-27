@@ -279,8 +279,8 @@ bool inpFileReader
   helper.renamePin = this->renamePin;
   helper.pinAddMode = this->pinAddMode;
   helper.labelIsDifferent = false;
-  assembly.ExportFileName = FileName;
   assembly.clear();
+  assembly.setFileName(FileName);
   std::stringstream input(CleanFile);
   QFileInfo info(FileName.c_str());
   QDir at = info.absoluteDir();
@@ -337,15 +337,15 @@ bool inpFileReader
       }
     else if(value == "tetmeshsize")
       {
-      input >> assembly.Parameters->TetMeshSize;
+      input >> assembly.GetParameters()->TetMeshSize;
       }
     else if(value == "radialmeshsize")
       {
-      input >> assembly.Parameters->RadialMeshSize;
+      input >> assembly.GetParameters()->RadialMeshSize;
       }
     else if(value == "axialmeshsize")
       {
-      input >> assembly.Parameters->AxialMeshSize;
+      input >> assembly.GetParameters()->AxialMeshSize;
       std::string tmp;
       std::getline(input, tmp); //some version add extra for each duct.  for now we just ignore them.
       }
@@ -364,17 +364,17 @@ bool inpFileReader
       }
     else if(value == "move")
       {
-      input >> assembly.Parameters->MoveXYZ[0]
-            >> assembly.Parameters->MoveXYZ[1]
-            >> assembly.Parameters->MoveXYZ[2];
+      input >> assembly.GetParameters()->MoveXYZ[0]
+            >> assembly.GetParameters()->MoveXYZ[1]
+            >> assembly.GetParameters()->MoveXYZ[2];
       }
     else if(value == "hblock")
       {
-      std::getline(input, assembly.Parameters->HBlock);
+      std::getline(input, assembly.GetParameters()->HBlock);
       }
     else if(value == "geometry")
       {
-      input >> assembly.Parameters->Geometry;
+      input >> assembly.GetParameters()->Geometry;
       }
     else if(value == "center")
       {
@@ -382,29 +382,29 @@ bool inpFileReader
       std::getline(input, tmp);
       if(!tmp.empty())
         {
-        assembly.Parameters->CenterXYZ = tmp;
+        assembly.GetParameters()->CenterXYZ = tmp;
         }
       }
     else if(value == "save_exodus")
     {
       std::string tmp;
       std::getline(input, tmp);
-      assembly.Parameters->Save_Exodus = true;
+      assembly.GetParameters()->Save_Exodus = true;
       if(!tmp.empty() && (tmp == "off" || tmp == "no"))
       {
-        assembly.Parameters->Save_Exodus = false;
+        assembly.GetParameters()->Save_Exodus = false;
       }
     }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)\
     else if(value == #Key)\
       { \
-      if(!helper.read(input, assembly.IsHexType(), MSG, assembly.Parameters->Var))return false;\
+      if(!helper.read(input, assembly.IsHexType(), MSG, assembly.GetParameters()->Var))return false;\
       }
     ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
     else
       {
-      if(!helper.readUnknown(input, value, assembly.Parameters->UnknownParams)) return false;
+      if(!helper.readUnknown(input, value, assembly.GetParameters()->UnknownParams)) return false;
       }
     }
   DuctCell * dcp = dc;
@@ -556,14 +556,14 @@ bool inpFileReader::read_defaults(cmbNucAssembly & assembly)
     }
     else if(value == "axialmeshsize")
     {
-      input >> assembly.Parameters->AxialMeshSize;
+      input >> assembly.GetParameters()->AxialMeshSize;
       std::string tmp;
       std::getline(input, tmp); //some version add extra for each duct.  for now we just ignore them.
     }
     #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)\
     else if(value == #Key)\
     { \
-      helper.read(input, assembly.IsHexType(), MSG, assembly.Parameters->Var);\
+      helper.read(input, assembly.IsHexType(), MSG, assembly.GetParameters()->Var);\
     }
     ASSYGEN_EXTRA_VARABLE_MACRO()
     #undef FUN_SIMPLE
@@ -661,10 +661,10 @@ bool inpFileWriter::write(std::string fname,
     }
   if(updateFname && !limited)
     {
-    assembly.ExportFileName = fname;
+    assembly.setFileName(fname);
     }
   helper.writeHeader(output,"Assembly");
-  cmbAssyParameters * params = assembly.Parameters;
+  cmbAssyParameters * params = assembly.GetParameters();
 
   output << "GeometryType " << assembly.getGeometryLabel() << "\n";
   WRITE_PARAM_VALUE(Geometry, Geometry);
@@ -719,9 +719,9 @@ if(params->isValueSet(params->Var))\
   ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
 
-  for(unsigned int i = 0; i < assembly.Parameters->UnknownParams.size(); ++i)
+  for(unsigned int i = 0; i < assembly.GetParameters()->UnknownParams.size(); ++i)
   {
-    output << assembly.Parameters->UnknownParams[i] << "\n";
+    output << assembly.GetParameters()->UnknownParams[i] << "\n";
   }
 
   // end
@@ -929,10 +929,16 @@ void inpFileHelper::writeHeader( std::ofstream & output, std::string type )
   output << "!   ########################################################\n";
 }
 
+bool sortByName(const cmbNucMaterial* s1, const cmbNucMaterial* s2)
+{
+  return s1->getName() < s2->getName();
+}
+
 void inpFileHelper::writeMaterials( std::ofstream &output,
                                     cmbNucAssembly & assembly )
 {
-  QSet<cmbNucMaterial*> materials = assembly.getMaterials();
+  QList<cmbNucMaterial*> materials = assembly.getMaterials().toList();
+  qSort(materials.begin(), materials.end(), sortByName);
   output << "Materials " << materials.count();
   foreach( QPointer<cmbNucMaterial> mat, materials)
   {
@@ -1069,14 +1075,14 @@ bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell *
 
 void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
 {
-  if(assembly.PinCells.empty()) return;
-  output << "pincells " << assembly.PinCells.size() << "\n";
+  if(assembly.GetNumberOfPinCells() == 0) return;
+  output << "pincells " << assembly.GetNumberOfPinCells() << "\n";
   double pitchX = assembly.getPinPitchX();
   double pitchY = assembly.getPinPitchY();
 
-  for(size_t i = 0; i < assembly.PinCells.size(); i++)
+  for(size_t i = 0; i < assembly.GetNumberOfPinCells(); i++)
     {
-    PinCell* pincell = assembly.PinCells[i];
+    PinCell* pincell = assembly.GetPinCell(static_cast<int>(i));
 
     // count of attribute lines for the pincell. equal to the number
     // of frustums plus cylinders plus one for the pitch.
@@ -1773,12 +1779,8 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   QFileInfo info(outFileName.c_str());
   std::string strPath = info.dir().path().toStdString();
   std::string coreName = info.fileName().toStdString();
-  std::vector< cmbNucAssembly* > usedAssemblies = core.GetUsedAssemblies();
-  unsigned int count = 0;
-  for(unsigned int i = 0; i < usedAssemblies.size(); ++i)
-  {
-    count += usedAssemblies[i]->ExportFileNames.size();
-  }
+  std::map< std::string, std::set< Lattice::CellDrawMode > > cells = core.getDrawModesForAssemblies();
+  unsigned int count = cells.size();
 
   std::vector< cmbNucAssemblyLink* > usedLinks = core.GetUsedLinks();
   count += usedLinks.size();
@@ -1790,40 +1792,31 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     output << " " << core.AssyemblyPitchY;
   }
   output << "\n";
-  for(unsigned int i = 0; i < usedAssemblies.size(); ++i)
+  for(std::map< std::string, std::set< Lattice::CellDrawMode > >::const_iterator iter = cells.begin();
+      iter != cells.end(); ++iter)
   {
-    //construct assemply file name
-    //Look to see if it already has a fname
-    for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = usedAssemblies[i]->ExportFileNames.begin();
-        iter != usedAssemblies[i]->ExportFileNames.end();
-        ++iter)
+    cmbNucAssembly* assembly = core.GetAssembly(iter->first);
+    std::set< Lattice::CellDrawMode > const& forms = iter->second;
+
+    for(std::set< Lattice::CellDrawMode >::const_iterator iter = forms.begin();
+        iter != forms.end(); ++iter)
     {
-      cmbNucAssembly & assembly = *(usedAssemblies[i]);
-      std::string assemblyName = iter->second;
-      Lattice::CellDrawMode mode = iter->first;
+      Lattice::CellDrawMode mode = *iter;
+      std::string assemblyName = assembly->getFileName(mode);
       assert(!assemblyName.empty());
       {
         QFileInfo temp(assemblyName.c_str());
         assemblyName = temp.completeBaseName().toStdString();
-        if(temp.dir()  == info.dir())
-        {
-          assemblyName = temp.completeBaseName().toStdString();
-        }
-        else
-        {
-          assemblyName = (temp.dir().path() + "/" + temp.completeBaseName()).toStdString();
-        }
       }
-      output << assemblyName << assembly.getOutputExtension() << " "
-             << Lattice::generate_string(assembly.getLabel(), mode) << "\n";
+      output << assemblyName << assembly->getOutputExtension() << " "
+             << Lattice::generate_string(assembly->getLabel(), mode) << "\n";
     }
   }
   for(unsigned int i = 0; i < usedLinks.size(); ++i)
   {
     cmbNucAssemblyLink * link = usedLinks[i];
     cmbNucAssembly * assembly = link->getLink();
-    std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = usedAssemblies[i]->ExportFileNames.begin();
-    std::string assemblyName = iter->second;
+    std::string assemblyName = assembly->getFileName();
     QFileInfo temp(assemblyName.c_str());
     assemblyName = temp.completeBaseName().toStdString();
 

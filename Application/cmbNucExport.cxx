@@ -25,6 +25,7 @@
 #include <QProcess>
 #include <QTime>
 #include <QMetaType>
+#include <QMessageBox>
 
 #include <iostream>
 #include <sstream>
@@ -316,6 +317,7 @@ struct JobHolder
   {
   }
   bool running, done, error;
+  QString meshInputFile;
   std::vector<JobHolder*> dependencies;
   std::string label, itype, otype;
   remus::proto::Job job;
@@ -679,7 +681,7 @@ cmbNucExport::run( Message const& message )
                                                       deps, message.CoreGenOutputFile[0],
                                                       false );
   this->runPostBLHelper( message.boundryFiles, core,
-                         message.CoreGenOutputFile.mid(1) );
+                         message.CoreGenOutputFile );
 
   processJobs();
   {
@@ -843,15 +845,43 @@ cmbNucExport::runPostBLHelper( const QStringList boundryControlFiles,
   std::vector<JobHolder*> result;
   QString exe = this->PostBLExe;
   QString lib = this->PostBLLib;
+  QString generator = this->PostBLGenerator;
   std::vector<JobHolder*> previous = debIn;
   for(unsigned int i = 0; i < boundryControlFiles.size(); ++i)
   {
     QFileInfo fi(boundryControlFiles[i]);
     QString path = fi.absolutePath();
-    JobHolder * tjob = new JobHolder(path, exe, boundryControlFiles[i], CoreGenOutputFile[i]);
+    JobHolder * tjob = new JobHolder(path, generator, boundryControlFiles[i] + ".txt", boundryControlFiles[i] + ".inp");
     tjob->label = "PostBL";
     tjob->itype = "COREGEN_OUT";
     tjob->otype = "COREGEN_OUT";
+    tjob->dependencies = debIn;
+    jobs_to_do.push_back(tjob);
+    result.push_back(tjob);
+    {
+      tjob->in.LibPath = "";
+      std::stringstream ss(lib.toStdString().c_str());
+      std::string line;
+      while( std::getline(ss, line))
+      {
+        tjob->in.LibPath += line + ":";
+      }
+
+      QFileInfo libPaths(exe);
+      tjob->in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
+      tjob->in.LibPath += ":"+ QFileInfo(CubitExe).absolutePath().toStdString();
+    }
+    previous = std::vector<JobHolder*>(1, tjob);
+  }
+  for(unsigned int i = 0; i < boundryControlFiles.size(); ++i)
+  {
+    QFileInfo fi(boundryControlFiles[i]);
+    QString path = fi.absolutePath();
+    JobHolder * tjob = new JobHolder(path, exe, boundryControlFiles[i] + ".inp", CoreGenOutputFile[i+1]);
+    tjob->label = "PostBL";
+    tjob->itype = "COREGEN_OUT";
+    tjob->otype = "COREGEN_OUT";
+    tjob->meshInputFile = CoreGenOutputFile[i];
     tjob->dependencies = previous;
     jobs_to_do.push_back(tjob);
     result.push_back(tjob);
@@ -868,7 +898,7 @@ cmbNucExport::runPostBLHelper( const QStringList boundryControlFiles,
       tjob->in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
       tjob->in.LibPath += ":"+ QFileInfo(CubitExe).absolutePath().toStdString();
     }
-    std::vector<JobHolder*> cdep(1, tjob);
+    previous = std::vector<JobHolder*>(1, tjob);
   }
   return result;
 }
@@ -1015,6 +1045,11 @@ void cmbNucExport::setPostBL(QString postBLExe, QString postBLLib)
   this->PostBLLib = postBLLib;
 }
 
+void cmbNucExport::setPostBLGenerator(QString exe)
+{
+  this->PostBLGenerator = exe;
+}
+
 void cmbNucExport::setNumberOfProcessors(int v)
 {
   this->internal->factory->setMaxThreadCount(v);
@@ -1051,6 +1086,8 @@ void cmbNucExport::processJobs()
 {
   QEventLoop el;
   bool inErrorState = false;
+  bool errorInBoundryLayer = false;
+  QString filename;
   emit currentProcess("  Generating Mesh");
   double count = 2;
   while(true)
@@ -1105,6 +1142,11 @@ void cmbNucExport::processJobs()
         }
         else if(jobState.status() == remus::FAILED)
         {
+          if(jobs_to_do[i]->label == "PostBL")
+          {
+            errorInBoundryLayer = true;
+            filename = jobs_to_do[i]->meshInputFile;
+          }
           failedHelper("Remus ERROR", " Failed to mesh");
           error_occured = inErrorState = true;
         }
@@ -1190,7 +1232,23 @@ void cmbNucExport::processJobs()
     }
   }
   qDebug() << "All jobs have been finished";
-  if(inErrorState)
+  if(errorInBoundryLayer)
+  {
+    QFileInfo fi(filename);
+
+    emit errorMessage("ERROR: Boundary Layer Generation Failed.  Partial Result: " + fi.fileName() );
+    emit currentProcess("Boundary Layer Generation Failed.  Partial Result: " + fi.fileName());
+    emit sendPartialBoundryLayer(filename);
+    QThread::Priority	prior = QThread::currentThread()->priority();
+    QThread::currentThread()->setPriority(QThread::LowestPriority);
+    QThread::yieldCurrentThread();
+
+    emit done();
+    clearJobs();
+    this->deleteServer();
+    QThread::currentThread()->setPriority(prior);
+  }
+  else if(inErrorState)
   {
     emit done();
     clearJobs();

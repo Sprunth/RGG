@@ -59,50 +59,38 @@ bool cmbNucInpExporter
       iter != cells.end(); ++iter)
   {
     cmbNucAssembly* assembly = NuclearCore->GetAssembly(iter->first);
+    assembly->setPath(coreinfo.dir().absolutePath().toStdString());
     std::set< Lattice::CellDrawMode > const& forms = iter->second;
     if(assembly == NULL) continue;
-    assembly->ExportFileNames.clear();
-    QString fileName = assembly->ExportFileName.c_str();
-    if(fileName.isEmpty())
-    {
-      fileName = coreinfo.dir().path() + QString("/assembly_") +
-                 QString(assembly->getLabel().c_str()).toLower() +
-                 ".inp";
-    }
-    QFileInfo assyFileInfo(fileName);
-    assembly->ExportFileName = fileName.toStdString();
-    for(std::set< Lattice::CellDrawMode >::const_iterator fiter = forms.begin(); fiter != forms.end(); ++fiter)
-    {
-      Lattice::CellDrawMode mode = *fiter;
-      if(mode == Lattice::RECT || mode == Lattice::HEX_FULL || mode == Lattice::HEX_FULL_30 || forms.size() == 1)
-      {
-        assembly->ExportFileNames[mode] = fileName.toStdString();
-      }
-      else
-      {
-        assembly->ExportFileNames[mode] = (coreinfo.dir().path() +
-                                           QString("/assembly_") +
-                                           QString(Lattice::generate_string(assembly->getLabel(),
-                                                                            mode).c_str()).toLower() +
-                                           ".inp").toStdString();
-      }
-    }
     cmbNucAssembly* assemblyClone = assembly->clone(pl, dl);
-    this->exportInpFile(assemblyClone, false);
+    this->exportInpFile(assemblyClone, false, forms);
     delete assemblyClone;
   }
-  if(this->NuclearCore->changeSinceLastGenerate()) //TODO, Boundry Layer check
+  if(this->NuclearCore->changeSinceLastGenerate())
   {
     inpFileWriter::write(coreName.toStdString(), *(this->NuclearCore));
+  }
+  if(this->NuclearCore->boundryLayerChangedSinceLastGenerate())
+  {
+    QString path = coreinfo.absolutePath();
+    this->NuclearCore->generateExportBoundryLayers();
+    //std::string previous = this->NuclearCore->getMeshFilename(0);
+    for(int i = 0; i < this->NuclearCore->getNumberOfExportBoundryLayers(); ++i)
     {
-      QString path = coreinfo.absolutePath();
-      for(int i = 0; i < this->NuclearCore->getNumberOfBoundryLayers(); ++i)
-      {
-        std::string prev = this->NuclearCore->getMeshFilename(static_cast<size_t>(i));
-        std::string curent = this->NuclearCore->getMeshFilename(static_cast<size_t>(i+1));
-        QString fname = path + "/" + coreinfo.baseName() + ".bl" + QString::number(i) + ".inp";
-        inpFileWriter::write(fname.toStdString(), this->NuclearCore->getBoundryLayer(i), prev, curent);
-      }
+      std::string prev = this->NuclearCore->getMeshFilename(static_cast<size_t>(i));
+      std::string current = this->NuclearCore->getMeshFilename(static_cast<size_t>(i+1));
+      std::ofstream out((path.toStdString() + "/" + current+".txt").c_str());
+      cmbNucCore::boundryLayer const* bl = this->NuclearCore->getExportBoundryLayer(i);
+      out << bl->jou_file_name << std::endl;
+      out << current+".inp" << std::endl;
+      out << prev << std::endl;
+      out << "g_" << bl->fixed_material->getName().toLower().toStdString() << std::endl;
+      out << bl->fixed_material->getName().toLower().toStdString() << "_side1_ss" << std::endl;
+      out << bl->Thickness << std::endl;
+      out << bl->Intervals << std::endl;
+      out << bl->Bias << std::endl;
+      out << current << std::endl;
+      out.close();
     }
   }
   return true;
@@ -129,10 +117,12 @@ bool cmbNucInpExporter
   QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
   fname = fname.toLower();
   QString fullPath =fi.dir().absoluteFilePath(fname);
-  temp->ExportFileNames.clear();
-  temp->ExportFileNames[ temp->getLattice().getFullCellMode() ] = fullPath.toStdString();
+  temp->setPath(fullPath.toStdString());
+  temp->setFileName(fname.toStdString());
 
-  this->exportInpFile(temp, true);
+  std::set< Lattice::CellDrawMode > set;
+  set.insert(temp->getLattice().getFullCellMode());
+  this->exportInpFile(temp, true, set);
 
   delete temp;
   delete pl;
@@ -213,10 +203,10 @@ void cmbNucInpExporter
 }
 
 bool cmbNucInpExporter
-::exportInpFile(cmbNucAssembly * assy, bool isCylinder)
+::exportInpFile(cmbNucAssembly * assy, bool isCylinder,
+                std::set< Lattice::CellDrawMode > const& forms)
 {
-  for(std::map< Lattice::CellDrawMode, std::string >::const_iterator iter = assy->ExportFileNames.begin();
-      iter != assy->ExportFileNames.end(); ++iter)
+  for(std::set< Lattice::CellDrawMode >::const_iterator fiter = forms.begin(); fiter != forms.end(); ++fiter)
   {
     double deg = assy->getZAxisRotation();
     if( assy->getLattice().getFullCellMode() == Lattice::HEX_FULL_30 )
@@ -229,8 +219,8 @@ bool cmbNucInpExporter
       assy->addTransform(new cmbNucAssembly::Rotate(cmbNucAssembly::Transform::Z, deg));
     }
 
-    Lattice::CellDrawMode mode = iter->first;
-    std::string const& fname = iter->second;
+    Lattice::CellDrawMode mode = *fiter;
+    std::string const& fname = assy->getFileName(mode, forms.size());
 
     switch(mode)
     {

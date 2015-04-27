@@ -71,15 +71,12 @@ cmbNucCore::cmbNucCore(bool needSaved)
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
   DifferentFromH5M = true;
+  DifferentFromGenBoundryLayer = true;
   this->Connection = new cmbNucCoreConnection();
   this->Connection->v = this;
   hasCylinder = false;
   cylinderRadius = 0;
   cylinderOuterSpacing = 0;
-
-  //TODO REMOVE THIS JUNK
-  this->BoundryLayers.resize(1, new boundryLayer());
-  //DONE
 
   QObject::connect(this->PinLibrary->GetConnection(), SIGNAL(libraryChanged()),
                    this->Connection, SLOT(justFileChanged()));
@@ -512,12 +509,19 @@ void cmbNucCore::fileChanged()
   this->DifferentFromFile = true;
 }
 
+void cmbNucCore::boundryLayerChanged()
+{
+  this->DifferentFromGenBoundryLayer = true;
+  this->DifferentFromFile = true;
+}
+
 void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
 {
   if(diffFromFile)
   {
     this->fileChanged();
     this->DifferentFromH5M = true;
+    this->DifferentFromGenBoundryLayer = true;
     return;
   }
   //make sure file exits
@@ -527,18 +531,20 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   {
     this->fileChanged();
     this->DifferentFromH5M = true;
+    this->DifferentFromGenBoundryLayer = true;
     return;
   }
   this->DifferentFromFile = false;
   if(this->ExportFileName.empty())
   {
     this->DifferentFromH5M = true;
+    this->DifferentFromGenBoundryLayer = true;
     return;
   }
   //QFileInfo h5mFI();
   QDateTime inpLM = inpInfo.lastModified();
   QFileInfo exportInfo(this->ExportFileName.c_str());
-  QFileInfo h5mInfo(exportInfo.dir(), this->getFinalMeshOutputFilename().c_str());
+  QFileInfo h5mInfo(exportInfo.dir(), this->getCoregenMeshOutputFilename().c_str());
   if(!h5mInfo.exists())
   {
     this->DifferentFromH5M = true;
@@ -546,20 +552,36 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   }
   QDateTime h5mLM = h5mInfo.lastModified();
   this->DifferentFromH5M = h5mLM < inpLM;
+  if(getNumberOfBoundryLayers() != 0)
+  {
+    h5mInfo = QFileInfo(exportInfo.dir(), this->getFinalMeshOutputFilename().c_str());
+    if(!h5mInfo.exists())
+    {
+      this->DifferentFromGenBoundryLayer = true;
+      return;
+    }
+    h5mLM = h5mInfo.lastModified();
+    this->DifferentFromGenBoundryLayer = h5mLM < inpLM;
+  }
+  else
+  {
+    this->DifferentFromGenBoundryLayer = this->DifferentFromH5M;
+  }
   this->checkUsedAssembliesForGen();
 }
 
 void cmbNucCore::checkUsedAssembliesForGen()
 {
   if(this->DifferentFromH5M) return;
-  QFileInfo h5mInfo(QFileInfo(this->ExportFileName.c_str()).dir(),
+  QFileInfo corefi(this->ExportFileName.c_str());
+  QFileInfo h5mInfo(corefi.dir(),
                     this->getFinalMeshOutputFilename().c_str());
   std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
   for(unsigned int i = 0; i < assy.size() && !this->DifferentFromH5M; ++i)
   {
     this->DifferentFromH5M |= assy[i]->changeSinceLastGenerate();
-    QFileInfo inpInfo(assy[i]->ExportFileName.c_str());
-    QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName() + ".cub");
+    QFileInfo inpInfo(assy[i]->getFileName().c_str());
+    QFileInfo cubInfo(corefi.dir(), inpInfo.baseName() + ".cub");
     this->DifferentFromH5M |= !cubInfo.exists() || h5mInfo.lastModified() < cubInfo.lastModified();
   }
 }
@@ -572,6 +594,11 @@ bool cmbNucCore::changeSinceLastSave() const
 bool cmbNucCore::changeSinceLastGenerate() const
 {
   return this->DifferentFromH5M;
+}
+
+bool cmbNucCore::boundryLayerChangedSinceLastGenerate() const
+{
+  return this->DifferentFromH5M || this->DifferentFromGenBoundryLayer;
 }
 
 QPointer<cmbNucDefaults> cmbNucCore::GetDefaults()
@@ -796,7 +823,7 @@ void cmbNucCore::clearBoundryLayer()
   BoundryLayers.clear();
 }
 
-cmbNucCore::boundryLayer const* cmbNucCore::getBoundryLayer(int bl) const
+cmbNucCore::boundryLayer * cmbNucCore::getBoundryLayer(int bl) const
 {
   if(static_cast<size_t>(bl)>= this->BoundryLayers.size())
   {
@@ -805,7 +832,7 @@ cmbNucCore::boundryLayer const* cmbNucCore::getBoundryLayer(int bl) const
   return BoundryLayers[bl];
 }
 
-std::string cmbNucCore::getCoregenMeshOutputFilename() const
+std::string cmbNucCore::getCoregenMeshOutputFilename()
 {
   return cmbNucCore::getMeshFilename(0);
 }
@@ -816,9 +843,13 @@ std::string cmbNucCore::getFinalMeshOutputFilename() const
   return meshFilePrefix + "." + meshFileExtention;
 }
 
-std::string cmbNucCore::getMeshFilename(size_t i) const
+std::string cmbNucCore::getMeshFilename(size_t i)
 {
-  if(i >= BoundryLayers.size())
+  if(this->ExportBoundryLayers.empty())
+  {
+    this->generateExportBoundryLayers();
+  }
+  if(i >= ExportBoundryLayers.size())
   {
     return this->getFinalMeshOutputFilename();
   }
@@ -864,4 +895,39 @@ void cmbNucCore::setGenerateDirectory(std::string const& dir)
 std::string const& cmbNucCore::getGenerateDirectory() const
 {
   return this->GenerateDirectory;
+}
+
+int cmbNucCore::getNumberOfExportBoundryLayers() const
+{
+  return static_cast<int>(this->ExportBoundryLayers.size());
+}
+
+void cmbNucCore::generateExportBoundryLayers()
+{
+  this->ExportBoundryLayers.clear();
+  std::vector< cmbNucAssembly* > used = this->GetUsedAssemblies();
+  int count = 0;
+  for(unsigned int i = 0; i < BoundryLayers.size(); ++i)
+  {
+    boundryLayer bl = *(BoundryLayers[i]);
+    for(unsigned int j = 0; j < used.size(); ++j)
+    {
+      QSet< cmbNucMaterial* > mats = used[j]->getInterfaceMaterials(bl.interface_material);
+      bl.jou_file_name = (QFileInfo(used[j]->getFileName().c_str()).completeBaseName() + ".jou").toStdString();
+      for(QSet< cmbNucMaterial* >::const_iterator at = mats.begin(); at != mats.end(); ++at)
+      {
+        bl.fixed_material = *at;
+        this->ExportBoundryLayers.push_back(bl);
+      }
+    }
+  }
+}
+
+cmbNucCore::boundryLayer const* cmbNucCore::getExportBoundryLayer(int bl) const
+{
+  if(bl < this->ExportBoundryLayers.size())
+  {
+    return &(this->ExportBoundryLayers[bl]);
+  }
+  return NULL;
 }

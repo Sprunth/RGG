@@ -1228,8 +1228,8 @@ void cmbNucMainWindow::onExportINPFiles()
   {
     QString label(NuclearCore->GetAssembly(i)->getLabel().c_str());
     std::string tmpl = label.toLower().toStdString();
-    NuclearCore->GetAssembly(i)->ExportFileName = dir.toStdString() +
-    "/assembly_" + tmpl + ".inp";
+    NuclearCore->GetAssembly(i)->setPath(dir.toStdString());
+    NuclearCore->GetAssembly(i)->setFileName( "assembly_" + tmpl + ".inp" );
   }
   NuclearCore->setExportFileName(dir.toStdString() + "/core.inp");
   if( this->NuclearCore->Params.BackgroundMode == cmbNucCoreParams::External  &&

@@ -89,6 +89,7 @@ public:
   void setAssygen(QString assygenExe,QString assygenLib);
   void setCoregen(QString coregenExe,QString coregenLib);
   void setPostBL(QString postBLExe, QString postBLLib);
+  void setPostBLGenerator(QString exe);
   void setNumberOfProcessors(int v);
   void setCubit(QString cubitExe);
   void waitTillDone();
@@ -101,6 +102,7 @@ signals:
   void cancelled();
   void terminate();
   void sendCoreResult(QString);
+  void sendPartialBoundryLayer(QString);
   void progress(int);
   void currentProcess(QString);
   void errorMessage( QString );
@@ -141,6 +143,7 @@ private:
   QString CoregenExe, CoregenLib;
   QString CubitExe;
   QString PostBLExe, PostBLLib;
+  QString PostBLGenerator;
 
   cmbNucExportInternal * internal;
 
