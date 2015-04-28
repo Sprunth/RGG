@@ -30,6 +30,7 @@ add_external_project(netcdf
     -DUSE_HDF5:BOOL=ON
     -DENABLE_NETCDF_4:BOOL=ON
     -DENABLE_DAP:BOOL=OFF
+    -DENABLE_TESTS:BOOL=OFF
     ${cmake_args}
   ${suppress_build_out}
 )
