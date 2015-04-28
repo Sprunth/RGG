@@ -14,6 +14,10 @@ if (NOT BUILD_WITH_CUBIT)
   list(APPEND extra_deps
     freetype)
 endif ()
+if (BUILD_MESHKIT_WITH_MPI)
+  list(APPEND extra_deps
+    pnetcdf)
+endif ()
 
 set(meshkit_args
   ${suppress_build_out}

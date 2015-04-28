@@ -200,6 +200,7 @@ elseif(UNIX AND BUILD_WITH_CUBIT)
 endif()
 
 include(netcdf)
+include(pnetcdf)
 include(freetype)
 include(netcdfcpp)
 include(szip)

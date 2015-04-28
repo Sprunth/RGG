@@ -6,8 +6,14 @@ if(SUPPRESS_MOAB_BUILD_OUTPUT)
   set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
+set(extra_deps)
+if (BUILD_MESHKIT_WITH_MPI)
+  list(APPEND extra_deps
+    pnetcdf)
+endif ()
+
 add_external_project(moab
-  DEPENDS hdf5 netcdfcpp
+  DEPENDS hdf5 netcdfcpp ${extra_deps}
   CMAKE_ARGS
     -DBUILD_SHARED_LIBS:BOOL=ON # LGPL
     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
@@ -15,6 +21,8 @@ add_external_project(moab
     -DMOAB_USE_CGM:BOOL=OFF
     -DMOAB_USE_NETCDF:BOOL=ON
     -DMOAB_USE_HDF:BOOL=ON
+    -DMOAB_USE_PNETCDF:BOOL=${BUILD_MESHKIT_WITH_MPI}
+    -DMOAB_USE_MPI:BOOL=${BUILD_MESHKIT_WITH_MPI}
     -DNetCDF_DIR:PATH=<INSTALL_DIR>
   ${suppress_build_out}
 )

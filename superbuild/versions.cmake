@@ -82,6 +82,10 @@ add_revision(netcdfcpp
   URL "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx-4.2.tar.gz"
   URL_MD5 d32b20c00f144ae6565d9e98d9f6204c)
 
+add_revision(pnetcdf
+  URL "http://cucis.ece.northwestern.edu/projects/PnetCDF/Release/parallel-netcdf-1.6.0.tar.bz2"
+  URL_MD5 43e1ce63da7aab72829502a1e2e27161)
+
 # FIXME: verdict support?
 add_revision(moab
              GIT_REPOSITORY https://bitbucket.org/mathstuf/moab.git

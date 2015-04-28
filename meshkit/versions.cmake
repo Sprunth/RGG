@@ -23,10 +23,6 @@ add_revision(OCE
   GIT_TAG "next"
   )
 
-add_revision(pnetcdf
-  URL "http://cucis.ece.northwestern.edu/projects/PnetCDF/Release/parallel-netcdf-1.6.0.tar.bz2"
-  URL_MD5 43e1ce63da7aab72829502a1e2e27161)
-
 add_revision(cgm
   GIT_REPOSITORY "https://bitbucket.org/mathstuf/cgm.git"
   GIT_TAG windows-with-cmake-support
