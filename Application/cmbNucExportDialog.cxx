@@ -138,18 +138,18 @@ void cmbNucExportDialog::sendSignalToProcess()
   this->Progress->show();
   message.CoreGenOutputFile.clear();
   message.boundryFiles.clear();
-  if(this->Core->boundryLayerChangedSinceLastGenerate())
+  QFileInfo fi(CoregenFile);
+  QString path = fi.absolutePath();
+  if(this->Core->boundryLayerChangedSinceLastGenerate() || !message.coregenFile.isEmpty())
   {
-    QFileInfo fi(CoregenFile);
-    QString path = fi.absolutePath();
     for(int i = 0; i < this->Core->getNumberOfExportBoundryLayers(); ++i)
     {
       std::string currentOf = this->Core->getMeshFilename(static_cast<size_t>(i));
       message.CoreGenOutputFile << path + "/" + QString(currentOf.c_str()).trimmed();
       message.boundryFiles << path + "/" + QString(this->Core->getMeshFilename(static_cast<size_t>(i+1)).c_str());
     }
-    message.CoreGenOutputFile << path + "/" + QString(this->Core->getFinalMeshOutputFilename().c_str()).trimmed();
   }
+  message.CoreGenOutputFile << path + "/" + QString(this->Core->getFinalMeshOutputFilename().c_str()).trimmed();
 
   OuterCylinder->exportFiles(this->Core, *InpExporter);
   if(OuterCylinder->generateCylinder())
@@ -214,9 +214,11 @@ void cmbNucExportDialog::runCoregen()
   QString assygenExe, assyGenLibs, coregenExe, coreGenLibs, cubitExe;
   QString postBLExe, postBLLib;
   int thread_count;
+  QString generatePostBLInput;
   if(!cmbNucPreferencesDialog::getExecutable(assygenExe, assyGenLibs, cubitExe,
                                              coregenExe, coreGenLibs, thread_count)||
-     !cmbNucPreferencesDialog::getPostBL(postBLExe, postBLLib))
+     !cmbNucPreferencesDialog::getPostBL(postBLExe, postBLLib)||
+     !cmbNucPreferencesDialog::getPostBLInpFileGenerator(generatePostBLInput))
   {
     qDebug() << "One of the export exe is missing";
     emit error("One of the export exe is missing");
@@ -229,6 +231,7 @@ void cmbNucExportDialog::runCoregen()
   coreGenLibs.append((":" + QFileInfo(cubitExe).absolutePath().toStdString()).c_str());
   Exporter->setCoregen(coregenExe,coreGenLibs);
   Exporter->setPostBL(postBLExe, postBLLib);
+  Exporter->setPostBLGenerator(generatePostBLInput);
   Exporter->setNumberOfProcessors(thread_count);
   this->hide();
   if(CoregenFile.isEmpty())
@@ -240,18 +243,18 @@ void cmbNucExportDialog::runCoregen()
   this->Progress->show();
   message.CoreGenOutputFile.clear();
   message.boundryFiles.clear();
-  if(this->Core->boundryLayerChangedSinceLastGenerate())
+  QFileInfo fi(CoregenFile);
+  QString path = fi.absolutePath();
+  if(this->Core->boundryLayerChangedSinceLastGenerate() || !message.coregenFile.isEmpty())
   {
-    QFileInfo fi(CoregenFile);
-    QString path = fi.absolutePath();
-    for(int i = 0; i < this->Core->getNumberOfBoundryLayers(); ++i)
+    for(int i = 0; i < this->Core->getNumberOfExportBoundryLayers(); ++i)
     {
       std::string currentOf = this->Core->getMeshFilename(static_cast<size_t>(i));
       message.CoreGenOutputFile << path + "/" + QString(currentOf.c_str()).trimmed();
-      message.boundryFiles << path + "/" + fi.baseName() + ".bl" + QString::number(i) + ".inp";
+      message.boundryFiles << path + "/" + QString(this->Core->getMeshFilename(static_cast<size_t>(i+1)).c_str());
     }
-    message.CoreGenOutputFile << path + "/" + QString(this->Core->getFinalMeshOutputFilename().c_str()).trimmed();
   }
+  message.CoreGenOutputFile << path + "/" + QString(this->Core->getFinalMeshOutputFilename().c_str()).trimmed();
 
   message.keepGoingAfterError = this->ui->keepGoingOnError->isChecked();
   message.cylinderTask.valid = false;
