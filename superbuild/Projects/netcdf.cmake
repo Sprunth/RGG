@@ -6,6 +6,12 @@ if(SUPPRESS_NETCDF_BUILD_OUTPUT)
   set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
+set(cmake_args)
+if (BUILD_MESHKIT_WITH_MPI)
+  list(APPEND cmake_args
+    -DENABLE_PARALLEL:BOOL=ON)
+endif ()
+
 add_external_project(netcdf
   DEPENDS hdf5
 
@@ -24,6 +30,7 @@ add_external_project(netcdf
     -DUSE_HDF5:BOOL=ON
     -DENABLE_NETCDF_4:BOOL=ON
     -DENABLE_DAP:BOOL=OFF
+    ${cmake_args}
   ${suppress_build_out}
 )
 
