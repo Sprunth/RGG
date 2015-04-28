@@ -9,6 +9,12 @@ if(SUPPRESS_HDF5_BUILD_OUTPUT)
   set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
+set(cmake_args)
+if (BUILD_MESHKIT_WITH_MPI)
+  list(APPEND cmake_args
+    -DHDF5_ENABLE_PARALLEL:BOOL=ON)
+endif ()
+
 add_external_project(hdf5
   DEPENDS zlib szip
 
@@ -28,6 +34,7 @@ add_external_project(hdf5
     -DHDF5_ENABLE_SZIP_ENCODING:BOOL=TRUE
     -DHDF5_BUILD_HL_LIB:BOOL=TRUE
     -DHDF5_BUILD_WITH_INSTALL_NAME:BOOL=TRUE
+    ${cmake_args}
   ${suppress_build_out}
 )
 
