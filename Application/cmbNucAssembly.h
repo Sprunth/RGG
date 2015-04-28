@@ -286,6 +286,7 @@ public:
   std::string getFileName();
   std::string getFileName(Lattice::CellDrawMode mode, size_t nom = 1);
   virtual std::string getTitle(){ return "Assembly: " + Label; }
+  bool needToRunMode(Lattice::CellDrawMode mode, std::string & fname, size_t nom = 1);
 
   std::string getGeometryLabel() const;
   void setGeometryLabel(std::string geomType);
@@ -374,6 +375,9 @@ private:
   cmbNucAssemblyConnection * Connection;
 
   double pinPitchX, pinPitchY;
+
+  bool checkJournel(std::string const& fname );
+  bool checkCubitOutputFile(std::string const& fname );
 
 };
 

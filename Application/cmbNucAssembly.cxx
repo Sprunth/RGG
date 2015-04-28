@@ -477,43 +477,27 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
   {
     this->DifferentFromCub = true;
     this->DifferentFromJournel = true;
-    return;
   }
-  //make sure file exits
-  //check to see if a cub file has been generate and is older than this file
-  QFileInfo inpInfo(this->getFileName().c_str());
-  if(!inpInfo.exists())
+  else if(!QFileInfo(this->getFileName().c_str()).exists()) // make sure inp exists
   {
     this->DifferentFromCub = true;
-    DifferentFromJournel = true;
-    return;
+    this->DifferentFromJournel = true;
   }
-  QDateTime inpLM = inpInfo.lastModified();
-  QFileInfo jrlInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".jou");
-  if(jrlInfo.exists())
+  else if(this->checkJournel(this->getFileName())) //check the assygen output
   {
-    QDateTime jrlLM = jrlInfo.lastModified();
-    DifferentFromJournel = jrlLM < inpLM;
-    if(DifferentFromJournel)
-    {
-      this->DifferentFromCub = true;
-      return;
-    }
+    this->DifferentFromCub = true;
+    this->DifferentFromJournel = true;
+  }
+  else if(this->checkCubitOutputFile(this->getFileName())) // check the cubit output
+  {
+    this->DifferentFromCub = true;
+    this->DifferentFromJournel = false;
   }
   else
   {
-    DifferentFromJournel = true;
-    this->DifferentFromCub = true;
-    return;
+    this->DifferentFromCub = false;
+    this->DifferentFromJournel = false;
   }
-  QFileInfo outInfo(inpInfo.dir(), inpInfo.baseName().toLower() + getOutputExtension().c_str());
-  if(!outInfo.exists())
-  {
-    this->DifferentFromCub = true;
-    return;
-  }
-  QDateTime cubLM = outInfo.lastModified();
-  this->DifferentFromCub = cubLM < jrlInfo.lastModified();;
 }
 
 std::string cmbNucAssembly::getOutputExtension()
@@ -854,4 +838,42 @@ std::string cmbNucAssembly::getFileName(Lattice::CellDrawMode mode, size_t nom)
           QString(Lattice::generate_string(this->getLabel(),
                                            mode).c_str()).toLower() +
           ".inp").toStdString();
+}
+
+bool cmbNucAssembly::needToRunMode(Lattice::CellDrawMode mode, std::string & fname, size_t nom )
+{
+  fname = this->getFileName(mode, nom);
+  if(this->changeSinceLastGenerate()) return true;
+  else if(!QFileInfo(fname.c_str()).exists()) return true;
+  else if(this->checkJournel(fname)) return true;
+  else if(this->checkCubitOutputFile(fname)) return true;
+  //else
+  return false;
+}
+
+bool cmbNucAssembly::checkJournel(std::string const& fname )
+{
+  QFileInfo inpInfo(fname.c_str());
+  QDateTime inpLM = inpInfo.lastModified();
+  QFileInfo jrlInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".jou");
+  if(jrlInfo.exists())
+  {
+    QDateTime jrlLM = jrlInfo.lastModified();
+    return jrlLM < inpLM;
+  }
+  return true;
+}
+
+bool cmbNucAssembly::checkCubitOutputFile(std::string const& fname )
+{
+  QFileInfo inpInfo(fname.c_str());
+  QDateTime inpLM = inpInfo.lastModified();
+  QFileInfo jrlInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".jou");
+  QFileInfo outInfo(inpInfo.dir(), inpInfo.baseName().toLower() + getOutputExtension().c_str());
+  if(!outInfo.exists())
+  {
+    return true;
+  }
+  QDateTime cubLM = outInfo.lastModified();
+  return cubLM < jrlInfo.lastModified();
 }

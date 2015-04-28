@@ -279,6 +279,7 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
   QStringList AssygenFileList;
 
   std::map< std::string, std::set< Lattice::CellDrawMode > > cells = this->Core->getDrawModesForAssemblies();
+  std::string assyFname;
 
   for(std::map< std::string, std::set< Lattice::CellDrawMode > >::const_iterator iter = cells.begin();
       iter != cells.end(); ++iter)
@@ -289,11 +290,14 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
     for(std::set< Lattice::CellDrawMode >::const_iterator iter = forms.begin();
         iter != forms.end(); ++iter)
     {
-      QString assyname = assembly->getFileName(*iter, forms.size()).c_str();
-      AssygenFileList.append(assyname);
-      Message::AssygenTask task( assyname,
-                                 QString(assembly->getOutputExtension().c_str()), false);
-      this->AllUsableAssyTasks.push_back(task);
+      if(assembly->needToRunMode(*iter, assyFname, forms.size()) || force)
+      {
+        QString assyname = assyFname.c_str();
+        AssygenFileList.append(assyname);
+        Message::AssygenTask task( assyname,
+                                   QString(assembly->getOutputExtension().c_str()), false);
+        this->AllUsableAssyTasks.push_back(task);
+      }
     }
   }
 
