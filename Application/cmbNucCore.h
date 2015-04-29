@@ -346,10 +346,6 @@ public:
   void clearBoundryLayer();
   boundryLayer * getBoundryLayer(int bl) const;
 
-  int getNumberOfExportBoundryLayers() const;
-  void generateExportBoundryLayers();
-  boundryLayer const* getExportBoundryLayer(int bl) const;
-
 private:
   bool hasCylinder;
   double cylinderRadius;

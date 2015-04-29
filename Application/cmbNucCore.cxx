@@ -880,38 +880,3 @@ std::string const& cmbNucCore::getGenerateDirectory() const
 {
   return this->GenerateDirectory;
 }
-
-int cmbNucCore::getNumberOfExportBoundryLayers() const
-{
-  return static_cast<int>(this->ExportBoundryLayers.size());
-}
-
-void cmbNucCore::generateExportBoundryLayers()
-{
-  this->ExportBoundryLayers.clear();
-  std::vector< cmbNucAssembly* > used = this->GetUsedAssemblies();
-  int count = 0;
-  for(unsigned int i = 0; i < BoundryLayers.size(); ++i)
-  {
-    boundryLayer bl = *(BoundryLayers[i]);
-    for(unsigned int j = 0; j < used.size(); ++j)
-    {
-      QSet< cmbNucMaterial* > mats = used[j]->getInterfaceMaterials(bl.interface_material);
-      bl.jou_file_name = (QFileInfo(used[j]->getFileName().c_str()).completeBaseName() + ".jou").toStdString();
-      for(QSet< cmbNucMaterial* >::const_iterator at = mats.begin(); at != mats.end(); ++at)
-      {
-        bl.fixed_material = *at;
-        this->ExportBoundryLayers.push_back(bl);
-      }
-    }
-  }
-}
-
-cmbNucCore::boundryLayer const* cmbNucCore::getExportBoundryLayer(int bl) const
-{
-  if(bl < this->ExportBoundryLayers.size())
-  {
-    return &(this->ExportBoundryLayers[bl]);
-  }
-  return NULL;
-}
