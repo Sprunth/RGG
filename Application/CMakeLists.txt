@@ -165,9 +165,6 @@ endif()
 
 set(TARGET_NAME)
 
-ADD_EXECUTABLE( cmbGeneratePostBLFile cmbGeneratePostBLFile.cxx )
-INSTALL(TARGETS cmbGeneratePostBLFile DESTINATION "bin")
-
 if(WIN32 OR APPLE)
   ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE cmbNucMain.cxx ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
   TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})

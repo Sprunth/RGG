@@ -440,7 +440,7 @@ bool inpFileReader
 
   inpFileHelper helper;
   core.setExportFileName(FileName);
-  core.setFinalMeshOutputFilename((info.completeBaseName() + ".h5m").toStdString());
+  core.setMeshOutputFilename((info.completeBaseName() + ".h5m").toStdString());
   std::stringstream input(CleanFile);
   while(!input.eof())
   {
@@ -505,7 +505,7 @@ bool inpFileReader
     {
       std::string tmp_outFile;
       getline(input, tmp_outFile);
-      core.setFinalMeshOutputFilename(QString(tmp_outFile.c_str()).trimmed().toStdString());
+      core.setMeshOutputFilename(QString(tmp_outFile.c_str()).trimmed().toStdString());
     }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     else if( value == #Key) \
@@ -812,7 +812,7 @@ bool inpFileWriter::write(std::string fname,
 #undef FUN_STRUCT
 
   output << "outputfilename "
-         << core.getCoregenMeshOutputFilename() << "\n";
+         << core.getMeshOutputFilename() << "\n";
 
   helper.writeUnknown(output, core.Params.UnknownKeyWords);
 

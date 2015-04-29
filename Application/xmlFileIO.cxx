@@ -623,7 +623,7 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
   //Write parameters
   {
     pugi::xml_node node = rootElement.append_child(PARAMETERS_TAG.c_str());
-    if(!write(node, MESH_FILENAME_TAG.c_str(), core.getFinalMeshOutputFilename())) return false;
+    if(!write(node, MESH_FILENAME_TAG.c_str(), core.getMeshOutputFilename())) return false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     if( core.Params.Var##IsSet() ) \
     {\
@@ -802,7 +802,7 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
     {
       std::string outf;
       read(node, MESH_FILENAME_TAG.c_str(), outf);
-      core.setFinalMeshOutputFilename(outf);
+      core.setMeshOutputFilename(outf);
     }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     read(node, #Key, core.Params.Var);

@@ -544,7 +544,7 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   //QFileInfo h5mFI();
   QDateTime inpLM = inpInfo.lastModified();
   QFileInfo exportInfo(this->ExportFileName.c_str());
-  QFileInfo h5mInfo(exportInfo.dir(), this->getCoregenMeshOutputFilename().c_str());
+  QFileInfo h5mInfo(exportInfo.dir(), this->getMeshOutputFilename().c_str());
   if(!h5mInfo.exists())
   {
     this->DifferentFromH5M = true;
@@ -554,7 +554,7 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   this->DifferentFromH5M = h5mLM < inpLM;
   if(getNumberOfBoundryLayers() != 0)
   {
-    h5mInfo = QFileInfo(exportInfo.dir(), this->getFinalMeshOutputFilename().c_str());
+    h5mInfo = QFileInfo(exportInfo.dir(), this->getMeshOutputFilename().c_str());
     if(!h5mInfo.exists())
     {
       this->DifferentFromGenBoundryLayer = true;
@@ -575,7 +575,7 @@ void cmbNucCore::checkUsedAssembliesForGen()
   if(this->DifferentFromH5M) return;
   QFileInfo corefi(this->ExportFileName.c_str());
   QFileInfo h5mInfo(corefi.dir(),
-                    this->getFinalMeshOutputFilename().c_str());
+                    this->getMeshOutputFilename().c_str());
   std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
   for(unsigned int i = 0; i < assy.size() && !this->DifferentFromH5M; ++i)
   {
@@ -832,34 +832,13 @@ cmbNucCore::boundryLayer * cmbNucCore::getBoundryLayer(int bl) const
   return BoundryLayers[bl];
 }
 
-std::string cmbNucCore::getCoregenMeshOutputFilename()
-{
-  return cmbNucCore::getMeshFilename(0);
-}
-
-std::string cmbNucCore::getFinalMeshOutputFilename() const
+std::string cmbNucCore::getMeshOutputFilename() const
 {
   if(meshFilePrefix.empty()) return "";
   return meshFilePrefix + "." + meshFileExtention;
 }
 
-std::string cmbNucCore::getMeshFilename(size_t i)
-{
-  if(this->ExportBoundryLayers.empty())
-  {
-    this->generateExportBoundryLayers();
-  }
-  if(i >= ExportBoundryLayers.size())
-  {
-    return this->getFinalMeshOutputFilename();
-  }
-  else
-  {
-    return meshFilePrefix + ".tbl" + QString::number(i).toStdString() + ".h5m";
-  }
-}
-
-void cmbNucCore::setFinalMeshOutputFilename(std::string const& fname)
+void cmbNucCore::setMeshOutputFilename(std::string const& fname)
 {
   QFileInfo qf(fname.c_str());
   this->meshFilePrefix = qf.completeBaseName().toStdString();

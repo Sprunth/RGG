@@ -270,10 +270,8 @@ public:
   void setGenerateDirectory(std::string const& dir);
   std::string const& getGenerateDirectory() const;
 
-  std::string getCoregenMeshOutputFilename();
-  std::string getFinalMeshOutputFilename() const;
-  std::string getMeshFilename(size_t i);
-  void setFinalMeshOutputFilename(std::string const& fname);
+  std::string getMeshOutputFilename() const;
+  void setMeshOutputFilename(std::string const& fname);
 
   std::string const& getExportFileName() const;
   void setExportFileName(std::string const& fname);

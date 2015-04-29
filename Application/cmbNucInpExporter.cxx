@@ -70,29 +70,7 @@ bool cmbNucInpExporter
   {
     inpFileWriter::write(coreName.toStdString(), *(this->NuclearCore));
   }
-  if(this->NuclearCore->boundryLayerChangedSinceLastGenerate())
-  {
-    QString path = coreinfo.absolutePath();
-    this->NuclearCore->generateExportBoundryLayers();
-    //std::string previous = this->NuclearCore->getMeshFilename(0);
-    for(int i = 0; i < this->NuclearCore->getNumberOfExportBoundryLayers(); ++i)
-    {
-      std::string prev = this->NuclearCore->getMeshFilename(static_cast<size_t>(i));
-      std::string current = this->NuclearCore->getMeshFilename(static_cast<size_t>(i+1));
-      std::ofstream out((path.toStdString() + "/" + current+".txt").c_str());
-      cmbNucCore::boundryLayer const* bl = this->NuclearCore->getExportBoundryLayer(i);
-      out << bl->jou_file_name << std::endl;
-      out << current+".inp" << std::endl;
-      out << prev << std::endl;
-      out << "g_" << bl->fixed_material->getName().toLower().toStdString() << std::endl;
-      out << bl->fixed_material->getName().toLower().toStdString() << "_side1_ss" << std::endl;
-      out << bl->Thickness << std::endl;
-      out << bl->Intervals << std::endl;
-      out << bl->Bias << std::endl;
-      out << current << std::endl;
-      out.close();
-    }
-  }
+
   return true;
 }
 

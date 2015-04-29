@@ -26,10 +26,7 @@ public:
                             QString & cubitExe,
                             QString & coregenExe, QString & coregenLib,
                             int & numberOfProcessors);
-  static bool getPostBLInpFileGenerator(QString & exe);
-  static bool getPostBL(QString & exe, QString & lib);
   static bool getPackaged(QString & assygenExe, QString & coregenExe);
-  static bool getPackaged(QString & postBL);
 
 public slots:
   void setPreferences(bool e = false);
@@ -42,7 +39,6 @@ protected slots:
   void browserAssygenExecutable();
   void browserCubitExecutable();
   void browserCoregenExecutable();
-  void browserPostBLExectuable();
   void setValues();
   void checkValues();
 

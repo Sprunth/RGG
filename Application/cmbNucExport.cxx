@@ -135,7 +135,6 @@ public:
     types[0] = remus::proto::make_JobRequirements(remus::common::MeshIOType("ASSYGEN_IN", "CUBIT_IN"), "Assygen", "");
     types[1] = remus::proto::make_JobRequirements(remus::common::MeshIOType("CUBIT_IN", "COREGEN_IN"), "Cubit", "");
     types[2] = remus::proto::make_JobRequirements(remus::common::MeshIOType("COREGEN_IN", "COREGEN_OUT"), "Coregen", "");
-    types[3] = remus::proto::make_JobRequirements(remus::common::MeshIOType("COREGEN_OUT", "COREGEN_OUT"), "PostBL", "");
     threadPool.setMaxThreadCount( maxThreadCount );
     threadPool.setExpiryTimeout( -1 );
   }
@@ -146,7 +145,6 @@ public:
     if(types[0].meshTypes() == type) result.insert(types[0]);
     else if(types[1].meshTypes() == type) result.insert(types[1]);
     else if(types[2].meshTypes() == type) result.insert(types[2]);
-    else if(types[3].meshTypes() == type) result.insert(types[3]);
     return result;
   }
 
@@ -156,13 +154,12 @@ public:
     result.insert(types[0].meshTypes());
     result.insert(types[1].meshTypes());
     result.insert(types[2].meshTypes());
-    result.insert(types[3].meshTypes());
     return result;
   }
 
   virtual bool haveSupport(const remus::proto::JobRequirements& reqs) const
   {
-    return reqs == types[0] || reqs == types[1] || reqs == types[2] || reqs == types[3];
+    return reqs == types[0] || reqs == types[1] || reqs == types[2];
   }
 
   virtual bool createWorker(const remus::proto::JobRequirements& reqs,
@@ -188,11 +185,6 @@ public:
     {
       //create and connect coregen worker
       runner = new cmbNucExportWorkerRunner( "Coregen", reqs.meshTypes(), /*connection,*/ exporter);
-    }
-    else if(reqs == types[3])
-    {
-      //create and connect coregen worker
-      runner = new cmbNucExportWorkerRunner( "PostBL", reqs.meshTypes(), /*connection,*/ exporter);
     }
     else
     {
@@ -678,10 +670,8 @@ cmbNucExport::run( Message const& message )
   deps.insert(deps.end(), assy.begin(), assy.end());
 
   std::vector<JobHolder*> core = this->runCoreHelper( message.coregenFile,
-                                                      deps, message.CoreGenOutputFile[0],
+                                                      deps, message.CoreGenOutputFile,
                                                       false );
-  this->runPostBLHelper( message.boundryFiles, core,
-                         message.CoreGenOutputFile );
 
   processJobs();
   {
@@ -838,72 +828,6 @@ cmbNucExport::runCoreHelper( const QString coregenFile,
 }
 
 std::vector<JobHolder*>
-cmbNucExport::runPostBLHelper( const QStringList boundryControlFiles,
-                               std::vector<JobHolder*> debIn,
-                               const QStringList CoreGenOutputFile )
-{
-  std::vector<JobHolder*> result;
-  QString exe = this->PostBLExe;
-  QString lib = this->PostBLLib;
-  QString generator = this->PostBLGenerator;
-  std::vector<JobHolder*> previous = debIn;
-  for(unsigned int i = 0; i < boundryControlFiles.size(); ++i)
-  {
-    QFileInfo fi(boundryControlFiles[i]);
-    QString path = fi.absolutePath();
-    JobHolder * tjob = new JobHolder(path, generator, boundryControlFiles[i] + ".txt", boundryControlFiles[i] + ".inp");
-    tjob->label = "PostBL";
-    tjob->itype = "COREGEN_OUT";
-    tjob->otype = "COREGEN_OUT";
-    tjob->dependencies = debIn;
-    jobs_to_do.push_back(tjob);
-    result.push_back(tjob);
-    {
-      tjob->in.LibPath = "";
-      std::stringstream ss(lib.toStdString().c_str());
-      std::string line;
-      while( std::getline(ss, line))
-      {
-        tjob->in.LibPath += line + ":";
-      }
-
-      QFileInfo libPaths(exe);
-      tjob->in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
-      tjob->in.LibPath += ":"+ QFileInfo(CubitExe).absolutePath().toStdString();
-    }
-    previous = std::vector<JobHolder*>(1, tjob);
-  }
-  for(unsigned int i = 0; i < boundryControlFiles.size(); ++i)
-  {
-    QFileInfo fi(boundryControlFiles[i]);
-    QString path = fi.absolutePath();
-    JobHolder * tjob = new JobHolder(path, exe, boundryControlFiles[i] + ".inp", CoreGenOutputFile[i+1]);
-    tjob->label = "PostBL";
-    tjob->itype = "COREGEN_OUT";
-    tjob->otype = "COREGEN_OUT";
-    tjob->meshInputFile = CoreGenOutputFile[i];
-    tjob->dependencies = previous;
-    jobs_to_do.push_back(tjob);
-    result.push_back(tjob);
-    {
-      tjob->in.LibPath = "";
-      std::stringstream ss(lib.toStdString().c_str());
-      std::string line;
-      while( std::getline(ss, line))
-      {
-        tjob->in.LibPath += line + ":";
-      }
-
-      QFileInfo libPaths(exe);
-      tjob->in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
-      tjob->in.LibPath += ":"+ QFileInfo(CubitExe).absolutePath().toStdString();
-    }
-    previous = std::vector<JobHolder*>(1, tjob);
-  }
-  return result;
-}
-
-std::vector<JobHolder*>
 cmbNucExport::exportCylinder( Message::CylinderTask const& msg )
 {
   std::vector<JobHolder*> result;
@@ -1039,17 +963,6 @@ void cmbNucExport::setCoregen(QString coregenExe,QString coregenLib)
   this->CoregenLib = coregenLib;
 }
 
-void cmbNucExport::setPostBL(QString postBLExe, QString postBLLib)
-{
-  this->PostBLExe = postBLExe;
-  this->PostBLLib = postBLLib;
-}
-
-void cmbNucExport::setPostBLGenerator(QString exe)
-{
-  this->PostBLGenerator = exe;
-}
-
 void cmbNucExport::setNumberOfProcessors(int v)
 {
   this->internal->factory->setMaxThreadCount(v);
@@ -1142,11 +1055,6 @@ void cmbNucExport::processJobs()
         }
         else if(jobState.status() == remus::FAILED)
         {
-          if(jobs_to_do[i]->label == "PostBL")
-          {
-            errorInBoundryLayer = true;
-            filename = jobs_to_do[i]->meshInputFile;
-          }
           failedHelper("Remus ERROR", " Failed to mesh");
           error_occured = inErrorState = true;
         }
