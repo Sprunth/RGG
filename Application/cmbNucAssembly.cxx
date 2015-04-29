@@ -559,7 +559,7 @@ QSet< cmbNucMaterial* > cmbNucAssembly::getInterfaceMaterials(QPointer<cmbNucMat
   }
 }
 
-QSet< cmbNucMaterial* > cmbNucAssembly::getOtherFixed(QPointer<cmbNucMaterial> boundryLayerMaterial,
+QSet< cmbNucMaterial* > cmbNucAssembly::getOtherFixed(QPointer<cmbNucMaterial> boundaryLayerMaterial,
                                                       QPointer<cmbNucMaterial> fixedMaterial)
 {
   //TODO

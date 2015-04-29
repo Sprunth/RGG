@@ -82,7 +82,7 @@ public:
   void writeMaterials( std::ofstream &output, cmbNucAssembly &assembly );
   void writeDuct( std::ofstream &output, cmbNucAssembly &assembly, bool limited = false );
   void writePincell( std::ofstream &output,
-                     std::vector<cmbNucCore::boundryLayer*> const& bls,
+                     std::vector<cmbNucCore::boundaryLayer*> const& bls,
                      cmbNucAssembly &assembly );
   void writeLattice( std::ofstream &output, std::string key, bool useAmp, Lattice &lat, std::string forceLabel = "" );
   void writeAssemblies( std::ofstream &output, std::string outFileName,
@@ -653,7 +653,7 @@ if(params->isValueSet(params->VALUE))\
 
 bool inpFileWriter::write(std::string fname,
                           cmbNucAssembly & assembly,
-                          std::vector<cmbNucCore::boundryLayer*> const& bls,
+                          std::vector<cmbNucCore::boundaryLayer*> const& bls,
                           bool updateFname, bool limited)
 {
   inpFileHelper helper;
@@ -1072,7 +1072,7 @@ bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell *
 }
 
 void inpFileHelper::writePincell( std::ofstream &output,
-                                  std::vector<cmbNucCore::boundryLayer*> const& bls,
+                                  std::vector<cmbNucCore::boundaryLayer*> const& bls,
                                   cmbNucAssembly & assembly )
 {
   if(assembly.GetNumberOfPinCells() == 0) return;
@@ -1083,7 +1083,7 @@ void inpFileHelper::writePincell( std::ofstream &output,
   //TODO: more than one type of boundary layer
   //TODO: boundary layers inside pins
 
-  cmbNucCore::boundryLayer* bl_for_assembly = NULL;
+  cmbNucCore::boundaryLayer* bl_for_assembly = NULL;
   for(unsigned int i = 0; i < bls.size(); ++i)
   {
     if(assembly.has_boundary_layer_interface(bls[i]->interface_material))

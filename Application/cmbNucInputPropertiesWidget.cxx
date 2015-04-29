@@ -741,16 +741,16 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
 
   if(Internal->boundaryLayer->isChecked())
   {
-    cmbNucCore::boundryLayer * bl = NULL;
-    if(nucCore->getNumberOfBoundryLayers() != 0)
+    cmbNucCore::boundaryLayer * bl = NULL;
+    if(nucCore->getNumberOfBoundaryLayers() != 0)
     {
-      bl = nucCore->getBoundryLayer(0);
+      bl = nucCore->getBoundaryLayer(0);
     }
     else
     {
-      bl = new cmbNucCore::boundryLayer();
-      nucCore->addBoundryLayer(bl);
-      nucCore->boundryLayerChanged();
+      bl = new cmbNucCore::boundaryLayer();
+      nucCore->addBoundaryLayer(bl);
+      nucCore->boundaryLayerChanged();
     }
     double tmpbias = this->Internal->bias->value();
     double tmpthichness = this->Internal->thickness->value();
@@ -764,13 +764,13 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
       bl->Thickness = tmpthichness;
       bl->Intervals = tmpinterval;
       bl->interface_material = tmpmat;
-      nucCore->boundryLayerChanged();
+      nucCore->boundaryLayerChanged();
     }
   }
-  else if(nucCore->getNumberOfBoundryLayers() != 0)
+  else if(nucCore->getNumberOfBoundaryLayers() != 0)
   {
-    nucCore->clearBoundryLayer();
-    nucCore->boundryLayerChanged();
+    nucCore->clearBoundaryLayer();
+    nucCore->boundaryLayerChanged();
   }
 
   if(changed)
@@ -904,10 +904,10 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
       cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
       matColorMap->setUp(this->Internal->boundaryMaterials);
     }
-    if(nucCore->getNumberOfBoundryLayers() != 0)
+    if(nucCore->getNumberOfBoundaryLayers() != 0)
     {
       Internal->boundaryLayer->setChecked(true);
-      cmbNucCore::boundryLayer * bl = nucCore->getBoundryLayer(0);
+      cmbNucCore::boundaryLayer * bl = nucCore->getBoundaryLayer(0);
       this->Internal->bias->setValue(bl->Bias);
       this->Internal->thickness->setValue(bl->Thickness);
       this->Internal->interval->setValue(bl->Intervals);

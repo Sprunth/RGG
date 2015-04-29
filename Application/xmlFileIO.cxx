@@ -114,7 +114,7 @@ public:
 
   bool write(pugi::xml_node & node, std::string attName, cmbNucCoreParams::ExtrudeStruct const&);
 
-  bool write(pugi::xml_node & node, cmbNucCore::boundryLayer * bl);
+  bool write(pugi::xml_node & node, cmbNucCore::boundaryLayer * bl);
 
   bool write(pugi::xml_node & node, std::string attName, QString const& v)
   {
@@ -183,7 +183,7 @@ public:
 
   bool read(pugi::xml_node & node, cmbNucAssemblyLink * link, cmbNucCore & core);
 
-  bool read(pugi::xml_node & node, cmbNucCore::boundryLayer * bl,
+  bool read(pugi::xml_node & node, cmbNucCore::boundaryLayer * bl,
             cmbNucMaterialColors * materials);
 
   bool read(pugi::xml_node & node, Lattice & lattice, std::map<QString, int> & used);
@@ -427,7 +427,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucMaterialLayer const& v)
   return r;
 }
 
-bool xmlHelperClass::write(pugi::xml_node & node, cmbNucCore::boundryLayer * bl)
+bool xmlHelperClass::write(pugi::xml_node & node, cmbNucCore::boundaryLayer * bl)
 {
   bool r = true;
   r &= write(node, MATERIAL_TAG.c_str(), bl->interface_material->getName());
@@ -645,9 +645,9 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
   if(!write(lnode, core.getLattice())) return false;
 
   //write boundary layers
-  for(int i = 0; i < core.getNumberOfBoundryLayers(); ++i)
+  for(int i = 0; i < core.getNumberOfBoundaryLayers(); ++i)
   {
-    cmbNucCore::boundryLayer* bl = core.getBoundryLayer(i);
+    cmbNucCore::boundaryLayer* bl = core.getBoundaryLayer(i);
     pugi::xml_node tnode = rootElement.append_child(BOUNDARY_LAYER_TAG.c_str());
     if(!write(tnode, bl))
     {
@@ -845,12 +845,12 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
   for(pugi::xml_node tnode = rootElement.child(BOUNDARY_LAYER_TAG.c_str()); tnode;
       tnode = tnode.next_sibling(BOUNDARY_LAYER_TAG.c_str()))
   {
-    cmbNucCore::boundryLayer* bl = new cmbNucCore::boundryLayer();
+    cmbNucCore::boundaryLayer* bl = new cmbNucCore::boundaryLayer();
     if(!read(tnode, bl, cmbNucMaterialColors::instance()))
     {
       return false;
     }
-    core.addBoundryLayer(bl);
+    core.addBoundaryLayer(bl);
   }
 
   return true;
@@ -1134,7 +1134,7 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
 }
 #undef READ_PARAM_VALUE
 
-bool xmlHelperClass::read(pugi::xml_node & node, cmbNucCore::boundryLayer * bl,
+bool xmlHelperClass::read(pugi::xml_node & node, cmbNucCore::boundaryLayer * bl,
                           cmbNucMaterialColors * materials)
 {
   bool r = true;

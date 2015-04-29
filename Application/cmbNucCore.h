@@ -145,10 +145,10 @@ public:
 
   friend class cmbNucCoreConnection;
 
-  class boundryLayer
+  class  boundaryLayer
   {
   public:
-    boundryLayer()//TODO update this when there is better understanding
+     boundaryLayer()//TODO update this when there is better understanding
     {
       interface_material = cmbNucMaterialColors::instance()->getMaterialByName("water");
       NeumannSet = 14;
@@ -251,10 +251,10 @@ public:
   //Set the different from file and tests the h5m file;
   void setAndTestDiffFromFiles(bool diffFromFile);
   void fileChanged();
-  void boundryLayerChanged();
+  void  boundaryLayerChanged();
   bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
-  bool boundryLayerChangedSinceLastGenerate() const;
+  bool  boundaryLayerChangedSinceLastGenerate() const;
 
   std::string getFileName(){return CurrentFileName;}
   virtual std::string getTitle(){ return "Core"; }
@@ -336,15 +336,15 @@ public:
 
   std::map< std::string, std::set< Lattice::CellDrawMode > > getDrawModesForAssemblies();
 
-  void addBoundryLayer(boundryLayer * bl); //Takes ownership
-  std::vector<boundryLayer*> const& getBoundaryLayers() const
+  void addBoundaryLayer( boundaryLayer * bl); //Takes ownership
+  std::vector< boundaryLayer*> const& getBoundaryLayers() const
   {
-    return this->BoundryLayers;
+    return this->BoundaryLayers;
   }
-  int getNumberOfBoundryLayers() const;
-  void removeBoundryLayer(size_t bl);
-  void clearBoundryLayer();
-  boundryLayer * getBoundryLayer(int bl) const;
+  int getNumberOfBoundaryLayers() const;
+  void removeBoundaryLayer(size_t bl);
+  void clearBoundaryLayer();
+   boundaryLayer * getBoundaryLayer(int bl) const;
 
 private:
   bool hasCylinder;
@@ -353,8 +353,8 @@ private:
 
   std::vector<cmbNucAssembly*> Assemblies;
   std::vector<cmbNucAssemblyLink*> AssemblyLinks;
-  std::vector<boundryLayer *> BoundryLayers;
-  std::vector<boundryLayer> ExportBoundryLayers;
+  std::vector< boundaryLayer *> BoundaryLayers;
+  std::vector< boundaryLayer> ExportBoundaryLayers;
 
   cmbNucPinLibrary * PinLibrary;
   cmbNucDuctLibrary * DuctLibrary;
@@ -366,11 +366,11 @@ private:
   std::string meshFileExtention;
 
   //TODO: we need to redo this.  We should move to a mode form, to keep state
-  //of saved file, output mesh, and boundry layers.
+  //of saved file, output mesh, and  boundary layers.
   //Maybe move the diff from file outside of this.
   bool DifferentFromFile;
   bool DifferentFromH5M;
-  bool DifferentFromGenBoundryLayer;
+  bool DifferentFromGenBoundaryLayer;
 
   int HexSymmetry;
 

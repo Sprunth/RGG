@@ -71,7 +71,7 @@ cmbNucCore::cmbNucCore(bool needSaved)
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
   DifferentFromH5M = true;
-  DifferentFromGenBoundryLayer = true;
+  DifferentFromGenBoundaryLayer = true;
   this->Connection = new cmbNucCoreConnection();
   this->Connection->v = this;
   hasCylinder = false;
@@ -95,7 +95,7 @@ cmbNucCore::~cmbNucCore()
       }
     }
   this->Assemblies.clear();
-  this->clearBoundryLayer();
+  this->clearBoundaryLayer();
   delete this->Defaults;
   delete this->PinLibrary;
   delete this->DuctLibrary;
@@ -509,14 +509,14 @@ void cmbNucCore::fileChanged()
   this->DifferentFromFile = true;
 }
 
-void cmbNucCore::boundryLayerChanged()
+void cmbNucCore::boundaryLayerChanged()
 {
   std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
   for(size_t i = 0; i < assy.size(); ++i )
   {
     assy[i]->GetConnection()->geometryChanged();
   }
-  this->DifferentFromGenBoundryLayer = true;
+  this->DifferentFromGenBoundaryLayer = true;
   this->DifferentFromFile = true;
 }
 
@@ -526,7 +526,7 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   {
     this->fileChanged();
     this->DifferentFromH5M = true;
-    this->DifferentFromGenBoundryLayer = true;
+    this->DifferentFromGenBoundaryLayer = true;
     return;
   }
   //make sure file exits
@@ -536,14 +536,14 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   {
     this->fileChanged();
     this->DifferentFromH5M = true;
-    this->DifferentFromGenBoundryLayer = true;
+    this->DifferentFromGenBoundaryLayer = true;
     return;
   }
   this->DifferentFromFile = false;
   if(this->ExportFileName.empty())
   {
     this->DifferentFromH5M = true;
-    this->DifferentFromGenBoundryLayer = true;
+    this->DifferentFromGenBoundaryLayer = true;
     return;
   }
   //QFileInfo h5mFI();
@@ -557,20 +557,20 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   }
   QDateTime h5mLM = h5mInfo.lastModified();
   this->DifferentFromH5M = h5mLM < inpLM;
-  if(getNumberOfBoundryLayers() != 0)
+  if(getNumberOfBoundaryLayers() != 0)
   {
     h5mInfo = QFileInfo(exportInfo.dir(), this->getMeshOutputFilename().c_str());
     if(!h5mInfo.exists())
     {
-      this->DifferentFromGenBoundryLayer = true;
+      this->DifferentFromGenBoundaryLayer = true;
       return;
     }
     h5mLM = h5mInfo.lastModified();
-    this->DifferentFromGenBoundryLayer = h5mLM < inpLM;
+    this->DifferentFromGenBoundaryLayer = h5mLM < inpLM;
   }
   else
   {
-    this->DifferentFromGenBoundryLayer = this->DifferentFromH5M;
+    this->DifferentFromGenBoundaryLayer = this->DifferentFromH5M;
   }
   this->checkUsedAssembliesForGen();
 }
@@ -601,9 +601,9 @@ bool cmbNucCore::changeSinceLastGenerate() const
   return this->DifferentFromH5M;
 }
 
-bool cmbNucCore::boundryLayerChangedSinceLastGenerate() const
+bool cmbNucCore::boundaryLayerChangedSinceLastGenerate() const
 {
-  return this->DifferentFromH5M || this->DifferentFromGenBoundryLayer;
+  return this->DifferentFromH5M || this->DifferentFromGenBoundaryLayer;
 }
 
 QPointer<cmbNucDefaults> cmbNucCore::GetDefaults()
@@ -799,42 +799,42 @@ bool cmbNucCore::okToDelete(std::string const& label)
   return true;
 }
 
-void cmbNucCore::addBoundryLayer(boundryLayer * bl)
+void cmbNucCore::addBoundaryLayer(boundaryLayer * bl)
 {
   if(bl == NULL) return;
-  this->BoundryLayers.push_back(bl);
+  this->BoundaryLayers.push_back(bl);
 }
 
-int cmbNucCore::getNumberOfBoundryLayers() const
+int cmbNucCore::getNumberOfBoundaryLayers() const
 {
-  return static_cast<int>(this->BoundryLayers.size());
+  return static_cast<int>(this->BoundaryLayers.size());
 }
 
-void cmbNucCore::removeBoundryLayer(size_t bl)
+void cmbNucCore::removeBoundaryLayer(size_t bl)
 {
-  if(static_cast<size_t>(bl)>= this->BoundryLayers.size())
+  if(static_cast<size_t>(bl)>= this->BoundaryLayers.size())
   {
     return;
   }
-  this->BoundryLayers.erase(this->BoundryLayers.begin() + bl);
+  this->BoundaryLayers.erase(this->BoundaryLayers.begin() + bl);
 }
 
-void cmbNucCore::clearBoundryLayer()
+void cmbNucCore::clearBoundaryLayer()
 {
-  for(size_t i = 0; i < this->BoundryLayers.size(); ++i)
+  for(size_t i = 0; i < this->BoundaryLayers.size(); ++i)
   {
-    delete this->BoundryLayers[i];
+    delete this->BoundaryLayers[i];
   }
-  BoundryLayers.clear();
+  BoundaryLayers.clear();
 }
 
-cmbNucCore::boundryLayer * cmbNucCore::getBoundryLayer(int bl) const
+cmbNucCore::boundaryLayer * cmbNucCore::getBoundaryLayer(int bl) const
 {
-  if(static_cast<size_t>(bl)>= this->BoundryLayers.size())
+  if(static_cast<size_t>(bl)>= this->BoundaryLayers.size())
   {
     return NULL;
   }
-  return BoundryLayers[bl];
+  return BoundaryLayers[bl];
 }
 
 std::string cmbNucCore::getMeshOutputFilename() const
