@@ -240,7 +240,7 @@ bool cmbNucInpExporter
 
     if(!assyFile.exists() || assy->changeSinceLastGenerate())
     {
-      inpFileWriter::write(fname, *assy, false, isCylinder);
+      inpFileWriter::write(fname, *assy, this->NuclearCore->getBoundaryLayers(), false, isCylinder);
     }
   }
   assy->removeOldTransforms(0);

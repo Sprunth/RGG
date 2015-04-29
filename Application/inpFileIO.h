@@ -40,9 +40,10 @@ private:
 class inpFileWriter
 {
 public:
-  static bool write(std::string fname, cmbNucAssembly & assembly, bool updateFname = true, bool limited = false);
+  static bool write(std::string fname, cmbNucAssembly & assembly,
+                    std::vector<cmbNucCore::boundryLayer*> const& bl,
+                    bool updateFname = true, bool limited = false);
   static bool write(std::string fname, cmbNucCore & core, bool updateFname = true);
-  static bool write(std::string fname, cmbNucCore::boundryLayer const* bl, std::string src_file, std::string dest_file);
   static bool writeGSH(std::string fname, cmbNucCore & core, std::string assyName);
 private:
 };

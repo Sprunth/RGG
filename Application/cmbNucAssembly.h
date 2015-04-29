@@ -263,6 +263,7 @@ public:
   QSet< cmbNucMaterial* > getInterfaceMaterials(QPointer<cmbNucMaterial> in_material);
   QSet< cmbNucMaterial* > getOtherFixed(QPointer<cmbNucMaterial> boundryLayerMaterial,
                                         QPointer<cmbNucMaterial> fixedMaterial);
+  bool has_boundary_layer_interface(QPointer<cmbNucMaterial> in_material) const;
 
   void setFromDefaults(QPointer<cmbNucDefaults> d);
   void computeDefaults();

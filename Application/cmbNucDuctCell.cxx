@@ -260,7 +260,7 @@ void Duct::splitMaterialLayer( std::vector<double> const& lx, std::vector<double
   }
 }
 
-bool Duct::isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat)
+bool Duct::isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat) const
 {
   return (Materials[0].getMaterial() == blMat);
 }
@@ -604,7 +604,7 @@ void DuctCell::splitDucts( std::vector<double> const& layers )
   }
 }
 
-bool DuctCell::isInnerDuctMaterial( QPointer<cmbNucMaterial> blMat )
+bool DuctCell::isInnerDuctMaterial( QPointer<cmbNucMaterial> blMat ) const
 {
   for (unsigned int i = 0; i < this->Ducts.size(); ++i)
   {

@@ -81,7 +81,9 @@ public:
   void writeHeader( std::ofstream &output, std::string type );
   void writeMaterials( std::ofstream &output, cmbNucAssembly &assembly );
   void writeDuct( std::ofstream &output, cmbNucAssembly &assembly, bool limited = false );
-  void writePincell( std::ofstream &output, cmbNucAssembly &assembly );
+  void writePincell( std::ofstream &output,
+                     std::vector<cmbNucCore::boundryLayer*> const& bls,
+                     cmbNucAssembly &assembly );
   void writeLattice( std::ofstream &output, std::string key, bool useAmp, Lattice &lat, std::string forceLabel = "" );
   void writeAssemblies( std::ofstream &output, std::string outFileName,
                         cmbNucCore &core );
@@ -651,18 +653,19 @@ if(params->isValueSet(params->VALUE))\
 
 bool inpFileWriter::write(std::string fname,
                           cmbNucAssembly & assembly,
+                          std::vector<cmbNucCore::boundryLayer*> const& bls,
                           bool updateFname, bool limited)
 {
   inpFileHelper helper;
   std::ofstream output(fname.c_str());
   if(!output.is_open())
-    {
+  {
     return false;
-    }
+  }
   if(updateFname && !limited)
-    {
+  {
     assembly.setFileName(fname);
-    }
+  }
   helper.writeHeader(output,"Assembly");
   cmbAssyParameters * params = assembly.GetParameters();
 
@@ -670,9 +673,23 @@ bool inpFileWriter::write(std::string fname,
   WRITE_PARAM_VALUE(Geometry, Geometry);
   helper.writeMaterials( output, assembly );
   helper.writeDuct( output, assembly, limited );
+
   if(!limited)
   {
-    helper.writePincell( output, assembly );
+    int blId = 1;
+    helper.writePincell( output, bls, assembly );
+    for(unsigned int i = 0; i < bls.size(); ++i)
+    {
+      if(assembly.has_boundary_layer_interface(bls[i]->interface_material))
+      {
+        std::string label = bls[i]->interface_material->getLabel().toStdString();
+        output << label << "_BL" << blId << " Thickness " << bls[i]->Thickness << std::endl;
+        output << label << "_BL" << blId << " Bias " << bls[i]->Bias << std::endl;
+        output << label << "_BL" << blId << " Interval " << bls[i]->Intervals << std::endl;
+        blId++;
+        break; //TODO remove this when there is multiple boundary support
+      }
+    }
     helper.writeLattice( output, "Assembly",
                          false,
                          assembly.getLattice() );
@@ -689,6 +706,7 @@ bool inpFileWriter::write(std::string fname,
     output << std::endl;
     output << "xx\n\n";
   }
+
   //Other Parameters
   WRITE_PARAM_VALUE(TetMeshSize, TetMeshSize);
   WRITE_PARAM_VALUE(RadialMeshSize, RadialMeshSize);
@@ -854,26 +872,6 @@ bool inpFileWriter::write(std::string fname,
     outDef << "end\n";
   }
 
-  return true;
-}
-
-bool inpFileWriter::write(std::string fname, cmbNucCore::boundryLayer const* bl, std::string src_file, std::string dest_file)
-{
-  QFileInfo info(fname.c_str());
-  std::ofstream output(fname.c_str());
-  if(!output)
-  {
-    return false;
-  }
-  output << "MeshFile " <<  src_file << std::endl;
-  output << "NeumannSet " << bl->NeumannSet << std::endl;
-  output << "Fixmat " << bl->Fixmat << std::endl;
-  output << "Thickness " << bl->Thickness << std::endl;
-  output << "Intervals " << bl->Intervals << std::endl;
-  output << "Bias " << bl->Bias << std::endl;
-  output << "Outfile " <<  dest_file << std::endl;
-  output << "debug 0" << std::endl;
-  output << "END" << std::endl;
   return true;
 }
 
@@ -1073,15 +1071,30 @@ bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell *
   return true;
 }
 
-void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assembly )
+void inpFileHelper::writePincell( std::ofstream &output,
+                                  std::vector<cmbNucCore::boundryLayer*> const& bls,
+                                  cmbNucAssembly & assembly )
 {
   if(assembly.GetNumberOfPinCells() == 0) return;
   output << "pincells " << assembly.GetNumberOfPinCells() << "\n";
   double pitchX = assembly.getPinPitchX();
   double pitchY = assembly.getPinPitchY();
+  //TODO: consider different core layers with different coolent
+  //TODO: more than one type of boundary layer
+  //TODO: boundary layers inside pins
+
+  cmbNucCore::boundryLayer* bl_for_assembly = NULL;
+  for(unsigned int i = 0; i < bls.size(); ++i)
+  {
+    if(assembly.has_boundary_layer_interface(bls[i]->interface_material))
+    {
+      bl_for_assembly = bls[i];
+      break;
+    }
+  }
 
   for(size_t i = 0; i < assembly.GetNumberOfPinCells(); i++)
-    {
+  {
     PinCell* pincell = assembly.GetPinCell(static_cast<int>(i));
 
     // count of attribute lines for the pincell. equal to the number
@@ -1094,13 +1107,13 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
 
     output << "pitch " << pitchX;
     if(!assembly.IsHexType())
-      {
+    {
       output << " " << pitchY << " " << 0;
-      }
+    }
     else
-      {
+    {
       output << " " << 0;
-      }
+    }
     output << "\n";
 
     double minZ = 1e23;
@@ -1110,7 +1123,8 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
     {
       PinSubPart* part  = pincell->GetPart(j);
       bool iscylinder = part->GetType() == CMBNUC_ASSY_CYLINDER_PIN;
-      output << ((iscylinder)?("cylinder "):("frustum ")) << pincell->GetNumberOfLayers() << " ";
+      output << ((iscylinder)?("cylinder "):("frustum "))
+             << ( pincell->GetNumberOfLayers() + ((bl_for_assembly != NULL)?1:0) ) << " ";
       if(minZ > part->z1) minZ = part->z1;
       if(maxZ < part->z2) maxZ = part->z2;
       output << std::showpoint
@@ -1118,18 +1132,33 @@ void inpFileHelper::writePincell( std::ofstream &output, cmbNucAssembly & assemb
              << part->y << " "
              << part->z1 << " "
              << part->z2 << " ";
+      double topR, bottomR;
       for(unsigned int l = 0; l < part->GetNumberOfLayers(); l++)
       {
-        output << std::showpoint << part->getRadius(l, Frustum::BOTTOM) << " ";
+        bottomR = part->getRadius(l, Frustum::BOTTOM);
+        topR = part->getRadius(l, Frustum::TOP);
+        output << std::showpoint << bottomR << " ";
         if(!iscylinder)
         {
-          output << std::showpoint << part->getRadius(l, Frustum::TOP) << " ";
+          output << std::showpoint << topR << " ";
+        }
+      }
+      if(bl_for_assembly != NULL)
+      {
+        output << std::showpoint << bottomR + bl_for_assembly->Thickness << " ";
+        if(!iscylinder)
+        {
+          output << std::showpoint << topR + bl_for_assembly->Thickness << " ";
         }
       }
       for(unsigned int material = 0; material < part->GetNumberOfLayers(); material++)
-        {
+      {
         output << part->GetMaterial(material)->getLabel().toStdString() << " ";
-        }
+      }
+      if(bl_for_assembly != NULL)
+      {
+        output << bl_for_assembly->interface_material->getLabel().toStdString() + "_BL1";
+      }
       output << "\n";
     }
 
