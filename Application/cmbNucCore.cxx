@@ -511,6 +511,11 @@ void cmbNucCore::fileChanged()
 
 void cmbNucCore::boundryLayerChanged()
 {
+  std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
+  for(size_t i = 0; i < assy.size(); ++i )
+  {
+    assy[i]->GetConnection()->geometryChanged();
+  }
   this->DifferentFromGenBoundryLayer = true;
   this->DifferentFromFile = true;
 }

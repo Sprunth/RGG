@@ -220,19 +220,19 @@ public:
   // Returns the dimensions of the Assembly Core.
 
   std::pair<int, int> GetDimensions() const
-    {
+  {
     return this->lattice.GetDimensions();
-    }
+  }
   // Sets the contents of the Assembly (i, j) to name.
   void SetAssemblyLabel(int i, int j, const std::string &name, const QColor& color)
-    {
+  {
     this->lattice.SetCell(i, j, name, color);
-    }
+  }
   // Returns the contents of the Assembly (i, j).
   Lattice::LatticeCell GetAssemblyLabel(int i, int j) const
-    {
+  {
     return this->lattice.GetCell(i, j);
-    }
+  }
 
   // Rebuild the grid (which for now just updates the colors at each cell)
   void RebuildGrid();
