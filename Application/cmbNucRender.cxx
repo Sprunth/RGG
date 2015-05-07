@@ -147,7 +147,7 @@ public:
     if(dc == NULL) return;
     double startX = dc->getX();
     double startY = dc->getY();
-    double outerDuctHeight = dc->thickness[0];
+    double outerDuctHeight = dc->getThickness(0);
 
     int subType = lat.GetGeometrySubType();
     double LocalCosSinAngles[6][2] =

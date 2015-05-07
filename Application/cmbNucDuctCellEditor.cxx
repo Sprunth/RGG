@@ -345,8 +345,8 @@ cmbNucDuctCellEditor
       {
         global_z1 = d->getZ1();
         global_z2 = d->getZ2();
-        thickness[0] = d->thickness[0];
-        thickness[1] = d->thickness[1];
+        thickness[0] = d->getThickness(0);
+        thickness[1] = d->getThickness(1);
       }
       else
       {

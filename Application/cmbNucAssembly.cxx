@@ -400,9 +400,9 @@ void cmbNucAssembly::GetDuctWidthHeight(double r[2])
   for(unsigned int i = 0; i < this->AssyDuct->numberOfDucts(); ++i)
   {
     Duct * tmpd = this->AssyDuct->getDuct(i);
-    double t =tmpd->thickness[0];
+    double t =tmpd->getThickness(0);
     if(t > r[0]) r[0] = t;
-    t = tmpd->thickness[1];
+    t = tmpd->getThickness(1);
     if(t > r[1]) r[1] = t;
   }
 }

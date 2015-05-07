@@ -77,7 +77,7 @@ public:
     return this->z2;
   }
 
-  double getX()
+  double getX() const
   {
     return this->x;
   }
@@ -97,11 +97,20 @@ public:
     this->y = yin;
   }
 
-  double thickness[2];
+  double getThickness(size_t i) const
+  {
+    return thickness[i];
+  }
+
+  void setThickness(size_t i, double v)
+  {
+    thickness[i] = v;
+  }
 
   bool isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat) const;
   QSet< cmbNucMaterial* > getInterfaceMaterials(QPointer<cmbNucMaterial> blMat);
 protected:
+  double thickness[2];
   double x;
   double y;
   std::vector<cmbNucMaterialLayer> Materials;

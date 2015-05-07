@@ -1049,8 +1049,8 @@ bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell *
     duct->getNormThick(i)[1] = tmpD[1];
   }
 
-  duct->thickness[0] = maxV[0];
-  duct->thickness[1] = maxV[1];
+  duct->setThickness(0, maxV[0]);
+  duct->setThickness(1, maxV[1]);
 
   for(int i = 0; i < materials; i++)
     {

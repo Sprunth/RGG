@@ -342,7 +342,8 @@ bool xmlHelperClass::write(pugi::xml_node & node, Duct * dc)
 {
   bool r = true;
   r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(dc->getX(), 0, 'g', 9).arg(dc->getY(), 0, 'g', 9).arg(dc->getZ1(), 0, 'g', 9).arg(dc->getZ2(), 0, 'g', 9));
-  r &= write(node, THICKNESS_TAG.c_str(), dc->thickness, 2);
+  double thickness[] = { dc->getThickness(0), dc->getThickness(1) };
+  r &= write(node, THICKNESS_TAG.c_str(), thickness, 2);
 
   size_t num = dc->NumberOfLayers();
   for(size_t i = 0; i < num; ++i)
@@ -1052,7 +1053,10 @@ bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc,
   dc->setZ1(l.value(2).toDouble());
   dc->setZ2(l.value(3).toDouble());
 
-  if(!read(node, THICKNESS_TAG.c_str(), dc->thickness, 2)) return false;
+  double thickness[2];
+  if(!read(node, THICKNESS_TAG.c_str(), thickness, 2)) return false;
+  dc->setThickness(0, thickness[0]);
+  dc->setThickness(1, thickness[1]);
 
   int i = 0;
   for(pugi::xml_node tnode = node.child(MATERIAL_LAYER_TAG.c_str()); tnode;
