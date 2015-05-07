@@ -145,8 +145,8 @@ public:
     if(assy == NULL) return;
     Duct * dc = assy->getAssyDuct().getDuct(0);
     if(dc == NULL) return;
-    double startX = dc->x;
-    double startY = dc->y;
+    double startX = dc->getX();
+    double startY = dc->getY();
     double outerDuctHeight = dc->thickness[0];
 
     int subType = lat.GetGeometrySubType();
@@ -262,7 +262,7 @@ public:
           if(pincell && (pincell->GetNumberOfParts())>0)
           {
             double pinDistFromCenter = pitchX * (i);
-            double tX=hexDuct->x, tY=hexDuct->y;
+            double tX=hexDuct->getX(), tY=hexDuct->getY();
             int cornerIdx;
             if(i == 1)
             {
@@ -1332,7 +1332,7 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCe
   vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
   coneSource->SetNumberOfLayers(numLayers);
-  coneSource->SetBaseCenter(duct->x, duct->y, z);
+  coneSource->SetBaseCenter(duct->getX(), duct->getY(), z);
   double direction[] = { 0, 0, 1 };
   coneSource->SetDirection(direction);
   coneSource->SetHeight(height);

@@ -269,13 +269,13 @@ void cmbNucAssembly::SetPinCell(int i, PinCell *pc)
 void cmbNucAssembly::RemovePinCell(const std::string label_in)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
-    {
+  {
     if(this->PinCells[i]->getLabel() == label_in)
-      {
+    {
       this->PinCells.erase(this->PinCells.begin() + i);
       break;
-      }
     }
+  }
   // update the Grid
   if(this->lattice.ClearCell(label_in))
   {
@@ -398,13 +398,13 @@ void cmbNucAssembly::GetDuctWidthHeight(double r[2])
   r[0] = 0;
   r[1] = 0;
   for(unsigned int i = 0; i < this->AssyDuct->numberOfDucts(); ++i)
-    {
+  {
     Duct * tmpd = this->AssyDuct->getDuct(i);
     double t =tmpd->thickness[0];
     if(t > r[0]) r[0] = t;
     t = tmpd->thickness[1];
     if(t > r[1]) r[1] = t;
-    }
+  }
 }
 
 void cmbNucAssembly::computeDefaults()
@@ -442,7 +442,6 @@ void cmbNucAssembly::calculatePitch(double & x, double & y)
 {
   std::pair<int, int> dim = lattice.GetDimensions();
   this->calculatePitch(dim.first, dim.second, x, y);
-
 }
 
 void cmbNucAssembly::calculateRadius(double & r)

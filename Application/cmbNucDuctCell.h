@@ -77,13 +77,33 @@ public:
     return this->z2;
   }
 
-  double x;
-  double y;
+  double getX()
+  {
+    return this->x;
+  }
+
+  void setX( double xin )
+  {
+    this->x = xin;
+  }
+
+  double getY()
+  {
+    return this->y;
+  }
+
+  void setY( double yin )
+  {
+    this->y = yin;
+  }
+
   double thickness[2];
 
   bool isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat) const;
   QSet< cmbNucMaterial* > getInterfaceMaterials(QPointer<cmbNucMaterial> blMat);
 protected:
+  double x;
+  double y;
   std::vector<cmbNucMaterialLayer> Materials;
   DuctConnection * Connection;
   double z1;

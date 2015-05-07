@@ -303,15 +303,15 @@ else{ setValue(Internal->Var, DEFAULT); }
   }
 
   if(Core->Params.ExtrudeIsSet())
-    {
+  {
     setValue(Internal->ExtrudeDivisions, corein->Params.Extrude.Divisions);
     setValue(Internal->ExtrudeHeight, corein->Params.Extrude.Size);
-    }
+  }
   std::string unknowns;
   for(unsigned int i = 0; i < corein->Params.UnknownKeyWords.size(); ++i)
-    {
+  {
     unknowns += corein->Params.UnknownKeyWords[i] + "\n";
-    }
+  }
   Internal->UnknownsVars->setPlainText(QString::fromStdString(unknowns));
 }
 

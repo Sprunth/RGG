@@ -87,13 +87,13 @@ cmbNucCore::cmbNucCore(bool needSaved)
 cmbNucCore::~cmbNucCore()
 {
   for(std::vector<cmbNucAssembly*>::iterator fit=this->Assemblies.begin();
-    fit!=this->Assemblies.end(); ++fit)
-    {
+      fit!=this->Assemblies.end(); ++fit)
+  {
     if(*fit)
-      {
+    {
       delete *fit;
-      }
     }
+  }
   this->Assemblies.clear();
   this->clearBoundaryLayer();
   delete this->Defaults;
@@ -165,8 +165,8 @@ vtkBoundingBox cmbNucCore::computeBounds()
   else
   {
     vtkBoundingBox b;
-    double transX = this->Assemblies[0]->getAssyDuct().getDuct(0)->x;
-    double transY = this->Assemblies[0]->getAssyDuct().getDuct(0)->y;
+    double transX = this->Assemblies[0]->getAssyDuct().getDuct(0)->getX();
+    double transY = this->Assemblies[0]->getAssyDuct().getDuct(0)->getY();
     double pt[4];
     calculateRectPt( 0, 0, pt );
     calculateRectPt(dim.first-1, dim.second-1, pt+2);
@@ -313,12 +313,12 @@ void cmbNucCore::RemoveAssemblyLink(const std::string &label)
 cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
 {
   for(size_t i = 0; i < this->Assemblies.size(); i++)
-    {
+  {
     if(this->Assemblies[i]->getLabel() == label)
-      {
+    {
       return this->Assemblies[i];
-      }
     }
+  }
 
   return NULL;
 }
@@ -350,21 +350,21 @@ std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
 {
   std::set<std::string> usedDict;
   for(size_t i = 0; i < this->lattice.getSize(); i++)
-    {
+  {
     for(size_t j = 0; j < this->lattice.getSize(i); j++)
-      {
+    {
       usedDict.insert(this->lattice.GetCell(i, j).label);
-      }
     }
+  }
   std::vector< cmbNucAssembly* > result;
   for (unsigned int i = 0; i < this->Assemblies.size(); ++i)
-    {
+  {
     if(this->Assemblies[i]!=NULL &&
        usedDict.find(this->Assemblies[i]->getLabel()) != usedDict.end())
-      {
+    {
       result.push_back(Assemblies[i]);
-      }
     }
+  }
   return result;
 }
 
@@ -403,8 +403,8 @@ void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
 void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY)
 {
   cmbNucAssembly * assy = this->GetAssembly(0);
-  transX = assy->getAssyDuct().getDuct(0)->x;
-  transY = assy->getAssyDuct().getDuct(0)->y;
+  transX = assy->getAssyDuct().getDuct(0)->getX();
+  transY = assy->getAssyDuct().getDuct(0)->getY();
 }
 
 void cmbNucCore::setGeometryLabel(std::string geomType)
@@ -456,17 +456,17 @@ bool cmbNucCore::IsHexType()
 void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3])
 {
   for(unsigned int i = 0; i < this->Assemblies.size(); ++i)
-    {
+  {
       cmbNucAssembly * subAssembly = this->Assemblies[i];
       if (subAssembly)
-        {
+      {
         int acolorIndex = i  % numDefaultColors;
         QColor acolor(defaultColors[acolorIndex][0],
                       defaultColors[acolorIndex][1],
                       defaultColors[acolorIndex][2]);
         subAssembly->SetLegendColor(acolor);
-        }
-    }
+      }
+  }
   this->RebuildGrid();
 }
 

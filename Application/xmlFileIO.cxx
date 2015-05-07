@@ -341,7 +341,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, DuctCell * dc)
 bool xmlHelperClass::write(pugi::xml_node & node, Duct * dc)
 {
   bool r = true;
-  r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(dc->x, 0, 'g', 9).arg(dc->y, 0, 'g', 9).arg(dc->getZ1(), 0, 'g', 9).arg(dc->getZ2(), 0, 'g', 9));
+  r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(dc->getX(), 0, 'g', 9).arg(dc->getY(), 0, 'g', 9).arg(dc->getZ1(), 0, 'g', 9).arg(dc->getZ2(), 0, 'g', 9));
   r &= write(node, THICKNESS_TAG.c_str(), dc->thickness, 2);
 
   size_t num = dc->NumberOfLayers();
@@ -1046,8 +1046,8 @@ bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc,
   if(!read(node, LOC_TAG.c_str(), str)) return false;
   QStringList l = str.split(",");
 
-  dc->x = l.value(0).toDouble();
-  dc->y = l.value(1).toDouble();
+  dc->setX(l.value(0).toDouble());
+  dc->setY(l.value(1).toDouble());
 
   dc->setZ1(l.value(2).toDouble());
   dc->setZ2(l.value(3).toDouble());

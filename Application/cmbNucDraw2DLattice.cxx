@@ -470,18 +470,18 @@ void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* qme)
 {
   DrawLatticeItem* hitem = dynamic_cast<DrawLatticeItem*>(this->itemAt(qme->pos()));
   if(!hitem || !hitem->is_available())
-    {
+  {
     return;
-    }
+  }
 
   // Context menu on right click
   if(qme->button() == Qt::RightButton)
-    {
+  {
     this->showContextMenu(hitem, qme);
-    }
+  }
   // Drag and drop on left click
   else if(qme->button() == Qt::LeftButton)
-    {
+  {
     QMimeData* mimeData = new QMimeData;
     mimeData->setText(hitem->text());
 
@@ -505,7 +505,7 @@ void cmbNucDraw2DLattice::mousePressEvent(QMouseEvent* qme)
     drag->exec(Qt::CopyAction);
 
     imagePainter.end();
-    }
+  }
 }
 
 void cmbNucDraw2DLattice::createImage(QString fname)
