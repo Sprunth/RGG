@@ -111,8 +111,9 @@ protected:
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
-  void onObjectModified(AssyPartObj* obj=NULL);
-  void onObjectGeometryChanged(AssyPartObj* obj);
+  void onObjectModified(AssyPartObj* obj=NULL, bool resetCamera = false);
+  void onObjectGeometryChanged(AssyPartObj* obj, bool resetCamera = false);
+  void onUpdateLattice(AssyPartObj* obj, int changeType);
 
   void onStartRecordTest();
   void onStopRecordingTest();

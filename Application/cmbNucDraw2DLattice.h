@@ -18,6 +18,7 @@ class cmbNucDraw2DLattice : public QGraphicsView {
   typedef QGraphicsView Superclass;
 
 public:
+  enum changeMode{NoChange=0, SizeChange = 1, ContentChange = 2};
   cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape = DrawLatticeItem::Circle,
                       QWidget* parent = 0, Qt::WindowFlags f = 0);
   ~cmbNucDraw2DLattice();
@@ -29,7 +30,7 @@ public:
   void rebuild();
   // build lattice with given Grid[layer][idx]
   void reset();
-  bool apply();
+  int apply();
   void showContextMenu(DrawLatticeItem* hexitem, QMouseEvent* event);
   void setActions(const QStringList& actions);
   void setItemShape(DrawLatticeItem::ShapeStyle shapetype);
@@ -56,7 +57,7 @@ private:
   LatticeContainer* CurrentLattice;
   QGraphicsScene Canvas;
   Lattice Grid;
-  bool changed;
+  int changed;
 
   std::map<QString, int> usedLabelCount;
 

@@ -690,8 +690,8 @@ void cmbNucMainWindow::initPanels()
 
     QObject::connect(this->LatticeDraw, SIGNAL(valuesChanged()),
                      this->InputsWidget, SLOT(valueChanged()));
-    QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
-                     this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
+    QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*, int)),
+                     this, SLOT(onUpdateLattice(AssyPartObj*, int)));
 
     QObject::connect(this->PropertyWidget, SIGNAL(sendLatticeFullMode(Lattice::CellDrawMode)),
                      this->LatticeDraw,    SLOT(set_full_mode(Lattice::CellDrawMode)));
@@ -745,7 +745,16 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
   }
 }
 
-void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
+void cmbNucMainWindow::onUpdateLattice(AssyPartObj* obj, int changeType)
+{
+  if(!obj)
+  {
+    return;
+  }
+  onObjectGeometryChanged(obj, (obj->GetType() == CMBNUC_CORE)?(changeType & cmbNucDraw2DLattice::SizeChange):(false));
+}
+
+void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj, bool resetCamera)
 {
   if(!obj)
   {
@@ -755,7 +764,7 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
   switch(obj->GetType())
   {
     case CMBNUC_CORE:
-      this->onObjectModified(obj);
+      this->onObjectModified(obj,resetCamera);
       return;
     case CMBNUC_ASSY_PINCELL:
       this->setCameras(false, this->Internal->IsFullMesh);
@@ -782,15 +791,15 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
   }
 }
 
-void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
+void cmbNucMainWindow::onObjectModified(AssyPartObj* obj, bool resetCamera)
 {
   // update material colors
   this->updateCoreMaterialColors();
 
-  if(obj && obj->GetType() == CMBNUC_CORE)
-    {
-    //this->resetCamera();
-    }
+  if(obj && resetCamera)
+  {
+    this->resetCamera();
+  }
   // render
   this->ui->qvtkWidget->update();
 }
