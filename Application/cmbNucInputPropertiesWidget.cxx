@@ -916,7 +916,7 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
     }
     else
     {
-      Internal->boundaryLayer->setChecked(true);
+      Internal->boundaryLayer->setChecked(false);
     }
   }
 }
