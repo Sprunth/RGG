@@ -85,7 +85,7 @@ add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
-  GIT_TAG v6.2.0
+  GIT_TAG b9d4f39d695f6b69a8b39042a52a50f624c61f55
 )
 
 if (UNIX)
