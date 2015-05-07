@@ -31,12 +31,13 @@ public:
     enum {Cylinder, Frustum, Annulus, Jacket, Sectioned} type;
     int sides;
     double radius[8];
+    bool boundaryLayer;
     key();
     key( int s, double rTop, double rBottom );
     key( int s );
     key( int s,
          double rTop1, double rTop2, double rTop3, double rTop4,
-         double rBottom1, double rBottom2, double rBottom3, double rBottom4);
+         double rBottom1, double rBottom2, double rBottom3, double rBottom4, bool bl = false);
     bool operator<(key const& other) const;
   };
 
@@ -63,14 +64,16 @@ public:
     struct data
     {
       data(point p = point(), point r = point(),
-           cmbNucMaterial * m = NULL, scale s = scale())
-        : pt(p), rotation(r), ptScale(s), material(m)
+           cmbNucMaterial * m = NULL, scale s = scale(),
+           bool bl = false)
+        : pt(p), rotation(r), ptScale(s), material(m), boundaryLayer(bl)
       {}
 
       point pt;
       point rotation;
       scale ptScale;
       cmbNucMaterial * material;
+      bool boundaryLayer;
     };
     vtkSmartPointer<vtkPolyData> geo;
     std::vector<data> points;
@@ -86,8 +89,9 @@ public:
 
   void computeBounds(vtkBoundingBox &);
 
-  void render(cmbNucCore *);
-  void render(cmbNucAssembly *);
+  void render(cmbNucCore *, bool renderBoundaryLayer = true);
+  void render(cmbNucAssembly *,
+              std::vector<cmbNucCore::boundaryLayer*> const& bl = std::vector<cmbNucCore::boundaryLayer*>());
   void render(DuctCell* ductCell, bool isHex, bool cutaway);
   void render(PinCell* pinCell, bool isHex, bool cutaway);
 

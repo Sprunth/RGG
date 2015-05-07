@@ -40,6 +40,7 @@ cmbNucRender::key::key()
 {
   type = Jacket;
   sides = -1;
+  boundaryLayer = false;
   for(int r = 0; r < 8; ++r) radius[r] = -1;
 }
 
@@ -49,6 +50,7 @@ cmbNucRender::key::key( int s, double rTop, double rBottom )
   sides = s;
   radius[0] = rTop;
   radius[1] = rBottom;
+  boundaryLayer = false;
   for(int r = 2; r < 8; ++r) radius[r] = -1;
 }
 
@@ -56,12 +58,13 @@ cmbNucRender::key::key( int s )
 {
   type = Cylinder;
   sides = s;
+  boundaryLayer = false;
   for(int r = 0; r < 8; ++r) radius[r] = -1;
 }
 
 cmbNucRender::key::key( int s,
     double rTop1, double rTop2, double rTop3, double rTop4,
-    double rBottom1, double rBottom2, double rBottom3, double rBottom4)
+    double rBottom1, double rBottom2, double rBottom3, double rBottom4, bool bl)
 {
   type = Annulus;
   sides = s;
@@ -73,10 +76,15 @@ cmbNucRender::key::key( int s,
   radius[5] = rBottom3;
   radius[6] = rTop4;
   radius[7] = rBottom4;
+  boundaryLayer = bl;
 }
 
 bool cmbNucRender::key::operator<(key const& other) const
 {
+  if(other.boundaryLayer != boundaryLayer)
+  {
+    return boundaryLayer;
+  }
   if(type != other.type) return type < other.type;
   switch(type)
   {
@@ -382,6 +390,7 @@ public:
 
   static void createGeo(PinCell* pincell, bool isHex,
                         std::map<key,GeoToPoints> & geometry,
+                        cmbNucCore::boundaryLayer * bl = NULL,
                         double pitchX = -1, double pitchY = -1 )
   {
     if(pincell == NULL) return;
@@ -440,11 +449,50 @@ public:
         cmbNucRender::scale scale(1,1,h);
         geo.points.push_back(GeoToPoints::data(loc, rotate, mat, scale));
       }
+      //TODO: handle cell material
+      if(bl != NULL && !pincell->cellMaterialSet())
+      {
+        double thickness = 0;
+        double temp = 0;
+        double bias = bl->Bias;
+        double suba = bl->Thickness/bl->Intervals;
+        int at = manager->GetNumberOfLayers()-1;
+        double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
+        double deno = pow(bias, bl->Intervals) - 1;
+        if (deno !=0)
+          temp = num/deno;
+        else
+          temp = thickness/bl->Intervals;
+        for(unsigned inter = 0; inter < bl->Intervals; ++inter)
+        {
+          thickness += temp/pow(bias,inter);
+          key k(manager->GetResolution(at),
+                manager->GetTopRadius(at, 0) + thickness,
+                manager->GetTopRadius(at, 1) + thickness,
+                manager->GetTopRadius(at, 0) + thickness,
+                manager->GetTopRadius(at, 1) + thickness,
+                manager->GetBaseRadius(at, 0) + thickness,
+                manager->GetBaseRadius(at,1) + thickness,
+                manager->GetBaseRadius(at, 0) + thickness,
+                manager->GetBaseRadius(at,1) + thickness, true);
+          if(geometry.find(k) == geometry.end())
+          {
+            geometry[k].geo = manager->CreateBoundaryLayer( thickness );
+          }
+          GeoToPoints & geo = geometry[k];
+          point loc;
+          manager->GetBaseCenter(loc.xyz);
+          double h = manager->GetHeight();
+          cmbNucRender::scale scale(1,1,h);
+          geo.points.push_back(GeoToPoints::data(loc, rotate, bl->interface_material, scale, true));
+        }
+      }
     }
   }
 
   static void createGeo(cmbNucAssembly * input,
                         Lattice::CellDrawMode mode,
+                        std::vector<cmbNucCore::boundaryLayer*> const& bl,
                         std::map<key,GeoToPoints> & geometry)
   {
     std::map< CellKey, std::vector<point> > idToPoint;
@@ -458,6 +506,16 @@ public:
     bool hasSectioning = false;
     std::vector<point> sectioningPlanes;
     static int sectionedCount = 0;
+    //TODO support more than one
+    cmbNucCore::boundaryLayer* usedBL = NULL;
+    for(size_t i = 0; i < bl.size(); ++i)
+    {
+      if(input->has_boundary_layer_interface(bl[i]->interface_material))
+      {
+        usedBL = bl[i];
+        break;
+      }
+    }
     if(input->getLattice().getFullCellMode() == Lattice::HEX_FULL_30)
     {
       xformR.xyz[2] += 30;
@@ -566,7 +624,7 @@ public:
         tmpGeo[i->first].geo = i->second.geo;
       }
 
-      createGeo(input->GetPinCell(iter->first.str), input->IsHexType(), tmpGeo, pitchX, pitchY);
+      createGeo(input->GetPinCell(iter->first.str), input->IsHexType(), tmpGeo, usedBL, pitchX, pitchY);
 
       std::vector<point> const& points = iter->second;
       if(hasSectioning)
@@ -642,7 +700,7 @@ public:
     }
   }
 
-  static void createGeo(cmbNucCore * input, std::map<key, GeoToPoints> & geometry)
+  static void createGeo(cmbNucCore * input, bool drawBoundryLayer, std::map<key, GeoToPoints> & geometry)
   {
     std::map< CellKey, std::vector<point> > idToPoint;
     double extraXTrans;
@@ -666,7 +724,14 @@ public:
         {
           tmpGeo[i->first].geo = i->second.geo;
         }
-        createGeo(assembly, iter->first.mode, tmpGeo);
+        if(drawBoundryLayer)
+        {
+          createGeo(assembly, iter->first.mode, input->getBoundaryLayers(), tmpGeo);
+        }
+        else
+        {
+          createGeo(assembly, iter->first.mode, std::vector< cmbNucCore::boundaryLayer*>(), tmpGeo);
+        }
       }
       else if(input->getHasCylinder())
       {
@@ -757,7 +822,7 @@ public:
     rotation.xyz[0] += xformR.xyz[0];
     rotation.xyz[1] += xformR.xyz[1];
     rotation.xyz[2] += xformR.xyz[2];
-    return GeoToPoints::data(tranpt,rotation, pt.material, pt.ptScale);
+    return GeoToPoints::data(tranpt,rotation, pt.material, pt.ptScale, pt.boundaryLayer);
   }
 
   static void addGeometry( key keyIn, GeoToPoints const& tmpGeoI,
@@ -989,19 +1054,22 @@ void cmbNucRender::clearMappers()
   TransparentMapper->SetInputData(NULL);
 }
 
-void cmbNucRender::render(cmbNucCore * core)
+void cmbNucRender::render(cmbNucCore * core, bool renderBoundaryLayer)
 {
   std::map<key, GeoToPoints> geometry;
-  cmbNucRenderHelper::createGeo(core, geometry);
+  cmbNucRenderHelper::createGeo(core, renderBoundaryLayer, geometry);
   cmbNucRenderHelper::addOuterJacket(core, geometry);
   BoundingBox = core->computeBounds();
   sendToGlyphMappers(geometry);
 }
 
-void cmbNucRender::render(cmbNucAssembly * assy)
+void cmbNucRender::render(cmbNucAssembly * assy,
+                          std::vector<cmbNucCore::boundaryLayer*> const& bl)
 {
   std::map<key, GeoToPoints> geometry;
-  cmbNucRenderHelper::createGeo(assy, assy->getLattice().getFullCellMode(), geometry);
+  cmbNucRenderHelper::createGeo(assy,
+                                assy->getLattice().getFullCellMode(),
+                                bl, geometry);
   BoundingBox = assy->computeBounds();
   sendToGlyphMappers(geometry);
 }
@@ -1105,7 +1173,7 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
     {
       geo.points[j].material->setDisplayed();
       if(!geo.points[j].material->isVisible()) continue;
-      QColor bColor = geo.points[j].material->getColor();
+      QColor bColor = (geo.points[j].boundaryLayer)? QColor(255,255,255): geo.points[j].material->getColor();
       unsigned char color[] = { static_cast<unsigned char>(bColor.redF()*255),
                                 static_cast<unsigned char>(bColor.greenF()*255),
                                 static_cast<unsigned char>(bColor.blueF()*255),

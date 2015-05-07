@@ -530,6 +530,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->toolBar->addWidget(this->ui->meshControls);
 
   this->meshControls(false);
+  this->drawBoundryLayers = false;
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
 }
@@ -643,6 +644,9 @@ void cmbNucMainWindow::initPanels()
     QObject::connect(this->InputsWidget, SIGNAL(resetMeshCamera()),
                      this, SLOT(resetMeshCamera()));
   }
+
+  QObject::connect(this->InputsWidget, SIGNAL(drawBoundaryControl(bool)),
+                   this, SLOT(onChangeDrawBoundryMode(bool)));
 
   if(this->PropertyWidget == NULL)
   {
@@ -785,7 +789,7 @@ void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
 
   if(obj && obj->GetType() == CMBNUC_CORE)
     {
-    this->resetCamera();
+    //this->resetCamera();
     }
   // render
   this->ui->qvtkWidget->update();
@@ -1381,7 +1385,16 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
     return;
   }
   cmbNucMaterialColors::instance()->clearDisplayed();
-  this->NucMappers->render(assy);
+  
+  if(drawBoundryLayers)
+  {
+    this->NucMappers->render(assy, this->NuclearCore->getBoundaryLayers());
+  }
+  else
+  {
+    this->NucMappers->render(assy);
+  }
+
   vtkBoundingBox box;
   this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
@@ -1403,7 +1416,7 @@ void cmbNucMainWindow::updateCoreMaterialColors()
 {
   // regenerate core and assembly view
   cmbNucMaterialColors::instance()->clearDisplayed();
-  this->NucMappers->render(this->NuclearCore);
+  this->NucMappers->render(this->NuclearCore, this->drawBoundryLayers);
   vtkBoundingBox box;
   this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
@@ -1580,6 +1593,26 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
     this->MeshRenderer->Render();
     this->ui->qvtkMeshWidget->update();
   }
+}
+
+void cmbNucMainWindow::onChangeDrawBoundryMode(bool b)
+{
+  this->drawBoundryLayers = b;
+  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  switch(cp->GetType())
+  {
+    case CMBNUC_CORE:
+      this->updateCoreMaterialColors();
+      break;
+    case CMBNUC_ASSEMBLY:
+      this->updateAssyMaterialColors(dynamic_cast<cmbNucAssembly*>(cp));
+      break;
+    case CMBNUC_ASSY_DUCTCELL:
+    case CMBNUC_ASSY_PINCELL:
+    default:
+      return; //nothing is changed
+  }
+  this->ui->qvtkWidget->update();
 }
 
 void cmbNucMainWindow::onInteractionTransition(vtkObject *, unsigned long e)

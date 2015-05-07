@@ -124,6 +124,7 @@ protected slots:
 
   void onChangeMeshColorMode();
   void onChangeMeshEdgeMode(bool b);
+  void onChangeDrawBoundryMode(bool b);
 
   void onRaiseMesh();
   void onRaiseModel();
@@ -194,6 +195,7 @@ private:
   bool is3DTabVisible();
   void setCameras(bool coreModel, bool fullMesh);
   bool isCameraIsMoving;
+  bool drawBoundryLayers;
 
   pqTestUtility * TestUtility;
 };

@@ -153,6 +153,8 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
   this->Internal->PartsList->setAlternatingRowColors(true);
   this->Internal->PartsList->header()->setResizeMode(QHeaderView::ResizeToContents);
 
+  this->setBoundaryLayerControlMode(false);
+
   // set up the UI trees
   QTreeWidget* treeWidget = this->Internal->PartsList;
   treeWidget->setItemDelegate(this->Internal->TreeItemDelegate);
@@ -209,6 +211,9 @@ cmbNucInputListWidget::cmbNucInputListWidget(QWidget* _p)
                    this, SIGNAL(sendColorControl(int)));
   QObject::connect(this->Internal->edge_control, SIGNAL(clicked(bool)),
                    this, SIGNAL(sendEdgeControl(bool)));
+
+  QObject::connect(this->Internal->drawBoundaryLayer,  SIGNAL(clicked(bool)),
+                   this, SIGNAL(drawBoundaryControl(bool)));
 
   QObject::connect(this->Internal->meshMajorSet, SIGNAL(currentIndexChanged(int)),
                    this, SIGNAL(majorMeshSelection(int)));
@@ -791,6 +796,11 @@ void cmbNucInputListWidget::initCoreRootNode()
   }
 }
 
+void cmbNucInputListWidget::setBoundaryLayerControlMode(bool enabled)
+{
+  this->Internal->drawBoundaryLayer->setEnabled(enabled);
+}
+
 void cmbNucInputListWidget::updateWithAssembly()
 {
   QList<QTreeWidgetItem *> tmpl = this->Internal->AssemblyNode->takeChildren();
@@ -962,19 +972,23 @@ void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
   this->Internal->Action_NewAssembly->setEnabled(true);
   this->Internal->Action_NewPin->setEnabled(true);
   this->Internal->Action_NewDuct->setEnabled(true);
+  this->setBoundaryLayerControlMode(false);
 
   switch(selObj->GetType())
   {
     case CMBNUC_ASSEMBLY:
+      this->setBoundaryLayerControlMode(true);
       this->Internal->Action_DeletePart->setEnabled(true);
       this->Internal->Action_Clone->setEnabled(true);
       this->Internal->Action_NewAssemblyLink->setEnabled(true);
       break;
     case CMBNUC_ASSEMBLY_LINK:
+      this->setBoundaryLayerControlMode(true);
       this->Internal->Action_DeletePart->setEnabled(true);
       this->Internal->Action_Clone->setEnabled(true);
       break;
     case CMBNUC_CORE:
+      this->setBoundaryLayerControlMode(true);
       this->Internal->Action_NewPin->setEnabled(false);
       this->Internal->Action_NewDuct->setEnabled(false);
       this->Internal->Action_DeletePart->setEnabled(true);
@@ -1013,14 +1027,14 @@ void cmbNucInputListWidget::fireObjectSelectedSignal(
   cmbNucPartsTreeItem* selItem)
 {
   if(selItem)
-    {
+  {
     emit this->objectSelected(selItem->getPartObject(),
       selItem->text(0).toStdString().c_str());
-    }
+  }
   else
-    {
+  {
     emit this->objectSelected(NULL, NULL);
-    }
+  }
 }
 
 //-----------------------------------------------------------------------------

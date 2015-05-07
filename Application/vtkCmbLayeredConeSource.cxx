@@ -161,6 +161,45 @@ vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
   return tmpLayer;
 }
 
+vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateBoundaryLayer(double thickness)
+{
+  int l = this->GetNumberOfLayers()-1;
+  int innerRes = 0;
+  int outerRes = 0;
+  double * innerBottomR = NULL;
+  double * innerTopR = NULL;
+  innerBottomR = this->LayerRadii[l].BaseRadii;
+  innerTopR = this->LayerRadii[l].TopRadii;
+  outerRes = innerRes = this->LayerRadii[l].Resolution;
+  double diff = 0.01;
+  if(thickness < diff)
+  {
+    diff = thickness*diff;
+  }
+
+  double inner2BottomR[] = {innerBottomR[0]+thickness - diff,
+                           innerBottomR[1]+thickness - diff};
+  double inner2TopR[] = {innerTopR[0]+thickness - diff,
+                        innerTopR[1]+thickness - diff};
+
+  double outerBottomR[] = {innerBottomR[0]+thickness, innerBottomR[1]+thickness};
+  double outerTopR[] = {innerTopR[0]+thickness, innerTopR[1]+thickness};
+
+  vtkSmartPointer<vtkPolyData> tmpLayer = CreateLayer( 1.0,
+                                                      inner2BottomR, outerBottomR,
+                                                      inner2TopR,    outerTopR,
+                                                      innerRes,     outerRes, true );
+  if (this->GenerateNormals)
+  {
+    vtkNew<vtkPolyDataNormals> normals;
+    normals->SetInputDataObject(tmpLayer);
+    normals->ComputePointNormalsOn();
+    normals->Update();
+    return normals->GetOutput();
+  }
+  return tmpLayer;
+}
+
 int vtkCmbLayeredConeSource::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
@@ -446,7 +485,7 @@ vtkCmbLayeredConeSource
 ::CreateLayer( double h,
                double * innerBottomR, double * outerBottomR,
                double * innerTopR,    double * outerTopR,
-               int innerRes, int outerRes )
+               int innerRes, int outerRes, bool lines )
 {
   if(outerTopR == NULL || outerBottomR == NULL) return NULL;
   if(outerRes == 0) return NULL;
@@ -455,6 +494,7 @@ vtkCmbLayeredConeSource
 
   vtkPoints * points = vtkPoints::New();
   vtkCellArray *cells = vtkCellArray::New();
+  vtkCellArray *lineCells = vtkCellArray::New();
 
   points->SetDataTypeToDouble(); //used later during transformation
 
@@ -525,9 +565,22 @@ vtkCmbLayeredConeSource
   }
 
   //Add bottom calls
-  if(GenerateEnds) { TriangulateEnd(innerRes, outerRes, forceDelaunay, cells, points); }
+  if(GenerateEnds && !lines) { TriangulateEnd(innerRes, outerRes, forceDelaunay, cells, points); }
+  /*else if(lines)
+  {
+    int offset = outerRes+innerRes;
+    for(int i = 0; i < outerRes; ++i)
+    {
+      pts[0] = i;
+      pts[1] = (i+1) % outerRes;
+      lineCells->InsertNextCell(2, pts);
+      pts[0] = (i+1) % outerRes + offset;
+      pts[1] = i + offset;
+      lineCells->InsertNextCell(2, pts);
+    }
+  }*/
   //Outer Wall;
-  if(1)
+  if(!lines)
   {
     int offset = outerRes+innerRes;
     for(int i = 0; i < outerRes; ++i)
@@ -539,8 +592,34 @@ vtkCmbLayeredConeSource
       cells->InsertNextCell(4, pts);
     }
   }
+  else
+  {
+    int offset = outerRes+innerRes;
+    for(int i = 0; i < outerRes; ++i)
+    {
+      pts[0] = i;
+      pts[1] = (i+1) % outerRes;
+      pts[2] = (i+1) % outerRes + offset;
+      pts[3] = i + offset;
+      lineCells->InsertNextCell(2, pts);
+      //lineCells->InsertNextCell(2, pts+1);
+      lineCells->InsertNextCell(2, pts+2);
+      pts[0] = i + offset;
+      pts[0] = i;
+      //lineCells->InsertNextCell(2, pts);
+    }
+    /*int offset = outerRes+innerRes;
+    for(int i = 0; i < outerRes; ++i)
+    {
+      pts[0] = i;
+      pts[1] = (i+1) % outerRes;
+      pts[2] = (i+1) % outerRes + offset;
+      pts[3] = i + offset;
+      cells->InsertNextCell(4, pts);
+    }*/
+  }
   //Inner Wall
-  if(1)
+  if(!lines)
   {
     int offset = outerRes+innerRes;
     for(int i = 0; i < innerRes; ++i)
@@ -552,8 +631,17 @@ vtkCmbLayeredConeSource
       cells->InsertNextCell(4, pts);
     }
   }
+
   polyData->SetPoints(points);
   polyData->SetPolys(cells);
+  if(lines)
+  {
+    polyData->SetLines(lineCells);
+  }
+  else
+  {
+
+  }
 
   points->Delete();
   cells->Delete();

@@ -337,7 +337,7 @@ public:
   std::map< std::string, std::set< Lattice::CellDrawMode > > getDrawModesForAssemblies();
 
   void addBoundaryLayer( boundaryLayer * bl); //Takes ownership
-  std::vector< boundaryLayer*> const& getBoundaryLayers() const
+  std::vector< cmbNucCore::boundaryLayer*> const& getBoundaryLayers() const
   {
     return this->BoundaryLayers;
   }
