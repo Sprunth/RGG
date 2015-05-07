@@ -1173,7 +1173,7 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
     {
       geo.points[j].material->setDisplayed();
       if(!geo.points[j].material->isVisible()) continue;
-      QColor bColor = (geo.points[j].boundaryLayer)? QColor(255,255,255): geo.points[j].material->getColor();
+      QColor bColor = (geo.points[j].boundaryLayer)? (geo.points[j].material->getColor().lightnessF() < 0.5) ? Qt::white : Qt::black : geo.points[j].material->getColor();
       unsigned char color[] = { static_cast<unsigned char>(bColor.redF()*255),
                                 static_cast<unsigned char>(bColor.greenF()*255),
                                 static_cast<unsigned char>(bColor.blueF()*255),

@@ -90,18 +90,18 @@ cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
   connect(UnknownMaterial, SIGNAL(colorChanged()), this, SIGNAL(materialColorChanged()));
   connect(UnknownMaterial, SIGNAL(useChanged()), this, SLOT(testShow()));
   if (!cmbNucMaterialColors::Instance || reset_instance)
-    {
+  {
     cmbNucMaterialColors::Instance = this;
-    }
+  }
 }
 
 cmbNucMaterialColors::~cmbNucMaterialColors()
 {
   this->clear();
   if (cmbNucMaterialColors::Instance == this)
-    {
+  {
     cmbNucMaterialColors::Instance = 0;
-    }
+  }
   delete UnknownMaterial;
 }
 
@@ -110,41 +110,41 @@ bool cmbNucMaterialColors::OpenFile(const QString& name)
 {
   QFileInfo finfo(name);
   if(!finfo.exists())
-    {
+  {
     return false;
-    }
+  }
 
   QSettings settings(name, QSettings::IniFormat);
   if(!settings.childGroups().contains(GROUP_MATERIAL))
-    {
+  {
     return false;
-    }
+  }
 
   settings.beginGroup(GROUP_MATERIAL);
   QString settingKey(GROUP_MATERIAL), strcolor;
   settingKey.append("/");
   QStringList list1;
   foreach(QString mat, settings.childKeys())
-    {
+  {
     strcolor = settings.value(mat).toString();
     list1 = strcolor.split(",");
     if(list1.size() == 4)
-      {
+    {
       this->AddMaterial(mat,
-        list1.value(0).toDouble(),
-        list1.value(1).toDouble(),
-        list1.value(2).toDouble(),
-        list1.value(3).toDouble());
-      }
-    else if(list1.size() == 5) // with label
-      {
-      this->AddMaterial(mat, list1.value(0),
-        list1.value(1).toDouble(),
-        list1.value(2).toDouble(),
-        list1.value(3).toDouble(),
-        list1.value(4).toDouble());
-      }
+                        list1.value(0).toDouble(),
+                        list1.value(1).toDouble(),
+                        list1.value(2).toDouble(),
+                        list1.value(3).toDouble());
     }
+    else if(list1.size() == 5) // with label
+    {
+      this->AddMaterial(mat, list1.value(0),
+                        list1.value(1).toDouble(),
+                        list1.value(2).toDouble(),
+                        list1.value(3).toDouble(),
+                        list1.value(4).toDouble());
+    }
+  }
 
   settings.endGroup();
   return true;
@@ -158,14 +158,14 @@ void cmbNucMaterialColors::SaveToFile(const QString& name)
   settingKey.append("/");
   QColor color;
   foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
-    {
+  {
     color = mat->getColor();
     strcolor = QString("%1, %2, %3, %4, %5").arg(
       mat->getLabel()).
       arg(color.redF()).arg(color.greenF()).arg(
       color.blueF()).arg(color.alphaF());
     settings.setValue(settingKey+mat->getName(),strcolor);
-    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -313,21 +313,21 @@ void cmbNucMaterialColors::RemoveMaterialByName(const QString& name)
 {
   Material_Map::iterator it = this->find(name, this->NameToMaterial);
   if(it != this->NameToMaterial.end())
-    {
+  {
       bool is_used = false;
       if(it.value())
-        {
+      {
         QString label = it.value()->getLabel();
         is_used = it.value()->isUsed();
         delete it.value();
         RemoveMaterialByLabel(label);
-        }
+      }
     this->NameToMaterial.erase(it);
     if(is_used)
-      {
+    {
       emit materialColorChanged();
-      }
     }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -380,17 +380,17 @@ void cmbNucMaterialColors::CalcRGB(double &r, double &g, double &b)
 {
   double l;
   while(1)
-    {
+  {
     r = vtkMath::Random(0.0, 1.0);
     g = vtkMath::Random(0.0, 1.0);
     b = vtkMath::Random(0.0, 1.0);
 
     l = (0.11 *b) + (0.3 *r) + (0.59*g);
     if ((l >= this->Llimit) && ( l <= this->Ulimit))
-      {
+    {
       return;
-      }
     }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -512,9 +512,9 @@ void cmbNucMaterialColors::buildTree(QTreeWidget * tree)
   UnknownMaterialTreeItem = this->addToTree(UnknownMaterial);
   UnknownMaterialTreeItem->setSelected(true);
   foreach(QPointer<cmbNucMaterial> mat, NameToMaterial.values())
-    {
+  {
     this->addToTree(mat);
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -524,6 +524,7 @@ cmbNucMaterialColors::addToTree(QPointer<cmbNucMaterial> mat)
   cmbNucMaterialTreeItem* mNode =
       new cmbNucMaterialTreeItem(MaterialTree->invisibleRootItem(),
                                  mat);
+  mNode->getConnection()->show(this->showMode);
   connect(this, SIGNAL(showModeSig(int)),
           mNode->getConnection(), SLOT(show(int)));
   return mNode;
