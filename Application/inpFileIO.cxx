@@ -1127,13 +1127,13 @@ void inpFileHelper::writePincell( std::ofstream &output,
       bool iscylinder = part->GetType() == CMBNUC_ASSY_CYLINDER_PIN;
       output << ((iscylinder)?("cylinder "):("frustum "))
              << ( pincell->GetNumberOfLayers() + ((bl_for_assembly != NULL)?1:0) ) << " ";
-      if(minZ > part->z1) minZ = part->z1;
-      if(maxZ < part->z2) maxZ = part->z2;
+      if(minZ > part->getZ1()) minZ = part->getZ1();
+      if(maxZ < part->getZ2()) maxZ = part->getZ2();
       output << std::showpoint
              << part->x << " "
              << part->y << " "
-             << part->z1 << " "
-             << part->z2 << " ";
+             << part->getZ1() << " "
+             << part->getZ2() << " ";
       double topR, bottomR;
       for(unsigned int l = 0; l < part->GetNumberOfLayers(); l++)
       {
@@ -1245,10 +1245,10 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         std::vector<double> radii(layers);
         cylinder->SetNumberOfLayers(layers);
 
-        input >> cylinder->x
-              >> cylinder->y
-              >> cylinder->z1
-              >> cylinder->z2;
+        double z1, z2;
+        input >> cylinder->x >> cylinder->y >> z1 >> z2;
+        cylinder->setZ1(z1);
+        cylinder->setZ2(z2);
         for(int c=0; c < layers; c++)
         {
           input >> radii[c];
@@ -1312,10 +1312,11 @@ bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & asse
         std::vector<double> radii(layers*2);
         frustum->SetNumberOfLayers(layers);
 
-        input >> frustum->x
-              >> frustum->y
-              >> frustum->z1
-              >> frustum->z2;
+        double z1, z2;
+        input >> frustum->x >> frustum->y >> z1 >> z2;
+
+        frustum->setZ1(z1);
+        frustum->setZ2(z2);
 
         for(int c=0; c < layers; c++)
         {

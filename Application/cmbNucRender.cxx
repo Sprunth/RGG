@@ -1266,8 +1266,8 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
   
   vtkSmartPointer<vtkCmbLayeredConeSource> coneSource = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
   coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
-  coneSource->SetBaseCenter(0, 0, part->z1);
-  coneSource->SetHeight(part->z2 - part->z1);
+  coneSource->SetBaseCenter(0, 0, part->getZ1());
+  coneSource->SetHeight(part->getZ2() - part->getZ1());
   double largestRadius = 0;
 
   for(int k = 0; k < pincell->GetNumberOfLayers(); k++)

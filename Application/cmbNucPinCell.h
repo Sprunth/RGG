@@ -75,12 +75,31 @@ public:
   virtual std::vector<PinSubPart *> split(std::vector<double>::const_iterator b,
                                           std::vector<double>::const_iterator end) = 0;
 
+  double getZ1() const
+  {
+    return this->z1;
+  }
+  double getZ2() const
+  {
+    return this->z2;
+  }
+
+  void setZ1(double v)
+  {
+    this->z1 = v;
+  }
+  void setZ2(double v)
+  {
+    this->z2 = v;
+  }
+
   double x;
   double y;
-  double z1;
-  double z2;
+
 protected:
   void setConnection(cmbNucMaterialLayer * layer);
+  double z1;
+  double z2;
   std::vector< cmbNucMaterialLayer * > Materials;
   PinConnection * Connection;
 private:

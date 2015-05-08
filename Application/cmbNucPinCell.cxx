@@ -606,14 +606,14 @@ bool PinCell::cellMaterialSet() const
 
 vtkBoundingBox PinCell::computeBounds(bool isHex)
 {
-  double minZ = this->GetPart(0)->z1, maxZ = this->GetPart(0)->z2;
+  double minZ = this->GetPart(0)->getZ1(), maxZ = this->GetPart(0)->getZ2();
   double maxRadius = std::max(this->GetPart(0)->getRadius(PinSubPart::BOTTOM),
                               this->GetPart(0)->getRadius(PinSubPart::TOP));
   for(int i = 1; i < static_cast<int>(this->GetNumberOfParts()); i++)
   {
     PinSubPart * part = this->GetPart(i);
-    if(part->z1 < minZ) minZ = part->z1;
-    if(part->z2 > maxZ) maxZ = part->z2;
+    if(part->getZ1() < minZ) minZ = part->getZ1();
+    if(part->getZ2() > maxZ) maxZ = part->getZ2();
     double tmp = std::max(this->GetPart(i)->getRadius(PinSubPart::BOTTOM),
                           this->GetPart(i)->getRadius(PinSubPart::TOP));
     if(tmp > maxRadius) maxRadius = tmp;
@@ -642,8 +642,8 @@ std::vector<double> PinCell::getPinLayers() const
   std::set<double> unique_levels;
   for(int i = 0; i < static_cast<int>(this->GetNumberOfParts()); i++)
   {
-    unique_levels.insert(this->GetPart(i)->z1);
-    unique_levels.insert(this->GetPart(i)->z2);
+    unique_levels.insert(this->GetPart(i)->getZ1());
+    unique_levels.insert(this->GetPart(i)->getZ2());
   }
   std::vector<double> result;
   for(std::set<double>::const_iterator iter = unique_levels.begin(); iter != unique_levels.end(); ++iter)
@@ -661,7 +661,7 @@ void PinCell::splitPin(std::vector<double> const& layers)
   for(unsigned int i = 0; i < Parts.size(); ++i)
   {
     PinSubPart * ati = this->Parts[i];
-    double z1 = ati->z1, z2 = ati->z2;
+    double z1 = ati->getZ1(), z2 = ati->getZ2();
     std::vector<double>::const_iterator b = layers.begin();
     for(; b!= layers.end(); ++b)
     {
@@ -689,15 +689,16 @@ void PinCell::splitPin(std::vector<double> const& layers)
 void PinCell::setHeight(double nh)
 {
   if(this->Parts.empty()) return;
-  double z0 = this->GetPart(0)->z1;
-  double oldH = (*(this->Parts.rbegin()))->z2 - z0;
+  double z0 = this->GetPart(0)->getZ1();
+  double oldH = (*(this->Parts.rbegin()))->getZ2() - z0;
   if(oldH == nh) return;
   for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
   {
     PinSubPart* p = this->GetPart(i);
-    double l = p->z2 - p->z1;
-    p->z1 = z0;
-    z0 = p->z2 = z0 + l/oldH * nh;
+    double l = p->getZ2() - p->getZ1();
+    p->setZ1(z0);
+    z0 = z0 + l/oldH * nh;
+    p->setZ2(z0);
   }
 }
 
@@ -715,7 +716,7 @@ namespace
 {
   bool sort_by_z1(const PinSubPart * a, const PinSubPart * b)
   {
-    return a->z1 < b->z1;
+    return a->getZ1() < b->getZ1();
   }
 }
 
@@ -727,18 +728,18 @@ void PinCell::sort()
 double PinCell::getZ0() const
 {
   if(this->Parts.empty()) return 0;
-  return (*(this->Parts.begin()))->z1;
+  return (*(this->Parts.begin()))->getZ1();
 }
 
 void PinCell::setZ0(double z0)
 {
   if(this->Parts.empty()) return;
-  double d = z0 - this->GetPart(0)->z1;
+  double d = z0 - this->GetPart(0)->getZ1();
   if(d == 0) return;
   for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
   {
     PinSubPart* p = this->GetPart(i);
-    p->z1 += d;
-    p->z2 += d;
+    p->setZ1(p->getZ1() + d);
+    p->setZ2(p->getZ2() + d);
   }
 }

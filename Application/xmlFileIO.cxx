@@ -410,7 +410,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, Frustum * f)
 bool xmlHelperClass::writePSP(pugi::xml_node & node, PinSubPart * p)
 {
   bool r = true;
-  r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(p->x, 0, 'g', 9).arg(p->y, 0, 'g', 9).arg(p->z1).arg(p->z2, 0, 'g', 9));
+  r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(p->x, 0, 'g', 9).arg(p->y, 0, 'g', 9).arg(p->getZ1()).arg(p->getZ2(), 0, 'g', 9));
   size_t num = p->GetNumberOfLayers();
   for(size_t i = 0; i < num; ++i)
   {
@@ -973,8 +973,8 @@ bool xmlHelperClass::readPSP(pugi::xml_node & node, PinSubPart * dc,
   QStringList l = str.split(",");
   dc->x = l.value(0).toDouble();
   dc->y = l.value(1).toDouble();
-  dc->z1 = l.value(2).toDouble();
-  dc->z2 = l.value(3).toDouble();
+  dc->setZ1(l.value(2).toDouble());
+  dc->setZ2(l.value(3).toDouble());
   int i = 0;
   for(pugi::xml_node tnode = node.child(MATERIAL_LAYER_TAG.c_str()); tnode;
       tnode = tnode.next_sibling(MATERIAL_LAYER_TAG.c_str()))
