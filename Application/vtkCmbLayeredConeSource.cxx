@@ -161,9 +161,8 @@ vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
   return tmpLayer;
 }
 
-vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateBoundaryLayer(double thickness)
+vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateBoundaryLayer(double thickness, int l)
 {
-  int l = this->GetNumberOfLayers()-1;
   int innerRes = 0;
   int outerRes = 0;
   double * innerBottomR = NULL;

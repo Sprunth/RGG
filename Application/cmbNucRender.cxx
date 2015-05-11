@@ -343,7 +343,8 @@ public:
     }
   }
 
-  static void createGeo(DuctCell* ductcell, bool isHex, std::map<key,GeoToPoints> & geometry)
+  static void createGeo(DuctCell* ductcell, bool isHex, std::map<key,GeoToPoints> & geometry,
+                        cmbNucCore::boundaryLayer * bl = NULL )
   {
     if(ductcell == NULL) return;
     size_t numParts = ductcell->numberOfDucts();
@@ -384,6 +385,44 @@ public:
         double h = manager->GetHeight();
         cmbNucRender::scale scale(1,1,h);
         geo.points.push_back(GeoToPoints::data(loc, point(), mat, scale));
+      }
+      if(bl != NULL)
+      {
+        double tmp_height = duct->getZ2() - duct->getZ1();
+        double thickness = 0;
+        double temp = 0;
+        double bias = bl->Bias;
+        double suba = bl->Thickness/bl->Intervals;
+        int at = 0;//manager->GetNumberOfLayers()-1;
+        double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
+        double deno = pow(bias, bl->Intervals) - 1;
+        if (deno !=0)
+          temp = num/deno;
+        else
+          temp = thickness/bl->Intervals;
+        for(unsigned inter = 0; inter < bl->Intervals; ++inter)
+        {
+          thickness += temp/pow(bias,inter);
+          key k(manager->GetResolution(at),
+                manager->GetTopRadius(at, 0) - thickness,
+                manager->GetTopRadius(at, 1) - thickness,
+                manager->GetTopRadius(at, 0) - thickness,
+                manager->GetTopRadius(at, 1) - thickness,
+                manager->GetBaseRadius(at, 0) - thickness,
+                manager->GetBaseRadius(at,1) - thickness,
+                manager->GetBaseRadius(at, 0) - thickness,
+                manager->GetBaseRadius(at,1) - thickness, true);
+          if(geometry.find(k) == geometry.end())
+          {
+            geometry[k].geo = manager->CreateBoundaryLayer( -thickness, at );
+          }
+          GeoToPoints & geo = geometry[k];
+          point loc;
+          manager->GetBaseCenter(loc.xyz);
+          loc.xyz[2] -= tmp_height * 0.0005 * 0.5;
+          cmbNucRender::scale scale(1,1,tmp_height);
+          geo.points.push_back(GeoToPoints::data(loc, point(), bl->interface_material, scale, true));
+        }
       }
     }
   }
@@ -477,7 +516,7 @@ public:
                 manager->GetBaseRadius(at,1) + thickness, true);
           if(geometry.find(k) == geometry.end())
           {
-            geometry[k].geo = manager->CreateBoundaryLayer( thickness );
+            geometry[k].geo = manager->CreateBoundaryLayer( thickness, at );
           }
           GeoToPoints & geo = geometry[k];
           point loc;
@@ -583,7 +622,7 @@ public:
       {
         tmpGeo[i->first].geo = i->second.geo;
       }
-      createGeo(&(input->getAssyDuct()), input->IsHexType(), tmpGeo);
+      createGeo(&(input->getAssyDuct()), input->IsHexType(), tmpGeo, usedBL);
       std::vector<point> points(1);
 
       if(hasSectioning)

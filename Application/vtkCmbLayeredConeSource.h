@@ -61,7 +61,7 @@ public:
   vtkBooleanMacro(GenerateEnds,int);
 
   vtkSmartPointer<vtkPolyData> CreateUnitLayer(int l);
-  vtkSmartPointer<vtkPolyData> CreateBoundaryLayer( double thickness );
+  vtkSmartPointer<vtkPolyData> CreateBoundaryLayer( double thickness, int l );
 
 
 protected:
