@@ -1025,6 +1025,7 @@ void cmbNucMainWindow::onClearMesh()
   this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
   this->setCameras(this->Internal->IsCoreView, false);
+  cmbNucMaterialColors::instance()->testShow();
   this->modelControls(true);
 }
 

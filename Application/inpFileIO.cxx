@@ -79,8 +79,9 @@ public:
   }
 
   void writeHeader( std::ofstream &output, std::string type );
-  void writeMaterials( std::ofstream &output, cmbNucAssembly &assembly );
-  void writeDuct( std::ofstream &output, cmbNucAssembly &assembly, bool limited = false );
+  void writeMaterials( std::ofstream &output, std::vector<cmbNucCore::boundaryLayer*> const& bls, cmbNucAssembly &assembly );
+  void writeDuct( std::ofstream &output, cmbNucAssembly &assembly,
+                  std::vector<cmbNucCore::boundaryLayer*> const& bls, bool limited = false );
   void writePincell( std::ofstream &output,
                      std::vector<cmbNucCore::boundaryLayer*> const& bls,
                      cmbNucAssembly &assembly );
@@ -671,25 +672,22 @@ bool inpFileWriter::write(std::string fname,
 
   output << "GeometryType " << assembly.getGeometryLabel() << "\n";
   WRITE_PARAM_VALUE(Geometry, Geometry);
-  helper.writeMaterials( output, assembly );
-  helper.writeDuct( output, assembly, limited );
+  helper.writeMaterials( output, bls, assembly );
+  if(!bls.empty())
+  {
+    output << "BLMaterials " << bls.size();
+    for(unsigned int i = 0; i < bls.size(); ++i)
+    {
+      output << " " << bls[i]->interface_material->getLabel().toStdString() << "_bl" << i+1 << ' ' << bls[i]->Bias << " " << bls[i]->Intervals << "\n";
+    }
+  }
+  helper.writeDuct( output, assembly, bls, limited );
 
   if(!limited)
   {
     int blId = 1;
+
     helper.writePincell( output, bls, assembly );
-    for(unsigned int i = 0; i < bls.size(); ++i)
-    {
-      if(assembly.has_boundary_layer_interface(bls[i]->interface_material))
-      {
-        std::string label = bls[i]->interface_material->getLabel().toStdString();
-        output << label << "_BL" << blId << " Thickness " << bls[i]->Thickness << std::endl;
-        output << label << "_BL" << blId << " Bias " << bls[i]->Bias << std::endl;
-        output << label << "_BL" << blId << " Interval " << bls[i]->Intervals << std::endl;
-        blId++;
-        break; //TODO remove this when there is multiple boundary support
-      }
-    }
     helper.writeLattice( output, "Assembly",
                          false,
                          assembly.getLattice() );
@@ -933,14 +931,20 @@ bool sortByName(const cmbNucMaterial* s1, const cmbNucMaterial* s2)
 }
 
 void inpFileHelper::writeMaterials( std::ofstream &output,
+                                    std::vector<cmbNucCore::boundaryLayer*> const& bls,
                                     cmbNucAssembly & assembly )
 {
   QList<cmbNucMaterial*> materials = assembly.getMaterials().toList();
   qSort(materials.begin(), materials.end(), sortByName);
-  output << "Materials " << materials.count();
+  output << "Materials " << materials.count() + bls.size();
   foreach( QPointer<cmbNucMaterial> mat, materials)
   {
     output << " " << mat->getName().toStdString() << ' ' << mat->getLabel().toStdString();
+  }
+  for(unsigned int i = 0; i < bls.size(); ++i)
+  {
+    QPointer<cmbNucMaterial> mat = bls[i]->interface_material;
+    output << " " <<mat->getName().toStdString() << "_bl" << i+1 << " " << mat->getLabel().toStdString() << "_bl" << i+1;
   }
   output << "\n";
 }
@@ -989,27 +993,61 @@ bool inpFileHelper::readMaterials( std::stringstream & input,
   return true;
 }
 
-void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly, bool limited )
+void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
+                               std::vector<cmbNucCore::boundaryLayer*> const& bls, bool limited )
 {
   for(size_t ad = 0; ad < assembly.getAssyDuct().numberOfDucts(); ad++)
   {
     Duct *duct = assembly.getAssyDuct().getDuct(ad);
     int nl = duct->NumberOfLayers();
 
-    output << "duct " << (limited?1:nl) << " ";
-    output << std::showpoint << duct->getX() << " " << duct->getY() << " " << duct->getZ1() << " " << duct->getZ2();
-    for(int i = limited?nl-1:0; i <  nl; i++)
+    //TODO handle multiple layers of for boundary
+    //TODO handle multiple boundary layer types
+    cmbNucCore::boundaryLayer* bl_for_assembly = NULL;
+    int numBoundary = 0;
+    for(unsigned int i = 0; i < bls.size() && !limited; ++i)
+    {
+      if(duct->isInnerDuctMaterial(bls[i]->interface_material))
       {
-      output << " " << duct->GetLayerThick(i, 0);
+        bl_for_assembly = bls[i];
+        numBoundary = 1;
+        break;
+      }
+    }
+
+    output << "duct " << (limited?1:(nl+numBoundary)) << " ";
+    output << std::showpoint << duct->getX() << " " << duct->getY() << " " << duct->getZ1() << " " << duct->getZ2();
+
+
+    for(int i = limited?nl-1:0; i <  nl; i++)
+    {
+      double thick = 0;
+      if(bl_for_assembly != NULL && duct->getMaterial(i) == bl_for_assembly->interface_material)
+      {
+        thick = bl_for_assembly->Thickness;
+      }
+      output << " " << duct->GetLayerThick(i, 0) - thick;
       if(!assembly.IsHexType())
+      {
+          output << " " << duct->GetLayerThick(i, 1) - thick;
+      }
+      if(bl_for_assembly != NULL && duct->getMaterial(i) == bl_for_assembly->interface_material)
+      {
+        output << " " << duct->GetLayerThick(i, 0);
+        if(!assembly.IsHexType())
         {
           output << " " << duct->GetLayerThick(i, 1);
         }
       }
+    }
     for(int j = limited?nl-1:0; j < nl; j++)
-      {
+    {
       output << " " << duct->getMaterial(j)->getLabel().toStdString();
+      if(bl_for_assembly != NULL && duct->getMaterial(j) == bl_for_assembly->interface_material)
+      {
+        output << " " << bl_for_assembly->interface_material->getLabel().toStdString() + "_BL1";
       }
+    }
     output << "\n";
   }
 }
@@ -1159,7 +1197,7 @@ void inpFileHelper::writePincell( std::ofstream &output,
       }
       if(bl_for_assembly != NULL)
       {
-        output << bl_for_assembly->interface_material->getLabel().toStdString() + "_BL1";
+        output << bl_for_assembly->interface_material->getLabel().toStdString() + "_BL1 ";
       }
       output << "\n";
     }

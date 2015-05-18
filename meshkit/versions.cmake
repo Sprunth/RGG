@@ -76,7 +76,8 @@ else()
   add_revision(meshkit
     #GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
     GIT_REPOSITORY https://bitbucket.org/judajake/meshkit.git
+GIT_TAG master
     #GIT_TAG MeshKitv1.3
-    GIT_TAG add_postbl_exe
+#GIT_TAG add_postbl_exe
   )
 endif()
