@@ -620,7 +620,8 @@ void cmbNucMainWindow::initPanels()
     this->Internal->MeshOpen = false;
     QObject::connect(this->ExportDialog, SIGNAL(finished(QString)),
             this->Internal->MoabSource, SLOT(openFile(QString)));
-    QObject::connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
+    QObject::connect(this->ExportDialog, SIGNAL(fileFinish()),
+                     this, SLOT(checkForNewCUBH5MFiles()));
     QObject::connect(this->InputsWidget, SIGNAL(sendEdgeControl(bool)),
                      this, SLOT(onChangeMeshEdgeMode(bool)));
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
@@ -751,10 +752,13 @@ void cmbNucMainWindow::onUpdateLattice(AssyPartObj* obj, int changeType)
   {
     return;
   }
-  onObjectGeometryChanged(obj, (obj->GetType() == CMBNUC_CORE)?(changeType & cmbNucDraw2DLattice::SizeChange):(false));
+  bool changed = (obj->GetType() == CMBNUC_CORE) &&
+                 (changeType & cmbNucDraw2DLattice::SizeChange);
+  onObjectGeometryChanged(obj, changed);
 }
 
-void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj, bool resetCamera)
+void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj,
+                                               bool resetCamera)
 {
   if(!obj)
   {
@@ -859,7 +863,8 @@ void cmbNucMainWindow::onNewCore()
     }
     else
     {
-      qDebug() << "New action is connected to: " << type << " and that action is not supported.";
+      qDebug() << "New action is connected to: " << type
+      << " and that action is not supported.";
       return;
     }
     this->doClearAll(true);
@@ -891,8 +896,6 @@ void cmbNucMainWindow::onFileOpen()
 {
   if(!checkFilesBeforePreceeding()) return;
 
-  //TODO the new File format
-  doClearAll();
   this->PropertyWidget->setObject(NULL, NULL);
   this->PropertyWidget->setAssembly(NULL);
   QSettings settings("CMBNuclear", "CMBNuclear");
@@ -907,6 +910,8 @@ void cmbNucMainWindow::onFileOpen()
   {
     return;
   }
+
+  doClearAll();
 
   this->setCursor(Qt::BusyCursor);
   // Cache the directory for the next time the dialog is opened

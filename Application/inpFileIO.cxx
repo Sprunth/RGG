@@ -79,13 +79,17 @@ public:
   }
 
   void writeHeader( std::ofstream &output, std::string type );
-  void writeMaterials( std::ofstream &output, std::vector<cmbNucCore::boundaryLayer*> const& bls, cmbNucAssembly &assembly );
+  void writeMaterials( std::ofstream &output,
+                       std::vector<cmbNucCore::boundaryLayer*> const& bls,
+                       cmbNucAssembly &assembly );
   void writeDuct( std::ofstream &output, cmbNucAssembly &assembly,
-                  std::vector<cmbNucCore::boundaryLayer*> const& bls, bool limited = false );
+                  std::vector<cmbNucCore::boundaryLayer*> const& bls,
+                  bool limited = false );
   void writePincell( std::ofstream &output,
                      std::vector<cmbNucCore::boundaryLayer*> const& bls,
                      cmbNucAssembly &assembly );
-  void writeLattice( std::ofstream &output, std::string key, bool useAmp, Lattice &lat, std::string forceLabel = "" );
+  void writeLattice( std::ofstream &output, std::string key, bool useAmp,
+                     Lattice &lat, std::string forceLabel = "" );
   void writeAssemblies( std::ofstream &output, std::string outFileName,
                         cmbNucCore &core );
 
@@ -673,13 +677,21 @@ bool inpFileWriter::write(std::string fname,
   output << "GeometryType " << assembly.getGeometryLabel() << "\n";
   WRITE_PARAM_VALUE(Geometry, Geometry);
   helper.writeMaterials( output, bls, assembly );
-  if(!bls.empty())
+  if(!bls.empty()) //TODO: when there are more than one boundary layer
   {
-    output << "BLMaterials " << bls.size();
-    for(unsigned int i = 0; i < bls.size(); ++i)
+    output << "BLMaterials " << 2;
+    output << " " << bls[0]->interface_material->getLabel().toStdString()
+           << "_bl" << 1 << ' ' << -bls[0]->Bias << " "
+           << bls[0]->Intervals << " "
+           << bls[0]->interface_material->getLabel().toStdString()
+           << "_bl" << 2 << ' ' << bls[0]->Bias << " "
+           << bls[0]->Intervals << "\n";
+    /*for(unsigned int i = 0; i < bls.size(); ++i)
     {
-      output << " " << bls[i]->interface_material->getLabel().toStdString() << "_bl" << i+1 << ' ' << bls[i]->Bias << " " << bls[i]->Intervals << "\n";
-    }
+      output << " " << bls[i]->interface_material->getLabel().toStdString()
+             << "_bl" << i+1 << ' ' << bls[i]->Bias << " "
+             << bls[i]->Intervals << "\n";
+    }*/
   }
   helper.writeDuct( output, assembly, bls, limited );
 
@@ -735,7 +747,8 @@ if(params->isValueSet(params->Var))\
   ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
 
-  for(unsigned int i = 0; i < assembly.GetParameters()->UnknownParams.size(); ++i)
+  for(unsigned int i = 0;
+      i < assembly.GetParameters()->UnknownParams.size(); ++i)
   {
     output << assembly.GetParameters()->UnknownParams[i] << "\n";
   }
@@ -792,29 +805,35 @@ bool inpFileWriter::write(std::string fname,
   }
   if( ( ( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
           QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() ) ||
-          core.Params.BackgroundMode == cmbNucCoreParams::Generate ) && !core.Params.Background.empty() )
-    {
+          core.Params.BackgroundMode == cmbNucCoreParams::Generate ) &&
+     !core.Params.Background.empty() )
+  {
     QFile src(core.Params.BackgroundFullPath.c_str());
-    QFile dest( QFileInfo(info.dir(), core.Params.Background.c_str()).absoluteFilePath() );
+    QFile dest( QFileInfo(info.dir(),
+                          core.Params.Background.c_str()).absoluteFilePath() );
     if(src.fileName() != dest.fileName()  && (!dest.exists() || dest.remove()))
-      {
-      src.copy(dest.fileName());
-      }
-    output << "Background " << core.Params.Background << "\n";
-    }
-  else if( core.Params.BackgroundMode == cmbNucCoreParams::External && !core.Params.Background.empty() )
     {
+      src.copy(dest.fileName());
+    }
+    output << "Background " << core.Params.Background << "\n";
+  }
+  else if( core.Params.BackgroundMode == cmbNucCoreParams::External &&
+          !core.Params.Background.empty() )
+  {
     QMessageBox msgBox;
     msgBox.setText( QString(core.Params.Background.c_str()) +
-                   QString(" was not found.  We are not writing Background to output inp file."));
+                   QString(" was not found.  We are not"
+                           " writing Background to output inp file."));
     msgBox.exec();
-    }
-  else if( core.Params.BackgroundMode == cmbNucCoreParams::Generate && core.Params.Background.empty() )
-    {
+  }
+  else if( core.Params.BackgroundMode == cmbNucCoreParams::Generate &&
+           core.Params.Background.empty() )
+  {
     QMessageBox msgBox;
-    msgBox.setText(QString("Could not generate a outer jacket because no output file name given"));
+    msgBox.setText(QString("Could not generate a outer jacket"
+                           " because no output file name given"));
     msgBox.exec();
-    }
+  }
 
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
   if( core.Params.Var##IsSet() ) \
@@ -873,7 +892,8 @@ bool inpFileWriter::write(std::string fname,
   return true;
 }
 
-bool inpFileWriter::writeGSH(std::string fname, cmbNucCore & core, std::string assyName)
+bool inpFileWriter::writeGSH(std::string fname, cmbNucCore & core,
+                             std::string assyName)
 {
   inpFileHelper helper;
   std::ofstream output(fname.c_str());
@@ -905,10 +925,13 @@ bool inpFileWriter::writeGSH(std::string fname, cmbNucCore & core, std::string a
     output << " " << core.AssyemblyPitchY;
   }
   output << "\n";
-  output << QFileInfo(assyName.c_str()).completeBaseName().toLower().toStdString() << ".sat aa" << "\n";
+  output << QFileInfo(assyName.c_str()).completeBaseName().toLower().toStdString()
+         << ".sat aa" << "\n";
   helper.writeLattice( output, "Lattice", true, core.getLattice(), "aa" );
 
-  output << "outputfilename " + QFileInfo(fname.c_str()).completeBaseName().toLower().toStdString() + ".sat\n";
+  output << "outputfilename " +
+            QFileInfo(fname.c_str()).completeBaseName().toLower().toStdString()
+            + ".sat\n";
   output << "End\n";
 
   return true;
@@ -930,21 +953,28 @@ bool sortByName(const cmbNucMaterial* s1, const cmbNucMaterial* s2)
   return s1->getName() < s2->getName();
 }
 
-void inpFileHelper::writeMaterials( std::ofstream &output,
-                                    std::vector<cmbNucCore::boundaryLayer*> const& bls,
-                                    cmbNucAssembly & assembly )
+void
+inpFileHelper
+::writeMaterials( std::ofstream &output,
+                  std::vector<cmbNucCore::boundaryLayer*> const& bls,
+                  cmbNucAssembly & assembly )
 {
   QList<cmbNucMaterial*> materials = assembly.getMaterials().toList();
   qSort(materials.begin(), materials.end(), sortByName);
-  output << "Materials " << materials.count() + bls.size();
+  output << "Materials " << materials.count() + bls.size() + bls.size();
   foreach( QPointer<cmbNucMaterial> mat, materials)
   {
     output << " " << mat->getName().toStdString() << ' ' << mat->getLabel().toStdString();
   }
+  int c = 1;
   for(unsigned int i = 0; i < bls.size(); ++i)
   {
     QPointer<cmbNucMaterial> mat = bls[i]->interface_material;
-    output << " " <<mat->getName().toStdString() << "_bl" << i+1 << " " << mat->getLabel().toStdString() << "_bl" << i+1;
+    output << " " <<mat->getName().toStdString() << "_bl" << c << " "
+           << mat->getLabel().toStdString() << "_bl" << c
+           << " " <<mat->getName().toStdString() << "_bl" << c+1 << " "
+           << mat->getLabel().toStdString() << "_bl" << c+1;
+    c+=2;
   }
   output << "\n";
 }
@@ -993,8 +1023,12 @@ bool inpFileHelper::readMaterials( std::stringstream & input,
   return true;
 }
 
-void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
-                               std::vector<cmbNucCore::boundaryLayer*> const& bls, bool limited )
+static const double sin60cos30 = 0.86602540378443864676372317075294;
+
+void
+inpFileHelper
+::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
+             std::vector<cmbNucCore::boundaryLayer*> const& bls, bool limited )
 {
   for(size_t ad = 0; ad < assembly.getAssyDuct().numberOfDucts(); ad++)
   {
@@ -1016,22 +1050,27 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
     }
 
     output << "duct " << (limited?1:(nl+numBoundary)) << " ";
-    output << std::showpoint << duct->getX() << " " << duct->getY() << " " << duct->getZ1() << " " << duct->getZ2();
+    output << std::showpoint << duct->getX() << " " << duct->getY() << " "
+           << duct->getZ1() << " " << duct->getZ2();
 
 
     for(int i = limited?nl-1:0; i <  nl; i++)
     {
       double thick = 0;
-      if(bl_for_assembly != NULL && duct->getMaterial(i) == bl_for_assembly->interface_material)
+      if(bl_for_assembly != NULL &&
+         duct->getMaterial(i) == bl_for_assembly->interface_material)
       {
-        thick = bl_for_assembly->Thickness;
+        double mult = (assembly.IsHexType())?0.5/sin60cos30:0.5;
+
+        thick = bl_for_assembly->Thickness / mult;
       }
       output << " " << duct->GetLayerThick(i, 0) - thick;
       if(!assembly.IsHexType())
       {
           output << " " << duct->GetLayerThick(i, 1) - thick;
       }
-      if(bl_for_assembly != NULL && duct->getMaterial(i) == bl_for_assembly->interface_material)
+      if(bl_for_assembly != NULL &&
+         duct->getMaterial(i) == bl_for_assembly->interface_material)
       {
         output << " " << duct->GetLayerThick(i, 0);
         if(!assembly.IsHexType())
@@ -1043,16 +1082,21 @@ void inpFileHelper::writeDuct( std::ofstream &output, cmbNucAssembly & assembly,
     for(int j = limited?nl-1:0; j < nl; j++)
     {
       output << " " << duct->getMaterial(j)->getLabel().toStdString();
-      if(bl_for_assembly != NULL && duct->getMaterial(j) == bl_for_assembly->interface_material)
+      if(bl_for_assembly != NULL &&
+         duct->getMaterial(j) == bl_for_assembly->interface_material)
       {
-        output << " " << bl_for_assembly->interface_material->getLabel().toStdString() + "_BL1";
+        output << " "
+               << bl_for_assembly->interface_material->getLabel().toStdString()
+               + "_bl2"; //TODO this needs to be reconsidered
       }
     }
     output << "\n";
   }
 }
 
-bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell * dc )
+bool
+inpFileHelper
+::readDuct( std::stringstream & input, bool is_hex, DuctCell * dc )
 {
   if(!input) return false;
   Duct* duct = new Duct(0,0,0);
@@ -1093,7 +1137,8 @@ bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell *
   for(int i = 0; i < materials; i++)
     {
     input >> mlabel;
-    QPointer< cmbNucMaterial > mat = cmbNucMaterialColors::instance()->getUnknownMaterial();
+    QPointer< cmbNucMaterial > mat =
+        cmbNucMaterialColors::instance()->getUnknownMaterial();
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
     map_iter it = materialLabelMap.find(mlabel);
     if(it != materialLabelMap.end())
@@ -1111,9 +1156,11 @@ bool inpFileHelper::readDuct( std::stringstream & input, bool is_hex, DuctCell *
   return true;
 }
 
-void inpFileHelper::writePincell( std::ofstream &output,
-                                  std::vector<cmbNucCore::boundaryLayer*> const& bls,
-                                  cmbNucAssembly & assembly )
+void
+inpFileHelper
+::writePincell( std::ofstream &output,
+                std::vector<cmbNucCore::boundaryLayer*> const& bls,
+                cmbNucAssembly & assembly )
 {
   if(assembly.GetNumberOfPinCells() == 0) return;
   output << "pincells " << assembly.GetNumberOfPinCells() << "\n";
@@ -1143,7 +1190,8 @@ void inpFileHelper::writePincell( std::ofstream &output,
     size_t count = pincell->GetNumberOfParts() + 1;
     if(pincell->cellMaterialSet()) count++;
 
-    output << pincell->getName() << " " << pincell->getLabel() << " " << count << "\n";
+    output << pincell->getName() << " "
+           << pincell->getLabel() << " " << count << "\n";
 
     output << "pitch " << pitchX;
     if(!assembly.IsHexType())
@@ -1164,7 +1212,9 @@ void inpFileHelper::writePincell( std::ofstream &output,
       PinSubPart* part  = pincell->GetPart(j);
       bool iscylinder = part->GetType() == CMBNUC_ASSY_CYLINDER_PIN;
       output << ((iscylinder)?("cylinder "):("frustum "))
-             << ( pincell->GetNumberOfLayers() + ((bl_for_assembly != NULL)?1:0) ) << " ";
+             << ( pincell->GetNumberOfLayers() +
+                 ((bl_for_assembly != NULL)?1:0) )
+             << " ";
       if(minZ > part->getZ1()) minZ = part->getZ1();
       if(maxZ < part->getZ2()) maxZ = part->getZ2();
       output << std::showpoint
@@ -1191,13 +1241,15 @@ void inpFileHelper::writePincell( std::ofstream &output,
           output << std::showpoint << topR + bl_for_assembly->Thickness << " ";
         }
       }
-      for(unsigned int material = 0; material < part->GetNumberOfLayers(); material++)
+      for(unsigned int material = 0;
+          material < part->GetNumberOfLayers(); material++)
       {
         output << part->GetMaterial(material)->getLabel().toStdString() << " ";
       }
       if(bl_for_assembly != NULL)
       {
-        output << bl_for_assembly->interface_material->getLabel().toStdString() + "_BL1 ";
+        output << bl_for_assembly->interface_material->getLabel().toStdString()
+                  + "_bl1 ";
       }
       output << "\n";
     }
@@ -1210,8 +1262,11 @@ void inpFileHelper::writePincell( std::ofstream &output,
     }
 }
 
-bool inpFileHelper::readPincell( std::stringstream &input, cmbNucAssembly & assembly, cmbNucPinLibrary * pl,
-                                 std::map<std::string, std::string> & newLabel )
+bool
+inpFileHelper
+::readPincell( std::stringstream &input, cmbNucAssembly & assembly,
+               cmbNucPinLibrary * pl,
+               std::map<std::string, std::string> & newLabel )
 {
   if(!input) return false;
   std::string value;

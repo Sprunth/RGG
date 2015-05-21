@@ -386,23 +386,28 @@ public:
         cmbNucRender::scale scale(1,1,h);
         geo.points.push_back(GeoToPoints::data(loc, point(), mat, scale));
       }
-      if(bl != NULL)
+      if( bl != NULL && bl->Intervals != 0)
       {
         double tmp_height = duct->getZ2() - duct->getZ1();
         double thickness = 0;
         double temp = 0;
         double bias = bl->Bias;
-        double suba = bl->Thickness/bl->Intervals;
+        //HACK TO HANDLE LESS than one
+        if(bias < 2) bias = 1+0.5*(bias);
+
         int at = 0;//manager->GetNumberOfLayers()-1;
-        double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
-        double deno = pow(bias, bl->Intervals) - 1;
-        if (deno !=0)
-          temp = num/deno;
-        else
-          temp = thickness/bl->Intervals;
+        double max = pow(bl->Intervals, bias);
+        //double num = bl->Thickness/pow(bl->Intervals, bias);
+        //double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
+        //double deno = pow(bias, bl->Intervals) - 1;
+        //if (deno !=0)
+        //  temp = num/deno;
+        //else
+        //  temp = thickness/bl->Intervals;
         for(unsigned inter = 0; inter < bl->Intervals; ++inter)
         {
-          thickness += temp/pow(bias,inter);
+          thickness = bl->Thickness*pow(inter+1,bias)/max;
+          //assert(thickness <= bl->Thickness);
           key k(manager->GetResolution(at),
                 manager->GetTopRadius(at, 0) - thickness,
                 manager->GetTopRadius(at, 1) - thickness,
@@ -439,7 +444,8 @@ public:
     for(size_t j = 0; j < numParts; ++j)
     {
       PinSubPart* part = pincell->GetPart(j);
-      vtkSmartPointer<vtkCmbLayeredConeSource> manager = cmbNucRender::CreateLayerManager(pincell, isHex, j, pitchX, pitchY);
+      vtkSmartPointer<vtkCmbLayeredConeSource> manager =
+          cmbNucRender::CreateLayerManager(pincell, isHex, j, pitchX, pitchY);
       if(manager == NULL) continue;
       //inner cylinder/frustum
       {
@@ -494,17 +500,21 @@ public:
         double thickness = 0;
         double temp = 0;
         double bias = bl->Bias;
+        //HACK TO HANDLE LESS than one
+        if(bias < 2) bias = 1+0.5*(bias);
         double suba = bl->Thickness/bl->Intervals;
         int at = manager->GetNumberOfLayers()-1;
-        double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
-        double deno = pow(bias, bl->Intervals) - 1;
-        if (deno !=0)
-          temp = num/deno;
-        else
-          temp = thickness/bl->Intervals;
+        double max = pow(bl->Intervals, bias);
+        //double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
+        //double deno = pow(bias, bl->Intervals) - 1;
+        //if (deno !=0)
+        //  temp = num/deno;
+        //else
+        //  temp = thickness/bl->Intervals;
         for(unsigned inter = 0; inter < bl->Intervals; ++inter)
         {
-          thickness += temp/pow(bias,inter);
+          thickness = bl->Thickness*pow(inter+1,bias)/max;
+          //thickness += temp/pow(bias,inter);
           key k(manager->GetResolution(at),
                 manager->GetTopRadius(at, 0) + thickness,
                 manager->GetTopRadius(at, 1) + thickness,
@@ -1212,7 +1222,11 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
     {
       geo.points[j].material->setDisplayed();
       if(!geo.points[j].material->isVisible()) continue;
-      QColor bColor = (geo.points[j].boundaryLayer)? (geo.points[j].material->getColor().lightnessF() < 0.5) ? Qt::white : Qt::black : geo.points[j].material->getColor();
+      QColor bColor =
+          (geo.points[j].boundaryLayer)?
+            (geo.points[j].material->getColor().lightnessF() < 0.5) ?
+                Qt::white : Qt::black
+            : geo.points[j].material->getColor();
       unsigned char color[] = { static_cast<unsigned char>(bColor.redF()*255),
                                 static_cast<unsigned char>(bColor.greenF()*255),
                                 static_cast<unsigned char>(bColor.blueF()*255),
@@ -1295,16 +1309,16 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
   BoundingBox.AddBounds(polydata->GetBounds());
 }
 
-vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCell* pincell,
-                                                                          bool isHex,
-                                                                          size_t j,
-                                                                          double pitchX,
-                                                                          double pitchY)
+vtkSmartPointer<vtkCmbLayeredConeSource>
+cmbNucRender::CreateLayerManager(PinCell* pincell, bool isHex, size_t j,
+                                 double pitchX, double pitchY)
 {
   PinSubPart* part = pincell->GetPart(j);
   
-  vtkSmartPointer<vtkCmbLayeredConeSource> coneSource = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
-  coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
+  vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
+      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
+  coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() +
+                                (pincell->cellMaterialSet()?1:0));
   coneSource->SetBaseCenter(0, 0, part->getZ1());
   coneSource->SetHeight(part->getZ2() - part->getZ1());
   double largestRadius = 0;
@@ -1346,7 +1360,8 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
   return coneSource;
 }
 
-vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
+vtkSmartPointer<vtkCmbLayeredConeSource>
+cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
 {
   Duct *duct = ductCell->getDuct(i);
   double z = duct->getZ1();

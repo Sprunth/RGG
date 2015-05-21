@@ -109,13 +109,15 @@ double vtkCmbLayeredConeSource::GetBaseRadius(int layer, int s)
 double vtkCmbLayeredConeSource::GetTopThickness(int layer)
 {
   if(layer == 0) return this->LayerRadii[layer].TopRadii[0];
-  return this->LayerRadii[layer].TopRadii[layer] - this->LayerRadii[layer].TopRadii[layer-1];
+  return this->LayerRadii[layer].TopRadii[layer] -
+         this->LayerRadii[layer].TopRadii[layer-1];
 }
 
 double vtkCmbLayeredConeSource::GetBaseThickness(int layer)
 {
   if(layer == 0) return this->LayerRadii[layer].BaseRadii[0];
-  return this->LayerRadii[layer].BaseRadii[layer] - this->LayerRadii[layer].BaseRadii[layer-1];
+  return this->LayerRadii[layer].BaseRadii[layer] -
+         this->LayerRadii[layer].BaseRadii[layer-1];
 }
 
 vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
@@ -161,7 +163,8 @@ vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
   return tmpLayer;
 }
 
-vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateBoundaryLayer(double thickness, int l)
+vtkSmartPointer<vtkPolyData>
+vtkCmbLayeredConeSource::CreateBoundaryLayer(double thickness, int l)
 {
   int innerRes = 0;
   int outerRes = 0;
@@ -170,23 +173,13 @@ vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateBoundaryLayer(double
   innerBottomR = this->LayerRadii[l].BaseRadii;
   innerTopR = this->LayerRadii[l].TopRadii;
   outerRes = innerRes = this->LayerRadii[l].Resolution;
-  double diff = 0.01;
-  if(thickness < diff)
-  {
-    diff = thickness*diff;
-  }
-
-  double inner2BottomR[] = {innerBottomR[0]+thickness - diff,
-                           innerBottomR[1]+thickness - diff};
-  double inner2TopR[] = {innerTopR[0]+thickness - diff,
-                        innerTopR[1]+thickness - diff};
 
   double outerBottomR[] = {innerBottomR[0]+thickness, innerBottomR[1]+thickness};
   double outerTopR[] = {innerTopR[0]+thickness, innerTopR[1]+thickness};
 
   vtkSmartPointer<vtkPolyData> tmpLayer = CreateLayer( 1.0,
-                                                      inner2BottomR, outerBottomR,
-                                                      inner2TopR,    outerTopR,
+                                                      innerBottomR, outerBottomR,
+                                                      innerTopR,    outerTopR,
                                                       innerRes,     outerRes, true );
   if (this->GenerateNormals)
   {
