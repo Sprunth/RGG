@@ -211,7 +211,7 @@ else()
                  #GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
                   GIT_REPOSITORY https://bitbucket.org/judajake/meshkit.git
                  #GIT_TAG MeshKitv1.3
-                  GIT_TAG add_postbl_exe )
+                  GIT_TAG v3 )
   endif(BUILD_MESHKIT_MASTER)
 endif()
 
