@@ -10,6 +10,7 @@
 
 // Forward Qt class declarations
 class QMainWindow;
+class QLineEdit;
 
 class cmbNucPreferencesDialog : public QDialog
 {
@@ -43,6 +44,7 @@ protected slots:
 
 private:
   // Designer form
+  void browserExectuable( QLineEdit* );
   Ui_Preferences *ui;
   bool EmitValuesSet;
 };

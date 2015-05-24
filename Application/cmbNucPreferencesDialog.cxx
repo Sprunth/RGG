@@ -61,6 +61,7 @@ void cmbNucPreferencesDialog::setPreferences(bool e)
   this->ui->cubitExecutable->setText(cubitexe);
   libs = settings.value("coregen_libs").toString();
   this->ui->CoreGenLib->setText(libs);
+
   bool useCustom = settings.value("custom_meshkit",
                                   QVariant(!cmbNucPreferencesDialog::hasPackaged())).toBool();
   int nop = settings.value("number_of_processors", QVariant(3)).toInt();
@@ -73,41 +74,32 @@ void cmbNucPreferencesDialog::setPreferences(bool e)
   this->show();
 }
 
-void cmbNucPreferencesDialog::browserAssygenExecutable()
+void cmbNucPreferencesDialog::browserExectuable( QLineEdit* line)
 {
   QFileDialog dialog(this);
   dialog.setFileMode(QFileDialog::ExistingFiles);
   dialog.setAcceptMode(QFileDialog::AcceptOpen);
   QStringList fileNames;
   QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this->ui->assygenExecutable, SLOT(setText(const QString&)));
+                   line, SLOT(setText(const QString&)));
   QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
                    this, SLOT(checkValues()));
   dialog.exec();
+}
+
+void cmbNucPreferencesDialog::browserAssygenExecutable()
+{
+  this->browserExectuable(this->ui->assygenExecutable);
 }
 
 void cmbNucPreferencesDialog::browserCubitExecutable()
 {
-  QFileDialog dialog(this);
-  dialog.setFileMode(QFileDialog::ExistingFiles);
-  dialog.setAcceptMode(QFileDialog::AcceptOpen);
-  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this->ui->cubitExecutable, SLOT(setText(const QString&)));
-  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this, SLOT(checkValues()));
-  dialog.exec();
+  this->browserExectuable(this->ui->cubitExecutable);
 }
 
 void cmbNucPreferencesDialog::browserCoregenExecutable()
 {
-  QFileDialog dialog(this);
-  dialog.setFileMode(QFileDialog::ExistingFiles);
-  dialog.setAcceptMode(QFileDialog::AcceptOpen);
-  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this->ui->coregenExecutable, SLOT(setText(const QString&)));
-  QObject::connect(&dialog, SIGNAL(fileSelected( const QString& )),
-                   this, SLOT(checkValues()));
-  dialog.exec();
+  this->browserExectuable(this->ui->coregenExecutable);
 }
 
 void cmbNucPreferencesDialog::setValues()
@@ -139,9 +131,9 @@ void cmbNucPreferencesDialog::checkValues()
     QFileInfo ainfo(assygenExe);
     QFileInfo cinfo(coregenExe);
     enabled &= (!assygenExe.isEmpty() && ainfo.exists() &&
-                  ainfo.isExecutable() && !ainfo.isDir()) &&
-                 (!coregenExe.isEmpty() && cinfo.exists() &&
-                  cinfo.isExecutable() && !cinfo.isDir());
+                 ainfo.isExecutable() && !ainfo.isDir()) &&
+               (!coregenExe.isEmpty() && cinfo.exists() &&
+                 cinfo.isExecutable() && !cinfo.isDir());
   }
   QString cubitExe = ui->cubitExecutable->text();
 #if __APPLE__

@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <map>
+#include <set>
+
+#include "cmbNucLattice.h"
 
 #include <QString>
 
@@ -31,7 +34,8 @@ public:
 protected:
   bool updateCoreLevelLayers();
   bool updateAssemblyLevelLayers(cmbNucAssembly * assy);
-  bool exportInpFile(cmbNucAssembly * assy, bool isCylinder);
+  bool exportInpFile(cmbNucAssembly * assy, bool isCylinder,
+                     std::set< Lattice::CellDrawMode > const& mode);
   QString requestInpFileName(QString name, QString type);
   layers coreLevelLayers;
   cmbNucCore * NuclearCore;

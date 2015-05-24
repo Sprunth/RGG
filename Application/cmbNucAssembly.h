@@ -194,9 +194,9 @@ public:
   };
 public:
 
-  friend class inpFileReader;
-  friend class inpFileHelper;
-  friend class inpFileWriter;
+  //friend class inpFileReader;
+  //friend class inpFileHelper;
+  //friend class inpFileWriter;
   friend class cmbNucAssemblyConnection;
 
   // Creates an empty assembly.
@@ -260,6 +260,10 @@ public:
   void clear();
 
   QSet< cmbNucMaterial* > getMaterials();
+  QSet< cmbNucMaterial* > getInterfaceMaterials(QPointer<cmbNucMaterial> in_material);
+  QSet< cmbNucMaterial* > getOtherFixed(QPointer<cmbNucMaterial> boundaryLayerMaterial,
+                                        QPointer<cmbNucMaterial> fixedMaterial);
+  bool has_boundary_layer_interface(QPointer<cmbNucMaterial> in_material) const;
 
   void setFromDefaults(QPointer<cmbNucDefaults> d);
   void computeDefaults();
@@ -278,11 +282,12 @@ public:
     return KeepPinsCentered;
   }
 
-  //std::string getFileName(){return "";}
+  void setPath(std::string const& path);
+  void setFileName(std::string const& fname);
+  std::string getFileName();
+  std::string getFileName(Lattice::CellDrawMode mode, size_t nom = 1);
   virtual std::string getTitle(){ return "Assembly: " + Label; }
-
-  std::string ExportFileName;
-  std::map< Lattice::CellDrawMode, std::string > ExportFileNames;
+  bool needToRunMode(Lattice::CellDrawMode mode, std::string & fname, size_t nom = 1);
 
   std::string getGeometryLabel() const;
   void setGeometryLabel(std::string geomType);
@@ -357,8 +362,6 @@ protected:
 
   cmbAssyParameters *Parameters;
 
-  friend class cmbNucMainWindow;
-
   std::string GeometryType;
 
 private:
@@ -367,9 +370,15 @@ private:
   bool DifferentFromCub;
   bool DifferentFromJournel;
 
+  std::string ExportFilename;
+  std::string Path;
+
   cmbNucAssemblyConnection * Connection;
 
   double pinPitchX, pinPitchY;
+
+  bool checkJournel(std::string const& fname );
+  bool checkCubitOutputFile(std::string const& fname );
 
 };
 

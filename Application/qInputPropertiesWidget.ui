@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>382</width>
-    <height>437</height>
+    <width>392</width>
+    <height>533</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -257,63 +257,176 @@
                  <property name="margin">
                   <number>0</number>
                  </property>
-                 <item row="2" column="1">
-                  <widget class="QDoubleSpinBox" name="RadiusBox">
-                   <property name="toolTip">
-                    <string>Set to 0.0 to disable generation</string>
+                 <item row="1" column="0" colspan="2">
+                  <widget class="QScrollArea" name="scrollArea">
+                   <property name="widgetResizable">
+                    <bool>true</bool>
                    </property>
-                   <property name="decimals">
-                    <number>4</number>
-                   </property>
-                   <property name="maximum">
-                    <double>10000.000000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_13">
-                   <property name="text">
-                    <string>Radius:</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_14">
-                   <property name="text">
-                    <string>Outer Cylinder Edge Interval:</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="1">
-                  <widget class="QPushButton" name="FindMinCylinder">
-                   <property name="text">
-                    <string>Fill in Minimum</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QSpinBox" name="OuterEdgeInterval">
-                   <property name="minimumSize">
-                    <size>
-                     <width>106</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>Set to zero to disable generation</string>
-                   </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>100000</number>
-                   </property>
-                   <property name="value">
-                    <number>0</number>
-                   </property>
+                   <widget class="QWidget" name="scrollAreaWidgetContents_2">
+                    <property name="geometry">
+                     <rect>
+                      <x>0</x>
+                      <y>0</y>
+                      <width>332</width>
+                      <height>84</height>
+                     </rect>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_4">
+                     <property name="verticalSpacing">
+                      <number>3</number>
+                     </property>
+                     <property name="margin">
+                      <number>1</number>
+                     </property>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_14">
+                       <property name="text">
+                        <string>Outer Cylinder Edge Interval:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QSpinBox" name="OuterEdgeInterval">
+                       <property name="minimumSize">
+                        <size>
+                         <width>106</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="toolTip">
+                        <string>Set to zero to disable generation</string>
+                       </property>
+                       <property name="minimum">
+                        <number>0</number>
+                       </property>
+                       <property name="maximum">
+                        <number>100000</number>
+                       </property>
+                       <property name="value">
+                        <number>0</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="label_13">
+                       <property name="text">
+                        <string>Radius:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QDoubleSpinBox" name="RadiusBox">
+                       <property name="toolTip">
+                        <string>Set to 0.0 to disable generation</string>
+                       </property>
+                       <property name="decimals">
+                        <number>4</number>
+                       </property>
+                       <property name="maximum">
+                        <double>10000.000000000000000</double>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="0">
+                      <widget class="QPushButton" name="FindMinCylinder">
+                       <property name="text">
+                        <string>Fill in Minimum</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
                   </widget>
                  </item>
                 </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="boundaryLayer">
+             <property name="title">
+              <string>Boundary Layer (Preliminary)</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <property name="verticalSpacing">
+               <number>4</number>
+              </property>
+              <property name="margin">
+               <number>3</number>
+              </property>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>Thickness</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_12">
+                <property name="text">
+                 <string>Intervals</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Material</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="boundaryMaterials"/>
+              </item>
+              <item row="1" column="1">
+               <widget class="QDoubleSpinBox" name="thickness">
+                <property name="decimals">
+                 <number>3</number>
+                </property>
+                <property name="minimum">
+                 <double>0.001000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QSpinBox" name="interval">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>Bias</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QDoubleSpinBox" name="bias">
+                <property name="decimals">
+                 <number>3</number>
+                </property>
+                <property name="minimum">
+                 <double>0.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>10.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.010000000000000</double>
+                </property>
+                <property name="value">
+                 <double>0.000000000000000</double>
+                </property>
                </widget>
               </item>
              </layout>
@@ -335,6 +448,7 @@
           </layout>
           <zorder>verticalSpacer_5</zorder>
           <zorder>OuterJacket</zorder>
+          <zorder>boundaryLayer</zorder>
          </widget>
          <widget class="QWidget" name="CoreConfig">
           <attribute name="title">

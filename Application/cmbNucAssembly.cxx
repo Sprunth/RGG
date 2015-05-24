@@ -269,13 +269,13 @@ void cmbNucAssembly::SetPinCell(int i, PinCell *pc)
 void cmbNucAssembly::RemovePinCell(const std::string label_in)
 {
   for(size_t i = 0; i < this->PinCells.size(); i++)
-    {
+  {
     if(this->PinCells[i]->getLabel() == label_in)
-      {
+    {
       this->PinCells.erase(this->PinCells.begin() + i);
       break;
-      }
     }
+  }
   // update the Grid
   if(this->lattice.ClearCell(label_in))
   {
@@ -398,13 +398,13 @@ void cmbNucAssembly::GetDuctWidthHeight(double r[2])
   r[0] = 0;
   r[1] = 0;
   for(unsigned int i = 0; i < this->AssyDuct->numberOfDucts(); ++i)
-    {
+  {
     Duct * tmpd = this->AssyDuct->getDuct(i);
-    double t =tmpd->thickness[0];
+    double t =tmpd->getThickness(0);
     if(t > r[0]) r[0] = t;
-    t = tmpd->thickness[1];
+    t = tmpd->getThickness(1);
     if(t > r[1]) r[1] = t;
-    }
+  }
 }
 
 void cmbNucAssembly::computeDefaults()
@@ -442,7 +442,6 @@ void cmbNucAssembly::calculatePitch(double & x, double & y)
 {
   std::pair<int, int> dim = lattice.GetDimensions();
   this->calculatePitch(dim.first, dim.second, x, y);
-
 }
 
 void cmbNucAssembly::calculateRadius(double & r)
@@ -477,43 +476,27 @@ void cmbNucAssembly::setAndTestDiffFromFiles(bool diffFromFile)
   {
     this->DifferentFromCub = true;
     this->DifferentFromJournel = true;
-    return;
   }
-  //make sure file exits
-  //check to see if a cub file has been generate and is older than this file
-  QFileInfo inpInfo(this->ExportFileName.c_str());
-  if(!inpInfo.exists())
+  else if(!QFileInfo(this->getFileName().c_str()).exists()) // make sure inp exists
   {
     this->DifferentFromCub = true;
-    DifferentFromJournel = true;
-    return;
+    this->DifferentFromJournel = true;
   }
-  QDateTime inpLM = inpInfo.lastModified();
-  QFileInfo jrlInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".jou");
-  if(jrlInfo.exists())
+  else if(this->checkJournel(this->getFileName())) //check the assygen output
   {
-    QDateTime jrlLM = jrlInfo.lastModified();
-    DifferentFromJournel = jrlLM < inpLM;
-    if(DifferentFromJournel)
-    {
-      this->DifferentFromCub = true;
-      return;
-    }
+    this->DifferentFromCub = true;
+    this->DifferentFromJournel = true;
+  }
+  else if(this->checkCubitOutputFile(this->getFileName())) // check the cubit output
+  {
+    this->DifferentFromCub = true;
+    this->DifferentFromJournel = false;
   }
   else
   {
-    DifferentFromJournel = true;
-    this->DifferentFromCub = true;
-    return;
+    this->DifferentFromCub = false;
+    this->DifferentFromJournel = false;
   }
-  QFileInfo outInfo(inpInfo.dir(), inpInfo.baseName().toLower() + getOutputExtension().c_str());
-  if(!outInfo.exists())
-  {
-    this->DifferentFromCub = true;
-    return;
-  }
-  QDateTime cubLM = outInfo.lastModified();
-  this->DifferentFromCub = cubLM < jrlInfo.lastModified();;
 }
 
 std::string cmbNucAssembly::getOutputExtension()
@@ -554,6 +537,38 @@ QSet< cmbNucMaterial* > cmbNucAssembly::getMaterials()
     result.unite(PinCells[i]->getMaterials());
   }
   return result;
+}
+
+QSet< cmbNucMaterial* > cmbNucAssembly::getInterfaceMaterials(QPointer<cmbNucMaterial> blmat)
+{
+  if(this->AssyDuct->isInnerDuctMaterial(blmat))
+  {
+    QSet< cmbNucMaterial* > result = AssyDuct->getInterfaceMaterials(blmat);
+    for(unsigned int i = 0; i < PinCells.size(); ++i)
+    {
+      result.unite(PinCells[i]->getOuterMaterials(blmat));
+      //TODO inner materials
+    }
+    return result;
+  }
+  else
+  {
+    //TODO all inner materials
+    return QSet< cmbNucMaterial* >();
+  }
+}
+
+QSet< cmbNucMaterial* > cmbNucAssembly::getOtherFixed(QPointer<cmbNucMaterial> boundaryLayerMaterial,
+                                                      QPointer<cmbNucMaterial> fixedMaterial)
+{
+  //TODO
+  return QSet< cmbNucMaterial* >();
+}
+
+bool cmbNucAssembly::has_boundary_layer_interface(QPointer<cmbNucMaterial> in_material) const
+{
+  //TODO consider inside the pin
+  return this->AssyDuct->isInnerDuctMaterial(in_material);
 }
 
 void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
@@ -783,8 +798,87 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
 
   result->lattice = Lattice(this->lattice);
 
-  result->ExportFileName = this->ExportFileName;
-  result->ExportFileNames = this->ExportFileNames;
+  result->ExportFilename = this->ExportFilename;
+  result->Path = this->Path;
 
   return result;
+}
+
+void cmbNucAssembly::setPath(std::string const& path)
+{
+  this->Path = path;
+}
+
+void cmbNucAssembly::setFileName(std::string const& fname)
+{
+  //NOTE: we are stripping directory information from filename
+  QFileInfo fi(fname.c_str());
+  this->ExportFilename = fi.fileName().toStdString();
+}
+
+std::string cmbNucAssembly::getFileName()
+{
+  if(this->IsHexType())
+  {
+    return cmbNucAssembly::getFileName(Lattice::HEX_FULL);
+  }
+  else
+  {
+    return cmbNucAssembly::getFileName(Lattice::RECT);
+  }
+}
+
+std::string cmbNucAssembly::getFileName(Lattice::CellDrawMode mode, size_t nom)
+{
+  if(mode == Lattice::RECT || mode == Lattice::HEX_FULL || mode == Lattice::HEX_FULL_30 || nom == 1)
+  {
+    if(this->ExportFilename.empty())
+    {
+      this->ExportFilename = (QString( "assembly_") +
+                              QString(this->getLabel().c_str()).toLower() + ".inp").toStdString();
+    }
+    return this->Path +  "/" + this->ExportFilename;
+  }
+  return (QString((this->Path + "/assembly_").c_str()) +
+          QString(Lattice::generate_string(this->getLabel(),
+                                           mode).c_str()).toLower() +
+          ".inp").toStdString();
+}
+
+bool cmbNucAssembly::needToRunMode(Lattice::CellDrawMode mode, std::string & fname, size_t nom )
+{
+  fname = this->getFileName(mode, nom);
+  if(this->changeSinceLastGenerate()) return true;
+  else if(!QFileInfo(fname.c_str()).exists()) return true;
+  else if(this->checkJournel(fname)) return true;
+  else if(this->checkCubitOutputFile(fname)) return true;
+  //else
+  return false;
+}
+
+bool cmbNucAssembly::checkJournel(std::string const& fname )
+{
+  QFileInfo inpInfo(fname.c_str());
+  QDateTime inpLM = inpInfo.lastModified();
+  QFileInfo jrlInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".jou");
+  if(jrlInfo.exists())
+  {
+    QDateTime jrlLM = jrlInfo.lastModified();
+    return jrlLM < inpLM;
+  }
+  return true;
+}
+
+bool cmbNucAssembly::checkCubitOutputFile(std::string const& fname )
+{
+  QFileInfo inpInfo(fname.c_str());
+  QDateTime inpLM = inpInfo.lastModified();
+  QFileInfo jrlInfo(inpInfo.dir(), inpInfo.baseName().toLower() + ".jou");
+  QFileInfo outInfo(inpInfo.dir(), inpInfo.baseName().toLower() + getOutputExtension().c_str());
+  if(!outInfo.exists())
+  {
+    return true;
+  }
+  QDateTime cubLM = outInfo.lastModified();
+  return cubLM < jrlInfo.lastModified();
 }

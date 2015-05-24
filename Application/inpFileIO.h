@@ -11,12 +11,7 @@
 
 #include "cmbNucPartDefinition.h"
 #include "cmbNucPinLibrary.h"
-
-class cmbNucAssembly;
-class cmbNucCore;
-class cmbNucDefaults;
-class cmbNucPinLibrary;
-class cmbNucDuctLibrary;
+#include "cmbNucCore.h"
 
 class inpFileReader
 {
@@ -45,7 +40,9 @@ private:
 class inpFileWriter
 {
 public:
-  static bool write(std::string fname, cmbNucAssembly & assembly, bool updateFname = true, bool limited = false);
+  static bool write(std::string fname, cmbNucAssembly & assembly,
+                    std::vector<cmbNucCore::boundaryLayer*> const& bl,
+                    bool updateFname = true, bool limited = false);
   static bool write(std::string fname, cmbNucCore & core, bool updateFname = true);
   static bool writeGSH(std::string fname, cmbNucCore & core, std::string assyName);
 private:

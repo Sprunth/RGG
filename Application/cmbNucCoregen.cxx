@@ -303,6 +303,7 @@ void cmbNucCoregen::openFile(QString file)
   emit fileOpen(true);
   emit components(list,5);
   emit resetCamera();
+  cmbNucMaterialColors::instance()->testShow();
 }
 
 void cmbNucCoregen::exportVisible(QString outFname, std::vector<std::string> const& remove )

@@ -379,8 +379,11 @@ void cmbNucPinCellEditor::UpdatePinCell()
     bool change = false;
     set_and_test(obj->x, tmpx);
     set_and_test(obj->y, tmpy);
-    set_and_test(obj->z1, z);
-    set_and_test(obj->z2, z + l);
+    double z1 = obj->getZ1(), z2 = obj->getZ2();
+    set_and_test(z1, z);
+    set_and_test(z2, z + l);
+    obj->setZ1(z1);
+    obj->setZ2(z2);
 
     z += l;
     this->Ui->piecesTable->blockSignals(false);
@@ -463,8 +466,8 @@ void cmbNucPinCellEditor::addComponent()
   PinSubPart * previous =
          (dynamic_cast<SegmentRadiusItem*>(this->Ui->piecesTable->item(row - 1, 3)))->SubPart;
   newObj = previous->clone();
-  newObj->z1 = previous->z2;
-  newObj->z2 = newObj->z1 + previous->length();
+  newObj->setZ1(previous->getZ2());
+  newObj->setZ2(newObj->getZ1() + previous->length());
   newObj->reverseRadii();
 
   this->createComponentItem(row, newObj);

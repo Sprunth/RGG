@@ -77,6 +77,9 @@ namespace
   const std::string MESH_FILENAME_TAG = "MeshFileName";
   const std::string ROTATE_TAG = "Rotate";
   const std::string ASSEMBLY_LINK_TAG = "AssemblyAlternative";
+  const std::string BOUNDARY_LAYER_TAG = "BoundaryLayer";
+  const std::string BIAS_TAG = "Bias";
+  const std::string INTERVAL_TAG = "Interval";
 }
 
 class xmlHelperClass
@@ -110,6 +113,8 @@ public:
   bool write(pugi::xml_node & node, std::string attName, std::vector<cmbNucCoreParams::NeumannSetStruct> const&);
 
   bool write(pugi::xml_node & node, std::string attName, cmbNucCoreParams::ExtrudeStruct const&);
+
+  bool write(pugi::xml_node & node, cmbNucCore::boundaryLayer * bl);
 
   bool write(pugi::xml_node & node, std::string attName, QString const& v)
   {
@@ -177,6 +182,9 @@ public:
   bool read(pugi::xml_node & node, cmbNucAssembly* assy);
 
   bool read(pugi::xml_node & node, cmbNucAssemblyLink * link, cmbNucCore & core);
+
+  bool read(pugi::xml_node & node, cmbNucCore::boundaryLayer * bl,
+            cmbNucMaterialColors * materials);
 
   bool read(pugi::xml_node & node, Lattice & lattice, std::map<QString, int> & used);
 
@@ -333,8 +341,9 @@ bool xmlHelperClass::write(pugi::xml_node & node, DuctCell * dc)
 bool xmlHelperClass::write(pugi::xml_node & node, Duct * dc)
 {
   bool r = true;
-  r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(dc->x, 0, 'g', 9).arg(dc->y, 0, 'g', 9).arg(dc->getZ1(), 0, 'g', 9).arg(dc->getZ2(), 0, 'g', 9));
-  r &= write(node, THICKNESS_TAG.c_str(), dc->thickness, 2);
+  r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(dc->getX(), 0, 'g', 9).arg(dc->getY(), 0, 'g', 9).arg(dc->getZ1(), 0, 'g', 9).arg(dc->getZ2(), 0, 'g', 9));
+  double thickness[] = { dc->getThickness(0), dc->getThickness(1) };
+  r &= write(node, THICKNESS_TAG.c_str(), thickness, 2);
 
   size_t num = dc->NumberOfLayers();
   for(size_t i = 0; i < num; ++i)
@@ -401,7 +410,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, Frustum * f)
 bool xmlHelperClass::writePSP(pugi::xml_node & node, PinSubPart * p)
 {
   bool r = true;
-  r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(p->x, 0, 'g', 9).arg(p->y, 0, 'g', 9).arg(p->z1).arg(p->z2, 0, 'g', 9));
+  r &= write(node, LOC_TAG.c_str(), QString("%1, %2, %3, %4").arg(p->x, 0, 'g', 9).arg(p->y, 0, 'g', 9).arg(p->getZ1()).arg(p->getZ2(), 0, 'g', 9));
   size_t num = p->GetNumberOfLayers();
   for(size_t i = 0; i < num; ++i)
   {
@@ -416,6 +425,16 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucMaterialLayer const& v)
   bool r = true;
   r &= write(node, THICKNESS_TAG.c_str(), v.getThickness(), 2);
   r &= write(node, MATERIAL_TAG.c_str(), v.getMaterial()->getName());
+  return r;
+}
+
+bool xmlHelperClass::write(pugi::xml_node & node, cmbNucCore::boundaryLayer * bl)
+{
+  bool r = true;
+  r &= write(node, MATERIAL_TAG.c_str(), bl->interface_material->getName());
+  r &= write(node, THICKNESS_TAG.c_str(), bl->Thickness);
+  r &= write(node, BIAS_TAG.c_str(), bl->Bias);
+  r &= write(node, INTERVAL_TAG.c_str(), bl->Intervals);
   return r;
 }
 
@@ -605,7 +624,7 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
   //Write parameters
   {
     pugi::xml_node node = rootElement.append_child(PARAMETERS_TAG.c_str());
-    if(!write(node, MESH_FILENAME_TAG.c_str(), core.h5mFile)) return false;
+    if(!write(node, MESH_FILENAME_TAG.c_str(), core.getMeshOutputFilename())) return false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     if( core.Params.Var##IsSet() ) \
     {\
@@ -625,6 +644,17 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
 
   pugi::xml_node lnode = rootElement.append_child(LATTICE_TAG.c_str());
   if(!write(lnode, core.getLattice())) return false;
+
+  //write boundary layers
+  for(int i = 0; i < core.getNumberOfBoundaryLayers(); ++i)
+  {
+    cmbNucCore::boundaryLayer* bl = core.getBoundaryLayer(i);
+    pugi::xml_node tnode = rootElement.append_child(BOUNDARY_LAYER_TAG.c_str());
+    if(!write(tnode, bl))
+    {
+      return false;
+    }
+  }
 
   std::stringstream oss;
   unsigned int flags = pugi::format_indent;
@@ -688,7 +718,7 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
       {
         core.Params.BackgroundMode = cmbNucCoreParams::External;
         //check to make sure the file exists.
-        QFileInfo tmpFI( QFileInfo(core.CurrentFileName.c_str()).dir(),
+        QFileInfo tmpFI( QFileInfo(core.getFileName().c_str()).dir(),
                          core.Params.Background.c_str() );
         //qDebug() << tmpFI;
         if(!tmpFI.exists())
@@ -770,7 +800,11 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
   //Read parameters
   {
     pugi::xml_node node = rootElement.child(PARAMETERS_TAG.c_str());
-    read(node, MESH_FILENAME_TAG.c_str(), core.h5mFile);
+    {
+      std::string outf;
+      read(node, MESH_FILENAME_TAG.c_str(), outf);
+      core.setMeshOutputFilename(outf);
+    }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     read(node, #Key, core.Params.Var);
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
@@ -806,6 +840,18 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
         core.GetAssembly(i)->getLattice().setFullCellMode(Lattice::HEX_FULL_30);
       }
     }
+  }
+
+  //read boundary layers
+  for(pugi::xml_node tnode = rootElement.child(BOUNDARY_LAYER_TAG.c_str()); tnode;
+      tnode = tnode.next_sibling(BOUNDARY_LAYER_TAG.c_str()))
+  {
+    cmbNucCore::boundaryLayer* bl = new cmbNucCore::boundaryLayer();
+    if(!read(tnode, bl, cmbNucMaterialColors::instance()))
+    {
+      return false;
+    }
+    core.addBoundaryLayer(bl);
   }
 
   return true;
@@ -927,8 +973,8 @@ bool xmlHelperClass::readPSP(pugi::xml_node & node, PinSubPart * dc,
   QStringList l = str.split(",");
   dc->x = l.value(0).toDouble();
   dc->y = l.value(1).toDouble();
-  dc->z1 = l.value(2).toDouble();
-  dc->z2 = l.value(3).toDouble();
+  dc->setZ1(l.value(2).toDouble());
+  dc->setZ2(l.value(3).toDouble());
   int i = 0;
   for(pugi::xml_node tnode = node.child(MATERIAL_LAYER_TAG.c_str()); tnode;
       tnode = tnode.next_sibling(MATERIAL_LAYER_TAG.c_str()))
@@ -1001,13 +1047,16 @@ bool xmlHelperClass::read(pugi::xml_node & node, Duct * dc,
   if(!read(node, LOC_TAG.c_str(), str)) return false;
   QStringList l = str.split(",");
 
-  dc->x = l.value(0).toDouble();
-  dc->y = l.value(1).toDouble();
+  dc->setX(l.value(0).toDouble());
+  dc->setY(l.value(1).toDouble());
 
   dc->setZ1(l.value(2).toDouble());
   dc->setZ2(l.value(3).toDouble());
 
-  if(!read(node, THICKNESS_TAG.c_str(), dc->thickness, 2)) return false;
+  double thickness[2];
+  if(!read(node, THICKNESS_TAG.c_str(), thickness, 2)) return false;
+  dc->setThickness(0, thickness[0]);
+  dc->setThickness(1, thickness[1]);
 
   int i = 0;
   for(pugi::xml_node tnode = node.child(MATERIAL_LAYER_TAG.c_str()); tnode;
@@ -1088,6 +1137,19 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssembly * assy)
   return true;
 }
 #undef READ_PARAM_VALUE
+
+bool xmlHelperClass::read(pugi::xml_node & node, cmbNucCore::boundaryLayer * bl,
+                          cmbNucMaterialColors * materials)
+{
+  bool r = true;
+  std::string materialName;
+  r &= read(node, MATERIAL_TAG.c_str(), materialName);
+  bl->interface_material = materials->getMaterialByName(materialName.c_str());
+  r &= read(node, THICKNESS_TAG.c_str(), bl->Thickness);
+  r &= read(node, BIAS_TAG.c_str(), bl->Bias);
+  r &= read(node, INTERVAL_TAG.c_str(), bl->Intervals);
+  return r;
+}
 
 bool xmlHelperClass::read(pugi::xml_node & node, cmbNucAssemblyLink * link, cmbNucCore & core)
 {
@@ -1203,7 +1265,7 @@ bool xmlFileReader::read(std::string fname, cmbNucCore & core)
 
   xmlHelperClass helper;
 
-  core.CurrentFileName = fname;
+  core.setFileName(fname);
 
   return helper.read(content, core);
 }

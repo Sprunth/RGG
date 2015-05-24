@@ -72,7 +72,7 @@ cmbNucLatticeWidget::setLatticeY(int v)
 void
 cmbNucLatticeWidget::apply()
 {
-  bool change = false;
+  int change = cmbNucDraw2DLattice::NoChange;
   if(lattice != NULL)
   {
     change = this->draw_control->apply();
@@ -80,7 +80,7 @@ cmbNucLatticeWidget::apply()
   if(change)
   {
     emit(valuesChanged());
-    emit(objGeometryChanged(lattice));
+    emit(objGeometryChanged(lattice, change));
   }
 }
 

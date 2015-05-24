@@ -46,7 +46,7 @@ cmbNucGenerateOuterCylinder
   if(this->Core == NULL) return;
   if(this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate)
   {
-    QFileInfo qi(this->Core->ExportFileName.c_str());
+    QFileInfo qi(this->Core->getExportFileName().c_str());
     std::string tmp = this->Core->Params.Background;
     if(tmp.empty())
     {

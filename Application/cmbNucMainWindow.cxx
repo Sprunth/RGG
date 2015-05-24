@@ -530,6 +530,7 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->ui->toolBar->addWidget(this->ui->meshControls);
 
   this->meshControls(false);
+  this->drawBoundryLayers = false;
 
   QTimer::singleShot(0, this, SLOT(ResetView()));
 }
@@ -619,7 +620,8 @@ void cmbNucMainWindow::initPanels()
     this->Internal->MeshOpen = false;
     QObject::connect(this->ExportDialog, SIGNAL(finished(QString)),
             this->Internal->MoabSource, SLOT(openFile(QString)));
-    QObject::connect(this->ExportDialog, SIGNAL(fileFinish()), this, SLOT(checkForNewCUBH5MFiles()));
+    QObject::connect(this->ExportDialog, SIGNAL(fileFinish()),
+                     this, SLOT(checkForNewCUBH5MFiles()));
     QObject::connect(this->InputsWidget, SIGNAL(sendEdgeControl(bool)),
                      this, SLOT(onChangeMeshEdgeMode(bool)));
     QObject::connect(this->Internal->MoabSource, SIGNAL(update()),
@@ -643,6 +645,9 @@ void cmbNucMainWindow::initPanels()
     QObject::connect(this->InputsWidget, SIGNAL(resetMeshCamera()),
                      this, SLOT(resetMeshCamera()));
   }
+
+  QObject::connect(this->InputsWidget, SIGNAL(drawBoundaryControl(bool)),
+                   this, SLOT(onChangeDrawBoundryMode(bool)));
 
   if(this->PropertyWidget == NULL)
   {
@@ -686,8 +691,8 @@ void cmbNucMainWindow::initPanels()
 
     QObject::connect(this->LatticeDraw, SIGNAL(valuesChanged()),
                      this->InputsWidget, SLOT(valueChanged()));
-    QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*)),
-                     this, SLOT(onObjectGeometryChanged(AssyPartObj*)));
+    QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*, int)),
+                     this, SLOT(onUpdateLattice(AssyPartObj*, int)));
 
     QObject::connect(this->PropertyWidget, SIGNAL(sendLatticeFullMode(Lattice::CellDrawMode)),
                      this->LatticeDraw,    SLOT(set_full_mode(Lattice::CellDrawMode)));
@@ -741,7 +746,19 @@ void cmbNucMainWindow::onObjectSelected(AssyPartObj* selObj,
   }
 }
 
-void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
+void cmbNucMainWindow::onUpdateLattice(AssyPartObj* obj, int changeType)
+{
+  if(!obj)
+  {
+    return;
+  }
+  bool changed = (obj->GetType() == CMBNUC_CORE) &&
+                 (changeType & cmbNucDraw2DLattice::SizeChange);
+  onObjectGeometryChanged(obj, changed);
+}
+
+void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj,
+                                               bool resetCamera)
 {
   if(!obj)
   {
@@ -751,7 +768,7 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
   switch(obj->GetType())
   {
     case CMBNUC_CORE:
-      this->onObjectModified(obj);
+      this->onObjectModified(obj,resetCamera);
       return;
     case CMBNUC_ASSY_PINCELL:
       this->setCameras(false, this->Internal->IsFullMesh);
@@ -778,15 +795,15 @@ void cmbNucMainWindow::onObjectGeometryChanged(AssyPartObj* obj)
   }
 }
 
-void cmbNucMainWindow::onObjectModified(AssyPartObj* obj)
+void cmbNucMainWindow::onObjectModified(AssyPartObj* obj, bool resetCamera)
 {
   // update material colors
   this->updateCoreMaterialColors();
 
-  if(obj && obj->GetType() == CMBNUC_CORE)
-    {
+  if(obj && resetCamera)
+  {
     this->resetCamera();
-    }
+  }
   // render
   this->ui->qvtkWidget->update();
 }
@@ -846,7 +863,8 @@ void cmbNucMainWindow::onNewCore()
     }
     else
     {
-      qDebug() << "New action is connected to: " << type << " and that action is not supported.";
+      qDebug() << "New action is connected to: " << type
+      << " and that action is not supported.";
       return;
     }
     this->doClearAll(true);
@@ -1012,6 +1030,7 @@ void cmbNucMainWindow::onClearMesh()
   this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
   this->setCameras(this->Internal->IsCoreView, false);
+  cmbNucMaterialColors::instance()->testShow();
   this->modelControls(true);
 }
 
@@ -1135,13 +1154,13 @@ void cmbNucMainWindow::onSaveSelectedAs()
 void cmbNucMainWindow::saveXML(cmbNucCore* core, bool request_file_name, bool force)
 {
   if(core == NULL) return;
-  QString fileName = core->CurrentFileName.c_str();
+  QString fileName = core->getFileName().c_str();
   if(request_file_name || fileName.isEmpty())
   {
     fileName = cmbNucMainWindow::requestXMLFileName("","Core");
   }
   if(fileName.isEmpty()) return;
-  core->CurrentFileName = fileName.toStdString();
+  core->setFileName( fileName.toStdString() );
   if(force || core->changeSinceLastSave())
   {
     xmlFileWriter::write(fileName.toStdString(), *core);
@@ -1228,10 +1247,10 @@ void cmbNucMainWindow::onExportINPFiles()
   {
     QString label(NuclearCore->GetAssembly(i)->getLabel().c_str());
     std::string tmpl = label.toLower().toStdString();
-    NuclearCore->GetAssembly(i)->ExportFileName = dir.toStdString() +
-    "/assembly_" + tmpl + ".inp";
+    NuclearCore->GetAssembly(i)->setPath(dir.toStdString());
+    NuclearCore->GetAssembly(i)->setFileName( "assembly_" + tmpl + ".inp" );
   }
-  NuclearCore->ExportFileName =dir.toStdString() + "/core.inp";
+  NuclearCore->setExportFileName(dir.toStdString() + "/core.inp");
   if( this->NuclearCore->Params.BackgroundMode == cmbNucCoreParams::External  &&
       QFileInfo(this->NuclearCore->Params.BackgroundFullPath.c_str()).exists() )
   {
@@ -1243,7 +1262,7 @@ void cmbNucMainWindow::onExportINPFiles()
 
 void cmbNucMainWindow::onUpdateINPFiles()
 {
-  if(this->NuclearCore->ExportFileName.empty())
+  if(this->NuclearCore->getExportFileName().empty())
   {
     this->onExportINPFiles();
     return;
@@ -1381,7 +1400,16 @@ void cmbNucMainWindow::updateAssyMaterialColors(cmbNucAssembly* assy)
     return;
   }
   cmbNucMaterialColors::instance()->clearDisplayed();
-  this->NucMappers->render(assy);
+  
+  if(drawBoundryLayers)
+  {
+    this->NucMappers->render(assy, this->NuclearCore->getBoundaryLayers());
+  }
+  else
+  {
+    this->NucMappers->render(assy);
+  }
+
   vtkBoundingBox box;
   this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
@@ -1403,7 +1431,7 @@ void cmbNucMainWindow::updateCoreMaterialColors()
 {
   // regenerate core and assembly view
   cmbNucMaterialColors::instance()->clearDisplayed();
-  this->NucMappers->render(this->NuclearCore);
+  this->NucMappers->render(this->NuclearCore, this->drawBoundryLayers);
   vtkBoundingBox box;
   this->NucMappers->computeBounds(box);
   box.GetBounds(this->Internal->BoundsModel);
@@ -1580,6 +1608,26 @@ void cmbNucMainWindow::onChangeMeshEdgeMode(bool b)
     this->MeshRenderer->Render();
     this->ui->qvtkMeshWidget->update();
   }
+}
+
+void cmbNucMainWindow::onChangeDrawBoundryMode(bool b)
+{
+  this->drawBoundryLayers = b;
+  AssyPartObj* cp = this->InputsWidget->getSelectedPart();
+  switch(cp->GetType())
+  {
+    case CMBNUC_CORE:
+      this->updateCoreMaterialColors();
+      break;
+    case CMBNUC_ASSEMBLY:
+      this->updateAssyMaterialColors(dynamic_cast<cmbNucAssembly*>(cp));
+      break;
+    case CMBNUC_ASSY_DUCTCELL:
+    case CMBNUC_ASSY_PINCELL:
+    default:
+      return; //nothing is changed
+  }
+  this->ui->qvtkWidget->update();
 }
 
 void cmbNucMainWindow::onInteractionTransition(vtkObject *, unsigned long e)

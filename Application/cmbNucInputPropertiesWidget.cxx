@@ -739,6 +739,40 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     changed = true;
   }
 
+  if(Internal->boundaryLayer->isChecked())
+  {
+    cmbNucCore::boundaryLayer * bl = NULL;
+    if(nucCore->getNumberOfBoundaryLayers() != 0)
+    {
+      bl = nucCore->getBoundaryLayer(0);
+    }
+    else
+    {
+      bl = new cmbNucCore::boundaryLayer();
+      nucCore->addBoundaryLayer(bl);
+      nucCore->boundaryLayerChanged();
+    }
+    double tmpbias = this->Internal->bias->value();
+    double tmpthichness = this->Internal->thickness->value();
+    int tmpinterval = this->Internal->interval->value();
+    QPointer<cmbNucMaterial> tmpmat =
+       cmbNucMaterialColors::instance()->getMaterial(this->Internal->boundaryMaterials);
+    if(tmpbias != bl->Bias || tmpthichness != bl->Thickness ||
+       tmpinterval != bl->Intervals || tmpmat != bl->interface_material)
+    {
+      bl->Bias = tmpbias;
+      bl->Thickness = tmpthichness;
+      bl->Intervals = tmpinterval;
+      bl->interface_material = tmpmat;
+      nucCore->boundaryLayerChanged();
+    }
+  }
+  else if(nucCore->getNumberOfBoundaryLayers() != 0)
+  {
+    nucCore->clearBoundaryLayer();
+    nucCore->boundaryLayerChanged();
+  }
+
   if(changed)
   {
     emit valuesChanged();
@@ -865,6 +899,24 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
     {
       cmbNucAssembly *assy = nucCore->GetAssembly(i);
       actionList.append(assy->getLabel().c_str());
+    }
+    {
+      cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+      matColorMap->setUp(this->Internal->boundaryMaterials);
+    }
+    if(nucCore->getNumberOfBoundaryLayers() != 0)
+    {
+      Internal->boundaryLayer->setChecked(true);
+      cmbNucCore::boundaryLayer * bl = nucCore->getBoundaryLayer(0);
+      this->Internal->bias->setValue(bl->Bias);
+      this->Internal->thickness->setValue(bl->Thickness);
+      this->Internal->interval->setValue(bl->Intervals);
+      cmbNucMaterialColors::instance()->selectIndex(this->Internal->boundaryMaterials,
+                                                    bl->interface_material);
+    }
+    else
+    {
+      Internal->boundaryLayer->setChecked(false);
     }
   }
 }
@@ -1069,8 +1121,8 @@ void cmbNucInputPropertiesWidget::onSetBackgroundMesh()
   if(this->Internal->JacketMode->currentIndex() == cmbNucCoreParams::Generate)
   {
     QString defaultLoc;
-    QString name(Core->ExportFileName.c_str());
-    if(name.isEmpty()) name = QString(Core->CurrentFileName.c_str());
+    QString name(Core->getExportFileName().c_str());
+    if(name.isEmpty()) name = QString(Core->getFileName().c_str());
     if(!name.isEmpty())
     {
       QFileInfo fi(name);

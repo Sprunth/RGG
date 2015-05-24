@@ -71,6 +71,7 @@ cmbNucCore::cmbNucCore(bool needSaved)
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
   DifferentFromH5M = true;
+  DifferentFromGenBoundaryLayer = true;
   this->Connection = new cmbNucCoreConnection();
   this->Connection->v = this;
   hasCylinder = false;
@@ -86,14 +87,15 @@ cmbNucCore::cmbNucCore(bool needSaved)
 cmbNucCore::~cmbNucCore()
 {
   for(std::vector<cmbNucAssembly*>::iterator fit=this->Assemblies.begin();
-    fit!=this->Assemblies.end(); ++fit)
-    {
+      fit!=this->Assemblies.end(); ++fit)
+  {
     if(*fit)
-      {
+    {
       delete *fit;
-      }
     }
+  }
   this->Assemblies.clear();
+  this->clearBoundaryLayer();
   delete this->Defaults;
   delete this->PinLibrary;
   delete this->DuctLibrary;
@@ -163,8 +165,8 @@ vtkBoundingBox cmbNucCore::computeBounds()
   else
   {
     vtkBoundingBox b;
-    double transX = this->Assemblies[0]->getAssyDuct().getDuct(0)->x;
-    double transY = this->Assemblies[0]->getAssyDuct().getDuct(0)->y;
+    double transX = this->Assemblies[0]->getAssyDuct().getDuct(0)->getX();
+    double transY = this->Assemblies[0]->getAssyDuct().getDuct(0)->getY();
     double pt[4];
     calculateRectPt( 0, 0, pt );
     calculateRectPt(dim.first-1, dim.second-1, pt+2);
@@ -197,7 +199,8 @@ void cmbNucCore::clearExceptAssembliesAndGeom()
   this->setAndTestDiffFromFiles(true);
   CurrentFileName = "";
   ExportFileName = "";
-  h5mFile = "";
+  meshFilePrefix = "";
+  meshFileExtention = "";
   Params.clear();
 }
 
@@ -310,12 +313,12 @@ void cmbNucCore::RemoveAssemblyLink(const std::string &label)
 cmbNucAssembly* cmbNucCore::GetAssembly(const std::string &label)
 {
   for(size_t i = 0; i < this->Assemblies.size(); i++)
-    {
+  {
     if(this->Assemblies[i]->getLabel() == label)
-      {
+    {
       return this->Assemblies[i];
-      }
     }
+  }
 
   return NULL;
 }
@@ -347,21 +350,21 @@ std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
 {
   std::set<std::string> usedDict;
   for(size_t i = 0; i < this->lattice.getSize(); i++)
-    {
+  {
     for(size_t j = 0; j < this->lattice.getSize(i); j++)
-      {
+    {
       usedDict.insert(this->lattice.GetCell(i, j).label);
-      }
     }
+  }
   std::vector< cmbNucAssembly* > result;
   for (unsigned int i = 0; i < this->Assemblies.size(); ++i)
-    {
+  {
     if(this->Assemblies[i]!=NULL &&
        usedDict.find(this->Assemblies[i]->getLabel()) != usedDict.end())
-      {
+    {
       result.push_back(Assemblies[i]);
-      }
     }
+  }
   return result;
 }
 
@@ -400,8 +403,8 @@ void cmbNucCore::calculateRectPt(unsigned int i, unsigned int j, double pt[2])
 void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY)
 {
   cmbNucAssembly * assy = this->GetAssembly(0);
-  transX = assy->getAssyDuct().getDuct(0)->x;
-  transY = assy->getAssyDuct().getDuct(0)->y;
+  transX = assy->getAssyDuct().getDuct(0)->getX();
+  transY = assy->getAssyDuct().getDuct(0)->getY();
 }
 
 void cmbNucCore::setGeometryLabel(std::string geomType)
@@ -453,17 +456,17 @@ bool cmbNucCore::IsHexType()
 void cmbNucCore::SetLegendColorToAssemblies(int numDefaultColors, int defaultColors[][3])
 {
   for(unsigned int i = 0; i < this->Assemblies.size(); ++i)
-    {
+  {
       cmbNucAssembly * subAssembly = this->Assemblies[i];
       if (subAssembly)
-        {
+      {
         int acolorIndex = i  % numDefaultColors;
         QColor acolor(defaultColors[acolorIndex][0],
                       defaultColors[acolorIndex][1],
                       defaultColors[acolorIndex][2]);
         subAssembly->SetLegendColor(acolor);
-        }
-    }
+      }
+  }
   this->RebuildGrid();
 }
 
@@ -506,12 +509,24 @@ void cmbNucCore::fileChanged()
   this->DifferentFromFile = true;
 }
 
+void cmbNucCore::boundaryLayerChanged()
+{
+  std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
+  for(size_t i = 0; i < assy.size(); ++i )
+  {
+    assy[i]->GetConnection()->geometryChanged();
+  }
+  this->DifferentFromGenBoundaryLayer = true;
+  this->DifferentFromFile = true;
+}
+
 void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
 {
   if(diffFromFile)
   {
     this->fileChanged();
     this->DifferentFromH5M = true;
+    this->DifferentFromGenBoundaryLayer = true;
     return;
   }
   //make sure file exits
@@ -521,18 +536,20 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   {
     this->fileChanged();
     this->DifferentFromH5M = true;
+    this->DifferentFromGenBoundaryLayer = true;
     return;
   }
   this->DifferentFromFile = false;
   if(this->ExportFileName.empty())
   {
     this->DifferentFromH5M = true;
+    this->DifferentFromGenBoundaryLayer = true;
     return;
   }
   //QFileInfo h5mFI();
   QDateTime inpLM = inpInfo.lastModified();
   QFileInfo exportInfo(this->ExportFileName.c_str());
-  QFileInfo h5mInfo(exportInfo.dir(), h5mFile.c_str());
+  QFileInfo h5mInfo(exportInfo.dir(), this->getMeshOutputFilename().c_str());
   if(!h5mInfo.exists())
   {
     this->DifferentFromH5M = true;
@@ -540,19 +557,36 @@ void cmbNucCore::setAndTestDiffFromFiles(bool diffFromFile)
   }
   QDateTime h5mLM = h5mInfo.lastModified();
   this->DifferentFromH5M = h5mLM < inpLM;
+  if(getNumberOfBoundaryLayers() != 0)
+  {
+    h5mInfo = QFileInfo(exportInfo.dir(), this->getMeshOutputFilename().c_str());
+    if(!h5mInfo.exists())
+    {
+      this->DifferentFromGenBoundaryLayer = true;
+      return;
+    }
+    h5mLM = h5mInfo.lastModified();
+    this->DifferentFromGenBoundaryLayer = h5mLM < inpLM;
+  }
+  else
+  {
+    this->DifferentFromGenBoundaryLayer = this->DifferentFromH5M;
+  }
   this->checkUsedAssembliesForGen();
 }
 
 void cmbNucCore::checkUsedAssembliesForGen()
 {
   if(this->DifferentFromH5M) return;
-  QFileInfo h5mInfo(QFileInfo(this->ExportFileName.c_str()).dir(), this->h5mFile.c_str());
+  QFileInfo corefi(this->ExportFileName.c_str());
+  QFileInfo h5mInfo(corefi.dir(),
+                    this->getMeshOutputFilename().c_str());
   std::vector< cmbNucAssembly* > assy = this->GetUsedAssemblies();
   for(unsigned int i = 0; i < assy.size() && !this->DifferentFromH5M; ++i)
   {
     this->DifferentFromH5M |= assy[i]->changeSinceLastGenerate();
-    QFileInfo inpInfo(assy[i]->ExportFileName.c_str());
-    QFileInfo cubInfo(inpInfo.dir(), inpInfo.baseName() + ".cub");
+    QFileInfo inpInfo(assy[i]->getFileName().c_str());
+    QFileInfo cubInfo(corefi.dir(), inpInfo.baseName() + ".cub");
     this->DifferentFromH5M |= !cubInfo.exists() || h5mInfo.lastModified() < cubInfo.lastModified();
   }
 }
@@ -565,6 +599,11 @@ bool cmbNucCore::changeSinceLastSave() const
 bool cmbNucCore::changeSinceLastGenerate() const
 {
   return this->DifferentFromH5M;
+}
+
+bool cmbNucCore::boundaryLayerChangedSinceLastGenerate() const
+{
+  return this->DifferentFromH5M || this->DifferentFromGenBoundaryLayer;
 }
 
 QPointer<cmbNucDefaults> cmbNucCore::GetDefaults()
@@ -758,4 +797,86 @@ bool cmbNucCore::okToDelete(std::string const& label)
     if(this->AssemblyLinks[i]->getLink()->getLabel() == label) return false;
   }
   return true;
+}
+
+void cmbNucCore::addBoundaryLayer(boundaryLayer * bl)
+{
+  if(bl == NULL) return;
+  this->BoundaryLayers.push_back(bl);
+}
+
+int cmbNucCore::getNumberOfBoundaryLayers() const
+{
+  return static_cast<int>(this->BoundaryLayers.size());
+}
+
+void cmbNucCore::removeBoundaryLayer(size_t bl)
+{
+  if(static_cast<size_t>(bl)>= this->BoundaryLayers.size())
+  {
+    return;
+  }
+  this->BoundaryLayers.erase(this->BoundaryLayers.begin() + bl);
+}
+
+void cmbNucCore::clearBoundaryLayer()
+{
+  for(size_t i = 0; i < this->BoundaryLayers.size(); ++i)
+  {
+    delete this->BoundaryLayers[i];
+  }
+  BoundaryLayers.clear();
+}
+
+cmbNucCore::boundaryLayer * cmbNucCore::getBoundaryLayer(int bl) const
+{
+  if(static_cast<size_t>(bl)>= this->BoundaryLayers.size())
+  {
+    return NULL;
+  }
+  return BoundaryLayers[bl];
+}
+
+std::string cmbNucCore::getMeshOutputFilename() const
+{
+  if(meshFilePrefix.empty()) return "";
+  return meshFilePrefix + "." + meshFileExtention;
+}
+
+void cmbNucCore::setMeshOutputFilename(std::string const& fname)
+{
+  QFileInfo qf(fname.c_str());
+  this->meshFilePrefix = qf.completeBaseName().toStdString();
+  this->meshFileExtention = qf.suffix().toStdString();
+}
+
+std::string const& cmbNucCore::getExportFileName() const
+{
+  return this->ExportFileName;
+}
+
+void cmbNucCore::setExportFileName(std::string const& fname)
+{
+  this->ExportFileName = fname;
+  if(meshFilePrefix.empty())
+  {
+    QFileInfo qf(fname.c_str());
+    this->meshFilePrefix = qf.completeBaseName().toStdString();
+    this->meshFileExtention = "h5m";
+  }
+}
+
+void cmbNucCore::setFileName( std::string const& fname )
+{
+  this->CurrentFileName = fname;
+}
+
+void cmbNucCore::setGenerateDirectory(std::string const& dir)
+{
+  this->GenerateDirectory = dir;
+}
+
+std::string const& cmbNucCore::getGenerateDirectory() const
+{
+  return this->GenerateDirectory;
 }

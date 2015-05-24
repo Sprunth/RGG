@@ -50,6 +50,7 @@ public:
   void SetNumberOfLayers(int numLayers);
   std::size_t GetNumberOfLayers() const;
   QSet< cmbNucMaterial* > getMaterials();
+  QSet< cmbNucMaterial* > getOuterMaterials(QPointer<cmbNucMaterial> blMat);
 
   //sets others values here if they are different.
   //If values have changed, we return true.
@@ -74,12 +75,31 @@ public:
   virtual std::vector<PinSubPart *> split(std::vector<double>::const_iterator b,
                                           std::vector<double>::const_iterator end) = 0;
 
+  double getZ1() const
+  {
+    return this->z1;
+  }
+  double getZ2() const
+  {
+    return this->z2;
+  }
+
+  void setZ1(double v)
+  {
+    this->z1 = v;
+  }
+  void setZ2(double v)
+  {
+    this->z2 = v;
+  }
+
   double x;
   double y;
-  double z1;
-  double z2;
+
 protected:
   void setConnection(cmbNucMaterialLayer * layer);
+  double z1;
+  double z2;
   std::vector< cmbNucMaterialLayer * > Materials;
   PinConnection * Connection;
 private:
@@ -219,6 +239,7 @@ public:
 
   PinConnection* GetConnection() const;
   QSet< cmbNucMaterial* > getMaterials();
+  QSet< cmbNucMaterial* > getOuterMaterials(QPointer<cmbNucMaterial> blMat);
 
   virtual std::string getTitle(){ return "PinCell: " + AssyPartObj::getTitle(); }
 

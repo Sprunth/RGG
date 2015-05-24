@@ -234,6 +234,11 @@ bool cmbNucImporter::importInpFile()
         break;
       default:
         qDebug() << "could not open" << fileNames[i];
+        QMessageBox msgBox;
+        msgBox.setText("Could Not Open File");
+        msgBox.setInformativeText(fileNames[i]+" is not a valid core or assembly file.");
+        msgBox.exec();
+        return false;
     }
     std::vector<std::string> tlog = freader.getLog();
     log.insert(log.end(), tlog.begin(), tlog.end());

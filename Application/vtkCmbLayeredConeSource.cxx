@@ -109,13 +109,15 @@ double vtkCmbLayeredConeSource::GetBaseRadius(int layer, int s)
 double vtkCmbLayeredConeSource::GetTopThickness(int layer)
 {
   if(layer == 0) return this->LayerRadii[layer].TopRadii[0];
-  return this->LayerRadii[layer].TopRadii[layer] - this->LayerRadii[layer].TopRadii[layer-1];
+  return this->LayerRadii[layer].TopRadii[layer] -
+         this->LayerRadii[layer].TopRadii[layer-1];
 }
 
 double vtkCmbLayeredConeSource::GetBaseThickness(int layer)
 {
   if(layer == 0) return this->LayerRadii[layer].BaseRadii[0];
-  return this->LayerRadii[layer].BaseRadii[layer] - this->LayerRadii[layer].BaseRadii[layer-1];
+  return this->LayerRadii[layer].BaseRadii[layer] -
+         this->LayerRadii[layer].BaseRadii[layer-1];
 }
 
 vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
@@ -150,6 +152,35 @@ vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
                                                        innerBottomR, outerBottomR,
                                                        innerTopR,    outerTopR,
                                                        innerRes,     outerRes );
+  if (this->GenerateNormals)
+  {
+    vtkNew<vtkPolyDataNormals> normals;
+    normals->SetInputDataObject(tmpLayer);
+    normals->ComputePointNormalsOn();
+    normals->Update();
+    return normals->GetOutput();
+  }
+  return tmpLayer;
+}
+
+vtkSmartPointer<vtkPolyData>
+vtkCmbLayeredConeSource::CreateBoundaryLayer(double thickness, int l)
+{
+  int innerRes = 0;
+  int outerRes = 0;
+  double * innerBottomR = NULL;
+  double * innerTopR = NULL;
+  innerBottomR = this->LayerRadii[l].BaseRadii;
+  innerTopR = this->LayerRadii[l].TopRadii;
+  outerRes = innerRes = this->LayerRadii[l].Resolution;
+
+  double outerBottomR[] = {innerBottomR[0]+thickness, innerBottomR[1]+thickness};
+  double outerTopR[] = {innerTopR[0]+thickness, innerTopR[1]+thickness};
+
+  vtkSmartPointer<vtkPolyData> tmpLayer = CreateLayer( 1.0,
+                                                      innerBottomR, outerBottomR,
+                                                      innerTopR,    outerTopR,
+                                                      innerRes,     outerRes, true );
   if (this->GenerateNormals)
   {
     vtkNew<vtkPolyDataNormals> normals;
@@ -446,7 +477,7 @@ vtkCmbLayeredConeSource
 ::CreateLayer( double h,
                double * innerBottomR, double * outerBottomR,
                double * innerTopR,    double * outerTopR,
-               int innerRes, int outerRes )
+               int innerRes, int outerRes, bool lines )
 {
   if(outerTopR == NULL || outerBottomR == NULL) return NULL;
   if(outerRes == 0) return NULL;
@@ -455,6 +486,7 @@ vtkCmbLayeredConeSource
 
   vtkPoints * points = vtkPoints::New();
   vtkCellArray *cells = vtkCellArray::New();
+  vtkCellArray *lineCells = vtkCellArray::New();
 
   points->SetDataTypeToDouble(); //used later during transformation
 
@@ -525,9 +557,22 @@ vtkCmbLayeredConeSource
   }
 
   //Add bottom calls
-  if(GenerateEnds) { TriangulateEnd(innerRes, outerRes, forceDelaunay, cells, points); }
+  if(GenerateEnds && !lines) { TriangulateEnd(innerRes, outerRes, forceDelaunay, cells, points); }
+  /*else if(lines)
+  {
+    int offset = outerRes+innerRes;
+    for(int i = 0; i < outerRes; ++i)
+    {
+      pts[0] = i;
+      pts[1] = (i+1) % outerRes;
+      lineCells->InsertNextCell(2, pts);
+      pts[0] = (i+1) % outerRes + offset;
+      pts[1] = i + offset;
+      lineCells->InsertNextCell(2, pts);
+    }
+  }*/
   //Outer Wall;
-  if(1)
+  if(!lines)
   {
     int offset = outerRes+innerRes;
     for(int i = 0; i < outerRes; ++i)
@@ -539,8 +584,34 @@ vtkCmbLayeredConeSource
       cells->InsertNextCell(4, pts);
     }
   }
+  else
+  {
+    int offset = outerRes+innerRes;
+    for(int i = 0; i < outerRes; ++i)
+    {
+      pts[0] = i;
+      pts[1] = (i+1) % outerRes;
+      pts[2] = (i+1) % outerRes + offset;
+      pts[3] = i + offset;
+      lineCells->InsertNextCell(2, pts);
+      //lineCells->InsertNextCell(2, pts+1);
+      lineCells->InsertNextCell(2, pts+2);
+      pts[0] = i + offset;
+      pts[0] = i;
+      //lineCells->InsertNextCell(2, pts);
+    }
+    /*int offset = outerRes+innerRes;
+    for(int i = 0; i < outerRes; ++i)
+    {
+      pts[0] = i;
+      pts[1] = (i+1) % outerRes;
+      pts[2] = (i+1) % outerRes + offset;
+      pts[3] = i + offset;
+      cells->InsertNextCell(4, pts);
+    }*/
+  }
   //Inner Wall
-  if(1)
+  if(!lines)
   {
     int offset = outerRes+innerRes;
     for(int i = 0; i < innerRes; ++i)
@@ -552,8 +623,17 @@ vtkCmbLayeredConeSource
       cells->InsertNextCell(4, pts);
     }
   }
+
   polyData->SetPoints(points);
   polyData->SetPolys(cells);
+  if(lines)
+  {
+    polyData->SetLines(lineCells);
+  }
+  else
+  {
+
+  }
 
   points->Delete();
   cells->Delete();

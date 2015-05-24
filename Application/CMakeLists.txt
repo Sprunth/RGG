@@ -22,7 +22,6 @@ INCLUDE_DIRECTORIES(
 
 #Now the QtVTK version
 SET(RGGNuclear_Srcs
-  cmbNucMain.cxx
   cmbNucMainWindow.cxx
   cmbNucAssembly.cxx
   cmbNucAssemblyLink.cxx
@@ -167,7 +166,7 @@ endif()
 set(TARGET_NAME)
 
 if(WIN32 OR APPLE)
-  ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+  ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE cmbNucMain.cxx ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
   TARGET_LINK_LIBRARIES( RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
 else()
   include(vtkForwardingExecutable)
@@ -185,12 +184,12 @@ else()
     vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear ${CUBIT_BUILD_SRC})
     TARGET_LINK_LIBRARIES(RGGNuclear ${QT_LIBRARIES} ${VTK_LIBRARIES})
 
-    ADD_EXECUTABLE( RGGNuclear-GUI MACOSX_BUNDLE ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+    ADD_EXECUTABLE( RGGNuclear-GUI MACOSX_BUNDLE cmbNucMain.cxx ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
     TARGET_LINK_LIBRARIES( RGGNuclear-GUI RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
 
   else()
     set(TARGET_NAME RGGNuclear)
-    vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear ${RGGNuclear_Srcs} ${RGGNuclear_other_headers}
+    vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear cmbNucMain.cxx ${RGGNuclear_Srcs} ${RGGNuclear_other_headers}
                                                       ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
     TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
   endif()

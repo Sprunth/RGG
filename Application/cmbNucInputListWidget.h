@@ -76,6 +76,8 @@ signals:
   void sendEdgeControl(bool);
   void resetMeshCamera();
 
+  void drawBoundaryControl(bool);
+
   void raiseMeshDock();
   void raiseModelDock();
 
@@ -95,6 +97,7 @@ public slots:
   void updateWithPinLibrary();
   void updateWithDuctLibrary();
   void updateWithAssembly();
+  void setBoundaryLayerControlMode(bool);
 
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);

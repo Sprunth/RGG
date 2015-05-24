@@ -25,6 +25,7 @@
 #include <QProcess>
 #include <QTime>
 #include <QMetaType>
+#include <QMessageBox>
 
 #include <iostream>
 #include <sstream>
@@ -219,7 +220,7 @@ public:
   }
 
 protected:
-  remus::proto::JobRequirements types[3];
+  remus::proto::JobRequirements types[4];
   QThreadPool threadPool;
   cmbNucExport * exporter;
 };
@@ -308,6 +309,7 @@ struct JobHolder
   {
   }
   bool running, done, error;
+  QString meshInputFile;
   std::vector<JobHolder*> dependencies;
   std::string label, itype, otype;
   remus::proto::Job job;
@@ -667,7 +669,10 @@ cmbNucExport::run( Message const& message )
 
   deps.insert(deps.end(), assy.begin(), assy.end());
 
-  this->runCoreHelper( message.coregenFile, deps, message.CoreGenOutputFile, false );
+  std::vector<JobHolder*> core = this->runCoreHelper( message.coregenFile,
+                                                      deps, message.CoreGenOutputFile,
+                                                      false );
+
   processJobs();
   {
     QMutexLocker locker(&end_control);
@@ -818,6 +823,7 @@ cmbNucExport::runCoreHelper( const QString coregenFile,
       qDebug() << coreJob->in.LibPath.c_str();
     }
   }
+
   return result;
 }
 
@@ -948,7 +954,6 @@ void cmbNucExport::setAssygen(QString assygenExe,QString assygenLib)
   QFileInfo fi(assygenExe);
   QString path = fi.absolutePath();
   this->CylinderCoregenExe =  path + "/coregen";
-  qDebug() << "=========>" <<this->CylinderCoregenExe;
   this->AssygenLib = assygenLib;
 }
 
@@ -994,6 +999,8 @@ void cmbNucExport::processJobs()
 {
   QEventLoop el;
   bool inErrorState = false;
+  bool errorInBoundryLayer = false;
+  QString filename;
   emit currentProcess("  Generating Mesh");
   double count = 2;
   while(true)
@@ -1133,7 +1140,23 @@ void cmbNucExport::processJobs()
     }
   }
   qDebug() << "All jobs have been finished";
-  if(inErrorState)
+  if(errorInBoundryLayer)
+  {
+    QFileInfo fi(filename);
+
+    emit errorMessage("ERROR: Boundary Layer Generation Failed.  Partial Result: " + fi.fileName() );
+    emit currentProcess("Boundary Layer Generation Failed.  Partial Result: " + fi.fileName());
+    emit sendPartialBoundryLayer(filename);
+    QThread::Priority	prior = QThread::currentThread()->priority();
+    QThread::currentThread()->setPriority(QThread::LowestPriority);
+    QThread::yieldCurrentThread();
+
+    emit done();
+    clearJobs();
+    this->deleteServer();
+    QThread::currentThread()->setPriority(prior);
+  }
+  else if(inErrorState)
   {
     emit done();
     clearJobs();

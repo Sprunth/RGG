@@ -61,6 +61,7 @@ public:
   vtkBooleanMacro(GenerateEnds,int);
 
   vtkSmartPointer<vtkPolyData> CreateUnitLayer(int l);
+  vtkSmartPointer<vtkPolyData> CreateBoundaryLayer( double thickness, int l );
 
 
 protected:
@@ -72,7 +73,7 @@ protected:
   vtkSmartPointer<vtkPolyData> CreateLayer( double h,
                                             double * innerBottomR, double * outerBottomR,
                                             double * innerTopR,    double * outerTopR,
-                                            int innerRes, int outerRes);
+                                            int innerRes, int outerRes, bool lines = false);
 
   double Height;
   struct radii

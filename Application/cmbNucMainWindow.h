@@ -111,8 +111,9 @@ protected:
 
 protected slots:
   void onObjectSelected(AssyPartObj*, const char* name);
-  void onObjectModified(AssyPartObj* obj=NULL);
-  void onObjectGeometryChanged(AssyPartObj* obj);
+  void onObjectModified(AssyPartObj* obj=NULL, bool resetCamera = false);
+  void onObjectGeometryChanged(AssyPartObj* obj, bool resetCamera = false);
+  void onUpdateLattice(AssyPartObj* obj, int changeType);
 
   void onStartRecordTest();
   void onStopRecordingTest();
@@ -124,6 +125,7 @@ protected slots:
 
   void onChangeMeshColorMode();
   void onChangeMeshEdgeMode(bool b);
+  void onChangeDrawBoundryMode(bool b);
 
   void onRaiseMesh();
   void onRaiseModel();
@@ -194,6 +196,7 @@ private:
   bool is3DTabVisible();
   void setCameras(bool coreModel, bool fullMesh);
   bool isCameraIsMoving;
+  bool drawBoundryLayers;
 
   pqTestUtility * TestUtility;
 };

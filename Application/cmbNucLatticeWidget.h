@@ -31,7 +31,7 @@ public slots:
   void updateActionList();
 signals:
   void valuesChanged();
-  void objGeometryChanged(AssyPartObj* selObj);
+  void objGeometryChanged(AssyPartObj* selObj, int changeType);
 protected:
   LatticeContainer * lattice;
   cmbNucDraw2DLattice * draw_control;

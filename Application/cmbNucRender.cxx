@@ -40,6 +40,7 @@ cmbNucRender::key::key()
 {
   type = Jacket;
   sides = -1;
+  boundaryLayer = false;
   for(int r = 0; r < 8; ++r) radius[r] = -1;
 }
 
@@ -49,6 +50,7 @@ cmbNucRender::key::key( int s, double rTop, double rBottom )
   sides = s;
   radius[0] = rTop;
   radius[1] = rBottom;
+  boundaryLayer = false;
   for(int r = 2; r < 8; ++r) radius[r] = -1;
 }
 
@@ -56,12 +58,13 @@ cmbNucRender::key::key( int s )
 {
   type = Cylinder;
   sides = s;
+  boundaryLayer = false;
   for(int r = 0; r < 8; ++r) radius[r] = -1;
 }
 
 cmbNucRender::key::key( int s,
     double rTop1, double rTop2, double rTop3, double rTop4,
-    double rBottom1, double rBottom2, double rBottom3, double rBottom4)
+    double rBottom1, double rBottom2, double rBottom3, double rBottom4, bool bl)
 {
   type = Annulus;
   sides = s;
@@ -73,10 +76,15 @@ cmbNucRender::key::key( int s,
   radius[5] = rBottom3;
   radius[6] = rTop4;
   radius[7] = rBottom4;
+  boundaryLayer = bl;
 }
 
 bool cmbNucRender::key::operator<(key const& other) const
 {
+  if(other.boundaryLayer != boundaryLayer)
+  {
+    return boundaryLayer;
+  }
   if(type != other.type) return type < other.type;
   switch(type)
   {
@@ -137,9 +145,9 @@ public:
     if(assy == NULL) return;
     Duct * dc = assy->getAssyDuct().getDuct(0);
     if(dc == NULL) return;
-    double startX = dc->x;
-    double startY = dc->y;
-    double outerDuctHeight = dc->thickness[0];
+    double startX = dc->getX();
+    double startY = dc->getY();
+    double outerDuctHeight = dc->getThickness(0);
 
     int subType = lat.GetGeometrySubType();
     double LocalCosSinAngles[6][2] =
@@ -254,7 +262,7 @@ public:
           if(pincell && (pincell->GetNumberOfParts())>0)
           {
             double pinDistFromCenter = pitchX * (i);
-            double tX=hexDuct->x, tY=hexDuct->y;
+            double tX=hexDuct->getX(), tY=hexDuct->getY();
             int cornerIdx;
             if(i == 1)
             {
@@ -335,7 +343,8 @@ public:
     }
   }
 
-  static void createGeo(DuctCell* ductcell, bool isHex, std::map<key,GeoToPoints> & geometry)
+  static void createGeo(DuctCell* ductcell, bool isHex, std::map<key,GeoToPoints> & geometry,
+                        cmbNucCore::boundaryLayer * bl = NULL )
   {
     if(ductcell == NULL) return;
     size_t numParts = ductcell->numberOfDucts();
@@ -377,11 +386,55 @@ public:
         cmbNucRender::scale scale(1,1,h);
         geo.points.push_back(GeoToPoints::data(loc, point(), mat, scale));
       }
+      if( bl != NULL && bl->Intervals != 0)
+      {
+        double tmp_height = duct->getZ2() - duct->getZ1();
+        double thickness = 0;
+        double temp = 0;
+        double bias = bl->Bias;
+        //HACK TO HANDLE LESS than one
+        if(bias < 2) bias = 1+0.5*(bias);
+
+        int at = 0;//manager->GetNumberOfLayers()-1;
+        double max = pow(bl->Intervals, bias);
+        //double num = bl->Thickness/pow(bl->Intervals, bias);
+        //double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
+        //double deno = pow(bias, bl->Intervals) - 1;
+        //if (deno !=0)
+        //  temp = num/deno;
+        //else
+        //  temp = thickness/bl->Intervals;
+        for(unsigned inter = 0; inter < bl->Intervals; ++inter)
+        {
+          thickness = bl->Thickness*pow(inter+1,bias)/max;
+          //assert(thickness <= bl->Thickness);
+          key k(manager->GetResolution(at),
+                manager->GetTopRadius(at, 0) - thickness,
+                manager->GetTopRadius(at, 1) - thickness,
+                manager->GetTopRadius(at, 0) - thickness,
+                manager->GetTopRadius(at, 1) - thickness,
+                manager->GetBaseRadius(at, 0) - thickness,
+                manager->GetBaseRadius(at,1) - thickness,
+                manager->GetBaseRadius(at, 0) - thickness,
+                manager->GetBaseRadius(at,1) - thickness, true);
+          if(geometry.find(k) == geometry.end())
+          {
+            geometry[k].geo = manager->CreateBoundaryLayer( -thickness, at );
+          }
+          GeoToPoints & geo = geometry[k];
+          point loc;
+          manager->GetBaseCenter(loc.xyz);
+          loc.xyz[2] -= tmp_height * 0.0005 * 0.5;
+          cmbNucRender::scale scale(1,1,tmp_height);
+          geo.points.push_back(GeoToPoints::data(loc, point(), bl->interface_material, scale, true));
+        }
+      }
     }
   }
 
   static void createGeo(PinCell* pincell, bool isHex,
                         std::map<key,GeoToPoints> & geometry,
+                        cmbNucCore::boundaryLayer * bl = NULL,
                         double pitchX = -1, double pitchY = -1 )
   {
     if(pincell == NULL) return;
@@ -391,7 +444,8 @@ public:
     for(size_t j = 0; j < numParts; ++j)
     {
       PinSubPart* part = pincell->GetPart(j);
-      vtkSmartPointer<vtkCmbLayeredConeSource> manager = cmbNucRender::CreateLayerManager(pincell, isHex, j, pitchX, pitchY);
+      vtkSmartPointer<vtkCmbLayeredConeSource> manager =
+          cmbNucRender::CreateLayerManager(pincell, isHex, j, pitchX, pitchY);
       if(manager == NULL) continue;
       //inner cylinder/frustum
       {
@@ -440,11 +494,54 @@ public:
         cmbNucRender::scale scale(1,1,h);
         geo.points.push_back(GeoToPoints::data(loc, rotate, mat, scale));
       }
+      //TODO: handle cell material
+      if(bl != NULL && !pincell->cellMaterialSet())
+      {
+        double thickness = 0;
+        double temp = 0;
+        double bias = bl->Bias;
+        //HACK TO HANDLE LESS than one
+        if(bias < 2) bias = 1+0.5*(bias);
+        double suba = bl->Thickness/bl->Intervals;
+        int at = manager->GetNumberOfLayers()-1;
+        double max = pow(bl->Intervals, bias);
+        //double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
+        //double deno = pow(bias, bl->Intervals) - 1;
+        //if (deno !=0)
+        //  temp = num/deno;
+        //else
+        //  temp = thickness/bl->Intervals;
+        for(unsigned inter = 0; inter < bl->Intervals; ++inter)
+        {
+          thickness = bl->Thickness*pow(inter+1,bias)/max;
+          //thickness += temp/pow(bias,inter);
+          key k(manager->GetResolution(at),
+                manager->GetTopRadius(at, 0) + thickness,
+                manager->GetTopRadius(at, 1) + thickness,
+                manager->GetTopRadius(at, 0) + thickness,
+                manager->GetTopRadius(at, 1) + thickness,
+                manager->GetBaseRadius(at, 0) + thickness,
+                manager->GetBaseRadius(at,1) + thickness,
+                manager->GetBaseRadius(at, 0) + thickness,
+                manager->GetBaseRadius(at,1) + thickness, true);
+          if(geometry.find(k) == geometry.end())
+          {
+            geometry[k].geo = manager->CreateBoundaryLayer( thickness, at );
+          }
+          GeoToPoints & geo = geometry[k];
+          point loc;
+          manager->GetBaseCenter(loc.xyz);
+          double h = manager->GetHeight();
+          cmbNucRender::scale scale(1,1,h);
+          geo.points.push_back(GeoToPoints::data(loc, rotate, bl->interface_material, scale, true));
+        }
+      }
     }
   }
 
   static void createGeo(cmbNucAssembly * input,
                         Lattice::CellDrawMode mode,
+                        std::vector<cmbNucCore::boundaryLayer*> const& bl,
                         std::map<key,GeoToPoints> & geometry)
   {
     std::map< CellKey, std::vector<point> > idToPoint;
@@ -458,6 +555,16 @@ public:
     bool hasSectioning = false;
     std::vector<point> sectioningPlanes;
     static int sectionedCount = 0;
+    //TODO support more than one
+    cmbNucCore::boundaryLayer* usedBL = NULL;
+    for(size_t i = 0; i < bl.size(); ++i)
+    {
+      if(input->has_boundary_layer_interface(bl[i]->interface_material))
+      {
+        usedBL = bl[i];
+        break;
+      }
+    }
     if(input->getLattice().getFullCellMode() == Lattice::HEX_FULL_30)
     {
       xformR.xyz[2] += 30;
@@ -525,7 +632,7 @@ public:
       {
         tmpGeo[i->first].geo = i->second.geo;
       }
-      createGeo(&(input->getAssyDuct()), input->IsHexType(), tmpGeo);
+      createGeo(&(input->getAssyDuct()), input->IsHexType(), tmpGeo, usedBL);
       std::vector<point> points(1);
 
       if(hasSectioning)
@@ -566,7 +673,7 @@ public:
         tmpGeo[i->first].geo = i->second.geo;
       }
 
-      createGeo(input->GetPinCell(iter->first.str), input->IsHexType(), tmpGeo, pitchX, pitchY);
+      createGeo(input->GetPinCell(iter->first.str), input->IsHexType(), tmpGeo, usedBL, pitchX, pitchY);
 
       std::vector<point> const& points = iter->second;
       if(hasSectioning)
@@ -642,7 +749,7 @@ public:
     }
   }
 
-  static void createGeo(cmbNucCore * input, std::map<key, GeoToPoints> & geometry)
+  static void createGeo(cmbNucCore * input, bool drawBoundryLayer, std::map<key, GeoToPoints> & geometry)
   {
     std::map< CellKey, std::vector<point> > idToPoint;
     double extraXTrans;
@@ -666,7 +773,14 @@ public:
         {
           tmpGeo[i->first].geo = i->second.geo;
         }
-        createGeo(assembly, iter->first.mode, tmpGeo);
+        if(drawBoundryLayer)
+        {
+          createGeo(assembly, iter->first.mode, input->getBoundaryLayers(), tmpGeo);
+        }
+        else
+        {
+          createGeo(assembly, iter->first.mode, std::vector< cmbNucCore::boundaryLayer*>(), tmpGeo);
+        }
       }
       else if(input->getHasCylinder())
       {
@@ -757,7 +871,7 @@ public:
     rotation.xyz[0] += xformR.xyz[0];
     rotation.xyz[1] += xformR.xyz[1];
     rotation.xyz[2] += xformR.xyz[2];
-    return GeoToPoints::data(tranpt,rotation, pt.material, pt.ptScale);
+    return GeoToPoints::data(tranpt,rotation, pt.material, pt.ptScale, pt.boundaryLayer);
   }
 
   static void addGeometry( key keyIn, GeoToPoints const& tmpGeoI,
@@ -989,19 +1103,22 @@ void cmbNucRender::clearMappers()
   TransparentMapper->SetInputData(NULL);
 }
 
-void cmbNucRender::render(cmbNucCore * core)
+void cmbNucRender::render(cmbNucCore * core, bool renderBoundaryLayer)
 {
   std::map<key, GeoToPoints> geometry;
-  cmbNucRenderHelper::createGeo(core, geometry);
+  cmbNucRenderHelper::createGeo(core, renderBoundaryLayer, geometry);
   cmbNucRenderHelper::addOuterJacket(core, geometry);
   BoundingBox = core->computeBounds();
   sendToGlyphMappers(geometry);
 }
 
-void cmbNucRender::render(cmbNucAssembly * assy)
+void cmbNucRender::render(cmbNucAssembly * assy,
+                          std::vector<cmbNucCore::boundaryLayer*> const& bl)
 {
   std::map<key, GeoToPoints> geometry;
-  cmbNucRenderHelper::createGeo(assy, assy->getLattice().getFullCellMode(), geometry);
+  cmbNucRenderHelper::createGeo(assy,
+                                assy->getLattice().getFullCellMode(),
+                                bl, geometry);
   BoundingBox = assy->computeBounds();
   sendToGlyphMappers(geometry);
 }
@@ -1105,7 +1222,11 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
     {
       geo.points[j].material->setDisplayed();
       if(!geo.points[j].material->isVisible()) continue;
-      QColor bColor = geo.points[j].material->getColor();
+      QColor bColor =
+          (geo.points[j].boundaryLayer)?
+            (geo.points[j].material->getColor().lightnessF() < 0.5) ?
+                Qt::white : Qt::black
+            : geo.points[j].material->getColor();
       unsigned char color[] = { static_cast<unsigned char>(bColor.redF()*255),
                                 static_cast<unsigned char>(bColor.greenF()*255),
                                 static_cast<unsigned char>(bColor.blueF()*255),
@@ -1188,18 +1309,18 @@ void cmbNucRender::sendToGlyphMappers(std::map<key, GeoToPoints> & geometry)
   BoundingBox.AddBounds(polydata->GetBounds());
 }
 
-vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCell* pincell,
-                                                                          bool isHex,
-                                                                          size_t j,
-                                                                          double pitchX,
-                                                                          double pitchY)
+vtkSmartPointer<vtkCmbLayeredConeSource>
+cmbNucRender::CreateLayerManager(PinCell* pincell, bool isHex, size_t j,
+                                 double pitchX, double pitchY)
 {
   PinSubPart* part = pincell->GetPart(j);
   
-  vtkSmartPointer<vtkCmbLayeredConeSource> coneSource = vtkSmartPointer<vtkCmbLayeredConeSource>::New();
-  coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() + (pincell->cellMaterialSet()?1:0));
-  coneSource->SetBaseCenter(0, 0, part->z1);
-  coneSource->SetHeight(part->z2 - part->z1);
+  vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
+      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
+  coneSource->SetNumberOfLayers(pincell->GetNumberOfLayers() +
+                                (pincell->cellMaterialSet()?1:0));
+  coneSource->SetBaseCenter(0, 0, part->getZ1());
+  coneSource->SetHeight(part->getZ2() - part->getZ1());
   double largestRadius = 0;
 
   for(int k = 0; k < pincell->GetNumberOfLayers(); k++)
@@ -1239,7 +1360,8 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(PinCel
   return coneSource;
 }
 
-vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
+vtkSmartPointer<vtkCmbLayeredConeSource>
+cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
 {
   Duct *duct = ductCell->getDuct(i);
   double z = duct->getZ1();
@@ -1264,7 +1386,7 @@ vtkSmartPointer<vtkCmbLayeredConeSource> cmbNucRender::CreateLayerManager(DuctCe
   vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
   coneSource->SetNumberOfLayers(numLayers);
-  coneSource->SetBaseCenter(duct->x, duct->y, z);
+  coneSource->SetBaseCenter(duct->getX(), duct->getY(), z);
   double direction[] = { 0, 0, 1 };
   coneSource->SetDirection(direction);
   coneSource->SetHeight(height);

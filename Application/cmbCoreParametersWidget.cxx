@@ -231,9 +231,9 @@ changed |= setValue(corein->Params.Var, Internal->Var);
 #undef FUN_SIMPLE
 
   std::string meshFile = Internal->OutputFile->text().toStdString();
-  if(meshFile != corein->h5mFile)
+  if(meshFile != corein->getMeshOutputFilename())
   {
-    corein->h5mFile = meshFile;
+    corein->setMeshOutputFilename(meshFile);
     changed = true;
   }
 
@@ -285,7 +285,7 @@ else{ setValue(Internal->Var, DEFAULT); }
 
 #undef FUN_SIMPLE
 
-  Internal->OutputFile->setText(corein->h5mFile.c_str());
+  Internal->OutputFile->setText(corein->getMeshOutputFilename().c_str());
 
 
 
@@ -303,15 +303,15 @@ else{ setValue(Internal->Var, DEFAULT); }
   }
 
   if(Core->Params.ExtrudeIsSet())
-    {
+  {
     setValue(Internal->ExtrudeDivisions, corein->Params.Extrude.Divisions);
     setValue(Internal->ExtrudeHeight, corein->Params.Extrude.Size);
-    }
+  }
   std::string unknowns;
   for(unsigned int i = 0; i < corein->Params.UnknownKeyWords.size(); ++i)
-    {
+  {
     unknowns += corein->Params.UnknownKeyWords[i] + "\n";
-    }
+  }
   Internal->UnknownsVars->setPlainText(QString::fromStdString(unknowns));
 }
 

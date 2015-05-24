@@ -49,6 +49,7 @@ void cmbAssyParametersWidget::setAssembly(cmbNucAssembly *assyObj)
   this->Assembly = assyObj;
   this->onReset();
 }
+
 // Invoked when Apply button clicked
 //-----------------------------------------------------------------------------
 void cmbAssyParametersWidget::onApply()
@@ -59,6 +60,7 @@ void cmbAssyParametersWidget::onApply()
     }
   this->applyToAssembly(this->Assembly);
 }
+
 // Invoked when Reset button clicked
 //-----------------------------------------------------------------------------
 void cmbAssyParametersWidget::onReset()
@@ -214,7 +216,8 @@ void setValue(QCheckBox * to, bool &from)
 {
   to->setChecked(from);
 }
-}
+  
+}//namespace
 
 #define EASY_ASSY_PARAMS_MACRO()\
   FUN(TetMeshSize) \
