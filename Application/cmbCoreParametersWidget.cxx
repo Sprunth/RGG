@@ -270,6 +270,11 @@ changed |= setValue(corein->Params.Var, Internal->Var);
     j++;
     line.clear();
   }
+  if(j < corein->Params.UnknownKeyWords.size())
+  {
+    changed = true;
+    corein->Params.UnknownKeyWords.resize(j);
+  }
 
   if(changed) emit valuesChanged();
 }
