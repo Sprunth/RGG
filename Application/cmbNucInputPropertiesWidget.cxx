@@ -517,6 +517,7 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
   bool v = assy->setDuctCell(dc);
   if(v)
   {
+    this->Core->setAndTestDiffFromFiles(v);
     assy->setAndTestDiffFromFiles(v);
     emit checkSaveAndGenerate();
   }
