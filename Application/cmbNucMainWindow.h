@@ -115,6 +115,8 @@ protected slots:
   void onObjectGeometryChanged(AssyPartObj* obj, bool resetCamera = false);
   void onUpdateLattice(AssyPartObj* obj, int changeType);
 
+  void onMaterialChange();
+
   void onStartRecordTest();
   void onStopRecordingTest();
   void onPlayTest();

@@ -273,6 +273,11 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
     ++i;
     line.clear();
   }
+  if(i < parameters->UnknownParams.size())
+  {
+    changed = true;
+    parameters->UnknownParams.resize(i);
+  }
   if(changed) emit valuesChanged();
 }
 

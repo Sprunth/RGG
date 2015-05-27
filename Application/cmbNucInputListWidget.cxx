@@ -374,10 +374,8 @@ void cmbNucInputListWidget::initUI()
   this->setActionsEnabled(false);
   if(this->Internal->RootCoreNode)
   {
-    delete this->Internal->RootCoreNode;
-    delete this->Internal->AssemblyNode;
-    delete this->Internal->DuctsNode;
-    delete this->Internal->PinsNode;
+    delete this->Internal->RootCoreNode; // Other nodes are children of this one
+                                         // so they will be deleted
     this->Internal->RootCoreNode = NULL;
     this->Internal->AssemblyNode = NULL;
     this->Internal->DuctsNode = NULL;

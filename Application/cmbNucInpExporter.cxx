@@ -94,7 +94,8 @@ bool cmbNucInpExporter
   cmbNucAssembly * temp = this->NuclearCore->GetUsedAssemblies()[0]->clone(pl,dl);
   QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
   fname = fname.toLower();
-  QString fullPath =fi.dir().absoluteFilePath(fname);
+  QString fullPath =fi.dir().absolutePath();
+  qDebug() << fullPath << "   " << fname;
   temp->setPath(fullPath.toStdString());
   temp->setFileName(fname.toStdString());
 
