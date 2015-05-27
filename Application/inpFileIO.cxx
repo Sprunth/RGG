@@ -1904,8 +1904,13 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   QFileInfo info(outFileName.c_str());
   std::string strPath = info.dir().path().toStdString();
   std::string coreName = info.fileName().toStdString();
-  std::map< std::string, std::set< Lattice::CellDrawMode > > cells = core.getDrawModesForAssemblies();
-  unsigned int count = cells.size();
+  typedef std::map< std::string, std::set< Lattice::CellDrawMode > > CellMap;
+  CellMap cells = core.getDrawModesForAssemblies();
+  unsigned int count = 0;
+  for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)
+  {
+    count += iter->second.size();
+  }
 
   std::vector< cmbNucAssemblyLink* > usedLinks = core.GetUsedLinks();
   count += usedLinks.size();
@@ -1917,8 +1922,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     output << " " << core.AssyemblyPitchY;
   }
   output << "\n";
-  for(std::map< std::string, std::set< Lattice::CellDrawMode > >::const_iterator iter = cells.begin();
-      iter != cells.end(); ++iter)
+  for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)
   {
     cmbNucAssembly* assembly = core.GetAssembly(iter->first);
     std::set< Lattice::CellDrawMode > const& forms = iter->second;
@@ -1927,7 +1931,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
         iter != forms.end(); ++iter)
     {
       Lattice::CellDrawMode mode = *iter;
-      std::string assemblyName = assembly->getFileName(mode);
+      std::string assemblyName = assembly->getFileName(mode, forms.size());
       assert(!assemblyName.empty());
       {
         QFileInfo temp(assemblyName.c_str());

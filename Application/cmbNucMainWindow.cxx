@@ -501,7 +501,11 @@ cmbNucMainWindow::cmbNucMainWindow()
     QCoreApplication::applicationDirPath() + "/materialcolors.ini";
   this->MaterialColors->OpenFile(materialfile);
 
-  connect(this->MaterialColors, SIGNAL(materialColorChanged()), this, SLOT(colorChange()));
+  connect(this->MaterialColors, SIGNAL(materialColorChanged()),
+          this, SLOT(colorChange()));
+
+  connect(this->MaterialColors, SIGNAL(materialChanged()),
+          this, SLOT(onMaterialChange()));
 
   this->initPanels();
 
@@ -1100,9 +1104,11 @@ void cmbNucMainWindow::setCameras(bool coreModel, bool fullMesh)
   if( coreModel && fullMesh && !this->Internal->CamerasLinked)
   {
     this->Internal->CamerasLinked = true;
-    if(this->Internal->IsFullMesh != fullMesh && coreModel == this->Internal->IsCoreView)
+    if(this->Internal->IsFullMesh != fullMesh &&
+       coreModel == this->Internal->IsCoreView)
       this->Internal->LinkCamera->DeepCopy(this->Renderer->GetActiveCamera());
-    else if(this->Internal->IsFullMesh == fullMesh && coreModel != this->Internal->IsCoreView)
+    else if(this->Internal->IsFullMesh == fullMesh &&
+            coreModel != this->Internal->IsCoreView)
       this->Internal->LinkCamera->DeepCopy(this->MeshRenderer->GetActiveCamera());
     this->Renderer->SetActiveCamera(this->Internal->LinkCamera);
     this->MeshRenderer->SetActiveCamera(this->Internal->LinkCamera);
@@ -1151,7 +1157,8 @@ void cmbNucMainWindow::onSaveSelectedAs()
   this->saveXML(this->NuclearCore, true, true);
 }
 
-void cmbNucMainWindow::saveXML(cmbNucCore* core, bool request_file_name, bool force)
+void cmbNucMainWindow::saveXML(cmbNucCore* core, bool request_file_name,
+                               bool force)
 {
   if(core == NULL) return;
   QString fileName = core->getFileName().c_str();
@@ -1351,12 +1358,16 @@ void cmbNucMainWindow::setScaledBounds()
     bounds1 = this->Internal->BoundsModel;
     bounds2 = this->Internal->BoundsMesh;
   }
-  this->CubeAxesActor->SetBounds( bounds1[0], bounds1[1], bounds1[2], bounds1[3],
-                                  bounds1[4]*this->ZScale, bounds1[5]*this->ZScale);
+  this->CubeAxesActor->SetBounds( bounds1[0], bounds1[1],
+                                  bounds1[2], bounds1[3],
+                                  bounds1[4]*this->ZScale,
+                                  bounds1[5]*this->ZScale);
   this->CubeAxesActor->SetZAxisRange(bounds1[4], bounds1[5]);
   this->CubeAxesActor->SetCamera(this->Renderer->GetActiveCamera());
-  this->MeshCubeAxesActor->SetBounds( bounds2[0], bounds2[1], bounds2[2], bounds2[3],
-                                      bounds2[4]*this->ZScale, bounds2[5]*this->ZScale);
+  this->MeshCubeAxesActor->SetBounds( bounds2[0], bounds2[1],
+                                      bounds2[2], bounds2[3],
+                                      bounds2[4]*this->ZScale,
+                                      bounds2[5]*this->ZScale);
   this->MeshCubeAxesActor->SetZAxisRange( bounds2[4], bounds2[5]);
   this->MeshCubeAxesActor->SetCamera(this->MeshRenderer->GetActiveCamera());
 }
@@ -1527,7 +1538,8 @@ void cmbNucMainWindow::onChangeToModelTab()
 void cmbNucMainWindow::onSelectionChange()
 {
   int sel = this->Internal->MoabSource->getSelectedType();
-  this->setCameras(this->Internal->IsCoreView, sel == 0 || sel == 3 || sel == 5);
+  this->setCameras(this->Internal->IsCoreView,
+                   sel == 0 || sel == 3 || sel == 5);
   this->MeshMapper->RemoveAllInputs();
   this->MeshMapper->SetInputDataObject(this->Internal->MoabSource->getData());
 
@@ -1569,11 +1581,13 @@ void add_color(vtkCompositeDataDisplayAttributes *att,
 
 void cmbNucMainWindow::onChangeMeshColorMode()
 {
-  vtkSmartPointer<vtkDataObject> dataObj = this->Internal->MoabSource->getData();
+  vtkSmartPointer<vtkDataObject> dataObj =
+    this->Internal->MoabSource->getData();
   if(dataObj == NULL) return;
   QColor color;
   bool visible;
-  vtkCompositeDataDisplayAttributes *att = this->MeshMapper->GetCompositeDataDisplayAttributes();
+  vtkCompositeDataDisplayAttributes *att =
+    this->MeshMapper->GetCompositeDataDisplayAttributes();
   if(att == NULL) return;
   att->RemoveBlockVisibilites();
   att->RemoveBlockOpacities();
@@ -1744,7 +1758,7 @@ void cmbNucMainWindow::resetCamera()
   double z[2] = {this->Internal->BoundsModel[4]*ZScale,
                  this->Internal->BoundsModel[5]*ZScale};
   double max = std::max( this->Internal->BoundsModel[1] - this->Internal->BoundsModel[0],
-                         std::max(this->Internal->BoundsModel[3]-this->Internal->BoundsModel[2],
+                         std::max(this->Internal->BoundsModel[3] - this->Internal->BoundsModel[2],
                                   z[1]-z[0]));
   double trans = max*0.05;
 
@@ -1799,8 +1813,11 @@ void cmbNucMainWindow::onStartRecordTest()
   this->TestUtility = new pqTestUtility(this);
   this->Internal->observer = new pqXMLEventObserver(this);
   this->TestUtility->addEventObserver("xml", this->Internal->observer);
-  this->TestUtility->addEventSource("xml", new XMLEventSource(this, this->Internal->TestDirectory,
-                                                              this->Internal->TestOutputDirectory, this));
+  this->TestUtility->addEventSource("xml",
+                                    new XMLEventSource(this,
+                                                       this->Internal->TestDirectory,
+                                                       this->Internal->TestOutputDirectory,
+                                                       this));
   QString filename = QFileDialog::getSaveFileName (this, "Test File Name",
                                                    QString(), "XML Files (*.xml)");
   if (!filename.isEmpty())
@@ -1828,8 +1845,11 @@ bool cmbNucMainWindow::playTest(QString filename)
     this->TestUtility = new pqTestUtility(this);
     this->Internal->observer = new pqXMLEventObserver(this);
     this->TestUtility->addEventObserver("xml", this->Internal->observer);
-    this->TestUtility->addEventSource("xml", new XMLEventSource(this, this->Internal->TestDirectory,
-                                                                this->Internal->TestOutputDirectory, this));
+    this->TestUtility->addEventSource("xml",
+                                      new XMLEventSource(this,
+                                                         this->Internal->TestDirectory,
+                                                         this->Internal->TestOutputDirectory,
+                                                         this));
     bool result = this->TestUtility->playTests(filename);
     delete this->TestUtility;
     this->TestUtility = NULL;
@@ -1901,8 +1921,10 @@ void cmbNucMainWindow::playTest()
       {
         this->ui->qvtkMeshWidget->setMinimumSize( 600, 600 );
         this->ui->qvtkMeshWidget->setMaximumSize( 600, 600 );
-        vtkRenderWindow* render_window = this->ui->qvtkMeshWidget->GetRenderWindow();
-        succeded &= CompareImage( render_window, this->Internal->TestMeshCorrectImage, 3000,
+        vtkRenderWindow* render_window =
+          this->ui->qvtkMeshWidget->GetRenderWindow();
+        succeded &= CompareImage( render_window,
+                                 this->Internal->TestMeshCorrectImage, 3000,
                                   this->Internal->TestOutputDirectory );
       }
     }
@@ -1962,4 +1984,13 @@ void cmbNucMainWindow::onShowImportLog()
 void cmbNucMainWindow::clearImporterLog()
 {
   importer->clearLog();
+}
+
+void cmbNucMainWindow::onMaterialChange()
+{
+  if(this->NuclearCore)
+  {
+    this->NuclearCore->setAndTestDiffFromFiles(true);
+    emit(checkSave());
+  }
 }

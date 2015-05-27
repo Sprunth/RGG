@@ -83,11 +83,14 @@ cmbNucMaterialColors::cmbNucMaterialColors(bool reset_instance)
   showMode = 0;
   UnknownMaterial = new cmbNucMaterial("UnknownMaterial", "Unknown",
                                        QColor::fromRgbF(1.0,1.0,1.0));
-  connect(UnknownMaterial, SIGNAL(nameHasChanged(QString, QPointer<cmbNucMaterial>)),
+  connect(UnknownMaterial, SIGNAL(nameHasChanged(QString,
+                                                 QPointer<cmbNucMaterial>)),
           this, SLOT(UnknownRename(QString)));
-  connect(UnknownMaterial, SIGNAL(labelHasChanged(QString, QPointer<cmbNucMaterial>)),
+  connect(UnknownMaterial, SIGNAL(labelHasChanged(QString,
+                                                  QPointer<cmbNucMaterial>)),
           this, SLOT(UnknownRelabel(QString)));
-  connect(UnknownMaterial, SIGNAL(colorChanged()), this, SIGNAL(materialColorChanged()));
+  connect(UnknownMaterial, SIGNAL(colorChanged()),
+          this, SIGNAL(materialColorChanged()));
   connect(UnknownMaterial, SIGNAL(useChanged()), this, SLOT(testShow()));
   if (!cmbNucMaterialColors::Instance || reset_instance)
   {
@@ -296,7 +299,9 @@ cmbNucMaterialColors::AddMaterial(const QString& name, const QString& label,
   connect(mat, SIGNAL(labelHasChanged(QString, QPointer<cmbNucMaterial>)),
           this, SLOT(testAndRelabel(QString, QPointer<cmbNucMaterial>)));
   connect(mat, SIGNAL(colorChanged()), this, SIGNAL(materialColorChanged()));
+  connect(mat, SIGNAL(colorChanged()), this, SIGNAL(materialChanged()));
   connect(mat, SIGNAL(useChanged()), this, SLOT(testShow()));
+  emit(materialChanged());
   return mat;
 }
 
@@ -314,14 +319,15 @@ void cmbNucMaterialColors::RemoveMaterialByName(const QString& name)
   Material_Map::iterator it = this->find(name, this->NameToMaterial);
   if(it != this->NameToMaterial.end())
   {
-      bool is_used = false;
-      if(it.value())
-      {
-        QString label = it.value()->getLabel();
-        is_used = it.value()->isUsed();
-        delete it.value();
-        RemoveMaterialByLabel(label);
-      }
+    bool is_used = false;
+    if(it.value())
+    {
+      QString label = it.value()->getLabel();
+      is_used = it.value()->isUsed();
+      delete it.value();
+      RemoveMaterialByLabel(label);
+      emit( materialChanged() );
+    }
     this->NameToMaterial.erase(it);
     if(is_used)
     {
@@ -408,6 +414,7 @@ void cmbNucMaterialColors::testAndRename(QString oldn,
   this->NameToMaterial.erase(it);
   this->insert(newN, material, this->NameToMaterial);
   material->emitMaterialChange();
+  emit( materialChanged() );
 }
 
 //----------------------------------------------------------------------------
@@ -425,6 +432,7 @@ void cmbNucMaterialColors::testAndRelabel(QString oldl,
   this->LabelToMaterial.erase(it);
   this->insert(newL, material, this->LabelToMaterial);
   material->emitMaterialChange();
+  emit( materialChanged() );
 }
 
 //----------------------------------------------------------------------------

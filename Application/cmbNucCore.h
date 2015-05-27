@@ -224,7 +224,8 @@ public:
     return this->lattice.GetDimensions();
   }
   // Sets the contents of the Assembly (i, j) to name.
-  void SetAssemblyLabel(int i, int j, const std::string &name, const QColor& color)
+  void SetAssemblyLabel(int i, int j, const std::string &name,
+                        const QColor& color)
   {
     this->lattice.SetCell(i, j, name, color);
   }
@@ -246,7 +247,8 @@ public:
 
   virtual void calculateRectPt(unsigned int i, unsigned int j, double pt[2]);
 
-  virtual void calculateRectTranslation(double /*lastPt*/[2], double & transX, double & transY);
+  virtual void calculateRectTranslation(double /*lastPt*/[2],
+                                        double & transX, double & transY);
 
   //Set the different from file and tests the h5m file;
   void setAndTestDiffFromFiles(bool diffFromFile);
@@ -334,7 +336,8 @@ public:
   virtual void setUsedLabels(std::map<QString, int> const& /*labels*/)
   {}
 
-  std::map< std::string, std::set< Lattice::CellDrawMode > > getDrawModesForAssemblies();
+  std::map< std::string, std::set< Lattice::CellDrawMode > >
+    getDrawModesForAssemblies();
 
   void addBoundaryLayer( boundaryLayer * bl); //Takes ownership
   std::vector< cmbNucCore::boundaryLayer*> const& getBoundaryLayers() const
