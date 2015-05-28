@@ -78,5 +78,6 @@ else()
     GIT_REPOSITORY https://bitbucket.org/judajake/meshkit.git
     #GIT_TAG MeshKitv1.3
     GIT_TAG v3
+    #GIT_TAG 57659678d1632bcac7a4f551cad7800a40c27aa4
   )
 endif()
