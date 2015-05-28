@@ -73,7 +73,7 @@ cmbNucExportDialog::~cmbNucExportDialog()
 void cmbNucExportDialog::exportFile(cmbNucCore * core, cmbNucInpExporter & inpExporter)
 {
   this->hide();
-  MainWindow->onUpdateINPFiles();
+  if(!MainWindow->onUpdateINPFiles()) return;
   this->Progress->ui->OutputArea->clear();
   if (core == NULL)
   {

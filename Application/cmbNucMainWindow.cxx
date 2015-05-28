@@ -1240,7 +1240,7 @@ QString cmbNucMainWindow::requestXMLFileName(QString name, QString type)
   return fileName;
 }
 
-void cmbNucMainWindow::onExportINPFiles()
+bool cmbNucMainWindow::onExportINPFiles()
 {
   QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
                                                           QDir::homePath()).toString();
@@ -1248,7 +1248,7 @@ void cmbNucMainWindow::onExportINPFiles()
                                                   "Save Project To Single Directory",
                                                   tdir.path() );
 
-  if(dir.isEmpty()) return;
+  if(dir.isEmpty()) return false;
   QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
   for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
@@ -1264,17 +1264,16 @@ void cmbNucMainWindow::onExportINPFiles()
     QFile::copy(this->NuclearCore->Params.BackgroundFullPath.c_str(),
                 (dir.toStdString() + "/" + this->NuclearCore->Params.Background).c_str());
   }
-  this->exportINPs();
+  return this->exportINPs();
 }
 
-void cmbNucMainWindow::onUpdateINPFiles()
+bool cmbNucMainWindow::onUpdateINPFiles()
 {
   if(this->NuclearCore->getExportFileName().empty())
   {
-    this->onExportINPFiles();
-    return;
+    return this->onExportINPFiles();
   }
-  this->exportINPs();
+  return this->exportINPs();
 }
 
 void cmbNucMainWindow::clearAll()
