@@ -68,7 +68,6 @@ if(ENABLE_meshkit)
 
   install(PROGRAMS ${meskit_loc}/bin/coregen DESTINATION "meshkit")
   install(PROGRAMS ${meskit_loc}/bin/assygen DESTINATION "meshkit")
-  install(PROGRAMS ${meskit_loc}/bin/PostBL DESTINATION "meshkit")
 
   install(CODE
       "execute_process(COMMAND
