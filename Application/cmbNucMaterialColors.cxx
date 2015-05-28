@@ -657,43 +657,14 @@ QString
 cmbNucMaterialColors
 ::createMaterialLabel(const char * name)
 {
+  QRegExp rx("\\_(bl[0-9])*\\_*(top|bot|(side[0-9]{0,1})){1}\\_ss\\b");
   if(name == NULL) return QString();
   QString result(name);
-  if(result.endsWith("_top_ss"))
+  int	i = rx.indexIn(result);
+  if(i != -1)
   {
-    return result.remove("_top_ss");
-  }
-  if(result.endsWith("_bot_ss"))
-  {
-    return result.remove("_bot_ss");
-  }
-  if(result.endsWith("_side_ss"))
-  {
-    return result.remove("_side_ss");
-  }
-  if(result.endsWith("_side1_ss"))
-  {
-    return result.remove("_side1_ss");
-  }
-  if(result.endsWith("_side2_ss"))
-  {
-    return result.remove("_side2_ss");
-  }
-  if(result.endsWith("_side3_ss"))
-  {
-    return result.remove("_side3_ss");
-  }
-  if(result.endsWith("_side4_ss"))
-  {
-    return result.remove("_side4_ss");
-  }
-  if(result.endsWith("_side5_ss"))
-  {
-    return result.remove("_side5_ss");
-  }
-  if(result.endsWith("_side6_ss"))
-  {
-    return result.remove("_side6_ss");
+    result.resize(i);
+    return result;
   }
   return QString(&(name[2]));
 }
