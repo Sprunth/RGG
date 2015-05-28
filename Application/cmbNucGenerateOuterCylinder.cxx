@@ -38,12 +38,12 @@ cmbNucGenerateOuterCylinder
 {
 }
 
-void
+bool
 cmbNucGenerateOuterCylinder
 ::exportFiles(cmbNucCore * core, cmbNucInpExporter & inpExporter)
 {
   this->Core = core;
-  if(this->Core == NULL) return;
+  if(this->Core == NULL) return false;
   if(this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate)
   {
     QFileInfo qi(this->Core->getExportFileName().c_str());
@@ -51,24 +51,34 @@ cmbNucGenerateOuterCylinder
     if(tmp.empty())
     {
       QMessageBox msgBox;
-      msgBox.setText(QString("Could not generate a file outer jacket file, skipping"));
+      msgBox.setText(QString("Could not generate a outer jacket file"));
       msgBox.exec();
+      return false;
     }
     else
     {
       FileName = qi.dir().absolutePath() + "/" + tmp.c_str();
       this->Core->Params.BackgroundFullPath = FileName.toStdString();
-      Generate(inpExporter);
+      return Generate(inpExporter);
     }
   }
+  return true;
 }
 
-void
+bool
 cmbNucGenerateOuterCylinder
 ::Generate(cmbNucInpExporter & inpExporter)
 {
-  inpExporter.exportCylinderINPFile(FileName,random);
+  if(!inpExporter.exportCylinderINPFile(FileName,random))
+  {
+    return false;
+  }
   cmbNucInpExporter::layers const& layers = inpExporter.getLayers();
+  std::vector< cmbNucAssembly* > used = this->Core->GetUsedAssemblies();
+  if (used.empty())
+  {
+    return false;
+  }
 
   //Generate temp jou file for coregen
   QFileInfo fi(FileName);
@@ -76,14 +86,18 @@ cmbNucGenerateOuterCylinder
   QString fullPath = fi.dir().absoluteFilePath(jouname);
   QString corename = QString("core") + random + ".inp";
   std::ofstream output(fullPath.toStdString().c_str());
-  QString fname = QString(this->Core->GetUsedAssemblies()[0]->getLabel().c_str()).toLower() + random + ".inp";
+  QString fname = QString(used[0]->getLabel().c_str()).toLower() +
+                          random + ".inp";
   double z0;
   this->Core->GetDefaults()->getZ0(z0);
   double height;
   this->Core->GetDefaults()->getHeight(height);
   output << "reset\n";
-  output << "{include(\"" << QFileInfo(fname).completeBaseName().toStdString() << ".template.jou\")}\n";
-  output << "#{OUTER_CYL_EDGE_INTERVAL = " << this->Core->getCylinderOuterSpacing() << "}\n";
+  output << "{include(\""
+         << QFileInfo(fname).completeBaseName().toStdString()
+         << ".template.jou\")}\n";
+  output << "#{OUTER_CYL_EDGE_INTERVAL = "
+         << this->Core->getCylinderOuterSpacing() << "}\n";
   output << "#{rd = " << this->Core->getCylinderRadius() << "}\n";
   output << "#{z0 = " << z0 << "}\n";
   output << "#{tol = 1e-2}\n";
@@ -99,11 +113,13 @@ cmbNucGenerateOuterCylinder
     output << "#{latwidth = " << this->Core->getLattice().getSize(0) << "}\n";
     output << "#{latheight = " << this->Core->getLattice().getSize() << "}\n";
     output << "#{xmove = (PITCHX*(latwidth-1))*0.5}\n";
-    output << "#{y0 = (((-1*PITCHY*(latheight-1))*0.5) + (PITCHY*(latheight-1)))}\n";
+    output << "#{y0 = (((-1*PITCHY*(latheight-1))*0.5) "
+              "+ (PITCHY*(latheight-1)))}\n";
   }
   output << "create cylinder radius {rd} height {Z_HEIGHT}\n";
   output << "move vol 1 x {xmove} y {-y0}  z {Z_HEIGHT/2+z0}\n";
-  output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString() << ".sat'\n";
+  output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString()
+         << ".sat'\n";
   output << "group 'gall' equals vol 2 to {TOTAL_VOLS_LARGE}\n";
   if(!this->Core->IsHexType())
   {
@@ -112,7 +128,8 @@ cmbNucGenerateOuterCylinder
   output << "subtract vol 2 to 4000 from vol 1\n";
 
   output << "group 'g1' equals vol all\n";
-  output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString() << ".sat'\n";
+  output << "import '" <<  QFileInfo(corename).completeBaseName().toStdString()
+         << ".sat'\n";
   output << "imprint vol all\n";
   if(!this->Core->IsHexType())
   {
@@ -136,31 +153,43 @@ cmbNucGenerateOuterCylinder
     output << "merge vol all\n";
     output << "imprint vol all\n";
   }
-  output << "export acis '" << QFileInfo(jouname).completeBaseName().toStdString() << ".sat' over\n";
+  output << "export acis '"
+         << QFileInfo(jouname).completeBaseName().toStdString()
+         << ".sat' over\n";
   if(layers.levels.size() <= 2)
   {
-    output << "surface with z_coord > {Z_MID -.1*Z_HEIGHT} and z_coord < {Z_MID + .1*Z_HEIGHT} size {AXIAL_MESH_SIZE}\n";
+    output << "surface with z_coord > {Z_MID -.1*Z_HEIGHT}"
+              " and z_coord < {Z_MID + .1*Z_HEIGHT} size {AXIAL_MESH_SIZE}\n";
   }
   if(this->Core->IsHexType())
   {
-    output << "curve with z_coord > {Z_HEIGHT - tol} and length < {PITCH} interval {TOP_EDGE_INTERVAL}\n";
-    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCH} interval {OUTER_CYL_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and "
+              "length < {PITCH} interval {TOP_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCH} "
+              "interval {OUTER_CYL_EDGE_INTERVAL}\n";
   }
   else
   {
-    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHX - tol} interval {TOP_EDGE_INTERVAL}\n";
-    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHY - tol} interval {TOP_EDGE_INTERVAL}\n";
-    output << "curve with z_coord > {Z_HEIGHT - tol} and length > {PITCHX + PITCHY} interval {OUTER_CYL_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > "
+              "{PITCHX - tol} interval {TOP_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > "
+              "{PITCHY - tol} interval {TOP_EDGE_INTERVAL}\n";
+    output << "curve with z_coord > {Z_HEIGHT - tol} and length > "
+              "{PITCHX + PITCHY} interval {OUTER_CYL_EDGE_INTERVAL}\n";
   }
   if(layers.levels.size() > 2)
   {
     output << "mesh surface with z_coord = {BLOCK2_ZTOP = " << height << "}\n";
     output << "### Setting Z intervals on ducts and meshing along Z\n";
-    output << "surf with z_coord  > {BLOCK2_ZBOT} and z_coord < {BLOCK2_ZTOP} interval {BLOCK2_Z_INTERVAL}\n";
-    output << "mesh vol with z_coord  > {BLOCK2_ZBOT} and z_coord < {BLOCK2_ZTOP}\n";
+    output << "surf with z_coord  > {BLOCK2_ZBOT} and z_coord < {BLOCK2_ZTOP} "
+              "interval {BLOCK2_Z_INTERVAL}\n";
+    output << "mesh vol with z_coord  > {BLOCK2_ZBOT} and z_coord < "
+              "{BLOCK2_ZTOP}\n";
     output << "##\n";
-    output << "surf with z_coord  > {BLOCK1_ZBOT} and z_coord < {BLOCK1_ZTOP} interval {BLOCK1_Z_INTERVAL}\n";
-    output << "mesh vol with z_coord> {BLOCK1_ZBOT} and z_coord < {BLOCK1_ZTOP}\n";
+    output << "surf with z_coord  > {BLOCK1_ZBOT} and z_coord < {BLOCK1_ZTOP} "
+              "interval {BLOCK1_Z_INTERVAL}\n";
+    output << "mesh vol with z_coord> {BLOCK1_ZBOT} and z_coord < "
+              "{BLOCK1_ZTOP}\n";
     output << "##\n";
   }
   else
@@ -170,14 +199,17 @@ cmbNucGenerateOuterCylinder
   output << "block 9999 vol all\n";
   output << "save as '" << fi.fileName().toStdString() << "' over\n";
   output.close();
+  return true;
 }
 
 QString cmbNucGenerateOuterCylinder
 ::getAssygenFileName()
 {
   QFileInfo fi(FileName);
-  cmbNucAssembly * temp = this->Core->GetUsedAssemblies()[0];
-  QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
+  std::vector< cmbNucAssembly* > used = this->Core->GetUsedAssemblies();
+  if(used.empty()) return QString();
+  QString fname = QString(used[0]->getLabel().c_str()).toLower() +
+                  random + ".inp";
   return fi.dir().absoluteFilePath(fname);
 }
 
@@ -185,7 +217,9 @@ bool
 cmbNucGenerateOuterCylinder
 ::generateCylinder()
 {
-  return this->Core != NULL && this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate && !FileName.isEmpty();
+  return this->Core != NULL &&
+         this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate &&
+         !FileName.isEmpty();
 }
 
 QString cmbNucGenerateOuterCylinder
@@ -209,5 +243,6 @@ QString cmbNucGenerateOuterCylinder
 {
   QFileInfo fi(FileName);
   QString corename = QString("core") + random + ".inp";
-  return fi.dir().absoluteFilePath(QFileInfo(corename).completeBaseName() + ".sat");
+  return fi.dir().absoluteFilePath(QFileInfo(corename).completeBaseName() +
+                                   ".sat");
 }

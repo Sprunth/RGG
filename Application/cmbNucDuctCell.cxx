@@ -545,6 +545,7 @@ void DuctCell::uniformizeMaterialLayers()
 
 void DuctCell::splitDucts( std::vector<double> const& layers )
 {
+  if(layers.empty()) return;
   std::vector<Duct*> addedDucts;
   std::size_t layersStart = 0;
   //find the the bottom

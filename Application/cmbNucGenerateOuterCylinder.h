@@ -14,7 +14,7 @@ public:
   cmbNucGenerateOuterCylinder();
   ~cmbNucGenerateOuterCylinder();
 
-  void exportFiles(cmbNucCore * core, cmbNucInpExporter & inpExporter);
+  bool exportFiles(cmbNucCore * core, cmbNucInpExporter & inpExporter);
 
   QString getAssygenFileName();
   QString getCubitFileName();
@@ -24,7 +24,7 @@ public:
   bool generateCylinder();
 
 protected:
-  void Generate(cmbNucInpExporter & inpExporter);
+  bool Generate(cmbNucInpExporter & inpExporter);
 
 private:
   // Designer form

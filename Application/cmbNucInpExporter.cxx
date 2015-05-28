@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QSettings>
+#include <QMessageBox>
 
 #include <set>
 
@@ -77,6 +78,17 @@ bool cmbNucInpExporter
 bool cmbNucInpExporter
 ::exportCylinderINPFile(QString filename, QString random)
 {
+  std::vector< cmbNucAssembly* > used = this->NuclearCore->GetUsedAssemblies();
+  if (used.empty())
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Could not export cylinder");
+    msgBox.setInformativeText("In order to generate a outer "
+                              "cylinder, the core must use at least"
+                              " one assyembly.");
+    msgBox.exec();
+    return false;
+  }
   //clone the pins and ducts.  These are needed for determining layers
   cmbNucDuctLibrary * odl = this->NuclearCore->getDuctLibrary();
   cmbNucPinLibrary * pl = this->NuclearCore->getPinLibrary()->clone();
@@ -91,7 +103,7 @@ bool cmbNucInpExporter
 
   //Generate temp inp file of outer cores of an assembly
   QFileInfo fi(filename);
-  cmbNucAssembly * temp = this->NuclearCore->GetUsedAssemblies()[0]->clone(pl,dl);
+  cmbNucAssembly * temp = used[0]->clone(pl,dl);
   QString fname = QString(temp->getLabel().c_str()).toLower() + random + ".inp";
   fname = fname.toLower();
   QString fullPath =fi.dir().absolutePath();

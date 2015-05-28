@@ -216,12 +216,17 @@ void cmbNucExportDialog::runCoregen()
     return;
   }
   this->Progress->show();
-  message.CoreGenOutputFile = QFileInfo(CoregenFile).absolutePath() + "/" + QString(this->Core->getMeshOutputFilename().c_str()).trimmed();
+  message.CoreGenOutputFile = QFileInfo(CoregenFile).absolutePath() + "/" +
+                              QString(this->Core->getMeshOutputFilename().c_str()).trimmed();
 
   message.keepGoingAfterError = this->ui->keepGoingOnError->isChecked();
   message.cylinderTask.valid = false;
 
-  OuterCylinder->exportFiles(this->Core, *InpExporter);
+  if(!OuterCylinder->exportFiles(this->Core, *InpExporter))
+  {
+    this->Progress->hide();
+    return;
+  }
   if(OuterCylinder->generateCylinder())
   {
     message.cylinderTask = Message::CylinderTask(OuterCylinder->getAssygenFileName(),
