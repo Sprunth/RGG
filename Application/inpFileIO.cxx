@@ -301,6 +301,7 @@ bool inpFileReader
   std::map<std::string, std::string> newLabel;
   DuctCell * dc = new DuctCell;
   dc->setName(assembly.getLabel() + "_Duct");
+  std::vector<std::string> boundary_layer_materials;
 
   while(!input.eof())
   {
@@ -310,88 +311,103 @@ bool inpFileReader
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
     if(input.eof())
-      {
+    {
       break;
-      }
+    }
     else if(value == "end")
-      {
+    {
       break;
-      }
+    }
     else if(value.empty())
-      {
+    {
       input.clear();
       continue;
+    }
+    else if(value == "blmaterials") // Currently we ignore boundary layers.
+    {                               // Does not fit well with current data
+      int count;                    // structures
+      input >> count;
+      std::string blname;
+      double bias;
+      int intervals;
+      for(int i = 0; i < count; ++i)
+      {
+        input >> blname >> bias >> intervals;
+        boundary_layer_materials.push_back(blname);
       }
+    }
     else if(value == "geometrytype")
-      {
-      if(!helper.readGeometryType( input, assembly, assembly.getLattice() )) return false;
-      }
+    {
+      if(!helper.readGeometryType(input, assembly,
+                                  assembly.getLattice() )) return false;
+    }
     else if(value == "materials")
-      {
+    {
       if(!helper.readMaterials( input, assembly )) return false;
-      }
+    }
     else if(value == "duct" || value == "dimensions")
-      {
+    {
       if(!helper.readDuct( input, assembly.IsHexType(), dc )) return false;
-      }
+    }
     else if(value == "pincells")
-      {
+    {
       if(!helper.readPincell( input, assembly, pl, newLabel )) return false;
-      }
+    }
     else if(value == "assembly")
-      {
+    {
       if(!helper.readLattice( input, assembly.getLattice() )) return false;
-      }
+    }
     else if(value == "tetmeshsize")
-      {
+    {
       input >> assembly.GetParameters()->TetMeshSize;
-      }
+    }
     else if(value == "radialmeshsize")
-      {
+    {
       input >> assembly.GetParameters()->RadialMeshSize;
-      }
+    }
     else if(value == "axialmeshsize")
-      {
+    {
       input >> assembly.GetParameters()->AxialMeshSize;
       std::string tmp;
-      std::getline(input, tmp); //some version add extra for each duct.  for now we just ignore them.
-      }
+      std::getline(input, tmp); //some version add extra for
+                                //each duct.  for now we just ignore them.
+    }
     else if(value == "rotate")
-      {
+    {
       std::string tmp; double a;
       input >> tmp >> a;
       assembly.addTransform(new cmbNucAssembly::Rotate(tmp, a));
-      }
+    }
     else if(value == "section")
-      {
+    {
       std::string tmp, tmp1; double a;
       input >> tmp >> a;
       std::getline(input, tmp1);
       assembly.addTransform(new cmbNucAssembly::Section(tmp, a, tmp1));
-      }
+    }
     else if(value == "move")
-      {
+    {
       input >> assembly.GetParameters()->MoveXYZ[0]
             >> assembly.GetParameters()->MoveXYZ[1]
             >> assembly.GetParameters()->MoveXYZ[2];
-      }
+    }
     else if(value == "hblock")
-      {
+    {
       std::getline(input, assembly.GetParameters()->HBlock);
-      }
+    }
     else if(value == "geometry")
-      {
+    {
       input >> assembly.GetParameters()->Geometry;
-      }
+    }
     else if(value == "center")
-      {
+    {
       std::string tmp;
       std::getline(input, tmp);
       if(!tmp.empty())
-        {
+      {
         assembly.GetParameters()->CenterXYZ = tmp;
-        }
       }
+    }
     else if(value == "save_exodus")
     {
       std::string tmp;
@@ -402,18 +418,24 @@ bool inpFileReader
         assembly.GetParameters()->Save_Exodus = false;
       }
     }
-#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)\
-    else if(value == #Key)\
-      { \
-      if(!helper.read(input, assembly.IsHexType(), MSG, assembly.GetParameters()->Var))return false;\
-      }
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)         \
+    else if(value == #Key)                              \
+    {                                                   \
+      if(!helper.read(input, assembly.IsHexType(), MSG, \
+                      assembly.GetParameters()->Var))   \
+        return false;                                   \
+    }
     ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
     else
+    {
+      if(!helper.readUnknown(input, value,
+                             assembly.GetParameters()->UnknownParams))
       {
-      if(!helper.readUnknown(input, value, assembly.GetParameters()->UnknownParams)) return false;
+        return false;
       }
     }
+  }
   DuctCell * dcp = dc;
   dl->addDuct(&dc);
   if(dcp != dc)
@@ -425,7 +447,8 @@ bool inpFileReader
   assembly.setAndTestDiffFromFiles(helper.labelIsDifferent);
   if(!newLabel.empty())
   {
-    for(std::map<std::string,std::string>::const_iterator iter = newLabel.begin(); iter != newLabel.end(); ++iter)
+    for(std::map<std::string,std::string>::const_iterator iter = newLabel.begin();
+        iter != newLabel.end(); ++iter)
     {
       assembly.getLattice().replaceLabel(iter->first, iter->second);
     }
@@ -434,6 +457,17 @@ bool inpFileReader
   this->renamePin  = helper.renamePin;
   this->pinAddMode = helper.pinAddMode;
   log.insert(log.end(), helper.log.begin(), helper.log.end());
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+
+  //clean up boundary layer
+  for( unsigned int i = 0; i < boundary_layer_materials.size(); i++)
+  {
+    std::string bl_name = boundary_layer_materials[i];
+    pl->removeFakeBoundaryLayer(bl_name);
+    dl->removeFakeBoundaryLayer(bl_name);
+    matColorMap->RemoveMaterialByLabel(bl_name.c_str());
+  }
+
   return dc->getDuct(0) != NULL;
 }
 
@@ -1135,22 +1169,24 @@ inpFileHelper
   duct->setThickness(1, maxV[1]);
 
   for(int i = 0; i < materials; i++)
-    {
+  {
     input >> mlabel;
     QPointer< cmbNucMaterial > mat =
-        cmbNucMaterialColors::instance()->getUnknownMaterial();
+      cmbNucMaterialColors::instance()->getUnknownMaterial();
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
     map_iter it = materialLabelMap.find(mlabel);
     if(it != materialLabelMap.end())
+    {
       mat = it->second;
+    }
     else
-      {
+    {
       labelIsDifferent = true;
-      }
+    }
     duct->setMaterial(i, mat);
     duct->getNormThick(i)[0] /= maxV[0];
     duct->getNormThick(i)[1] /= maxV[1];
-    }
+  }
 
   dc->AddDuct(duct);
   return true;

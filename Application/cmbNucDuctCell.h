@@ -109,6 +109,7 @@ public:
 
   bool isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat) const;
   QSet< cmbNucMaterial* > getInterfaceMaterials(QPointer<cmbNucMaterial> blMat);
+  void removeFakeBoundaryLayer(std::string blname);
 protected:
   double thickness[2];
   double x;
@@ -153,6 +154,7 @@ public:
   void splitDucts( std::vector<double> const& layers );
   bool isInnerDuctMaterial( QPointer<cmbNucMaterial> blMat ) const;
   QSet< cmbNucMaterial* > getInterfaceMaterials(QPointer<cmbNucMaterial> blMat);
+  void removeFakeBoundaryLayer(std::string blname);
 protected:
   std::vector<Duct*> Ducts;
   DuctConnection * Connection;

@@ -49,6 +49,8 @@ public:
 
   cmbNucDuctLibrary * clone();
 
+  void removeFakeBoundaryLayer(std::string blname);
+
 protected:
   std::vector<DuctCell*> DuctCells;
   std::map<std::string, size_t> NameToDuct;

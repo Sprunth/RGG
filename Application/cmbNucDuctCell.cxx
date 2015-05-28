@@ -228,7 +228,8 @@ void Duct::setMaterialLayer(int i, cmbNucMaterialLayer * ml)
   delete ml;
 }
 
-void Duct::splitMaterialLayer( std::vector<double> const& lx, std::vector<double> const& ly )
+void Duct::splitMaterialLayer( std::vector<double> const& lx,
+                              std::vector<double> const& ly )
 {
   assert(lx.size() == ly.size());
   if(lx.size() == this->Materials.size()) return; //nothing to do
@@ -263,6 +264,17 @@ void Duct::splitMaterialLayer( std::vector<double> const& lx, std::vector<double
 bool Duct::isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat) const
 {
   return (Materials[0].getMaterial() == blMat);
+}
+
+void Duct::removeFakeBoundaryLayer(std::string blname)
+{
+  for(unsigned int at=0; at< this->Materials.size(); ++at )
+  {
+    if(this->Materials[at].getMaterial()->getLabel().toStdString() == blname)
+    {
+      removeLayer(at);
+    }
+  }
 }
 
 /*******************************************************************************/
@@ -562,7 +574,8 @@ void DuctCell::splitDucts( std::vector<double> const& layers )
     d->setZ2(layers[i+1]);
     for( unsigned int j = 0; j < d->NumberOfLayers(); ++j)
     {
-      d->setMaterial(j, cmbNucMaterialColors::instance()->getMaterialByName("gap"));
+      d->setMaterial(j,
+                     cmbNucMaterialColors::instance()->getMaterialByName("gap"));
     }
     addedDucts.push_back(d);
   }
@@ -595,7 +608,8 @@ void DuctCell::splitDucts( std::vector<double> const& layers )
     d->setZ2(layers[i+1]);
     for( unsigned int j = 0; j < d->NumberOfLayers(); ++j)
     {
-      d->setMaterial(j, cmbNucMaterialColors::instance()->getMaterialByName("gap"));
+      d->setMaterial(j,
+                     cmbNucMaterialColors::instance()->getMaterialByName("gap"));
     }
     addedDucts.push_back(d);
   }
@@ -612,4 +626,12 @@ bool DuctCell::isInnerDuctMaterial( QPointer<cmbNucMaterial> blMat ) const
     if(this->Ducts[i]->isInnerDuctMaterial(blMat)) return true;
   }
   return false;
+}
+
+void DuctCell::removeFakeBoundaryLayer(std::string blname)
+{
+  for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+  {
+    this->Ducts[i]->removeFakeBoundaryLayer(blname);
+  }
 }

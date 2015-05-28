@@ -474,7 +474,8 @@ QSet< cmbNucMaterial* > PinCell::getMaterials()
   return result;
 }
 
-QSet< cmbNucMaterial* > PinCell::getOuterMaterials(QPointer<cmbNucMaterial> blMat)
+QSet< cmbNucMaterial* > PinCell
+::getOuterMaterials(QPointer<cmbNucMaterial> blMat)
 {
   QSet< cmbNucMaterial* > result;
   if(this->cellMaterialSet() && this->CellMaterial.getMaterial() != blMat)
@@ -593,7 +594,8 @@ void PinCell::setCellMaterial(QPointer<cmbNucMaterial> material)
   CellMaterial.changeMaterial(material);
   if(material == cmbNucMaterialColors::instance()->getUnknownMaterial())
   {
-    //Unknown is not really used or visiable for cell material, so decrease by one
+    //Unknown is not really used or visiable for
+    //cell material, so decrease by one
     material->dec();
   }
 }
@@ -625,7 +627,8 @@ vtkBoundingBox PinCell::computeBounds(bool isHex)
     pitchX = pitchY = maxRadius * 2.5;
     if(isHex)
     {
-      x = y = std::max(maxRadius, pitchX*0.5/0.86602540378443864676372317075294);
+      x = y = std::max(maxRadius,
+                       pitchX*0.5/0.86602540378443864676372317075294);
     }
     else
     {
@@ -646,7 +649,8 @@ std::vector<double> PinCell::getPinLayers() const
     unique_levels.insert(this->GetPart(i)->getZ2());
   }
   std::vector<double> result;
-  for(std::set<double>::const_iterator iter = unique_levels.begin(); iter != unique_levels.end(); ++iter)
+  for(std::set<double>::const_iterator iter = unique_levels.begin();
+      iter != unique_levels.end(); ++iter)
   {
     result.push_back(*iter);
   }
@@ -741,5 +745,30 @@ void PinCell::setZ0(double z0)
     PinSubPart* p = this->GetPart(i);
     p->setZ1(p->getZ1() + d);
     p->setZ2(p->getZ2() + d);
+  }
+}
+
+void PinCell::removeFakeBoundaryLayer(std::string blname)
+{
+  //For now only support the outer most
+  int outer = GetNumberOfLayers()-1;
+  QPointer<cmbNucMaterial> m = Material(outer);
+  if(m != NULL && m->getLabel().toStdString() == blname)
+  {
+    for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
+    {
+      PinSubPart* p = this->GetPart(i);
+      double br = p->getRadius( outer-1, PinSubPart::BOTTOM);
+      double tr = p->getRadius( outer-1, PinSubPart::TOP);
+      p->setRadius(PinSubPart::BOTTOM, br);
+      p->setRadius(PinSubPart::TOP, tr);
+    }
+
+    double r = Radius(outer-1);
+    for(int i = 0; i < GetNumberOfLayers(); ++i)
+    {
+      SetRadius(i, Radius(i)/r);
+    }
+    this->SetNumberOfLayers(GetNumberOfLayers()-1);
   }
 }
