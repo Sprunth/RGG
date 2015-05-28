@@ -1721,7 +1721,7 @@ void cmbNucMainWindow::updatePropertyDockTitle(const QString& title)
 
 bool cmbNucMainWindow::checkFilesBeforePreceeding()
 {
-  if(!this->InputsWidget->isEnabled()) return true;
+  if(!this->InputsWidget->isEnabled() || !this->Internal->HasModel) return true;
   bool changed = false;
   changed |= NuclearCore->changeSinceLastSave();
   if(!changed) return true;
