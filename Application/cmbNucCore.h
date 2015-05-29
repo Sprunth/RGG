@@ -253,17 +253,28 @@ public:
   //Set the different from file and tests the h5m file;
   void setAndTestDiffFromFiles(bool diffFromFile);
   void fileChanged();
-  void  boundaryLayerChanged();
+  void boundaryLayerChanged();
   bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
-  bool  boundaryLayerChangedSinceLastGenerate() const;
+  bool boundaryLayerChangedSinceLastGenerate() const;
 
   std::string getFileName(){return CurrentFileName;}
   virtual std::string getTitle(){ return "Core"; }
 
   // Get/Set Assembly pitch
-  double AssyemblyPitchX;
-  double AssyemblyPitchY;
+  double getAssemblyPitchX() const
+  {
+    return this->AssemblyPitchX;
+  }
+  double getAssemblyPitchY() const
+  {
+    return this->AssemblyPitchY;
+  }
+  void setAssemblyPitch(double x, double y)
+  {
+    this->AssemblyPitchX = x;
+    this->AssemblyPitchY = y;
+  }
 
   void setGeometryLabel(std::string geomType);
 
@@ -280,7 +291,10 @@ public:
 
   void setHexSymmetry(int sym);
 
-  cmbNucCoreParams Params;
+  cmbNucCoreParams & getParams()
+  {
+    return Params;
+  }
 
   QPointer<cmbNucDefaults> GetDefaults();
   bool HasDefaults() const;
@@ -347,9 +361,15 @@ public:
   int getNumberOfBoundaryLayers() const;
   void removeBoundaryLayer(size_t bl);
   void clearBoundaryLayer();
-   boundaryLayer * getBoundaryLayer(int bl) const;
+  boundaryLayer * getBoundaryLayer(int bl) const;
 
 private:
+
+  double AssemblyPitchX;
+  double AssemblyPitchY;
+
+  cmbNucCoreParams Params;
+
   bool hasCylinder;
   double cylinderRadius;
   int cylinderOuterSpacing;

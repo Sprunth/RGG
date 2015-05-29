@@ -44,10 +44,10 @@ cmbNucGenerateOuterCylinder
 {
   this->Core = core;
   if(this->Core == NULL) return false;
-  if(this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate)
+  if(this->Core->getParams().BackgroundMode == cmbNucCoreParams::Generate)
   {
     QFileInfo qi(this->Core->getExportFileName().c_str());
-    std::string tmp = this->Core->Params.Background;
+    std::string tmp = this->Core->getParams().Background;
     if(tmp.empty())
     {
       QMessageBox msgBox;
@@ -58,7 +58,7 @@ cmbNucGenerateOuterCylinder
     else
     {
       FileName = qi.dir().absolutePath() + "/" + tmp.c_str();
-      this->Core->Params.BackgroundFullPath = FileName.toStdString();
+      this->Core->getParams().BackgroundFullPath = FileName.toStdString();
       return Generate(inpExporter);
     }
   }
@@ -218,7 +218,7 @@ cmbNucGenerateOuterCylinder
 ::generateCylinder()
 {
   return this->Core != NULL &&
-         this->Core->Params.BackgroundMode == cmbNucCoreParams::Generate &&
+         this->Core->getParams().BackgroundMode == cmbNucCoreParams::Generate &&
          !FileName.isEmpty();
 }
 

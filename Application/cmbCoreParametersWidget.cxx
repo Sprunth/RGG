@@ -224,7 +224,7 @@ void cmbCoreParametersWidget::applyToCore(cmbNucCore* corein)
 {
   bool changed = false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
-changed |= setValue(corein->Params.Var, Internal->Var);
+changed |= setValue(corein->getParams().Var, Internal->Var);
 
   USED_SIMPLE_VARABLE_MACRO()
 
@@ -238,42 +238,42 @@ changed |= setValue(corein->Params.Var, Internal->Var);
   }
 
   cmbNucCoreParams::NeumannSetStruct tmp;
-  changed |= corein->Params.NeumannSet != Internal->NeumannSetTable->rowCount();
-  corein->Params.NeumannSet.resize(Internal->NeumannSetTable->rowCount());
+  changed |= corein->getParams().NeumannSet != Internal->NeumannSetTable->rowCount();
+  corein->getParams().NeumannSet.resize(Internal->NeumannSetTable->rowCount());
   for (int i = 0; i < Internal->NeumannSetTable->rowCount(); ++i )
   {
     changed |= convert(Internal->NeumannSetTable->item( i, 0 )->text(),
-                       corein->Params.NeumannSet[i].Side);
+                       corein->getParams().NeumannSet[i].Side);
     changed |= convert(Internal->NeumannSetTable->item( i, 1 )->text(),
-                       corein->Params.NeumannSet[i].Id);
+                       corein->getParams().NeumannSet[i].Id);
     changed |= convert(Internal->NeumannSetTable->item( i, 2 )->text(),
-                       corein->Params.NeumannSet[i].Equation);
+                       corein->getParams().NeumannSet[i].Equation);
   }
-  changed |= convert(Internal->ExtrudeDivisions->text(), corein->Params.Extrude.Divisions);
-  changed |= convert(Internal->ExtrudeHeight->text(), corein->Params.Extrude.Size);
+  changed |= convert(Internal->ExtrudeDivisions->text(), corein->getParams().Extrude.Divisions);
+  changed |= convert(Internal->ExtrudeHeight->text(), corein->getParams().Extrude.Size);
 
   std::stringstream ss(Internal->UnknownsVars->toPlainText().toStdString().c_str());
   std::string line;
   unsigned int j = 0;
   while( std::getline(ss, line))
   {
-    if(j<corein->Params.UnknownKeyWords.size())
+    if(j<corein->getParams().UnknownKeyWords.size())
     {
-      changed |= corein->Params.UnknownKeyWords[j] != line;
-      corein->Params.UnknownKeyWords[j] = line;
+      changed |= corein->getParams().UnknownKeyWords[j] != line;
+      corein->getParams().UnknownKeyWords[j] = line;
     }
     else
     {
       changed = true;
-      corein->Params.UnknownKeyWords.push_back(line);
+      corein->getParams().UnknownKeyWords.push_back(line);
     }
     j++;
     line.clear();
   }
-  if(j < corein->Params.UnknownKeyWords.size())
+  if(j < corein->getParams().UnknownKeyWords.size())
   {
     changed = true;
-    corein->Params.UnknownKeyWords.resize(j);
+    corein->getParams().UnknownKeyWords.resize(j);
   }
 
   if(changed) emit valuesChanged();
@@ -283,7 +283,7 @@ changed |= setValue(corein->Params.Var, Internal->Var);
 void cmbCoreParametersWidget::resetCore(cmbNucCore* corein)
 {
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) \
-if(Core->Params.Var##IsSet()){ setValue(Internal->Var, corein->Params.Var); }\
+if(Core->getParams().Var##IsSet()){ setValue(Internal->Var, corein->getParams().Var); }\
 else{ setValue(Internal->Var, DEFAULT); }
 
   USED_SIMPLE_VARABLE_MACRO()
@@ -294,7 +294,7 @@ else{ setValue(Internal->Var, DEFAULT); }
 
 
 
-  std::vector<cmbNucCoreParams::NeumannSetStruct> & ns = corein->Params.NeumannSet;
+  std::vector<cmbNucCoreParams::NeumannSetStruct> & ns = corein->getParams().NeumannSet;
   while ( Internal->NeumannSetTable->rowCount() > 0)
   {
      Internal->NeumannSetTable->removeRow(0);
@@ -307,15 +307,15 @@ else{ setValue(Internal->Var, DEFAULT); }
                QString::fromStdString(ns[i].Equation));
   }
 
-  if(Core->Params.ExtrudeIsSet())
+  if(Core->getParams().ExtrudeIsSet())
   {
-    setValue(Internal->ExtrudeDivisions, corein->Params.Extrude.Divisions);
-    setValue(Internal->ExtrudeHeight, corein->Params.Extrude.Size);
+    setValue(Internal->ExtrudeDivisions, corein->getParams().Extrude.Divisions);
+    setValue(Internal->ExtrudeHeight, corein->getParams().Extrude.Size);
   }
   std::string unknowns;
-  for(unsigned int i = 0; i < corein->Params.UnknownKeyWords.size(); ++i)
+  for(unsigned int i = 0; i < corein->getParams().UnknownKeyWords.size(); ++i)
   {
-    unknowns += corein->Params.UnknownKeyWords[i] + "\n";
+    unknowns += corein->getParams().UnknownKeyWords[i] + "\n";
   }
   Internal->UnknownsVars->setPlainText(QString::fromStdString(unknowns));
 }

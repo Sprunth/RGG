@@ -139,7 +139,7 @@ void cmbNucExportDialog::sendSignalToProcess()
                                                  OuterCylinder->getCoreGenFileName(),
                                                  OuterCylinder->getSATFileName(),
                                                  OuterCylinder->getCubitFileName(),
-                                                 this->Core->Params.BackgroundFullPath.c_str());
+                                                 this->Core->getParams().BackgroundFullPath.c_str());
   }
   emit process(message);
 }
@@ -233,7 +233,7 @@ void cmbNucExportDialog::runCoregen()
                                                  OuterCylinder->getCoreGenFileName(),
                                                  OuterCylinder->getSATFileName(),
                                                  OuterCylinder->getCubitFileName(),
-                                                 this->Core->Params.BackgroundFullPath.c_str());
+                                                 this->Core->getParams().BackgroundFullPath.c_str());
   }
 
   emit process( message );

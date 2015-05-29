@@ -1258,11 +1258,11 @@ bool cmbNucMainWindow::onExportINPFiles()
     NuclearCore->GetAssembly(i)->setFileName( "assembly_" + tmpl + ".inp" );
   }
   NuclearCore->setExportFileName(dir.toStdString() + "/core.inp");
-  if( this->NuclearCore->Params.BackgroundMode == cmbNucCoreParams::External  &&
-      QFileInfo(this->NuclearCore->Params.BackgroundFullPath.c_str()).exists() )
+  if( this->NuclearCore->getParams().BackgroundMode == cmbNucCoreParams::External  &&
+      QFileInfo(this->NuclearCore->getParams().BackgroundFullPath.c_str()).exists() )
   {
-    QFile::copy(this->NuclearCore->Params.BackgroundFullPath.c_str(),
-                (dir.toStdString() + "/" + this->NuclearCore->Params.Background).c_str());
+    QFile::copy(this->NuclearCore->getParams().BackgroundFullPath.c_str(),
+                (dir.toStdString() + "/" + this->NuclearCore->getParams().Background).c_str());
   }
   return this->exportINPs();
 }

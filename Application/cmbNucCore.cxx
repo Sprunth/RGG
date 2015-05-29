@@ -67,7 +67,7 @@ cmbNucCore::cmbNucCore(bool needSaved)
 {
   this->PinLibrary = new cmbNucPinLibrary;
   this->DuctLibrary = new cmbNucDuctLibrary;
-  this->AssyemblyPitchX = this->AssyemblyPitchY = 23.5;
+  this->AssemblyPitchX = this->AssemblyPitchY = 23.5;
   this->HexSymmetry = 1;
   DifferentFromFile = needSaved;
   DifferentFromH5M = true;
@@ -482,15 +482,15 @@ void cmbNucCore::RebuildGrid()
 void cmbNucCore::computePitch()
 {
   std::vector< cmbNucAssembly* > assemblies = this->GetUsedAssemblies();
-  AssyemblyPitchX = 0;
-  AssyemblyPitchY = 0;
+  AssemblyPitchX = 0;
+  AssemblyPitchY = 0;
   double tmp[2];
   for (unsigned int i = 0; i < assemblies.size(); ++i)
   {
     if(assemblies[i]==NULL) continue;
     assemblies[i]->GetDuctWidthHeight(tmp);
-    if(tmp[0]>AssyemblyPitchX) AssyemblyPitchX = tmp[0];
-    if(tmp[1]>AssyemblyPitchY) AssyemblyPitchY = tmp[1];
+    if(tmp[0]>AssemblyPitchX) AssemblyPitchX = tmp[0];
+    if(tmp[1]>AssemblyPitchY) AssemblyPitchY = tmp[1];
   }
 }
 

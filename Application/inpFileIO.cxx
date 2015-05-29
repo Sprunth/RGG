@@ -523,24 +523,24 @@ bool inpFileReader
     }
     else if(value == "background")
     {
-      getline(input, core.Params.Background);
-      core.Params.Background = QString(core.Params.Background.c_str()).trimmed().toStdString();
+      getline(input, core.getParams().Background);
+      core.getParams().Background = QString(core.getParams().Background.c_str()).trimmed().toStdString();
       //check to make sure the file exists.
       QFileInfo tmpFI( QDir(strPath.c_str()),
-                       core.Params.Background.c_str() );
+                       core.getParams().Background.c_str() );
       if(!tmpFI.exists())
       {
-        core.Params.BackgroundMode = cmbNucCoreParams::None;
+        core.getParams().BackgroundMode = cmbNucCoreParams::None;
         QMessageBox msgBox;
-        msgBox.setText( QString(core.Params.Background.c_str()) +
+        msgBox.setText( QString(core.getParams().Background.c_str()) +
                         QString(" was not found in same director as the core inp file.  Will be ingored."));
         msgBox.exec();
       }
       else
       {
-        core.Params.BackgroundMode = cmbNucCoreParams::External;
+        core.getParams().BackgroundMode = cmbNucCoreParams::External;
       }
-      core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
+      core.getParams().BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
     }
     else if(value == "outputfilename")
     {
@@ -551,7 +551,7 @@ bool inpFileReader
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     else if( value == #Key) \
     {\
-        helper.read(input, core.IsHexType(), MSG, core.Params.Var);\
+        helper.read(input, core.IsHexType(), MSG, core.getParams().Var);\
     }
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
       EXTRA_VARABLE_MACRO()
@@ -559,7 +559,7 @@ bool inpFileReader
 #undef FUN_STRUCT
     else //unknown
     {
-      if(!helper.readUnknown(input, value, core.Params.UnknownKeyWords)) return false;
+      if(!helper.readUnknown(input, value, core.getParams().UnknownKeyWords)) return false;
     }
   }
   core.calculateDefaults();
@@ -830,38 +830,38 @@ bool inpFileWriter::write(std::string fname,
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", true, core.getLattice() );
-  if( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
-      core.Params.BackgroundFullPath.empty())
+  if( core.getParams().BackgroundMode == cmbNucCoreParams::External  &&
+      core.getParams().BackgroundFullPath.empty())
   {
     QFileInfo tmpFI( QFileInfo(core.getFileName().c_str()).dir(),
-                     core.Params.Background.c_str() );
-    core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
+                     core.getParams().Background.c_str() );
+    core.getParams().BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
   }
-  if( ( ( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
-          QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() ) ||
-          core.Params.BackgroundMode == cmbNucCoreParams::Generate ) &&
-     !core.Params.Background.empty() )
+  if( ( ( core.getParams().BackgroundMode == cmbNucCoreParams::External  &&
+          QFileInfo(core.getParams().BackgroundFullPath.c_str()).exists() ) ||
+          core.getParams().BackgroundMode == cmbNucCoreParams::Generate ) &&
+     !core.getParams().Background.empty() )
   {
-    QFile src(core.Params.BackgroundFullPath.c_str());
+    QFile src(core.getParams().BackgroundFullPath.c_str());
     QFile dest( QFileInfo(info.dir(),
-                          core.Params.Background.c_str()).absoluteFilePath() );
+                          core.getParams().Background.c_str()).absoluteFilePath() );
     if(src.fileName() != dest.fileName()  && (!dest.exists() || dest.remove()))
     {
       src.copy(dest.fileName());
     }
-    output << "Background " << core.Params.Background << "\n";
+    output << "Background " << core.getParams().Background << "\n";
   }
-  else if( core.Params.BackgroundMode == cmbNucCoreParams::External &&
-          !core.Params.Background.empty() )
+  else if( core.getParams().BackgroundMode == cmbNucCoreParams::External &&
+          !core.getParams().Background.empty() )
   {
     QMessageBox msgBox;
-    msgBox.setText( QString(core.Params.Background.c_str()) +
+    msgBox.setText( QString(core.getParams().Background.c_str()) +
                    QString(" was not found.  We are not"
                            " writing Background to output inp file."));
     msgBox.exec();
   }
-  else if( core.Params.BackgroundMode == cmbNucCoreParams::Generate &&
-           core.Params.Background.empty() )
+  else if( core.getParams().BackgroundMode == cmbNucCoreParams::Generate &&
+           core.getParams().Background.empty() )
   {
     QMessageBox msgBox;
     msgBox.setText(QString("Could not generate a outer jacket"
@@ -870,9 +870,9 @@ bool inpFileWriter::write(std::string fname,
   }
 
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
-  if( core.Params.Var##IsSet() ) \
+  if( core.getParams().Var##IsSet() ) \
     {\
-    helper.write(output, #Key, core.IsHexType(), MSG, core.Params.Var); \
+    helper.write(output, #Key, core.IsHexType(), MSG, core.getParams().Var); \
     }
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
 
@@ -883,7 +883,7 @@ bool inpFileWriter::write(std::string fname,
   output << "outputfilename "
          << core.getMeshOutputFilename() << "\n";
 
-  helper.writeUnknown(output, core.Params.UnknownKeyWords);
+  helper.writeUnknown(output, core.getParams().UnknownKeyWords);
 
   output << "End\n";
 
@@ -953,10 +953,10 @@ bool inpFileWriter::writeGSH(std::string fname, cmbNucCore & core,
   else if(subType & VERTEX) output << "HexVertex\n";
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   output << "Assemblies " << 1;
-  output << " " << core.AssyemblyPitchX;
+  output << " " << core.getAssemblyPitchX();
   if(!core.IsHexType())
   {
-    output << " " << core.AssyemblyPitchY;
+    output << " " << core.getAssemblyPitchY();
   }
   output << "\n";
   output << QFileInfo(assyName.c_str()).completeBaseName().toLower().toStdString()
@@ -1822,15 +1822,17 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
   if(!input) return false;
   int count;
   input >> count;
-  input >> core.AssyemblyPitchX;
+  double apx, apy;
+  input >> apy;
   if(core.IsHexType()) // just one pitch
   {
-    core.AssyemblyPitchY = core.AssyemblyPitchX;
+    apy = apx;
   }
   else
   {
-    input >> core.AssyemblyPitchY;
+    input >> apy;
   }
+  core.setAssemblyPitch(apx,apy);
 
   QString current = QDir::currentPath();
   QDir::setCurrent( strPath.c_str() );
@@ -1952,10 +1954,10 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   count += usedLinks.size();
 
   output << "Assemblies " << count;
-  output << " " << core.AssyemblyPitchX;
+  output << " " << core.getAssemblyPitchX();
   if(!core.IsHexType())
   {
-    output << " " << core.AssyemblyPitchY;
+    output << " " << core.getAssemblyPitchY();
   }
   output << "\n";
   for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)

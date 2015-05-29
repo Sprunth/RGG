@@ -698,20 +698,20 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
   this->CoreProperties->applyToCore(nucCore);
   this->CoreDefaults->apply();
   nucCore->sendDefaults();
-  changed |= nucCore->Params.Background != Internal->Background->text().toStdString();
-  nucCore->Params.Background = Internal->Background->text().toStdString();
-  if(nucCore->Params.BackgroundMode != this->Internal->JacketMode->currentIndex())
+  changed |= nucCore->getParams().Background != Internal->Background->text().toStdString();
+  nucCore->getParams().Background = Internal->Background->text().toStdString();
+  if(nucCore->getParams().BackgroundMode != this->Internal->JacketMode->currentIndex())
   {
     switch(this->Internal->JacketMode->currentIndex())
     {
       case cmbNucCoreParams::None:
-        nucCore->Params.BackgroundMode =cmbNucCoreParams::None;
+        nucCore->getParams().BackgroundMode =cmbNucCoreParams::None;
         break;
       case cmbNucCoreParams::External:
-        nucCore->Params.BackgroundMode =cmbNucCoreParams::External;
+        nucCore->getParams().BackgroundMode =cmbNucCoreParams::External;
         break;
       case cmbNucCoreParams::Generate:
-        nucCore->Params.BackgroundMode =cmbNucCoreParams::Generate;
+        nucCore->getParams().BackgroundMode =cmbNucCoreParams::Generate;
         break;
       default:
         break;
@@ -719,21 +719,21 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     changed = true;
   }
 
-  if(nucCore->Params.BackgroundFullPath != Internal->background_full_path &&
-     nucCore->Params.BackgroundMode != cmbNucCoreParams::None)
+  if(nucCore->getParams().BackgroundFullPath != Internal->background_full_path &&
+     nucCore->getParams().BackgroundMode != cmbNucCoreParams::None)
   {
-    nucCore->Params.BackgroundFullPath = Internal->background_full_path;
+    nucCore->getParams().BackgroundFullPath = Internal->background_full_path;
     changed = true;
   }
 
-  if(this->previousRadius != this->currentRadius && nucCore->Params.BackgroundIsSet() )
+  if(this->previousRadius != this->currentRadius && nucCore->getParams().BackgroundIsSet() )
   {
     nucCore->setCylinderRadius(this->currentRadius);
     this->previousRadius = this->currentRadius;
     changed = true;
   }
 
-  if(this->previousInterval != this->currentInterval && nucCore->Params.BackgroundIsSet())
+  if(this->previousInterval != this->currentInterval && nucCore->getParams().BackgroundIsSet())
   {
     nucCore->setCylinderOuterSpacing(this->currentInterval);
     this->previousInterval = this->currentInterval;
@@ -870,8 +870,8 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
     this->Internal->coreLatticeX->blockSignals(false);
     this->Internal->coreLatticeY->blockSignals(false);
 
-    this->Internal->Background->setText(nucCore->Params.Background.c_str());
-    this->Internal->background_full_path = nucCore->Params.BackgroundFullPath;
+    this->Internal->Background->setText(nucCore->getParams().Background.c_str());
+    this->Internal->background_full_path = nucCore->getParams().BackgroundFullPath;
 
     this->currentRadius = this->previousRadius = nucCore->getCylinderRadius();
     this->currentInterval = this->previousInterval = nucCore->getCylinderOuterSpacing();
@@ -879,9 +879,9 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
     this->Internal->OuterEdgeInterval->setValue(this->previousInterval);
     this->Internal->RadiusBox->setValue(this->previousRadius);
 
-    this->Internal->JacketMode->setCurrentIndex(nucCore->Params.BackgroundMode);
+    this->Internal->JacketMode->setCurrentIndex(nucCore->getParams().BackgroundMode);
 
-    if(nucCore->Params.BackgroundMode == cmbNucCoreParams::Generate)
+    if(nucCore->getParams().BackgroundMode == cmbNucCoreParams::Generate)
     {
       onCalculateCylinderDefaults(true);
     }
