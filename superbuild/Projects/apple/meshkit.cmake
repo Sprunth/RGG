@@ -60,7 +60,7 @@ if(ENABLE_meshkit)
   option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
   
   if(BUILD_WITH_CUBIT)
-    find_path( CUBIT_PATH_ROOT Cubit.app HINTS /Applications/Cubit-13.1 PATH_SUFFIXES "Contents/MacOS/" DOC "The cubit bundle name")
+    find_path( CUBIT_PATH_ROOT Cubit.app HINTS /Applications/Cubit-14.0 PATH_SUFFIXES "Contents/MacOS/" DOC "The cubit bundle name")
     set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
     if(CUBIT_PATH_ROOT)
       message("${CUBIT_PATH_ROOT}/Cubit.app/Contents/MacOS/")

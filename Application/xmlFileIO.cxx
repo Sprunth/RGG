@@ -615,10 +615,10 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
   //write the background
   {
     pugi::xml_node node = rootElement.append_child(BACKGROUND_TAG.c_str());
-    if(!write(node, MODE_TAG.c_str(), static_cast<unsigned int>(core.Params.BackgroundMode))) return false;
+    if(!write(node, MODE_TAG.c_str(), static_cast<unsigned int>(core.getParams().BackgroundMode))) return false;
     if(!write(node, CYLINDER_RADIUS_TAG.c_str(), core.getCylinderRadius())) return false;
     if(!write(node, CYLINDER_OUTER_SPACING_TAG.c_str(), core.getCylinderOuterSpacing())) return false;
-    if(!write(node, BACKGROUND_FILENAME_TAG.c_str(), core.Params.Background)) return false;
+    if(!write(node, BACKGROUND_FILENAME_TAG.c_str(), core.getParams().Background)) return false;
   }
 
   //Write parameters
@@ -626,19 +626,19 @@ bool xmlHelperClass::writeToString(std::string & out, cmbNucCore & core)
     pugi::xml_node node = rootElement.append_child(PARAMETERS_TAG.c_str());
     if(!write(node, MESH_FILENAME_TAG.c_str(), core.getMeshOutputFilename())) return false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
-    if( core.Params.Var##IsSet() ) \
+    if( core.getParams().Var##IsSet() ) \
     {\
-      if(!write(node, #Key, core.Params.Var)) return false; \
+      if(!write(node, #Key, core.getParams().Var)) return false; \
     }
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
 
     EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
 #undef FUN_STRUCT
-    for(unsigned int i = 0; i < core.Params.UnknownKeyWords.size(); ++i)
+    for(unsigned int i = 0; i < core.getParams().UnknownKeyWords.size(); ++i)
     {
       pugi::xml_node tn = node.append_child(UNKNOWN_TAG.c_str());
-      if(!write(tn, STR_TAG.c_str(), core.Params.UnknownKeyWords[i])) return false;
+      if(!write(tn, STR_TAG.c_str(), core.getParams().UnknownKeyWords[i])) return false;
     }
   }
 
@@ -707,33 +707,33 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
     if(!read(node, CYLINDER_RADIUS_TAG.c_str(), r)) return false;
     int s;
     if(!read(node, CYLINDER_OUTER_SPACING_TAG.c_str(), s)) return false;
-    if(!read(node, BACKGROUND_FILENAME_TAG.c_str(), core.Params.Background)) return false;
+    if(!read(node, BACKGROUND_FILENAME_TAG.c_str(), core.getParams().Background)) return false;
     switch( mode )
     {
       case 0:
-        core.Params.BackgroundMode = cmbNucCoreParams::None;
-        core.Params.Background = "";
+        core.getParams().BackgroundMode = cmbNucCoreParams::None;
+        core.getParams().Background = "";
         break;
       case 1:
       {
-        core.Params.BackgroundMode = cmbNucCoreParams::External;
+        core.getParams().BackgroundMode = cmbNucCoreParams::External;
         //check to make sure the file exists.
         QFileInfo tmpFI( QFileInfo(core.getFileName().c_str()).dir(),
-                         core.Params.Background.c_str() );
+                         core.getParams().Background.c_str() );
         //qDebug() << tmpFI;
         if(!tmpFI.exists())
         {
-          core.Params.BackgroundMode = cmbNucCoreParams::None;
+          core.getParams().BackgroundMode = cmbNucCoreParams::None;
           QMessageBox msgBox;
-          msgBox.setText( QString(core.Params.Background.c_str()) +
+          msgBox.setText( QString(core.getParams().Background.c_str()) +
                          QString(" was not found in same director as the core inp file.  Will be ingored."));
           msgBox.exec();
         }
-        core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
+        core.getParams().BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
         break;
       }
       case 2:
-        core.Params.BackgroundMode = cmbNucCoreParams::Generate;
+        core.getParams().BackgroundMode = cmbNucCoreParams::Generate;
         core.drawCylinder(r, s);
     }
   }
@@ -806,7 +806,7 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
       core.setMeshOutputFilename(outf);
     }
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
-    read(node, #Key, core.Params.Var);
+    read(node, #Key, core.getParams().Var);
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
     EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
@@ -816,7 +816,7 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
     {
       std::string tmp;
       if(read(tnode, STR_TAG.c_str(), tmp))
-        core.Params.UnknownKeyWords.push_back(tmp);
+        core.getParams().UnknownKeyWords.push_back(tmp);
     }
   }
 

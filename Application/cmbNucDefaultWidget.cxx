@@ -151,6 +151,7 @@ void cmbNucDefaultWidget::apply()
   T tmp##X;                                         \
   bool v = getValue(tmp##X, this->Internal->ui->X); \
   if(v){ Current->set##X(tmp##X); }                 \
+  else { Current->clear##X(); }                     \
 }
 #define FUN2(T1, X, T2, Y, L)                       \
 {                                                   \
@@ -158,6 +159,7 @@ void cmbNucDefaultWidget::apply()
   bool v = getValue(tmp##X, this->Internal->ui->X); \
   v &= getValue(tmp##Y, this->Internal->ui->Y);     \
   if(v){ Current->set##L(tmp##X, tmp##Y); }         \
+  else { Current->clear##L(); }                     \
 }
   EASY_DEFAULT_PARAMS_MACRO()
 #undef COMMON

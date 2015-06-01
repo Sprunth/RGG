@@ -241,7 +241,8 @@ public:
   QSet< cmbNucMaterial* > getMaterials();
   QSet< cmbNucMaterial* > getOuterMaterials(QPointer<cmbNucMaterial> blMat);
 
-  virtual std::string getTitle(){ return "PinCell: " + AssyPartObj::getTitle(); }
+  virtual std::string getTitle()
+  { return "PinCell: " + AssyPartObj::getTitle(); }
 
   QPointer<cmbNucMaterial> getCellMaterial();
   void setCellMaterial(QPointer<cmbNucMaterial> material);
@@ -263,6 +264,8 @@ public:
   void setZ0(double z0);
 
   bool operator==(PinCell const& other);
+
+  void removeFakeBoundaryLayer(std::string blname);
 
 protected:
   std::vector<PinSubPart*> Parts;

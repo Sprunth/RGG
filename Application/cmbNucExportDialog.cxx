@@ -73,7 +73,7 @@ cmbNucExportDialog::~cmbNucExportDialog()
 void cmbNucExportDialog::exportFile(cmbNucCore * core, cmbNucInpExporter & inpExporter)
 {
   this->hide();
-  MainWindow->onUpdateINPFiles();
+  if(!MainWindow->onUpdateINPFiles()) return;
   this->Progress->ui->OutputArea->clear();
   if (core == NULL)
   {
@@ -139,7 +139,7 @@ void cmbNucExportDialog::sendSignalToProcess()
                                                  OuterCylinder->getCoreGenFileName(),
                                                  OuterCylinder->getSATFileName(),
                                                  OuterCylinder->getCubitFileName(),
-                                                 this->Core->Params.BackgroundFullPath.c_str());
+                                                 this->Core->getParams().BackgroundFullPath.c_str());
   }
   emit process(message);
 }
@@ -216,19 +216,24 @@ void cmbNucExportDialog::runCoregen()
     return;
   }
   this->Progress->show();
-  message.CoreGenOutputFile = QFileInfo(CoregenFile).absolutePath() + "/" + QString(this->Core->getMeshOutputFilename().c_str()).trimmed();
+  message.CoreGenOutputFile = QFileInfo(CoregenFile).absolutePath() + "/" +
+                              QString(this->Core->getMeshOutputFilename().c_str()).trimmed();
 
   message.keepGoingAfterError = this->ui->keepGoingOnError->isChecked();
   message.cylinderTask.valid = false;
 
-  OuterCylinder->exportFiles(this->Core, *InpExporter);
+  if(!OuterCylinder->exportFiles(this->Core, *InpExporter))
+  {
+    this->Progress->hide();
+    return;
+  }
   if(OuterCylinder->generateCylinder())
   {
     message.cylinderTask = Message::CylinderTask(OuterCylinder->getAssygenFileName(),
                                                  OuterCylinder->getCoreGenFileName(),
                                                  OuterCylinder->getSATFileName(),
                                                  OuterCylinder->getCubitFileName(),
-                                                 this->Core->Params.BackgroundFullPath.c_str());
+                                                 this->Core->getParams().BackgroundFullPath.c_str());
   }
 
   emit process( message );

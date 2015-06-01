@@ -301,6 +301,7 @@ bool inpFileReader
   std::map<std::string, std::string> newLabel;
   DuctCell * dc = new DuctCell;
   dc->setName(assembly.getLabel() + "_Duct");
+  std::vector<std::string> boundary_layer_materials;
 
   while(!input.eof())
   {
@@ -310,88 +311,103 @@ bool inpFileReader
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
     if(input.eof())
-      {
+    {
       break;
-      }
+    }
     else if(value == "end")
-      {
+    {
       break;
-      }
+    }
     else if(value.empty())
-      {
+    {
       input.clear();
       continue;
+    }
+    else if(value == "blmaterials") // Currently we ignore boundary layers.
+    {                               // Does not fit well with current data
+      int count;                    // structures
+      input >> count;
+      std::string blname;
+      double bias;
+      int intervals;
+      for(int i = 0; i < count; ++i)
+      {
+        input >> blname >> bias >> intervals;
+        boundary_layer_materials.push_back(blname);
       }
+    }
     else if(value == "geometrytype")
-      {
-      if(!helper.readGeometryType( input, assembly, assembly.getLattice() )) return false;
-      }
+    {
+      if(!helper.readGeometryType(input, assembly,
+                                  assembly.getLattice() )) return false;
+    }
     else if(value == "materials")
-      {
+    {
       if(!helper.readMaterials( input, assembly )) return false;
-      }
+    }
     else if(value == "duct" || value == "dimensions")
-      {
+    {
       if(!helper.readDuct( input, assembly.IsHexType(), dc )) return false;
-      }
+    }
     else if(value == "pincells")
-      {
+    {
       if(!helper.readPincell( input, assembly, pl, newLabel )) return false;
-      }
+    }
     else if(value == "assembly")
-      {
+    {
       if(!helper.readLattice( input, assembly.getLattice() )) return false;
-      }
+    }
     else if(value == "tetmeshsize")
-      {
+    {
       input >> assembly.GetParameters()->TetMeshSize;
-      }
+    }
     else if(value == "radialmeshsize")
-      {
+    {
       input >> assembly.GetParameters()->RadialMeshSize;
-      }
+    }
     else if(value == "axialmeshsize")
-      {
+    {
       input >> assembly.GetParameters()->AxialMeshSize;
       std::string tmp;
-      std::getline(input, tmp); //some version add extra for each duct.  for now we just ignore them.
-      }
+      std::getline(input, tmp); //some version add extra for
+                                //each duct.  for now we just ignore them.
+    }
     else if(value == "rotate")
-      {
+    {
       std::string tmp; double a;
       input >> tmp >> a;
       assembly.addTransform(new cmbNucAssembly::Rotate(tmp, a));
-      }
+    }
     else if(value == "section")
-      {
+    {
       std::string tmp, tmp1; double a;
       input >> tmp >> a;
       std::getline(input, tmp1);
       assembly.addTransform(new cmbNucAssembly::Section(tmp, a, tmp1));
-      }
+    }
     else if(value == "move")
-      {
+    {
       input >> assembly.GetParameters()->MoveXYZ[0]
             >> assembly.GetParameters()->MoveXYZ[1]
             >> assembly.GetParameters()->MoveXYZ[2];
-      }
+    }
     else if(value == "hblock")
-      {
+    {
       std::getline(input, assembly.GetParameters()->HBlock);
-      }
+    }
     else if(value == "geometry")
-      {
+    {
       input >> assembly.GetParameters()->Geometry;
-      }
+    }
     else if(value == "center")
-      {
+    {
       std::string tmp;
       std::getline(input, tmp);
       if(!tmp.empty())
-        {
+      {
         assembly.GetParameters()->CenterXYZ = tmp;
-        }
       }
+    }
     else if(value == "save_exodus")
     {
       std::string tmp;
@@ -402,18 +418,24 @@ bool inpFileReader
         assembly.GetParameters()->Save_Exodus = false;
       }
     }
-#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)\
-    else if(value == #Key)\
-      { \
-      if(!helper.read(input, assembly.IsHexType(), MSG, assembly.GetParameters()->Var))return false;\
-      }
+#define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)         \
+    else if(value == #Key)                              \
+    {                                                   \
+      if(!helper.read(input, assembly.IsHexType(), MSG, \
+                      assembly.GetParameters()->Var))   \
+        return false;                                   \
+    }
     ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
     else
+    {
+      if(!helper.readUnknown(input, value,
+                             assembly.GetParameters()->UnknownParams))
       {
-      if(!helper.readUnknown(input, value, assembly.GetParameters()->UnknownParams)) return false;
+        return false;
       }
     }
+  }
   DuctCell * dcp = dc;
   dl->addDuct(&dc);
   if(dcp != dc)
@@ -425,7 +447,8 @@ bool inpFileReader
   assembly.setAndTestDiffFromFiles(helper.labelIsDifferent);
   if(!newLabel.empty())
   {
-    for(std::map<std::string,std::string>::const_iterator iter = newLabel.begin(); iter != newLabel.end(); ++iter)
+    for(std::map<std::string,std::string>::const_iterator iter = newLabel.begin();
+        iter != newLabel.end(); ++iter)
     {
       assembly.getLattice().replaceLabel(iter->first, iter->second);
     }
@@ -434,6 +457,17 @@ bool inpFileReader
   this->renamePin  = helper.renamePin;
   this->pinAddMode = helper.pinAddMode;
   log.insert(log.end(), helper.log.begin(), helper.log.end());
+  cmbNucMaterialColors* matColorMap = cmbNucMaterialColors::instance();
+
+  //clean up boundary layer
+  for( unsigned int i = 0; i < boundary_layer_materials.size(); i++)
+  {
+    std::string bl_name = boundary_layer_materials[i];
+    pl->removeFakeBoundaryLayer(bl_name);
+    dl->removeFakeBoundaryLayer(bl_name);
+    matColorMap->RemoveMaterialByLabel(bl_name.c_str());
+  }
+
   return dc->getDuct(0) != NULL;
 }
 
@@ -489,24 +523,24 @@ bool inpFileReader
     }
     else if(value == "background")
     {
-      getline(input, core.Params.Background);
-      core.Params.Background = QString(core.Params.Background.c_str()).trimmed().toStdString();
+      getline(input, core.getParams().Background);
+      core.getParams().Background = QString(core.getParams().Background.c_str()).trimmed().toStdString();
       //check to make sure the file exists.
       QFileInfo tmpFI( QDir(strPath.c_str()),
-                       core.Params.Background.c_str() );
+                       core.getParams().Background.c_str() );
       if(!tmpFI.exists())
       {
-        core.Params.BackgroundMode = cmbNucCoreParams::None;
+        core.getParams().BackgroundMode = cmbNucCoreParams::None;
         QMessageBox msgBox;
-        msgBox.setText( QString(core.Params.Background.c_str()) +
+        msgBox.setText( QString(core.getParams().Background.c_str()) +
                         QString(" was not found in same director as the core inp file.  Will be ingored."));
         msgBox.exec();
       }
       else
       {
-        core.Params.BackgroundMode = cmbNucCoreParams::External;
+        core.getParams().BackgroundMode = cmbNucCoreParams::External;
       }
-      core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
+      core.getParams().BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
     }
     else if(value == "outputfilename")
     {
@@ -517,7 +551,7 @@ bool inpFileReader
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
     else if( value == #Key) \
     {\
-        helper.read(input, core.IsHexType(), MSG, core.Params.Var);\
+        helper.read(input, core.IsHexType(), MSG, core.getParams().Var);\
     }
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
       EXTRA_VARABLE_MACRO()
@@ -525,7 +559,7 @@ bool inpFileReader
 #undef FUN_STRUCT
     else //unknown
     {
-      if(!helper.readUnknown(input, value, core.Params.UnknownKeyWords)) return false;
+      if(!helper.readUnknown(input, value, core.getParams().UnknownKeyWords)) return false;
     }
   }
   core.calculateDefaults();
@@ -796,38 +830,38 @@ bool inpFileWriter::write(std::string fname,
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   helper.writeAssemblies( output, fname, core );
   helper.writeLattice( output, "Lattice", true, core.getLattice() );
-  if( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
-      core.Params.BackgroundFullPath.empty())
+  if( core.getParams().BackgroundMode == cmbNucCoreParams::External  &&
+      core.getParams().BackgroundFullPath.empty())
   {
     QFileInfo tmpFI( QFileInfo(core.getFileName().c_str()).dir(),
-                     core.Params.Background.c_str() );
-    core.Params.BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
+                     core.getParams().Background.c_str() );
+    core.getParams().BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();
   }
-  if( ( ( core.Params.BackgroundMode == cmbNucCoreParams::External  &&
-          QFileInfo(core.Params.BackgroundFullPath.c_str()).exists() ) ||
-          core.Params.BackgroundMode == cmbNucCoreParams::Generate ) &&
-     !core.Params.Background.empty() )
+  if( ( ( core.getParams().BackgroundMode == cmbNucCoreParams::External  &&
+          QFileInfo(core.getParams().BackgroundFullPath.c_str()).exists() ) ||
+          core.getParams().BackgroundMode == cmbNucCoreParams::Generate ) &&
+     !core.getParams().Background.empty() )
   {
-    QFile src(core.Params.BackgroundFullPath.c_str());
+    QFile src(core.getParams().BackgroundFullPath.c_str());
     QFile dest( QFileInfo(info.dir(),
-                          core.Params.Background.c_str()).absoluteFilePath() );
+                          core.getParams().Background.c_str()).absoluteFilePath() );
     if(src.fileName() != dest.fileName()  && (!dest.exists() || dest.remove()))
     {
       src.copy(dest.fileName());
     }
-    output << "Background " << core.Params.Background << "\n";
+    output << "Background " << core.getParams().Background << "\n";
   }
-  else if( core.Params.BackgroundMode == cmbNucCoreParams::External &&
-          !core.Params.Background.empty() )
+  else if( core.getParams().BackgroundMode == cmbNucCoreParams::External &&
+          !core.getParams().Background.empty() )
   {
     QMessageBox msgBox;
-    msgBox.setText( QString(core.Params.Background.c_str()) +
+    msgBox.setText( QString(core.getParams().Background.c_str()) +
                    QString(" was not found.  We are not"
                            " writing Background to output inp file."));
     msgBox.exec();
   }
-  else if( core.Params.BackgroundMode == cmbNucCoreParams::Generate &&
-           core.Params.Background.empty() )
+  else if( core.getParams().BackgroundMode == cmbNucCoreParams::Generate &&
+           core.getParams().Background.empty() )
   {
     QMessageBox msgBox;
     msgBox.setText(QString("Could not generate a outer jacket"
@@ -836,9 +870,9 @@ bool inpFileWriter::write(std::string fname,
   }
 
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG) \
-  if( core.Params.Var##IsSet() ) \
+  if( core.getParams().Var##IsSet() ) \
     {\
-    helper.write(output, #Key, core.IsHexType(), MSG, core.Params.Var); \
+    helper.write(output, #Key, core.IsHexType(), MSG, core.getParams().Var); \
     }
 #define FUN_STRUCT(TYPE,X,Var,Key,DEFAULT, MSG) FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, MSG)
 
@@ -849,7 +883,7 @@ bool inpFileWriter::write(std::string fname,
   output << "outputfilename "
          << core.getMeshOutputFilename() << "\n";
 
-  helper.writeUnknown(output, core.Params.UnknownKeyWords);
+  helper.writeUnknown(output, core.getParams().UnknownKeyWords);
 
   output << "End\n";
 
@@ -919,10 +953,10 @@ bool inpFileWriter::writeGSH(std::string fname, cmbNucCore & core,
   else if(subType & VERTEX) output << "HexVertex\n";
   else output << "ERROR !INVALID TYPE IN SYSTEM\n";
   output << "Assemblies " << 1;
-  output << " " << core.AssyemblyPitchX;
+  output << " " << core.getAssemblyPitchX();
   if(!core.IsHexType())
   {
-    output << " " << core.AssyemblyPitchY;
+    output << " " << core.getAssemblyPitchY();
   }
   output << "\n";
   output << QFileInfo(assyName.c_str()).completeBaseName().toLower().toStdString()
@@ -1135,22 +1169,24 @@ inpFileHelper
   duct->setThickness(1, maxV[1]);
 
   for(int i = 0; i < materials; i++)
-    {
+  {
     input >> mlabel;
     QPointer< cmbNucMaterial > mat =
-        cmbNucMaterialColors::instance()->getUnknownMaterial();
+      cmbNucMaterialColors::instance()->getUnknownMaterial();
     std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
     map_iter it = materialLabelMap.find(mlabel);
     if(it != materialLabelMap.end())
+    {
       mat = it->second;
+    }
     else
-      {
+    {
       labelIsDifferent = true;
-      }
+    }
     duct->setMaterial(i, mat);
     duct->getNormThick(i)[0] /= maxV[0];
     duct->getNormThick(i)[1] /= maxV[1];
-    }
+  }
 
   dc->AddDuct(duct);
   return true;
@@ -1786,15 +1822,17 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
   if(!input) return false;
   int count;
   input >> count;
-  input >> core.AssyemblyPitchX;
+  double apx, apy;
+  input >> apy;
   if(core.IsHexType()) // just one pitch
   {
-    core.AssyemblyPitchY = core.AssyemblyPitchX;
+    apy = apx;
   }
   else
   {
-    input >> core.AssyemblyPitchY;
+    input >> apy;
   }
+  core.setAssemblyPitch(apx,apy);
 
   QString current = QDir::currentPath();
   QDir::setCurrent( strPath.c_str() );
@@ -1916,10 +1954,10 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   count += usedLinks.size();
 
   output << "Assemblies " << count;
-  output << " " << core.AssyemblyPitchX;
+  output << " " << core.getAssemblyPitchX();
   if(!core.IsHexType())
   {
-    output << " " << core.AssyemblyPitchY;
+    output << " " << core.getAssemblyPitchY();
   }
   output << "\n";
   for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)

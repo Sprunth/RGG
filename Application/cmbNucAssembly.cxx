@@ -583,16 +583,31 @@ void cmbNucAssembly::setFromDefaults(QPointer<cmbNucDefaults> d)
     change |= Parameters->AxialMeshSize != tmpD;
     Parameters->AxialMeshSize = tmpD;
   }
+  else if( Parameters->AxialMeshSize != ASSY_NOT_SET_VALUE )
+  {
+    Parameters->AxialMeshSize = ASSY_NOT_SET_VALUE;
+    change = true;
+  }
   if(d->getEdgeInterval(tmpI))
   {
     change |= Parameters->EdgeInterval != tmpI;
     Parameters->EdgeInterval = tmpI;
+  }
+  else if(Parameters->EdgeInterval != ASSY_NOT_SET_VALUE)
+  {
+    Parameters->EdgeInterval = ASSY_NOT_SET_VALUE;
+    change = true;
   }
   if(d->getMeshType(tmpS))
   {
     std::string tmp = tmpS.toStdString();
     change |= Parameters->MeshType != tmp;
     Parameters->MeshType = tmp;
+  }
+  else if(Parameters->MeshType != ASSY_NOT_SET_KEY)
+  {
+    Parameters->MeshType = ASSY_NOT_SET_KEY;
+    change = false;
   }
 
   if(change) this->Connection->dataChanged();

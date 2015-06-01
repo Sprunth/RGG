@@ -63,6 +63,8 @@ public:
 
   bool isEquivelence(PinCell* pc) const;
 
+  void removeFakeBoundaryLayer(std::string blname);
+
 protected:
   std::vector<PinCell*> PinCells;
   std::map<std::string, PinCell*> OldLabelToNewPincell;

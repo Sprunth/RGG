@@ -219,7 +219,8 @@ void cmbNucPinLibrary::replaceName(std::string oldN, std::string newN)
 cmbNucPinLibrary * cmbNucPinLibrary::clone() const
 {
   cmbNucPinLibrary * result = new cmbNucPinLibrary();
-  for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin(); iter != this->PinCells.end(); ++iter)
+  for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin();
+      iter != this->PinCells.end(); ++iter)
   {
     PinCell * pc = new PinCell();
     pc->fill(*iter);
@@ -237,7 +238,8 @@ bool cmbNucPinLibrary::isEquivelence(PinCell* pc) const
 {
   PinCell * other = PinCells[LabelToPin.find(pc->getLabel())->second];
   if(*other == *pc) return true;
-  std::map<std::string, PinCell*>::const_iterator i = this->OldLabelToNewPincell.find(pc->getLabel());
+  std::map<std::string, PinCell*>::const_iterator i =
+      this->OldLabelToNewPincell.find(pc->getLabel());
   if(i!=this->OldLabelToNewPincell.end() && *(i->second) == *pc)
   {
     pc->setLabel(i->second->getLabel());
@@ -245,4 +247,14 @@ bool cmbNucPinLibrary::isEquivelence(PinCell* pc) const
     return true;
   }
   return false;
+}
+
+void cmbNucPinLibrary::removeFakeBoundaryLayer(std::string blname)
+{
+  for(std::vector<PinCell*>::const_iterator iter = this->PinCells.begin();
+      iter != this->PinCells.end(); ++iter)
+  {
+    PinCell * pc = *iter;
+    pc->removeFakeBoundaryLayer(blname);
+  }
 }

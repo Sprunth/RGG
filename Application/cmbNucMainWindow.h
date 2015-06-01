@@ -74,8 +74,8 @@ public slots:
   void onSaveSelected();
   void onSaveAll();
   void onSaveSelectedAs();
-  void onExportINPFiles();
-  void onUpdateINPFiles();
+  bool onExportINPFiles();
+  bool onUpdateINPFiles();
   void onShowImportLog();
   void clearAll();
   void clearCore();

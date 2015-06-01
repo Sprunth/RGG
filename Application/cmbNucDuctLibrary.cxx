@@ -138,7 +138,8 @@ cmbNucDuctLibrary * cmbNucDuctLibrary
 {
   cmbNucDuctLibrary * result = new cmbNucDuctLibrary();
 
-  for(std::vector<DuctCell*>::const_iterator it = this->DuctCells.begin(); it != this->DuctCells.end(); ++it)
+  for(std::vector<DuctCell*>::const_iterator it = this->DuctCells.begin();
+      it != this->DuctCells.end(); ++it)
   {
     DuctCell * dc = new DuctCell();
     dc->fill(*it);
@@ -146,4 +147,15 @@ cmbNucDuctLibrary * cmbNucDuctLibrary
   }
 
   return result;
+}
+
+void cmbNucDuctLibrary
+::removeFakeBoundaryLayer(std::string blname)
+{
+  for(std::vector<DuctCell*>::const_iterator it = this->DuctCells.begin();
+      it != this->DuctCells.end(); ++it)
+  {
+    DuctCell * dc = *it;
+    dc->removeFakeBoundaryLayer(blname);
+  }
 }
