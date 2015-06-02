@@ -1,5 +1,5 @@
-set(CMBNuc_VERSION_MAJOR 1)
-set(CMBNuc_VERSION_MINOR 1)
-set(CMBNuc_VERSION_PATCH 0)
-set(CMBNuc_VERSION
-    "${CMBNuc_VERSION_MAJOR}.${CMBNuc_VERSION_MINOR}.${CMBNuc_VERSION_PATCH}")
+set (rgg_version_major 1)
+set (rgg_version_minor 2)
+set (rgg_version_patch 0)
+set (rgg_version_suffix "Devel")
+set (rgg_version "${rgg_version_major}.${rgg_version_minor}")

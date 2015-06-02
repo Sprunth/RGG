@@ -23,6 +23,7 @@ INCLUDE_DIRECTORIES(
 #Now the QtVTK version
 SET(RGGNuclear_Srcs
   cmbNucMainWindow.cxx
+  cmbNucAboutDialog.cxx
   cmbNucAssembly.cxx
   cmbNucAssemblyLink.cxx
   cmbNucCore.cxx
@@ -62,6 +63,7 @@ SET(RGGNuclear_Srcs
 
 SET(RGGNuclear_UI
   qNucMainWindow.ui
+  qAboutDialog.ui
   qInputListWidget.ui
   qInputPropertiesWidget.ui
   cmbNucPinCellEditor.ui
@@ -77,6 +79,7 @@ SET(RGGNuclear_UI
 )
 
 SET(RGGNuclear_Headers
+  cmbNucAboutDialog.h
   cmbNucAssembly.h
   cmbNucCore.h
   cmbNucDuctCellEditor.h
@@ -164,6 +167,15 @@ if(APPLE)
 endif()
 
 set(TARGET_NAME)
+
+find_package(Git)
+
+execute_process (COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%h
+                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                 OUTPUT_VARIABLE BUILD_ID)
+
+add_compile_options( -DRGG_VERSION=${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}
+                     -DRGG_BUILD_ID=${BUILD_ID} )
 
 if(WIN32 OR APPLE)
   ADD_EXECUTABLE( RGGNuclear MACOSX_BUNDLE cmbNucMain.cxx ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})

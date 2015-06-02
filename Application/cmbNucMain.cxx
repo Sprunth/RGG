@@ -4,11 +4,13 @@
 #include <QMetaObject>
 #include <QDebug>
 #include <QTimer>
+
+#include "macro_helpers.h"
  
 int main( int argc, char** argv )
 {
   QApplication::setApplicationName("CMB Nuclear Energy Reactor Geometry Generator");
-  QApplication::setApplicationVersion("1.1.0");
+  QApplication::setApplicationVersion(RGG_VERSION_STR);
   QApplication::setOrganizationName("Kitware Inc");
  
   // QT Stuff

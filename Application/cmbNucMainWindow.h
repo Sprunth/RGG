@@ -162,6 +162,8 @@ protected slots:
   void onImportAssemblies();
   void clearImporterLog();
 
+  void onAboutDialog();
+
 private:
   // Designer form
   Ui_qNucMainWindow *ui;
