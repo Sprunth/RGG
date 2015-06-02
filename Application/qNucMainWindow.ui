@@ -149,11 +149,18 @@
     <addaction name="actionView_Axis"/>
     <addaction name="actionImporter_Log"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
    <addaction name="menuTools"/>
    <addaction name="menuPart"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QDockWidget" name="InputsDock">
    <property name="sizePolicy">
@@ -577,6 +584,11 @@
   <action name="actionImporter_Log">
    <property name="text">
     <string>Importer Log</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

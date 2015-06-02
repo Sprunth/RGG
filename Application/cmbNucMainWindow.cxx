@@ -50,6 +50,7 @@
 #include <pqEventObserver.h>
 #include <pqEventSource.h>
 
+#include "cmbNucAboutDialog.h"
 #include "cmbNucAssembly.h"
 #include "cmbNucAssemblyLink.h"
 #include "cmbNucCore.h"
@@ -492,6 +493,9 @@ cmbNucMainWindow::cmbNucMainWindow()
           this, SLOT(exportRGG()));
   connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
   connect(this->ui->actionClear_Mesh, SIGNAL(triggered()), this, SLOT(onClearMesh()));
+
+  QObject::connect(this->ui->actionAbout, SIGNAL(triggered()),
+                   this, SLOT(onAboutDialog()));
 
   //this->setCentralWidget(0);
 
@@ -1992,4 +1996,10 @@ void cmbNucMainWindow::onMaterialChange()
     this->NuclearCore->setAndTestDiffFromFiles(true);
     emit(checkSave());
   }
+}
+
+void cmbNucMainWindow::onAboutDialog()
+{
+  cmbNucAboutDialog* const dialog = new cmbNucAboutDialog(this);
+  dialog->show();
 }
