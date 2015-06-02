@@ -185,26 +185,11 @@ else()
   set(VTK_INSTALL_LIBRARY_DIR "lib")
   set(BUILD_SHARED_LIBS TRUE)
 
-  if(CUBIT_BUILD)
-    set(TARGET_NAME RGGNuclear RGGNuclear-GUI)
-    configure_file("${CMAKE_SOURCE_DIR}/CMake/RGGNuclear-cubit-checker.cxx.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/RGGNuclear-cubit-checker.cxx"
-                   @ONLY)
-    set(CUBIT_BUILD_SRC "${CMAKE_CURRENT_BINARY_DIR}/RGGNuclear-cubit-checker.cxx"
-                        cmbNucPreferencesDialog.cxx
-                       "${CMAKE_CURRENT_BINARY_DIR}/moc_cmbNucPreferencesDialog.cxx")
-    vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear ${CUBIT_BUILD_SRC})
-    TARGET_LINK_LIBRARIES(RGGNuclear ${QT_LIBRARIES} ${VTK_LIBRARIES})
+  set(TARGET_NAME RGGNuclear)
+  vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear cmbNucMain.cxx ${RGGNuclear_Srcs} ${RGGNuclear_other_headers}
+                                                    ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
+  TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
 
-    ADD_EXECUTABLE( RGGNuclear-GUI MACOSX_BUNDLE cmbNucMain.cxx ${RGGNuclear_Srcs} ${RGGNuclear_other_headers} ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-    TARGET_LINK_LIBRARIES( RGGNuclear-GUI RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
-
-  else()
-    set(TARGET_NAME RGGNuclear)
-    vtk_add_executable_with_forwarding(rgg_exe_suffix RGGNuclear cmbNucMain.cxx ${RGGNuclear_Srcs} ${RGGNuclear_other_headers}
-                                                      ${UISrcs} ${MOCSrcs} ${RCS_SOURCES} ${ICON_FILE})
-    TARGET_LINK_LIBRARIES(RGGNuclear RemusClient RemusWorker RemusServer ${MOAB_LIB} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${QtTesting_LIBRARIES})
-  endif()
   IF (rgg_exe_suffix)
      # Shared forwarding enabled.
      INSTALL(TARGETS RGGNuclear${rgg_exe_suffix}
