@@ -1008,7 +1008,11 @@ bool xmlHelperClass::read(pugi::xml_node & node, cmbNucDuctLibrary * dl,
       tnode = tnode.next_sibling(DUCT_CELL_TAG.c_str()))
   {
     DuctCell * dc  = new DuctCell();
-    if(!this->read(tnode, dc, materials)) return false;
+    if(!this->read(tnode, dc, materials))
+    {
+      delete dc;
+      return false;
+    }
     std::string name = dc->getName();
     int count = 0;
     while(dl->nameConflicts(name))

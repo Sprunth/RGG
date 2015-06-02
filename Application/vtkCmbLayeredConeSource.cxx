@@ -637,6 +637,7 @@ vtkCmbLayeredConeSource
 
   points->Delete();
   cells->Delete();
+  lineCells->Delete();
 
   return polyData;
 }
