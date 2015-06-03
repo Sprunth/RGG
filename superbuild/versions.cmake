@@ -151,14 +151,14 @@ if (WIN32)
 else()
   #unix and mac uses the stable release
   add_revision(zeroMQ
-    URL "http://download.zeromq.org/zeromq-2.2.0.tar.gz"
-    URL_MD5 1b11aae09b19d18276d0717b2ea288f6)
+    URL "http://download.zeromq.org/zeromq-3.2.5.tar.gz"
+    URL_MD5 d4189c152fbdc45b376a30bd643f67fd)
 
 endif()
 
 add_revision(remus
-  GIT_REPOSITORY http://public.kitware.com/Remus.git
-  GIT_TAG 3cf220e0529f512039daaf64478cbac84376f1d0
+  GIT_REPOSITORY https://github.com/Kitware/Remus.git
+  GIT_TAG v0.5.2
 )
 
 add_revision(kml
