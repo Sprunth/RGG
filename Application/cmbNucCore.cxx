@@ -717,7 +717,9 @@ bool cmbNucCore::label_unique(std::string const& n)
     std::vector< cmbNucAssembly* > assys = this->Assemblies;
     for(unsigned int i = 0; i < assys.size(); ++i)
     {
-      if(assys[i]->getLabel() == n) return false;
+      std::string aname = assys[i]->getLabel();
+      std::transform(aname.begin(), aname.end(), aname.begin(), ::tolower);
+      if(aname == n) return false;
     }
   }
 
@@ -725,7 +727,9 @@ bool cmbNucCore::label_unique(std::string const& n)
     std::vector< cmbNucAssemblyLink* > assys = this->AssemblyLinks;
     for(unsigned int i = 0; i < assys.size(); ++i)
     {
-      if(assys[i]->getLabel() == n) return false;
+      std::string aname = assys[i]->getLabel();
+      std::transform(aname.begin(), aname.end(), aname.begin(), ::tolower);
+      if(aname == n) return false;
     }
   }
 

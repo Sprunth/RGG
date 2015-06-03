@@ -350,8 +350,6 @@ cmbNucExporterWorker
 #else
   int count = 0;
   this->askForJobs(1);
-  QThread::yieldCurrentThread();
-  Thread::msleep(10);
   while(this->pendingJobCount() == 0)
   {
     //qDebug() << count <<"waiting for jobs: " << this->pendingJobCount();

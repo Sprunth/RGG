@@ -48,7 +48,7 @@ bool cmbNucImporter::importXMLPins()
     materials->clear();
 
     std::vector<PinCell*> pincells;
-    
+
     if(!xmlFileReader::read(fileNames[i].toStdString(), pincells, materials)) return false;
     for(unsigned int j = 0; j < pincells.size(); ++j)
     {
@@ -110,7 +110,7 @@ bool cmbNucImporter::importInpFile()
   {
     return false;
   }
-  
+
   // Cache the directory for the next time the dialog is opened
   QFileInfo info(fileNames[0]);
   settings.setValue("cache/lastDir", info.dir().path());
@@ -162,6 +162,13 @@ bool cmbNucImporter::importInpFile()
                       defaultAssemblyColors[acolorIndex][2]);
         assembly->SetLegendColor(acolor);
         bool need_to_calc_defaults = mainWindow->NuclearCore->GetNumberOfAssemblies() == 0;
+        std::string n = assembly->getLabel();
+        int count = 0;
+        while(!mainWindow->NuclearCore->label_unique(n))
+        {
+          n = (QString(assembly->getLabel().c_str()) + QString::number(count++)).toStdString();
+        }
+        assembly->setLabel(n);
         mainWindow->NuclearCore->AddAssembly(assembly);
         if(need_to_calc_defaults)
         {
