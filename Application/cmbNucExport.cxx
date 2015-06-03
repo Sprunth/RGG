@@ -350,12 +350,16 @@ cmbNucExporterWorker
 #else
   int count = 0;
   this->askForJobs(1);
+  QThread::yieldCurrentThread();
+  Thread::msleep(10);
   while(this->pendingJobCount() == 0)
   {
     //qDebug() << count <<"waiting for jobs: " << this->pendingJobCount();
     if(count++>=100)
     {
       connection.sendErrorMessage("JOB NEVER CAME");
+      connection.sendCurrentMessage(QString(this->label.c_str()) +
+                                    ": Did not get a valid job.");
       qDebug() << "!!!!!!!!!!!DID NOT GET A VALID JOB!!!!!!!!!!!!!!!";
       return;
     }
@@ -670,7 +674,8 @@ cmbNucExport::run( Message const& message )
   deps.insert(deps.end(), assy.begin(), assy.end());
 
   std::vector<JobHolder*> core = this->runCoreHelper( message.coregenFile,
-                                                      deps, message.CoreGenOutputFile,
+                                                      deps,
+                                                      message.CoreGenOutputFile,
                                                       false );
 
   processJobs();
@@ -722,8 +727,10 @@ JobHolder* cmbNucExport::makeAssyJob(const QString assygenFile)
       assyJob->in.LibPath += line + ":";
     }
     QFileInfo libPaths(AssygenExe);
-    assyJob->in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
-    assyJob->in.LibPath += ":"+ QFileInfo(CubitExe).absolutePath().toStdString();
+    assyJob->in.LibPath += (libPaths.absolutePath() + ":" +
+                            libPaths.absolutePath() + "/../lib").toStdString();
+    assyJob->in.LibPath += ":"+
+                           QFileInfo(CubitExe).absolutePath().toStdString();
   }
 
   return assyJob;
@@ -767,7 +774,8 @@ cmbNucExport::runCubitHelper( const QString cubitFile,
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
 
-    JobHolder * cubitJob = new JobHolder(path, CubitExe, cubitFile, cubitOutputFile);
+    JobHolder * cubitJob = new JobHolder(path, CubitExe,
+                                         cubitFile, cubitOutputFile);
     cubitJob->label = "Cubit";
     cubitJob->itype = "CUBIT_IN";
     cubitJob->otype = "COREGEN_IN";
