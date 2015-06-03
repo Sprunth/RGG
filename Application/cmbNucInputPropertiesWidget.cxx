@@ -362,7 +362,8 @@ void cmbNucInputPropertiesWidget::pinLabelChanged(PinCell* pincell,
     return;
   }
 
-  this->Core->getPinLibrary()->replaceLabel(previous.toStdString(), current.toStdString());
+  this->Core->getPinLibrary()->replaceLabel(previous.toStdString(),
+                                            current.toStdString());
 
   for( int i = 0; i < this->Core->GetNumberOfAssemblies(); ++i )
   {
@@ -719,8 +720,8 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     changed = true;
   }
 
-  if(nucCore->getParams().BackgroundFullPath != Internal->background_full_path &&
-     nucCore->getParams().BackgroundMode != cmbNucCoreParams::None)
+  if(nucCore->getParams().BackgroundMode == cmbNucCoreParams::External &&
+     nucCore->getParams().BackgroundFullPath != Internal->background_full_path)
   {
     nucCore->getParams().BackgroundFullPath = Internal->background_full_path;
     changed = true;

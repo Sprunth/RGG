@@ -919,6 +919,7 @@ void cmbNucMainWindow::onFileOpen()
     return;
   }
 
+  cmbNucMaterialColors::instance()->blockSignals(true);
   doClearAll();
 
   this->setCursor(Qt::BusyCursor);
@@ -948,6 +949,7 @@ void cmbNucMainWindow::onFileOpen()
 
     QFileInfo info(fileNames[0]);
     settings.setValue("cache/lastDir", info.dir().path());
+    cmbNucMaterialColors::instance()->blockSignals(false);
   }
   else
   {
@@ -956,6 +958,7 @@ void cmbNucMainWindow::onFileOpen()
     msgBox.setInformativeText(fileNames[0]+" could not be readed.");
     msgBox.exec();
     this->unsetCursor();
+    cmbNucMaterialColors::instance()->blockSignals(false);
     return;
   }
 }
