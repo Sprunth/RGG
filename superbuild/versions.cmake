@@ -85,7 +85,7 @@ add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
-  GIT_TAG b9d4f39d695f6b69a8b39042a52a50f624c61f55
+  GIT_TAG eb5f6f38fe05c8c5fc3b6d488efdb41bd0edf50f
 )
 
 if (UNIX)
@@ -158,8 +158,7 @@ endif()
 
 add_revision(remus
   GIT_REPOSITORY http://public.kitware.com/Remus.git
-####GIT_REPOSITORY https://github.com/robertmaynard/Remus.git
-  GIT_TAG e87bfb84434001e47deddd8e5044b84f2f293c1a
+  GIT_TAG 3cf220e0529f512039daaf64478cbac84376f1d0
 )
 
 add_revision(kml

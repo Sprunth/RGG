@@ -358,8 +358,11 @@ cmbNucExporterWorker
     if(count++>=100)
     {
       connection.sendErrorMessage("JOB NEVER CAME");
-      connection.sendCurrentMessage(QString(this->label.c_str()) +
-                                    ": Did not get a valid job.");
+      connection.sendCurrentMessage( QString("Process ") +
+                                     QString::number(pid) +
+                                     QString(": ") +
+                                     QString(this->label.c_str()) +
+                                      ": Did not get a valid job.");
       qDebug() << "!!!!!!!!!!!DID NOT GET A VALID JOB!!!!!!!!!!!!!!!";
       return;
     }
@@ -546,7 +549,7 @@ void cmbNucExporterWorker
   QList<QByteArray> lines = tmp.split('\n');
   foreach ( const QByteArray &line, lines)
   {
-    connection.sendCurrentMessage( QString("Process ") + QString::number(pid) + QString(": ") + QString(line) );
+    connection.sendCurrentMessage( QString("Process ") + QString::number(pid) + ": " + QString(this->label.c_str()) + QString(": ") + QString(line) );
   }
 }
 
@@ -560,7 +563,7 @@ cmbNucExporterWorker::status cmbNucExporterWorker
     return FAILED;
   }
 #ifdef _WIN32
-  //Currently, we are not running meshkit in windows.  
+  //Currently, we are not running meshkit in windows.
   //pid is different in windows, instead it is a struct.  Because
   //I am being lazy, I will delay getting this working until we
   //need it.  Bwaha

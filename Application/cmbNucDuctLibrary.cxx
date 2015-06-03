@@ -11,6 +11,7 @@ cmbNucDuctLibrary
 ::~cmbNucDuctLibrary()
 {
   delete this->Connection;
+  AssyPartObj::deleteObjs(this->DuctCells);
 }
 
 bool cmbNucDuctLibrary
@@ -71,9 +72,11 @@ void cmbNucDuctLibrary
   std::string name = dc->getName();
   std::map<std::string, size_t>::iterator iter = this->NameToDuct.find(name);
   if(iter == this->NameToDuct.end()) return;
-  this->DuctCells.erase(this->DuctCells.begin() + iter->second);
+  size_t second = iter->second;
+  assert(dc == this->DuctCells[second]);
+  this->DuctCells.erase(this->DuctCells.begin() + second);
   this->NameToDuct.erase(iter);
-  for(size_t i = iter->second; i < this->DuctCells.size(); ++i)
+  for(size_t i = second; i < this->DuctCells.size(); ++i)
   {
     DuctCell * dci = this->DuctCells[i];
     NameToDuct[dci->getName()] = i;

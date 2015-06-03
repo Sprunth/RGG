@@ -86,6 +86,13 @@ cmbNucCore::cmbNucCore(bool needSaved)
 
 cmbNucCore::~cmbNucCore()
 {
+  for(std::vector< cmbNucAssemblyLink* >::iterator fit = this->AssemblyLinks.begin();
+      fit != this->AssemblyLinks.end(); ++fit)
+  {
+    delete *fit;
+  }
+  this->AssemblyLinks.clear();
+
   for(std::vector<cmbNucAssembly*>::iterator fit=this->Assemblies.begin();
       fit!=this->Assemblies.end(); ++fit)
   {
@@ -664,7 +671,7 @@ void cmbNucCore::calculateDefaults()
     double z[2];
     dc.getZRange(z[0], z[1]);
     if(z0 < z[0]) z0 = z[0];
-    
+
     double r[2];
     assy->GetDuctWidthHeight(r);
     if( r[0] > DuctThickX ) DuctThickX = r[0];
