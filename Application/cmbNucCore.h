@@ -204,7 +204,7 @@ public:
   cmbNucAssemblyLink* GetAssemblyLink(const std::string &label);
   cmbNucAssemblyLink* GetAssemblyLink(int idx);
 
-  bool label_unique(std::string const& n);
+  bool label_unique(std::string n);
   bool label_unique(QString const& n)
   {
     return label_unique( n.toStdString() );

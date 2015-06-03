@@ -711,8 +711,9 @@ void cmbNucCore::sendDefaults()
   }
 }
 
-bool cmbNucCore::label_unique(std::string const& n)
+bool cmbNucCore::label_unique(std::string n)
 {
+  std::transform(n.begin(), n.end(), n.begin(), ::tolower);
   {
     std::vector< cmbNucAssembly* > assys = this->Assemblies;
     for(unsigned int i = 0; i < assys.size(); ++i)
