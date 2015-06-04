@@ -48,8 +48,8 @@ cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
   {
     int loc = PinCells.size();
     PinCells.push_back(pc);
-    this->setName(pc->getName(), loc);
-    this->setLabel(pc->getLabel(), loc);
+    this->setNameLocal(pc->getName(), loc);
+    this->setLabelLocal(pc->getLabel(), loc);
     this->Connection->libraryChanged();
     QObject::connect(pc->GetConnection(), SIGNAL(Changed()),
                      this->Connection, SIGNAL(libraryChanged()));
@@ -149,8 +149,8 @@ void cmbNucPinLibrary::removePincell(PinCell* pc)
   for(size_t i = ni->second; i < this->PinCells.size(); ++i)
   {
     PinCell * pci = this->PinCells[i];
-    this->setName(pci->getName(), i);
-    this->setLabel(pci->getLabel(), i);
+    this->setNameLocal(pci->getName(), i);
+    this->setLabelLocal(pci->getLabel(), i);
   }
   NameToPin.erase(ni);
   LabelToPin.erase(li);
@@ -202,7 +202,7 @@ void cmbNucPinLibrary::replaceLabel(const std::string& oldL, const std::string& 
 {
   std::map<std::string, size_t>::iterator li = this->findLabel(oldL);
   if(li == LabelToPin.end()) return;
-  setLabel(newL, li->second);
+  setLabelLocal(newL, li->second);
   LabelToPin.erase(li);
 
 }
@@ -211,7 +211,7 @@ void cmbNucPinLibrary::replaceName(const std::string& oldN, const std::string& n
 {
   std::map<std::string, size_t>::iterator ni = this->findName(oldN);
   if(ni == NameToPin.end()) return;
-  this->setName(newN, ni->second);
+  this->setNameLocal(newN, ni->second);
   NameToPin.erase(ni);
 }
 
@@ -258,13 +258,13 @@ void cmbNucPinLibrary::removeFakeBoundaryLayer(std::string blname)
   }
 }
 
-void cmbNucPinLibrary::setLabel(std::string l, size_t i)
+void cmbNucPinLibrary::setLabelLocal(std::string l, size_t i)
 {
   std::transform(l.begin(), l.end(), l.begin(), ::tolower);
   this->LabelToPin[l] = i;
 }
 
-void cmbNucPinLibrary::setName(std::string n, size_t i)
+void cmbNucPinLibrary::setNameLocal(std::string n, size_t i)
 {
   std::transform(n.begin(), n.end(), n.begin(), ::tolower);
   this->NameToPin[n] = i;

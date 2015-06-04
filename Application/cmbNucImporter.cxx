@@ -115,7 +115,6 @@ bool cmbNucImporter::importInpFile()
   QFileInfo info(fileNames[0]);
   settings.setValue("cache/lastDir", info.dir().path());
   int numExistingAssy = mainWindow->NuclearCore->GetNumberOfAssemblies();
-  bool need_to_use_assem = false;
 
   mainWindow->NuclearCore->getPinLibrary()->resetConflictResolution();
 
@@ -187,7 +186,6 @@ bool cmbNucImporter::importInpFile()
         {
           assembly->setFromDefaults( mainWindow->NuclearCore->GetDefaults() );
         }
-        need_to_use_assem = true;
 
         if( mainWindow->NuclearCore->getLattice().GetGeometrySubType() & ANGLE_60 &&
            mainWindow->NuclearCore->getLattice().GetGeometrySubType() & VERTEX )

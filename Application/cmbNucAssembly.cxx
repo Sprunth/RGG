@@ -558,14 +558,16 @@ QSet< cmbNucMaterial* > cmbNucAssembly::getInterfaceMaterials(QPointer<cmbNucMat
   }
 }
 
-QSet< cmbNucMaterial* > cmbNucAssembly::getOtherFixed(QPointer<cmbNucMaterial> boundaryLayerMaterial,
-                                                      QPointer<cmbNucMaterial> fixedMaterial)
+QSet< cmbNucMaterial* > cmbNucAssembly
+::getOtherFixed(QPointer<cmbNucMaterial> /*boundaryLayerMaterial*/,
+                QPointer<cmbNucMaterial> /*fixedMaterial*/)
 {
   //TODO
   return QSet< cmbNucMaterial* >();
 }
 
-bool cmbNucAssembly::has_boundary_layer_interface(QPointer<cmbNucMaterial> in_material) const
+bool cmbNucAssembly
+::has_boundary_layer_interface(QPointer<cmbNucMaterial> in_material) const
 {
   //TODO consider inside the pin
   return this->AssyDuct->isInnerDuctMaterial(in_material);

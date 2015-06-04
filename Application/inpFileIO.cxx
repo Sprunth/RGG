@@ -731,8 +731,6 @@ bool inpFileWriter::write(std::string fname,
 
   if(!limited)
   {
-    int blId = 1;
-
     helper.writePincell( output, bls, assembly );
     helper.writeLattice( output, "Assembly",
                          false,
@@ -1386,14 +1384,17 @@ inpFileHelper
         cylinder->r = radii.back();
         pincell->AddPart(cylinder);
 
-        // let alpha be the normalization factor for the layers (outer most would be 1.0)
+        // let alpha be the normalization factor for the layers (outer most
+        // would be 1.0)
         double alpha = 1.0 / cylinder->r;
         for(int c=0; c < layers; c++)
         {
-          // Get the material of the layer - note that we read in the material label that
+          // Get the material of the layer - note that we read in the material
+          // label that
           // maps to the actual material
           input >> mlabel;
-          QPointer< cmbNucMaterial > tmp_mat = cmbNucMaterialColors::instance()->getUnknownMaterial();
+          QPointer< cmbNucMaterial > tmp_mat =
+              cmbNucMaterialColors::instance()->getUnknownMaterial();
           std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
           map_iter it = materialLabelMap.find(mlabel);
           if(it != materialLabelMap.end())
@@ -1420,8 +1421,10 @@ inpFileHelper
         double v;
         std::string material;
         input >> tmp >> v >> material;
-        QPointer< cmbNucMaterial > mat = cmbNucMaterialColors::instance()->getUnknownMaterial();
-        std::transform(material.begin(), material.end(), material.begin(), ::tolower);
+        QPointer< cmbNucMaterial > mat =
+            cmbNucMaterialColors::instance()->getUnknownMaterial();
+        std::transform(material.begin(), material.end(), material.begin(),
+                       ::tolower);
         map_iter it = materialLabelMap.find(material);
         if(it != materialLabelMap.end())
           mat = it->second;
@@ -1457,18 +1460,22 @@ inpFileHelper
         frustum->r[Frustum::BOTTOM] = radii[(2*layers) - Frustum::BOTTOM - 1];
         pincell->AddPart(frustum);
 
-        // let alpha be the normalization factor for the layers (outer most would be 1.0) for first end of the frustrum
-        // let beta be the normalization factor for the layers (outer most would be 1.0) for other end of the frustrum
+        // let alpha be the normalization factor for the layers (outer most
+        // would be 1.0) for first end of the frustrum
+        // let beta be the normalization factor for the layers (outer most would
+        // be 1.0) for other end of the frustrum
         double normF[2] = {1.0 / frustum->r[Frustum::TOP],
                            1.0 / frustum->r[Frustum::BOTTOM]};
         for(int c=0; c < layers; c++)
         {
-          // Get the material of the layer - note that we read in the material label that
-          // maps to the actual material
+          // Get the material of the layer - note that we read in the material
+          // label that maps to the actual material
           std::string mname;
           input >> mlabel;
-          QPointer< cmbNucMaterial > tmp = cmbNucMaterialColors::instance()->getUnknownMaterial();
-          std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(), ::tolower);
+          QPointer< cmbNucMaterial > tmp =
+              cmbNucMaterialColors::instance()->getUnknownMaterial();
+          std::transform(mlabel.begin(), mlabel.end(), mlabel.begin(),
+                         ::tolower);
           map_iter it = materialLabelMap.find(mlabel);
           if(it != materialLabelMap.end())
           {
@@ -1480,17 +1487,19 @@ inpFileHelper
             labelIsDifferent = true;
           }
           frustum->SetMaterial(c,tmp);
-          frustum->setNormalizedThickness( c, Frustum::TOP,
-                                           radii[2*c+Frustum::TOP]*normF[Frustum::TOP]);
-          frustum->setNormalizedThickness( c, Frustum::BOTTOM,
-                                           radii[(2*c)+Frustum::BOTTOM]*normF[Frustum::BOTTOM]);
+          double rtop = radii[2*c+Frustum::TOP]*normF[Frustum::TOP];
+          double rbottom = radii[(2*c)+Frustum::BOTTOM]*normF[Frustum::BOTTOM];
+          frustum->setNormalizedThickness( c, Frustum::TOP, rtop);
+          frustum->setNormalizedThickness( c, Frustum::BOTTOM, rbottom);
         }
       }
     }
     if(material_not_found)
     {
       QMessageBox msgBox;
-      msgBox.setText( QString("One or more of the pincell's materials were not found, defaulting to unknown material") );
+      msgBox.setText( QString("One or more of the pincell's materials"
+                              " were not found, defaulting to "
+                              "unknown material") );
       msgBox.exec();
     }
     if(firstMaterial != NULL)
@@ -1502,7 +1511,8 @@ inpFileHelper
     switch(pl->addPin(&pincell, false, newLabel))
     {
       case cmbNucPinLibrary::PinAddFailed:
-        log.push_back(pincell->getName() + " " + pincell->getLabel() + " Failed to be added to pin library");
+        log.push_back(pincell->getName() + " " + pincell->getLabel() +
+                      " Failed to be added to pin library");
         delete pincell;
         pincell = NULL;
         break;
@@ -1510,19 +1520,23 @@ inpFileHelper
         log.push_back("Null Pin");
         break;
       case cmbNucPinLibrary::PinRenamed:
-        log.push_back(old_name + " " + old_label + " had a name conflict, renamed to " +
+        log.push_back(old_name + " " + old_label +
+                      " had a name conflict, renamed to " +
                       pincell->getName() + " " + pincell->getLabel());
         assembly.AddPinCell(pincell);
         break;
       case cmbNucPinLibrary::PinExists:
         if( old_label != pincell->getLabel() || old_name != pincell->getName())
         {
-          log.push_back(old_name + " " + old_label + " had a name conflict, renamed to " +
-                        pincell->getName() + " " + pincell->getLabel() + ".  Matching pin already exists.");
+          log.push_back(old_name + " " + old_label +
+                        " had a name conflict, renamed to " +
+                        pincell->getName() + " " + pincell->getLabel() +
+                        ".  Matching pin already exists.");
         }
         else
         {
-          log.push_back(old_name + " " + old_label + " A matching pin already exists");
+          log.push_back(old_name + " " + old_label +
+                        " A matching pin already exists");
         }
         assembly.AddPinCell(pincell);
         break;
@@ -1826,11 +1840,11 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
   input >> apy;
   if(core.IsHexType()) // just one pitch
   {
-    apy = apx;
+    apx = apy;
   }
   else
   {
-    input >> apy;
+    input >> apx;
   }
   core.setAssemblyPitch(apx,apy);
 
@@ -1885,7 +1899,11 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
         {
           return false;
         }
-        if(!freader.read(*assembly, core.getPinLibrary(), core.getDuctLibrary())) return false;
+        if(!freader.read(*assembly, core.getPinLibrary(),
+                         core.getDuctLibrary()))
+        {
+          return false;
+        }
         this->keepGoing = freader.keepGoing;
         this->pinAddMode = freader.pinAddMode;
         this->renamePin = freader.renamePin;
@@ -1903,7 +1921,8 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
       std::string sameAs, assyfilenameOther;
       std::string msid, nsid;
       ss >> sameAs >> assyfilenameOther >> msid >> nsid;
-      std::map<std::string, cmbNucAssembly *>::const_iterator it = fnameToAssy.find(assyfilenameOther);
+      std::map<std::string, cmbNucAssembly *>::const_iterator it =
+          fnameToAssy.find(assyfilenameOther);
       if(it == fnameToAssy.end())
       {
         cmbNucAssemblyLink * link = new cmbNucAssemblyLink(NULL, msid, nsid);
@@ -1943,6 +1962,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   std::string strPath = info.dir().path().toStdString();
   std::string coreName = info.fileName().toStdString();
   typedef std::map< std::string, std::set< Lattice::CellDrawMode > > CellMap;
+  typedef std::set< Lattice::CellDrawMode > ModeSet;
   CellMap cells = core.getDrawModesForAssemblies();
   unsigned int count = 0;
   for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)
@@ -1960,15 +1980,16 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     output << " " << core.getAssemblyPitchY();
   }
   output << "\n";
-  for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)
+  for(CellMap::const_iterator cell_iter = cells.begin();
+      cell_iter != cells.end(); ++cell_iter)
   {
-    cmbNucAssembly* assembly = core.GetAssembly(iter->first);
-    std::set< Lattice::CellDrawMode > const& forms = iter->second;
+    cmbNucAssembly* assembly = core.GetAssembly(cell_iter->first);
+    std::set< Lattice::CellDrawMode > const& forms = cell_iter->second;
 
-    for(std::set< Lattice::CellDrawMode >::const_iterator iter = forms.begin();
-        iter != forms.end(); ++iter)
+    for(ModeSet::const_iterator form_iter = forms.begin();
+        form_iter != forms.end(); ++form_iter)
     {
-      Lattice::CellDrawMode mode = *iter;
+      Lattice::CellDrawMode mode = *form_iter;
       std::string assemblyName = assembly->getFileName(mode, forms.size());
       assert(!assemblyName.empty());
       {
@@ -1987,9 +2008,11 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     QFileInfo temp(assemblyName.c_str());
     assemblyName = temp.completeBaseName().toStdString();
 
-    output << link->getLabel() << assembly->getOutputExtension() << " " << link->getLabel() << " same_as "
+    output << link->getLabel() << assembly->getOutputExtension() << " "
+           << link->getLabel() << " same_as "
            << assemblyName << assembly->getOutputExtension() << " "
-           << link->getMaterialStartID() << " " << link->getNeumannStartID() << "\n";
+           << link->getMaterialStartID() << " " << link->getNeumannStartID()
+           << "\n";
   }
   output.flush();
   qDebug() << "wrote assemplies";

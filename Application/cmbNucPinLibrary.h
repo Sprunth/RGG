@@ -74,8 +74,8 @@ protected:
   bool keepGoing, renamePin;
   AddMode conflictResMode;
 
-  void setLabel(std::string l, size_t i);
-  void setName(std::string n, size_t i);
+  void setLabelLocal(std::string l, size_t i);
+  void setNameLocal(std::string n, size_t i);
   std::map<std::string, size_t>::iterator findLabel(std::string l);
   std::map<std::string, size_t>::iterator findName(std::string n);
   std::map<std::string, size_t>::const_iterator findLabel(std::string l) const;
