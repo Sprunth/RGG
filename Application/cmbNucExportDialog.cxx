@@ -130,16 +130,19 @@ void cmbNucExportDialog::sendSignalToProcess()
   send_core_mesh = true;
 
   this->Progress->show();
-  message.CoreGenOutputFile = QFileInfo(CoregenFile).absolutePath() + "/" + QString(this->Core->getMeshOutputFilename().c_str()).trimmed();
+  message.CoreGenOutputFile
+            = QFileInfo(CoregenFile).absolutePath() + "/"
+              + QString(this->Core->getMeshOutputFilename().c_str()).trimmed();
 
   OuterCylinder->exportFiles(this->Core, *InpExporter);
   if(OuterCylinder->generateCylinder())
   {
-    message.cylinderTask = Message::CylinderTask(OuterCylinder->getAssygenFileName(),
-                                                 OuterCylinder->getCoreGenFileName(),
-                                                 OuterCylinder->getSATFileName(),
-                                                 OuterCylinder->getCubitFileName(),
-                                                 this->Core->getParams().BackgroundFullPath.c_str());
+    message.cylinderTask =
+      Message::CylinderTask(OuterCylinder->getAssygenFileName(),
+                            OuterCylinder->getCoreGenFileName(),
+                            OuterCylinder->getSATFileName(),
+                            OuterCylinder->getCubitFileName(),
+                            this->Core->getParams().BackgroundFullPath.c_str());
   }
   emit process(message);
 }
@@ -245,24 +248,29 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
   MainWindow->checkForNewCUBH5MFiles();
   QStringList AssygenFileList;
 
-  std::map< std::string, std::set< Lattice::CellDrawMode > > cells = this->Core->getDrawModesForAssemblies();
+  std::map< std::string, std::set< Lattice::CellDrawMode > > cells =
+      this->Core->getDrawModesForAssemblies();
   std::string assyFname;
 
-  for(std::map< std::string, std::set< Lattice::CellDrawMode > >::const_iterator iter = cells.begin();
-      iter != cells.end(); ++iter)
-  {
-    cmbNucAssembly* assembly = this->Core->GetAssembly(iter->first);
-    std::set< Lattice::CellDrawMode > const& forms = iter->second;
+  typedef std::map< std::string, std::set< Lattice::CellDrawMode > >
+      stringModeMap;
+  typedef std::set< Lattice::CellDrawMode > modeSet;
 
-    for(std::set< Lattice::CellDrawMode >::const_iterator iter = forms.begin();
-        iter != forms.end(); ++iter)
+  for(stringModeMap::const_iterator cell_iter = cells.begin();
+      cell_iter != cells.end(); ++cell_iter)
+  {
+    cmbNucAssembly* assembly = this->Core->GetAssembly(cell_iter->first);
+    std::set< Lattice::CellDrawMode > const& forms = cell_iter->second;
+
+    for(modeSet::const_iterator form_iter = forms.begin();
+        form_iter != forms.end(); ++form_iter)
     {
-      if(assembly->needToRunMode(*iter, assyFname, forms.size()) || force)
+      if(assembly->needToRunMode(*form_iter, assyFname, forms.size()) || force)
       {
         QString assyname = assyFname.c_str();
         AssygenFileList.append(assyname);
-        Message::AssygenTask task( assyname,
-                                   QString(assembly->getOutputExtension().c_str()), false);
+        QString extension(assembly->getOutputExtension().c_str());
+        Message::AssygenTask task( assyname,  extension, false );
         this->AllUsableAssyTasks.push_back(task);
       }
     }

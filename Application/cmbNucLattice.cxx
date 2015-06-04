@@ -77,6 +77,7 @@ void Lattice::setUpGrid(Lattice const & other)
     {
       LatticeCell * c = this->getCell(other.Grid[i][j].getCell()->label);
       int oc = c->getCount();
+      (void)(oc);
       this->Grid[i][j].setCell(c);
       assert(c->getCount() == static_cast<unsigned int>(oc) + 1);
     }

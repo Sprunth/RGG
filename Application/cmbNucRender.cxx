@@ -390,24 +390,15 @@ public:
       {
         double tmp_height = duct->getZ2() - duct->getZ1();
         double thickness = 0;
-        double temp = 0;
         double bias = bl->Bias;
         //HACK TO HANDLE LESS than one
         if(bias < 2) bias = 1+0.5*(bias);
 
-        int at = 0;//manager->GetNumberOfLayers()-1;
+        int at = 0;
         double max = pow(bl->Intervals, bias);
-        //double num = bl->Thickness/pow(bl->Intervals, bias);
-        //double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
-        //double deno = pow(bias, bl->Intervals) - 1;
-        //if (deno !=0)
-        //  temp = num/deno;
-        //else
-        //  temp = thickness/bl->Intervals;
-        for(unsigned inter = 0; inter < bl->Intervals; ++inter)
+        for(int inter = 0; inter < bl->Intervals; ++inter)
         {
           thickness = bl->Thickness*pow(inter+1,bias)/max;
-          //assert(thickness <= bl->Thickness);
           key k(manager->GetResolution(at),
                 manager->GetTopRadius(at, 0) - thickness,
                 manager->GetTopRadius(at, 1) - thickness,
@@ -498,14 +489,13 @@ public:
       if(bl != NULL && !pincell->cellMaterialSet())
       {
         double thickness = 0;
-        double temp = 0;
         double bias = bl->Bias;
         //HACK TO HANDLE LESS than one
         if(bias < 2) bias = 1+0.5*(bias);
         int at = manager->GetNumberOfLayers()-1;
         double max = pow(bl->Intervals, bias);
 
-        for(unsigned inter = 0; inter < bl->Intervals; ++inter)
+        for(int inter = 0; inter < bl->Intervals; ++inter)
         {
           thickness = bl->Thickness*pow(inter+1,bias)/max;
           key k(manager->GetResolution(at),
