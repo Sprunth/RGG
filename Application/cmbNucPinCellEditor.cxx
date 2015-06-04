@@ -233,6 +233,8 @@ cmbNucPinCellEditor::cmbNucPinCellEditor(QWidget *p)
 cmbNucPinCellEditor::~cmbNucPinCellEditor()
 {
   delete this->Ui;
+  delete this->InternalPinCell;
+  this->ExternalPinCell = NULL;
 }
 
 bool cmbNucPinCellEditor::isCrossSectioned()
