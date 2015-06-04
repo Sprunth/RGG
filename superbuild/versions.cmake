@@ -85,7 +85,7 @@ add_revision( nuclearRGG SOURCE_DIR ${superbuild_top_dir}/.. )
 
 add_revision(vtk
   GIT_REPOSITORY http://vtk.org/VTK.git
-  GIT_TAG b9d4f39d695f6b69a8b39042a52a50f624c61f55
+  GIT_TAG eb5f6f38fe05c8c5fc3b6d488efdb41bd0edf50f
 )
 
 if (UNIX)
@@ -151,15 +151,14 @@ if (WIN32)
 else()
   #unix and mac uses the stable release
   add_revision(zeroMQ
-    URL "http://download.zeromq.org/zeromq-2.2.0.tar.gz"
-    URL_MD5 1b11aae09b19d18276d0717b2ea288f6)
+    URL "http://download.zeromq.org/zeromq-3.2.5.tar.gz"
+    URL_MD5 d4189c152fbdc45b376a30bd643f67fd)
 
 endif()
 
 add_revision(remus
-  GIT_REPOSITORY http://public.kitware.com/Remus.git
-####GIT_REPOSITORY https://github.com/robertmaynard/Remus.git
-  GIT_TAG e87bfb84434001e47deddd8e5044b84f2f293c1a
+  GIT_REPOSITORY https://github.com/Kitware/Remus.git
+  GIT_TAG v0.5.2
 )
 
 add_revision(kml

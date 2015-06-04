@@ -477,7 +477,11 @@ void cmbNucInputListWidget::onNewAssemblyLink()
   matColorMap->CalcRGB(r,g,b);
   link->SetLegendColor(QColor::fromRgbF(r,g,b));
 
-  this->NuclearCore->AddAssemblyLink(link);
+  if(!this->NuclearCore->AddAssemblyLink(link))
+  {
+    delete link;
+    return;
+  }
   this->initCoreRootNode();
   this->updateWithAssemblyLink(link);
   this->NuclearCore->GetConnection()->justFileChanged();

@@ -1,6 +1,7 @@
 #include "cmbNucDefaultWidget.h"
 #include "cmbNucDefaults.h"
 #include "ui_qDefaults.h"
+#include <QDebug>
 
 class cmbNucDefaultWidgetInternal
 {
@@ -106,7 +107,7 @@ namespace
   bool getValue(QString &v, QPlainTextEdit * from)
   {
     v = from->toPlainText();
-    return true;
+    return !v.isEmpty();
   }
 
   void getValue(QPlainTextEdit * to, QString v)
@@ -143,7 +144,7 @@ void cmbNucDefaultWidget::apply()
   bool v1 = getValue(tmp1, this->Internal->ui->X);   \
   bool v2 = Current->get##X(tmp2); \
   if((v1 != v2) || (v1 && tmp1 != tmp2) )\
-  { emit commonChanged(); } \
+  { emit commonChanged();  qDebug() << #X << " changed " << v1 << " " << v2 << " " << tmp1 << " " << tmp2; } \
 }
   COMMONMACRO()
 #define FUN1(T,X)                                   \

@@ -274,6 +274,7 @@ void cmbNucCoregen::openFile(QString file)
   this->Names.resize(tmp->GetNumberOfBlocks());
   QStringList list;
 
+  cmbNucMaterialColors::instance()->blockSignals(true);
   for (unsigned int i = 0; i < tmp->GetNumberOfBlocks(); ++i)
   {
     if(this->GeoFilt[i] == NULL) this->GeoFilt[i] = vtkSmartPointer<vtkGeometryFilter>::New();
@@ -300,6 +301,7 @@ void cmbNucCoregen::openFile(QString file)
       }
     }
   }
+  cmbNucMaterialColors::instance()->blockSignals(false);
   emit fileOpen(true);
   emit components(list,5);
   emit resetCamera();

@@ -86,6 +86,13 @@ cmbNucCore::cmbNucCore(bool needSaved)
 
 cmbNucCore::~cmbNucCore()
 {
+  for(std::vector< cmbNucAssemblyLink* >::iterator fit = this->AssemblyLinks.begin();
+      fit != this->AssemblyLinks.end(); ++fit)
+  {
+    delete *fit;
+  }
+  this->AssemblyLinks.clear();
+
   for(std::vector<cmbNucAssembly*>::iterator fit=this->Assemblies.begin();
       fit!=this->Assemblies.end(); ++fit)
   {
@@ -664,7 +671,7 @@ void cmbNucCore::calculateDefaults()
     double z[2];
     dc.getZRange(z[0], z[1]);
     if(z0 < z[0]) z0 = z[0];
-    
+
     double r[2];
     assy->GetDuctWidthHeight(r);
     if( r[0] > DuctThickX ) DuctThickX = r[0];
@@ -704,13 +711,16 @@ void cmbNucCore::sendDefaults()
   }
 }
 
-bool cmbNucCore::label_unique(std::string const& n)
+bool cmbNucCore::label_unique(std::string n)
 {
+  std::transform(n.begin(), n.end(), n.begin(), ::tolower);
   {
     std::vector< cmbNucAssembly* > assys = this->Assemblies;
     for(unsigned int i = 0; i < assys.size(); ++i)
     {
-      if(assys[i]->getLabel() == n) return false;
+      std::string aname = assys[i]->getLabel();
+      std::transform(aname.begin(), aname.end(), aname.begin(), ::tolower);
+      if(aname == n) return false;
     }
   }
 
@@ -718,7 +728,9 @@ bool cmbNucCore::label_unique(std::string const& n)
     std::vector< cmbNucAssemblyLink* > assys = this->AssemblyLinks;
     for(unsigned int i = 0; i < assys.size(); ++i)
     {
-      if(assys[i]->getLabel() == n) return false;
+      std::string aname = assys[i]->getLabel();
+      std::transform(aname.begin(), aname.end(), aname.begin(), ::tolower);
+      if(aname == n) return false;
     }
   }
 

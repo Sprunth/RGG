@@ -39,7 +39,7 @@ class vtkPolyData;
    FUN_SIMPLE(bool, bool, Info, info, false, "on") \
    FUN_SIMPLE(bool, bool, MeshInfo, meshinfo, false, "on") \
    FUN_STRUCT(std::vector<cmbNucCoreParams::NeumannSetStruct>, cmbNucCoreParams::NeumannSetStruct, NeumannSet, neumannset, false, "") \
-   FUN_STRUCT(cmbNucCoreParams::ExtrudeStruct,                 cmbNucCoreParams::ExtrudeStruct,    Extrude,    extrude,    false, "") 
+   FUN_STRUCT(cmbNucCoreParams::ExtrudeStruct,                 cmbNucCoreParams::ExtrudeStruct,    Extrude,    extrude,    false, "")
 
 template<class TYPE>
 bool operator!=(std::vector<TYPE> const& vec, bool v)
@@ -126,6 +126,8 @@ class cmbNucCoreConnection: public QObject
   Q_OBJECT
 
   friend class cmbNucCore;
+public:
+  virtual ~cmbNucCoreConnection() {}
 private:
   cmbNucCore * v;
 public slots:
@@ -202,7 +204,7 @@ public:
   cmbNucAssemblyLink* GetAssemblyLink(const std::string &label);
   cmbNucAssemblyLink* GetAssemblyLink(int idx);
 
-  bool label_unique(std::string const& n);
+  bool label_unique(std::string n);
   bool label_unique(QString const& n)
   {
     return label_unique( n.toStdString() );

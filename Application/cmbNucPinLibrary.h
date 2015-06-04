@@ -46,16 +46,16 @@ public:
     this->renamePin = true;
   }
   void removePincell(PinCell* pc);
-  PinCell* GetPinCell(const std::string &label);
+  PinCell* GetPinCell(const std::string& label);
   PinCell* GetPinCell(int pc) const;
   std::size_t GetNumberOfPinCells() const;
   void fillList(QStringList & l);
   QString extractLabel(QString const& el) const;
   ConflictMode testPinConflicts(PinCell* pc) const;
-  bool labelConflicts(std::string l) const;
-  bool nameConflicts(std::string n) const;
-  void replaceLabel(std::string oldL, std::string newL);
-  void replaceName(std::string oldN, std::string newN);
+  bool labelConflicts(const std::string& l) const;
+  bool nameConflicts(const std::string& n) const;
+  void replaceLabel(const std::string& oldL, const std::string& newL);
+  void replaceName(const std::string& oldN, const std::string& newN);
 
   cmbNucPinLibrary * clone() const;
 
@@ -73,6 +73,13 @@ protected:
   cmbNucPinLibraryConnection * Connection;
   bool keepGoing, renamePin;
   AddMode conflictResMode;
+
+  void setLabel(std::string l, size_t i);
+  void setName(std::string n, size_t i);
+  std::map<std::string, size_t>::iterator findLabel(std::string l);
+  std::map<std::string, size_t>::iterator findName(std::string n);
+  std::map<std::string, size_t>::const_iterator findLabel(std::string l) const;
+  std::map<std::string, size_t>::const_iterator findName(std::string n) const;
 };
 
 #endif

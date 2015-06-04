@@ -356,6 +356,11 @@ cmbNucExporterWorker
     if(count++>=100)
     {
       connection.sendErrorMessage("JOB NEVER CAME");
+      connection.sendCurrentMessage( QString("Process ") +
+                                     QString::number(pid) +
+                                     QString(": ") +
+                                     QString(this->label.c_str()) +
+                                      ": Did not get a valid job.");
       qDebug() << "!!!!!!!!!!!DID NOT GET A VALID JOB!!!!!!!!!!!!!!!";
       return;
     }
@@ -542,7 +547,7 @@ void cmbNucExporterWorker
   QList<QByteArray> lines = tmp.split('\n');
   foreach ( const QByteArray &line, lines)
   {
-    connection.sendCurrentMessage( QString("Process ") + QString::number(pid) + QString(": ") + QString(line) );
+    connection.sendCurrentMessage( QString("Process ") + QString::number(pid) + ": " + QString(this->label.c_str()) + QString(": ") + QString(line) );
   }
 }
 
@@ -556,7 +561,7 @@ cmbNucExporterWorker::status cmbNucExporterWorker
     return FAILED;
   }
 #ifdef _WIN32
-  //Currently, we are not running meshkit in windows.  
+  //Currently, we are not running meshkit in windows.
   //pid is different in windows, instead it is a struct.  Because
   //I am being lazy, I will delay getting this working until we
   //need it.  Bwaha
@@ -670,7 +675,8 @@ cmbNucExport::run( Message const& message )
   deps.insert(deps.end(), assy.begin(), assy.end());
 
   std::vector<JobHolder*> core = this->runCoreHelper( message.coregenFile,
-                                                      deps, message.CoreGenOutputFile,
+                                                      deps,
+                                                      message.CoreGenOutputFile,
                                                       false );
 
   processJobs();
@@ -722,8 +728,10 @@ JobHolder* cmbNucExport::makeAssyJob(const QString assygenFile)
       assyJob->in.LibPath += line + ":";
     }
     QFileInfo libPaths(AssygenExe);
-    assyJob->in.LibPath += (libPaths.absolutePath() + ":" + libPaths.absolutePath() + "/../lib").toStdString();
-    assyJob->in.LibPath += ":"+ QFileInfo(CubitExe).absolutePath().toStdString();
+    assyJob->in.LibPath += (libPaths.absolutePath() + ":" +
+                            libPaths.absolutePath() + "/../lib").toStdString();
+    assyJob->in.LibPath += ":"+
+                           QFileInfo(CubitExe).absolutePath().toStdString();
   }
 
   return assyJob;
@@ -767,7 +775,8 @@ cmbNucExport::runCubitHelper( const QString cubitFile,
     QString path = fi.absolutePath();
     QString name = fi.completeBaseName();
 
-    JobHolder * cubitJob = new JobHolder(path, CubitExe, cubitFile, cubitOutputFile);
+    JobHolder * cubitJob = new JobHolder(path, CubitExe,
+                                         cubitFile, cubitOutputFile);
     cubitJob->label = "Cubit";
     cubitJob->itype = "CUBIT_IN";
     cubitJob->otype = "COREGEN_IN";

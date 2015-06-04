@@ -4,18 +4,17 @@
 #include <cassert>
 
 Lattice::Lattice()
+:enGeometryType(RECTILINEAR),
+ subType(FLAT | ANGLE_360)
 {
-  this->enGeometryType = RECTILINEAR;
   this->SetDimensions(4, 4);
-  subType = FLAT | ANGLE_360;
 }
 
 Lattice::Lattice( Lattice const& other )
+:enGeometryType(other.enGeometryType),
+ subType(other.subType), FullCellMode(other.FullCellMode)
 {
   setUpGrid(other);
-  this->subType = other.subType;
-  this->enGeometryType = other.enGeometryType;
-  this->FullCellMode = other.FullCellMode;
   this->validRange = other.validRange;
 }
 

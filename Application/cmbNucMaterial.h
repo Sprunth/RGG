@@ -16,6 +16,7 @@ class cmbNucMaterialLayerConnection: public QObject
 {
   Q_OBJECT
 public:
+  virtual ~cmbNucMaterialLayerConnection() {}
   cmbNucMaterialLayer * v;
   void emitMaterialChange()
   {

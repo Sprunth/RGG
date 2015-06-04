@@ -107,6 +107,8 @@ class cmbNucAssemblyConnection: public QObject
 {
   Q_OBJECT
   friend class cmbNucAssembly;
+public:
+  virtual ~cmbNucAssemblyConnection() {}
 private:
   cmbNucAssembly * v;
   void sendPitch(double x, double y);

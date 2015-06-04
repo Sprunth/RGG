@@ -13,6 +13,7 @@ class DuctConnection : public QObject
 {
   Q_OBJECT
 public:
+  virtual ~DuctConnection(){}
   void sendChange();
   void sendDelete();
 signals:
