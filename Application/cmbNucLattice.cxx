@@ -156,8 +156,8 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
           // for each layer, we need 6*Layer cells
           int cols = 6*k;
           this->Grid[k].resize(cols);
-          int start, end;
-          getValidRange(k, start, end);
+          int start = 0, end = 0;
+          if(!getValidRange(k, start, end)) continue;
           for(int c = 0; c < cols; c++)
           {
             if(start <= c && c <= end)
@@ -418,8 +418,11 @@ Lattice::LatticeCell * Lattice::getCell(std::string label)
 Lattice::CellDrawMode Lattice::getDrawMode(int index, int layer) const
 {
   if(this->enGeometryType == RECTILINEAR) return Lattice::RECT;
-  int start, end;
-  this->getValidRange(layer, start, end);
+  int start = 0, end = 0;
+  if(!this->getValidRange(layer, start, end))
+  {
+    return Lattice::RECT;
+  }
   if(layer == 0)
   {
     if(this->subType & ANGLE_360)

@@ -502,19 +502,12 @@ public:
         double bias = bl->Bias;
         //HACK TO HANDLE LESS than one
         if(bias < 2) bias = 1+0.5*(bias);
-        double suba = bl->Thickness/bl->Intervals;
         int at = manager->GetNumberOfLayers()-1;
         double max = pow(bl->Intervals, bias);
-        //double num = bl->Thickness*(bias-1)*(pow(bias, bl->Intervals -1));
-        //double deno = pow(bias, bl->Intervals) - 1;
-        //if (deno !=0)
-        //  temp = num/deno;
-        //else
-        //  temp = thickness/bl->Intervals;
+
         for(unsigned inter = 0; inter < bl->Intervals; ++inter)
         {
           thickness = bl->Thickness*pow(inter+1,bias)/max;
-          //thickness += temp/pow(bias,inter);
           key k(manager->GetResolution(at),
                 manager->GetTopRadius(at, 0) + thickness,
                 manager->GetTopRadius(at, 1) + thickness,

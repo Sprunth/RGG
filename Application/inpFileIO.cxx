@@ -1826,11 +1826,11 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
   input >> apy;
   if(core.IsHexType()) // just one pitch
   {
-    apy = apx;
+    apx = apy;
   }
   else
   {
-    input >> apy;
+    input >> apx;
   }
   core.setAssemblyPitch(apx,apy);
 

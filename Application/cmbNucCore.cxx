@@ -416,10 +416,9 @@ void cmbNucCore::calculateRectTranslation(double /*lastPt*/[2], double & transX,
 
 void cmbNucCore::setGeometryLabel(std::string geomType)
 {
-  enumGeometryType type = lattice.GetGeometryType();
   int subType = lattice.GetGeometrySubType() & JUST_ANGLE;
   std::transform(geomType.begin(), geomType.end(), geomType.begin(), ::tolower);
-  type = HEXAGONAL;
+  enumGeometryType type = HEXAGONAL;
   if( geomType == "hexflat" )
   {
     subType |= FLAT;
@@ -481,8 +480,11 @@ void cmbNucCore::RebuildGrid()
 {
   for(unsigned int i = 0; i < Assemblies.size(); ++i)
   {
-    this->lattice.SetCellColor(this->Assemblies[i]->getLabel(),
-                               this->Assemblies[i]->GetLegendColor());
+    if(this->Assemblies[i] != NULL)
+    {
+      this->lattice.SetCellColor(this->Assemblies[i]->getLabel(),
+                                 this->Assemblies[i]->GetLegendColor());
+    }
   }
 }
 
