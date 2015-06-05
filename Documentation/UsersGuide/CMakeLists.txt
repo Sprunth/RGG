@@ -4,6 +4,7 @@ add_latex_document(
 	RGGUsersGuide.tex
 	INPUTS
 		LatexMacros.tex
+    FileFormat.tex
 		Introduction.tex
 		Installation.tex
 		ConceptualOverviewAndTerminology.tex

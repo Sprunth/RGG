@@ -15,7 +15,7 @@ All user interaction takes place within the main window.  The main window is com
 The \ui{input panel} has three tabs: the \ui{assemblies tab}, the \ui{materials tab}, and the \ui{mesh tab}.
 
 \subsubsection{Assemblies Tab}
-The \ui{assemblies tab} shows the hierarchal nature of the core, assemblies, pins and ducts.  Recall that a core is composed of assemblies which are placed in the core's lattice, and that these assemblies are in turn composed of pins and ducts that are placed in the assembly lattice.
+The \ui{assemblies tab} shows the hierarchal nature of the core, assemblies, pins and ducts.  Recall that a core is composed of assemblies which are placed in the core's lattice, and that these assemblies are in turn composed of pins and ducts that are placed in the assembly lattice.  When 
 
 \begin{figure}[H]
 	\begin{center}
@@ -57,17 +57,13 @@ The \ui{properties panel} changes depending on the current state of the input pa
 
 \begin{itemize}
 	\item{If you're clicking on a core, it will display three tabs: the \ui{lattice tab}, the \ui{configure tab}, and the \ui{assembly defaults tab}.}
-	\item{If you're clicking on an assembly, it will display the \ui{lattice tab} and \ui{configure tab}, and the \ui{defaults tab} (not to be confused with the assembly defaults tab).  Note that the assembly has a different \ui{latticeSe tab} and \ui{configure tab} from the core.}
+	\item{If you're clicking on an assembly, it will display the \ui{lattice tab} and \ui{configure tab}.  Note that the assembly has a different \ui{lattice tab} and \ui{configure tab} from the core.}
 	\item{If you're clicking on a duct, it will display the \ui{duct tab}.}
 	\item{If you're clicking on a pin, it will display the \ui{pin tab}.}
 \end{itemize}
 
-\begin{commonerrors}
-	The \ui{assembly defaults tab} controls global settings for assemblies.  As such, it's displayed when clicking on the core in the \ui{assemblies tab}.  The \ui{defaults tab} controls settings on a per-assembly basis; it's found when clicking on an assembly in the \ui{assemblies tab}.
-\end{commonerrors}
-
 \subsubsection{Lattice Tab}
-The \ui{lattice tab} controls the number of layers (in a hexagonal core) or the dimensions (in a rectilinear core) to get the desired lattice geometry.  For assemblies, there is a checkbox to allow for auto-centering the pins.  Also for assemblies, this tab controls the \ui{2D view} color and label.  See Figure \ref{fig:latticetab}.
+The \ui{lattice tab} controls the number of layers (in a hexagonal core) or the dimensions (in a rectilinear core) to get the desired lattice geometry.  For cores, it also controls the \ui{Reactor Vessel} and \ui{Boundary Layer}s.  For assemblies, there is a checkbox to allow for auto-centering the pins.  Also for assemblies, this tab controls the \ui{2D view} color and label.  There is also controls for assembly rotation and the \ui{duct} used.  See Figure \ref{fig:latticetab}.
 
 \begin{figure}
 \centering
@@ -91,13 +87,8 @@ The \ui{lattice tab} controls the number of layers (in a hexagonal core) or the 
 \subsubsection{Configure Tab}
 This tab allows you to customize other meshing parameters from MeshKit files which are not currently provided an interface in the GUI. See Chapter \ref{chapter:Meshing} for information on how to mesh your core.
 
-When building a full hexagonal core, $\frac{1}{6}$ flat hexagonal core, or a $\frac{1}{12}$ hexagonal core you should include a rotation of $30^\circ$ in each assembly to prevent assemblies from overlapping each other, as shown in \ref{fig:configuretab}.  See more on this in Section \ref{section:RotateAssembly30}.
-
 \subsubsection{Assembly Defaults Tab}
 The \ui{assembly defaults tab} allows you to specify general meshing information.  You can set whether the mesh you want to generate will be tetrahedral or hexahedral, and also change the default dimensions of the ducts comprising your core.  Changing these values will propagate all the way down to every component, so you can change it all in one place instead of adjusting the height of every duct in every assembly.
-
-\subsubsection{Defaults Tab}
-The \ui{defaults tab} allows you to configure the pitch of the assembly.  You can either specify it manually or calculate it using the \ui{calculate button}.
 
 \subsubsection{Duct Tab}
 The \ui{duct tab} exposes the different configuration options for a duct piece.  You can change the position and dimensional settings towards the top, the duct pitch, and the duct material (with associated normalized thickness, if desired).
@@ -133,7 +124,7 @@ Similar to the \ui{properties panel}, the \ui{3D view} changes depending on what
 \subsection{2D View}
 The \ui{2D view} (Figure ~\ref{fig:2DView}) provides a 2d schematic of the core or assembly depending which is selected. Each assembly or pin represented here will be filled with its corresponding key color.
 
-You can edit this information by specifying , and then right-click on each cell to select the desired assembly or pin.  Alternatively, you can drag and drop an existing component onto the cell.
+You can edit this information by moving you mouse over the cell you want to edit and then right-click on each cell to select the desired assembly or pin.  In the pop-up menu, there are options to \ui{Replace All With} and \ui{Fill Ring With}. \ui{Replace All With} replaces every cell that is same component with the desired assembly or pin.  \ui{Fill Ring With} fills every cell in the ring with the desired assembly or pin.  Alternatively, you can drag and drop an existing component onto the cell.
 
 \begin{figure}[h]
 	\begin{center}
