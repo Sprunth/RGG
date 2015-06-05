@@ -30,7 +30,7 @@ Now, to adjust the size of the duct, select the "\ui{Assembly Defaults}" tab in 
 \label{fig:SetRectDuctDem}
 \end{wrapfigure}
 
-Next adjust the material of the \ui{Duct}.  In the \ui{Inputs Panel}, select the \ui{Duct}.  Then, in the Duct's \ui{Properties Panel}[Duct], select the first Duct Segment.  This populates Material Layers with the Duct Segments materials.  Now, select water in the material drop down box drop (~\ref{fig:rectSetMaterial}).  Then press Apply.  The result should look like ~\ref{fig:rectDuctResult}.
+Next adjust the material of the \ui{Duct}.  In the \ui{Inputs Panel}, select the \ui{Duct}, in this case Duct\_1.  Then, in the Duct's \ui{Properties Panel}[Duct], select the first Duct Segment.  This populates Material Layers with the Duct Segments materials.  Now, select water in the material drop down box drop (~\ref{fig:rectSetMaterial}).  Then press Apply.  The result should look like ~\ref{fig:rectDuctResult}.
 
 \begin{figure}
 \centering
@@ -49,6 +49,11 @@ Next adjust the material of the \ui{Duct}.  In the \ui{Inputs Panel}, select the
 \caption{Finished water duct.}
 \label{fig:test}
 \end{figure}
+
+\begin{commonerrors}
+	When finishing editing properties, make sure to hit 
+	apply before switch to another component in the Assemblies tab.
+\end{commonerrors}
 
 \clearpage
 
@@ -76,7 +81,7 @@ Choose the dimensions of the pin to correspond to the dimensions of your duct.  
 \end{center}
 \end{figure}
 
-Changing the key color and label is recommended, because later this will make the fuel pin more recognizeable while organizing the assembly.
+Changing the key color and label is recommended, because later this will make the fuel pin more recognizable while organizing the assembly.
 
 \begin{wrapfigure}{r}{0.5\textwidth}
   \begin{center}
@@ -106,7 +111,7 @@ Refer to ~\ref{fig:Rect7} for the final product.
 \clearpage
 \subsection{Adding Fuel Pins to the Assembly}
 
-Now we want to add the pins we've created back to the assembly.  Click back on ``Assy 1'' in the assemblies view in order to see the assembly layout.  You should once again be able to see the water duct you created, and it should still be empty.  Compare your view with ~\ref{fig:Rect8}.
+Now we want to add the pins we've created back to the assembly.  Click back on ``Assy\_0'' in the assemblies view in order to see the assembly layout.  You should once again be able to see the water duct you created, and it should still be empty.  Compare your view with ~\ref{fig:Rect8}.
 
 \begin{figure}
 \centering
@@ -124,7 +129,7 @@ Now we want to add the pins we've created back to the assembly.  Click back on `
 \end{minipage}
 \end{figure}
 
-Right click on each square and choose which pin to assign to it.  Alternatively, you can drag and drop pins already placed onto new squares.
+Right click on each square and choose which pin to assign to it.  For the fuel rod, we want it to fill the center ring, so we select fuel in \ui{Fill Ring With}.  Alternatively, you can drag and drop pins already placed onto new squares.
 
 In the end you should end up with something like ~\ref{fig:Rect10}.
 
