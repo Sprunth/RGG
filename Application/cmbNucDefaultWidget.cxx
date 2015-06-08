@@ -16,6 +16,7 @@ public:
   }
   Ui_qDefaults * ui;
   bool isHex;
+  bool needCameraReset;
 };
 
 cmbNucDefaultWidget::cmbNucDefaultWidget(QWidget *p)
@@ -135,21 +136,39 @@ bool cmbNucDefaultWidget::assyPitchChanged()
 COMMON(double, AxialMeshSize) \
 COMMON(int, EdgeInterval)\
 COMMON(QString, MeshType) \
-COMMON(QString, UserDefined) \
+COMMON(QString, UserDefined)
+
+#define CAMERARESETMACRO() \
+CAMERARESET(double, Z0) \
+CAMERARESET(double, Height)
 
 bool cmbNucDefaultWidget::apply()
 {
+  this->Internal->needCameraReset = false;
   bool changed = false;
   if(Current == NULL) return changed;
-#define COMMON(T,X) \
-{ \
-  T tmp1, tmp2; \
+#define COMMON(T,X)                                  \
+{                                                    \
+  T tmp1, tmp2;                                      \
   bool v1 = getValue(tmp1, this->Internal->ui->X);   \
-  bool v2 = Current->get##X(tmp2); \
-  if((v1 != v2) || (v1 && tmp1 != tmp2) )\
-  { emit commonChanged(); changed = true; } \
+  bool v2 = Current->get##X(tmp2);                   \
+  if((v1 != v2) || (v1 && tmp1 != tmp2) )            \
+  { emit commonChanged(); changed = true; }          \
 }
   COMMONMACRO()
+
+#define CAMERARESET(T,X)                               \
+  {                                                    \
+    T tmp1, tmp2;                                      \
+    bool v1 = getValue(tmp1, this->Internal->ui->X);   \
+    bool v2 = Current->get##X(tmp2);                   \
+    if((v1 != v2) || (v1 && tmp1 != tmp2) )            \
+    {                                                  \
+      this->Internal->needCameraReset = true;          \
+      changed = true;                                  \
+    }                                                  \
+  }
+  CAMERARESETMACRO()
 #define FUN1(T,X)                                   \
 {                                                   \
   T tmp##X;                                         \
@@ -162,7 +181,7 @@ bool cmbNucDefaultWidget::apply()
   T1 tmp##X; T2 tmp##Y;                             \
   bool v = getValue(tmp##X, this->Internal->ui->X); \
   v &= getValue(tmp##Y, this->Internal->ui->Y);     \
-  changed &= v != Current->has##L();                \
+  changed |= v != Current->has##L();                \
   T1 tmpA##X; T2 tmpA##Y;                           \
   if(Current->get##L(tmpA##X, tmpA##Y) &&           \
      (tmpA##X != tmp##X || tmpA##Y != tmp##Y))      \
@@ -173,6 +192,7 @@ bool cmbNucDefaultWidget::apply()
 }
   EASY_DEFAULT_PARAMS_MACRO()
 #undef COMMON
+#undef CAMERARESET
 #undef FUN1
 #undef FUN2
   this->reset();
@@ -223,4 +243,9 @@ void cmbNucDefaultWidget::setConnections()
 void cmbNucDefaultWidget::disConnect()
 {
   if(this->Current == NULL) return;
+}
+
+bool cmbNucDefaultWidget::needCameraReset()
+{
+  return this->Internal->needCameraReset;
 }
