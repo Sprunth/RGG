@@ -185,7 +185,10 @@ bool cmbNucDefaultWidget::apply()
   T1 tmpA##X; T2 tmpA##Y;                           \
   if(Current->get##L(tmpA##X, tmpA##Y) &&           \
      (tmpA##X != tmp##X || tmpA##Y != tmp##Y))      \
+  {                                                 \
+      this->Internal->needCameraReset = true;       \
       changed = true;                               \
+  }                                                 \
   if( this->Internal->isHex )  tmp##Y = tmp##X;     \
   if(v){ Current->set##L(tmp##X, tmp##Y); }         \
   else { Current->clear##L(); }                     \
