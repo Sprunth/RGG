@@ -77,6 +77,12 @@ namespace
     return true;
   }
 
+  bool getValue(double & to, QDoubleSpinBox * from)
+  {
+    to = from->value();
+    return true;
+  }
+
   void getValue(QLineEdit * to, double &from)
   {
     QString tmp = QString::number(from);
@@ -117,6 +123,17 @@ namespace
   {
     to->setPlainText(v);
   }
+
+  void getValue(QDoubleSpinBox * to, double v)
+  {
+    to->setValue(v);
+  }
+
+  void getValue(QDoubleSpinBox * to, QString v)
+  {
+    //DO Nothing, cannot be cleared
+  }
+
 }
 
 bool cmbNucDefaultWidget::assyPitchChanged()

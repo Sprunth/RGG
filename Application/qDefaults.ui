@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>389</width>
+    <width>460</width>
     <height>558</height>
    </rect>
   </property>
@@ -27,7 +27,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>387</width>
+        <width>458</width>
         <height>556</height>
        </rect>
       </property>
@@ -51,9 +51,6 @@
           <string>Axial Mesh Size</string>
          </property>
         </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="Z0"/>
        </item>
        <item row="2" column="1">
         <widget class="QComboBox" name="MeshType">
@@ -116,7 +113,17 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="DuctThickX"/>
+           <widget class="QDoubleSpinBox" name="DuctThickX">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>0.001000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000000.000000000000000</double>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QLabel" name="ductY">
@@ -126,7 +133,17 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="DuctThickY"/>
+           <widget class="QDoubleSpinBox" name="DuctThickY">
+            <property name="decimals">
+             <number>3</number>
+            </property>
+            <property name="minimum">
+             <double>0.001000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10000000.000000000000000</double>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -137,9 +154,6 @@
           <string>Z Origin</string>
          </property>
         </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLineEdit" name="Height"/>
        </item>
        <item row="1" column="1">
         <widget class="QLineEdit" name="EdgeInterval"/>
@@ -160,16 +174,38 @@
          </layout>
         </widget>
        </item>
+       <item row="4" column="1">
+        <widget class="QDoubleSpinBox" name="Height">
+         <property name="decimals">
+          <number>3</number>
+         </property>
+         <property name="minimum">
+          <double>0.001000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10000000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QDoubleSpinBox" name="Z0">
+         <property name="decimals">
+          <number>3</number>
+         </property>
+         <property name="minimum">
+          <double>-10000000.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10000000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>
    </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>DuctThickX</tabstop>
-  <tabstop>DuctThickY</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>
