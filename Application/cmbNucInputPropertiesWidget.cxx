@@ -697,8 +697,10 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     nucCore->setAndTestDiffFromFiles(true);
   }
   this->CoreProperties->applyToCore(nucCore);
-  this->CoreDefaults->apply();
-  nucCore->sendDefaults();
+  if(this->CoreDefaults->apply())
+  {
+    nucCore->sendDefaults();
+  }
   changed |= nucCore->getParams().Background != Internal->Background->text().toStdString();
   nucCore->getParams().Background = Internal->Background->text().toStdString();
   if(nucCore->getParams().BackgroundMode != this->Internal->JacketMode->currentIndex())

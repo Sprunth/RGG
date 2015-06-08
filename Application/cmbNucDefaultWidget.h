@@ -18,7 +18,7 @@ public:
   bool assyPitchChanged();
 public slots:
   void set(QPointer<cmbNucDefaults> c, bool isHex);
-  void apply();
+  bool apply();
   void reset();
 signals:
   void commonChanged();
