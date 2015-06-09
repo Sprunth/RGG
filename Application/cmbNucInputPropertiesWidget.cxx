@@ -698,9 +698,12 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     nucCore->setAndTestDiffFromFiles(true);
   }
   this->CoreProperties->applyToCore(nucCore);
+  //double thickness[4];
+  //nucCore->GetDefaults()->getDuctThickness(thickness[0],thickness[1]);
   if(this->CoreDefaults->apply())
   {
     nucCore->sendDefaults();
+    onCalculateCylinderDefaults(true);
   }
   changed |= nucCore->getParams().Background != Internal->Background->text().toStdString();
   nucCore->getParams().Background = Internal->Background->text().toStdString();
@@ -730,14 +733,16 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     changed = true;
   }
 
-  if(this->previousRadius != this->currentRadius && nucCore->getParams().BackgroundIsSet() )
+  if(this->previousRadius != this->currentRadius &&
+     nucCore->getParams().BackgroundIsSet() )
   {
     nucCore->setCylinderRadius(this->currentRadius);
     this->previousRadius = this->currentRadius;
     changed = true;
   }
 
-  if(this->previousInterval != this->currentInterval && nucCore->getParams().BackgroundIsSet())
+  if(this->previousInterval != this->currentInterval &&
+     nucCore->getParams().BackgroundIsSet())
   {
     nucCore->setCylinderOuterSpacing(this->currentInterval);
     this->previousInterval = this->currentInterval;
@@ -879,10 +884,12 @@ void cmbNucInputPropertiesWidget::resetCore(cmbNucCore* nucCore)
     this->Internal->coreLatticeY->blockSignals(false);
 
     this->Internal->Background->setText(nucCore->getParams().Background.c_str());
-    this->Internal->background_full_path = nucCore->getParams().BackgroundFullPath;
+    this->Internal->background_full_path =
+          nucCore->getParams().BackgroundFullPath;
 
     this->currentRadius = this->previousRadius = nucCore->getCylinderRadius();
-    this->currentInterval = this->previousInterval = nucCore->getCylinderOuterSpacing();
+    this->currentInterval = this->previousInterval =
+          nucCore->getCylinderOuterSpacing();
 
     this->Internal->OuterEdgeInterval->setValue(this->previousInterval);
     this->Internal->RadiusBox->setValue(this->previousRadius);
@@ -945,7 +952,8 @@ void cmbNucInputPropertiesWidget::showDuctCellEditor()
     QObject::connect(this->Internal->DuctCellEditor,
                      SIGNAL(ductcellModified(AssyPartObj*)),
                      this, SIGNAL(objGeometryChanged(AssyPartObj*)));
-    QObject::connect(this->Internal->DuctCellEditor, SIGNAL(nameChanged(DuctCell*, QString, QString)),
+    QObject::connect(this->Internal->DuctCellEditor,
+                     SIGNAL(nameChanged(DuctCell*, QString, QString)),
                      this, SLOT(ductNameChanged(DuctCell*, QString, QString)));
   }
   this->Internal->DuctCellEditor->SetDuctCell(ductcell, this->Core->IsHexType());
@@ -1017,7 +1025,9 @@ void cmbNucInputPropertiesWidget::chooseLegendColor()
   }
 }
 
-void cmbNucInputPropertiesWidget::ductNameChanged(DuctCell* dc, QString previous, QString current)
+void cmbNucInputPropertiesWidget::ductNameChanged(DuctCell* dc,
+                                                  QString previous,
+                                                  QString current)
 {
   if(this->CurrentObject == NULL && this->Assembly)
   {
@@ -1033,7 +1043,8 @@ void cmbNucInputPropertiesWidget::ductNameChanged(DuctCell* dc, QString previous
     dc->setName(previous.toStdString());
     return;
   }
-  this->Core->getDuctLibrary()->replaceName(previous.toStdString(), current.toStdString());
+  this->Core->getDuctLibrary()->replaceName(previous.toStdString(),
+                                            current.toStdString());
   emit currentObjectNameChanged(current);
   emit sendLabelChange(current);
 }
@@ -1071,7 +1082,8 @@ void cmbNucInputPropertiesWidget::onCalculateCylinderDefaults(bool checkOld)
     double ti = this->Internal->coreLatticeY->value() * ductsize[0];
     double tj = this->Internal->coreLatticeX->value() * ductsize[1];
     double tmpr = std::sqrt(ti*ti+tj*tj);
-    initRadius = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+ductsize[1]*ductsize[1])*0.5*0.2;
+    initRadius = tmpr*0.5 + std::sqrt( ductsize[0]*ductsize[0]+
+                                      ductsize[1]*ductsize[1])*0.5*0.2;
     this->Internal->OuterEdgeInterval->setValue(std::max(this->Internal->coreLatticeX->value(),
                                                          this->Internal->coreLatticeY->value())
                                                 *ei*4);
@@ -1097,7 +1109,8 @@ void cmbNucInputPropertiesWidget::onDrawCylinder()
 void cmbNucInputPropertiesWidget::displayBackgroundControls(int index)
 {
   this->Internal->FileName->setVisible(index != cmbNucCoreParams::None);
-  this->Internal->GenerateControls->setVisible(index == cmbNucCoreParams::Generate);
+  this->Internal->GenerateControls->setVisible(index ==
+                                               cmbNucCoreParams::Generate);
   if(index == cmbNucCoreParams::Generate)
   {
     onCalculateCylinderDefaults();
@@ -1138,8 +1151,9 @@ void cmbNucInputPropertiesWidget::onSetBackgroundMesh()
       QDir dir = fi.dir();
       if(dir.path() == ".")
       {
-        QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                                QDir::homePath()).toString();
+        QDir tdir = QSettings("CMBNuclear",
+                              "CMBNuclear").value("cache/lastDir",
+                                                  QDir::homePath()).toString();
         defaultLoc = tdir.path();
       }
       else
@@ -1149,12 +1163,15 @@ void cmbNucInputPropertiesWidget::onSetBackgroundMesh()
     }
     else
     {
-      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                              QDir::homePath()).toString();
+      QDir tdir = QSettings("CMBNuclear",
+                            "CMBNuclear").value("cache/lastDir",
+                                                QDir::homePath()).toString();
       defaultLoc = tdir.path();
     }
 
-    fileName = QFileDialog::getSaveFileName( this, "Save Outer Cylinder File...",  defaultLoc, "cub Files (*.cub)" );
+    fileName = QFileDialog::getSaveFileName( this,
+                                            "Save Outer Cylinder File...",
+                                            defaultLoc, "cub Files (*.cub)" );
   }
   else
   {
