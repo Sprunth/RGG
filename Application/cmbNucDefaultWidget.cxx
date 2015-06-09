@@ -15,6 +15,8 @@ public:
     delete ui;
   }
   Ui_qDefaults * ui;
+  bool isHex;
+  bool needCameraReset;
 };
 
 cmbNucDefaultWidget::cmbNucDefaultWidget(QWidget *p)
@@ -36,6 +38,7 @@ void cmbNucDefaultWidget::set(QPointer<cmbNucDefaults> c, bool isHex)
   this->Internal->ui->ductX->setVisible(!isHex);
   this->Internal->ui->ductY->setVisible(!isHex);
   this->Internal->ui->DuctThickY->setVisible(!isHex);
+  this->Internal->isHex = isHex;
   this->setConnections();
   this->reset();
 }
@@ -71,6 +74,12 @@ namespace
     {
       return false;
     }
+    return true;
+  }
+
+  bool getValue(double & to, QDoubleSpinBox * from)
+  {
+    to = from->value();
     return true;
   }
 
@@ -114,6 +123,17 @@ namespace
   {
     to->setPlainText(v);
   }
+
+  void getValue(QDoubleSpinBox * to, double v)
+  {
+    to->setValue(v);
+  }
+
+  void getValue(QDoubleSpinBox * to, QString v)
+  {
+    //DO Nothing, cannot be cleared
+  }
+
 }
 
 bool cmbNucDefaultWidget::assyPitchChanged()
@@ -133,20 +153,39 @@ bool cmbNucDefaultWidget::assyPitchChanged()
 COMMON(double, AxialMeshSize) \
 COMMON(int, EdgeInterval)\
 COMMON(QString, MeshType) \
-COMMON(QString, UserDefined) \
+COMMON(QString, UserDefined)
 
-void cmbNucDefaultWidget::apply()
+#define CAMERARESETMACRO() \
+CAMERARESET(double, Z0) \
+CAMERARESET(double, Height)
+
+bool cmbNucDefaultWidget::apply()
 {
-  if(Current == NULL) return;
-#define COMMON(T,X) \
-{ \
-  T tmp1, tmp2; \
+  this->Internal->needCameraReset = false;
+  bool changed = false;
+  if(Current == NULL) return changed;
+#define COMMON(T,X)                                  \
+{                                                    \
+  T tmp1, tmp2;                                      \
   bool v1 = getValue(tmp1, this->Internal->ui->X);   \
-  bool v2 = Current->get##X(tmp2); \
-  if((v1 != v2) || (v1 && tmp1 != tmp2) )\
-  { emit commonChanged();  qDebug() << #X << " changed " << v1 << " " << v2 << " " << tmp1 << " " << tmp2; } \
+  bool v2 = Current->get##X(tmp2);                   \
+  if((v1 != v2) || (v1 && tmp1 != tmp2) )            \
+  { emit commonChanged(); changed = true; }          \
 }
   COMMONMACRO()
+
+#define CAMERARESET(T,X)                               \
+  {                                                    \
+    T tmp1, tmp2;                                      \
+    bool v1 = getValue(tmp1, this->Internal->ui->X);   \
+    bool v2 = Current->get##X(tmp2);                   \
+    if((v1 != v2) || (v1 && tmp1 != tmp2) )            \
+    {                                                  \
+      this->Internal->needCameraReset = true;          \
+      changed = true;                                  \
+    }                                                  \
+  }
+  CAMERARESETMACRO()
 #define FUN1(T,X)                                   \
 {                                                   \
   T tmp##X;                                         \
@@ -159,14 +198,25 @@ void cmbNucDefaultWidget::apply()
   T1 tmp##X; T2 tmp##Y;                             \
   bool v = getValue(tmp##X, this->Internal->ui->X); \
   v &= getValue(tmp##Y, this->Internal->ui->Y);     \
+  changed |= v != Current->has##L();                \
+  T1 tmpA##X; T2 tmpA##Y;                           \
+  if(Current->get##L(tmpA##X, tmpA##Y) &&           \
+     (tmpA##X != tmp##X || tmpA##Y != tmp##Y))      \
+  {                                                 \
+      this->Internal->needCameraReset = true;       \
+      changed = true;                               \
+  }                                                 \
+  if( this->Internal->isHex )  tmp##Y = tmp##X;     \
   if(v){ Current->set##L(tmp##X, tmp##Y); }         \
   else { Current->clear##L(); }                     \
 }
   EASY_DEFAULT_PARAMS_MACRO()
 #undef COMMON
+#undef CAMERARESET
 #undef FUN1
 #undef FUN2
   this->reset();
+  return changed;
 }
 
 void cmbNucDefaultWidget::reset()
@@ -213,4 +263,9 @@ void cmbNucDefaultWidget::setConnections()
 void cmbNucDefaultWidget::disConnect()
 {
   if(this->Current == NULL) return;
+}
+
+bool cmbNucDefaultWidget::needCameraReset()
+{
+  return this->Internal->needCameraReset;
 }

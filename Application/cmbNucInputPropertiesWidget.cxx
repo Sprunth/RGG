@@ -127,7 +127,8 @@ void cmbNucInputPropertiesWidget::initUI()
   CoreDefaults = new cmbNucDefaultWidget();
   this->Internal->CoreDefaults->addWidget(CoreDefaults);
 
-  connect( CoreDefaults, SIGNAL(commonChanged()), this, SIGNAL(valuesChanged()));
+  connect( CoreDefaults, SIGNAL(commonChanged()),
+           this,         SIGNAL(valuesChanged()));
 
   connect( this->Internal->computePitch, SIGNAL(clicked()), this, SLOT(computePitch()));
   connect( this->Internal->CenterPins, SIGNAL(clicked(bool)), this, SLOT(setAutoPitch(bool)) );
@@ -697,8 +698,10 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     nucCore->setAndTestDiffFromFiles(true);
   }
   this->CoreProperties->applyToCore(nucCore);
-  this->CoreDefaults->apply();
-  nucCore->sendDefaults();
+  if(this->CoreDefaults->apply())
+  {
+    nucCore->sendDefaults();
+  }
   changed |= nucCore->getParams().Background != Internal->Background->text().toStdString();
   nucCore->getParams().Background = Internal->Background->text().toStdString();
   if(nucCore->getParams().BackgroundMode != this->Internal->JacketMode->currentIndex())
@@ -780,6 +783,10 @@ void cmbNucInputPropertiesWidget::applyToCore(cmbNucCore* nucCore)
     emit valuesChanged();
   }
   emit this->objGeometryChanged(nucCore);
+  if(this->CoreDefaults->needCameraReset())
+  {
+    emit resetView();
+  }
 }
 
 //-----------------------------------------------------------------------------

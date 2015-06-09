@@ -16,9 +16,10 @@ public:
   cmbNucDefaultWidget(QWidget *parent = 0);
   ~cmbNucDefaultWidget();
   bool assyPitchChanged();
+  bool needCameraReset();
 public slots:
   void set(QPointer<cmbNucDefaults> c, bool isHex);
-  void apply();
+  bool apply();
   void reset();
 signals:
   void commonChanged();
