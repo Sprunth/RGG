@@ -56,7 +56,7 @@
         <widget class="QComboBox" name="MeshType">
          <item>
           <property name="text">
-           <string>NotSet</string>
+           <string/>
           </property>
          </item>
          <item>
