@@ -124,7 +124,8 @@ void cmbNucDraw2DLattice::setFullCellMode(Lattice::CellDrawMode m)
 }
 
 void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
-                                  int layer, int cellIdx, Lattice::CellDrawMode mode)
+                                  int layer, int cellIdx,
+                                  Lattice::CellDrawMode mode)
 {
   Lattice::LatticeCell lc = Grid.GetCell(layer, cellIdx);
   if(!lc.valid) return;
@@ -247,9 +248,11 @@ void cmbNucDraw2DLattice::rebuild()
   if(CurrentLattice->IsHexType())
   {
     double hexRadius, hexDiameter, layerRadius;
-    if(this->Grid.GetGeometrySubType() & ANGLE_60 || this->Grid.GetGeometrySubType() & ANGLE_30)
+    if(this->Grid.GetGeometrySubType() & ANGLE_60 ||
+       this->Grid.GetGeometrySubType() & ANGLE_30)
     {
-      if(this->Grid.GetGeometrySubType() & ANGLE_60 && this->Grid.GetGeometrySubType() & FLAT)
+      if(this->Grid.GetGeometrySubType() & ANGLE_60 &&
+         this->Grid.GetGeometrySubType() & FLAT)
       {
         double n = 1/(1.75*numLayers - 0.5);
         double t1 = this->width()*(n);
@@ -257,7 +260,8 @@ void cmbNucDraw2DLattice::rebuild()
         hexDiameter = std::min(t1, t2);
 
       }
-      else if(this->Grid.GetGeometrySubType() & ANGLE_60 && this->Grid.GetGeometrySubType() & VERTEX)
+      else if(this->Grid.GetGeometrySubType() & ANGLE_60 &&
+              this->Grid.GetGeometrySubType() & VERTEX)
       {
         double n = 2*numLayers - 0.4;
         double t1 = this->width()/(0.86602540378443864676372317075294*0.86602540378443864676372317075294*n);
@@ -340,7 +344,8 @@ void cmbNucDraw2DLattice::rebuild()
           {
             centerPos[0] = layerCorners[c][0] + deltx * (b + 1);
             centerPos[1] = layerCorners[c][1] + delty * (b + 1);
-            this->addCell(centerPos, hexRadius, i, cellIdx, this->Grid.getDrawMode(cellIdx, i));
+            this->addCell(centerPos, hexRadius, i, cellIdx,
+                          this->Grid.getDrawMode(cellIdx, i));
             cellIdx++;
           }
         }
@@ -367,7 +372,8 @@ void cmbNucDraw2DLattice::rebuild()
   this->repaint();
 }
 
-void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem, QMouseEvent* qme )
+void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem,
+                                          QMouseEvent* qme )
 {
   if(!hexitem || !hexitem->is_available())
   {
@@ -375,8 +381,11 @@ void cmbNucDraw2DLattice::showContextMenu( DrawLatticeItem *hexitem, QMouseEvent
   }
 
   QMenu contextMenu(this);
-  QMenu * replaceMenu = new QMenu("Replace All With",this);
-  QMenu * fillRing = new QMenu("Fill Ring All With",this);
+  contextMenu.setObjectName("Replace_Menu");
+  QMenu * replaceMenu = new QMenu("Replace All With", &contextMenu);
+  replaceMenu->setObjectName("Replace_All_With");
+  QMenu * fillRing = new QMenu("Fill Ring All With", &contextMenu);
+  fillRing->setObjectName("Fill_Ring_All_With");
   QAction* pAction = NULL;
   // available parts
   foreach(QString strAct, this->ActionList)
