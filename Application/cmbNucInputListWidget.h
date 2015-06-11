@@ -102,7 +102,8 @@ public slots:
 protected:
   cmbNucPartsTreeItem* getSelectedItem(QTreeWidget* treeWidget);
   void fireObjectSelectedSignal(cmbNucPartsTreeItem* selItem);
-  void updateContextMenu(AssyPartObj* selObj);
+  void updateContextMenu(AssyPartObj* selObj,
+                         const cmbNucPartsTreeItem* selItem);
   void setActionsEnabled(bool val);
   void updateWithAssembly(cmbNucAssembly* assy, bool select=true);
   void updateWithAssemblyLink(cmbNucAssemblyLink* assy, bool select=true);
