@@ -132,8 +132,8 @@ void Duct::removeLayer( int a )
   }
   const int tend = static_cast<int>(this->Materials.size())-1;
   this->SetNumberOfLayers(tend);
-  this->getNormThick(tend)[0] = 1.0;
-  this->getNormThick(tend)[1] = 1.0;
+  this->getNormThick(tend-1)[0] = 1.0;
+  this->getNormThick(tend-1)[1] = 1.0;
 }
 
 bool Duct::operator==(const Duct& obj)
