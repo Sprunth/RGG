@@ -320,7 +320,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucDuctLibrary * dl)
   for(size_t i = 0; i < num; ++i)
   {
     pugi::xml_node xn = node.append_child(DUCT_CELL_TAG.c_str());
-    r &= this->write(xn, dl->GetDuctCell(i));
+    r &= this->write(xn, dl->GetDuctCell(static_cast<int>(i)));
   }
   return r;
 }
@@ -333,7 +333,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, DuctCell * dc)
   for(size_t i = 0; i < num; ++i)
   {
     pugi::xml_node xn = node.append_child(DUCT_LAYER_TAG.c_str());
-    r &= this->write(xn, dc->getDuct(i));
+    r &= this->write(xn, dc->getDuct(static_cast<int>(i)));
   }
   return r;
 }
@@ -349,7 +349,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, Duct * dc)
   for(size_t i = 0; i < num; ++i)
   {
     pugi::xml_node xn = node.append_child(MATERIAL_LAYER_TAG.c_str());
-    r &= this->write(xn, dc->getMaterialLayer(i));
+    r &= this->write(xn, dc->getMaterialLayer(static_cast<int>(i)));
   }
   return r;
 }
@@ -361,7 +361,7 @@ bool xmlHelperClass::write(pugi::xml_node & node, cmbNucPinLibrary * dl)
   for(size_t i = 0; i < num; ++i)
   {
     pugi::xml_node xn = node.append_child(PINCELL_TAG.c_str());
-    r &= this->write(xn, dl->GetPinCell(i));
+    r &= this->write(xn, dl->GetPinCell(static_cast<int>(i)));
   }
   return r;
 }
@@ -415,7 +415,7 @@ bool xmlHelperClass::writePSP(pugi::xml_node & node, PinSubPart * p)
   for(size_t i = 0; i < num; ++i)
   {
     pugi::xml_node xn = node.append_child(MATERIAL_LAYER_TAG.c_str());
-    r &= this->write(xn, p->getMaterialLayer(i));
+    r &= this->write(xn, p->getMaterialLayer(static_cast<int>(i)));
   }
   return true;
 }
@@ -1208,7 +1208,8 @@ bool xmlHelperClass::read(pugi::xml_node & node, Lattice & lattice, std::map<QSt
   size_t xs = grid.size();
   if(xs == 0) return false;
   size_t ys = grid[0].size();
-  lattice.SetDimensions(xs, ys, true);
+  lattice.SetDimensions(static_cast<int>(xs), 
+                        static_cast<int>(ys), true);
   for(unsigned int i = 0; i < grid.size(); ++i)
   {
     for(unsigned int j = 0; j < grid[i].size(); ++j)

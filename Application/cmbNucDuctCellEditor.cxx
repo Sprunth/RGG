@@ -336,11 +336,12 @@ cmbNucDuctCellEditor
   {
     this->InternalDuctCell->fill(this->ExternalDuctCell);
     this->Ui->Name->setText(this->InternalDuctCell->getName().c_str());
-    tmpTable->setRowCount(this->InternalDuctCell->numberOfDucts());
-    for(unsigned int i = 0; i < this->InternalDuctCell->numberOfDucts(); ++i)
+    tmpTable->setRowCount(static_cast<int>(this->InternalDuctCell->numberOfDucts()));
+    for(size_t i = 0; i < this->InternalDuctCell->numberOfDucts(); ++i)
     {
-      Duct* d =this->InternalDuctCell->getDuct(i);
-      this->setDuctRow(i, this->InternalDuctCell->getDuct(i));
+      const int ti = static_cast<int>(i);
+      Duct* d =this->InternalDuctCell->getDuct(ti);
+      this->setDuctRow(ti, this->InternalDuctCell->getDuct(ti));
       if(i == 0)
       {
         global_z1 = d->getZ1();
@@ -534,11 +535,11 @@ cmbNucDuctCellEditor
   tmpTable->horizontalHeader()->setStretchLastSection(true);
   if(duct == NULL) return;
   tmpTable->blockSignals(true);
-  tmpTable->setRowCount(duct->NumberOfLayers());
+  tmpTable->setRowCount(static_cast<int>(duct->NumberOfLayers()));
 
   for(size_t i = 0; i < duct->NumberOfLayers(); i++)
   {
-    this->setDuctMaterialRow(i, duct);
+    this->setDuctMaterialRow(static_cast<int>(i), duct);
   }
   tmpTable->resizeColumnsToContents();
   tmpTable->blockSignals(false);

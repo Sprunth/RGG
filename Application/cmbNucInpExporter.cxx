@@ -149,7 +149,7 @@ void cmbNucInpExporter
     std::size_t npc = assy->GetNumberOfPinCells();
     for(std::size_t i = 0; i < npc; ++i)
     {
-      pc.insert(assy->GetPinCell(i));
+      pc.insert(assy->GetPinCell(static_cast<int>(i)));
     }
   }
   for(std::set<DuctCell *>::const_iterator iter = dc.begin(); iter != dc.end(); ++iter)

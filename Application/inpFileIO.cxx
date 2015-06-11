@@ -1064,14 +1064,14 @@ inpFileHelper
 {
   for(size_t ad = 0; ad < assembly.getAssyDuct().numberOfDucts(); ad++)
   {
-    Duct *duct = assembly.getAssyDuct().getDuct(ad);
-    int nl = duct->NumberOfLayers();
+    Duct *duct = assembly.getAssyDuct().getDuct(static_cast<int>(ad));
+    int nl = static_cast<int>(duct->NumberOfLayers());
 
     //TODO handle multiple layers of for boundary
     //TODO handle multiple boundary layer types
     cmbNucCore::boundaryLayer* bl_for_assembly = NULL;
     int numBoundary = 0;
-    for(unsigned int i = 0; i < bls.size() && !limited; ++i)
+    for(size_t i = 0; i < bls.size() && !limited; ++i)
     {
       if(duct->isInnerDuctMaterial(bls[i]->interface_material))
       {
@@ -1243,7 +1243,7 @@ inpFileHelper
 
     for(size_t j = 0; j < pincell->GetNumberOfParts(); j++)
     {
-      PinSubPart* part  = pincell->GetPart(j);
+      PinSubPart* part  = pincell->GetPart(static_cast<int>(j));
       bool iscylinder = part->GetType() == CMBNUC_ASSY_CYLINDER_PIN;
       output << ((iscylinder)?("cylinder "):("frustum "))
              << ( pincell->GetNumberOfLayers() +
@@ -1585,7 +1585,7 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
         hexArray[i].resize(numCols);
       }
 
-      for(int k = x-1; k >= 0; k--) // HEX layers
+      for(int k = static_cast<int>(x)-1; k >= 0; k--) // HEX layers
       {
         size_t numRows = 2*k + 1;
         size_t startRow = x-1-k;
@@ -1598,8 +1598,9 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
             for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
             {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
-              std::string label = lat.GetCell(k,layerIdx).label;
-              if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
+              std::string label = lat.GetCell(k,static_cast<int>(layerIdx)).label;
+              if(!lat.GetCell(k,static_cast<int>(layerIdx)).isBlank() &&
+                 !forceLabel.empty())
               {
                 label = forceLabel;
               }
@@ -1610,16 +1611,18 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
           {
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
-            std::string label =lat.GetCell(k,layerIdx).label;
-            if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
+            std::string label =lat.GetCell(k,static_cast<int>(layerIdx)).label;
+            if(!lat.GetCell(k,static_cast<int>(layerIdx)).isBlank() && 
+               !forceLabel.empty())
             {
               label = forceLabel;
             }
             hexArray[i][startCol] = label;
             layerIdx = k+(i-startRow);
             size_t colIdx = hexArray[i].size() -1 - startCol;
-            label =lat.GetCell(k,layerIdx).label;
-            if( !lat.GetCell(k,layerIdx).isBlank() && !forceLabel.empty() )
+            label =lat.GetCell(k,static_cast<int>(layerIdx)).label;
+            if(!lat.GetCell(k,static_cast<int>(layerIdx)).isBlank() && 
+               !forceLabel.empty())
             {
               label = forceLabel;
             }
@@ -1657,20 +1660,22 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
           start = 2*i - i/2;
           cols = (i%2 ? (i+1)/2 :(i+2)/2) + start;
         }
+        const int ti = static_cast<int>(i);
         for( size_t j = start; j < cols; j++)
         {
-          std::string label = lat.GetCell(i,j).label;
+          const int tj = static_cast<int>(j);
+          std::string label = lat.GetCell(ti,tj).label;
           if(label.empty())
           {
             label = "xx";
           }
-          if( !lat.GetCell(i,j).isBlank() && !forceLabel.empty() )
+          if( !lat.GetCell(ti,tj).isBlank() && !forceLabel.empty() )
           {
             label = forceLabel;
           }
           else if((label != "xx" || label != "XX" ) && useAmp) //core
           {
-            label = Lattice::generate_string(label, lat.getDrawMode(j, i));
+            label = Lattice::generate_string(label, lat.getDrawMode(tj, ti));
           }
           output << label << " ";
           }
@@ -1687,8 +1692,11 @@ void inpFileHelper::writeLattice( std::ofstream &output, std::string key,
       size_t ati = lat.getSize() - i - 1;
       for(size_t j = 0; j < sizeati; j++)
       {
-        std::string label = lat.GetCell(ati,j).label;
-        if( !lat.GetCell(ati,j).isBlank() && !forceLabel.empty() )
+        std::string label = lat.GetCell(static_cast<int>(ati), 
+                                        static_cast<int>(j)).label;
+        if( !lat.GetCell(static_cast<int>(ati), 
+                         static_cast<int>(j)).isBlank() && 
+            !forceLabel.empty() )
         {
           label = forceLabel;
         }
@@ -1727,7 +1735,8 @@ bool inpFileHelper::readLattice( std::stringstream & input,
     input >> colsR >> rowsR;
     }
 
-  lattice.SetDimensions(rowsR, colsR);
+  lattice.SetDimensions(static_cast<int>(rowsR), 
+                        static_cast<int>(colsR));
 
   if(type == HEXAGONAL)
     {
@@ -1761,7 +1770,7 @@ bool inpFileHelper::readLattice( std::stringstream & input,
       // now we fill the hex Lattice with hexArray,
       // starting from out most layer and work toward center
       // for each layer, we have 6*Layer cells, except layer 0.
-      for(int k = x-1; k >= 0; k--) // HEX layers
+      for(int k = static_cast<int>(x)-1; k >= 0; k--) // HEX layers
         {
         size_t numRows = 2*k + 1;
         size_t startRow = x-1-k;
@@ -1774,17 +1783,17 @@ bool inpFileHelper::readLattice( std::stringstream & input,
             for(size_t j= startCol, ringIdx=0; j<k+1+startCol; j++, ringIdx++)
               {
               layerIdx = i==startRow ? ringIdx : 4*k-ringIdx;
-              lattice.SetCell(k,layerIdx, hexArray[i][j]);
+              lattice.SetCell(k, static_cast<int>(layerIdx), hexArray[i][j]);
               }
             }
           else // rows between first and last
             {
             // get the first and last column defined by start column
             layerIdx = 6*k-(i-startRow);
-            lattice.SetCell(k,layerIdx, hexArray[i][startCol]);
+            lattice.SetCell(k,static_cast<int>(layerIdx), hexArray[i][startCol]);
             layerIdx = k+(i-startRow);
             size_t colIdx = hexArray[i].size() -1 - startCol;
-            lattice.SetCell(k, layerIdx, hexArray[i][colIdx]);
+            lattice.SetCell(k, static_cast<int>(layerIdx), hexArray[i][colIdx]);
             }
           }
         }
@@ -1805,7 +1814,7 @@ bool inpFileHelper::readLattice( std::stringstream & input,
         for( size_t j = start; j < cols; j++)
           {
           input >> tmpVal;
-          lattice.SetCell(i,j, tmpVal);
+          lattice.SetCell(static_cast<int>(i), static_cast<int>(j), tmpVal);
           }
         }
       }
@@ -1821,7 +1830,7 @@ bool inpFileHelper::readLattice( std::stringstream & input,
           assert(j < lattice.getSize(i));
         std::string label;
         input >> label;
-        lattice.SetCell(ati,j,label);
+        lattice.SetCell(static_cast<int>(ati), static_cast<int>(j), label);
         }
       }
     }
@@ -1964,7 +1973,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   typedef std::map< std::string, std::set< Lattice::CellDrawMode > > CellMap;
   typedef std::set< Lattice::CellDrawMode > ModeSet;
   CellMap cells = core.getDrawModesForAssemblies();
-  unsigned int count = 0;
+  size_t count = 0;
   for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)
   {
     count += iter->second.size();

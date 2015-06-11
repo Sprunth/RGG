@@ -477,7 +477,7 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
     // pincells
     for(size_t i = 0; i < this->Assembly->GetNumberOfPinCells(); i++)
       {
-      PinCell *pincell = this->Assembly->GetPinCell(i);
+      PinCell *pincell = this->Assembly->GetPinCell(static_cast<int>(i));
       actionList.append(pincell->getLabel().c_str());
       }
     }

@@ -496,7 +496,7 @@ void cmbNucInputListWidget::onNewDuct()
   defaults->getDuctThickness(d1,d2);
   defaults->getHeight(h);
   cd->AddDuct(new Duct(h, d1, d2));
-  int i = this->NuclearCore->getDuctLibrary()->GetNumberOfDuctCells()+1;
+  size_t i = this->NuclearCore->getDuctLibrary()->GetNumberOfDuctCells()+1;
   QString ductname = QString("Duct_").append(QString::number(i));
   while(this->NuclearCore->getDuctLibrary()->nameConflicts(ductname.toStdString()))
   {
@@ -525,7 +525,7 @@ void cmbNucInputListWidget::onNewPin()
   PinCell* newpin = new PinCell();
   newpin->SetLegendColor(QColor::fromRgbF(rgb[0],rgb[1],rgb[2]));
   newpin->AddPart(new Cylinder(r, 0, h));
-  int i = this->NuclearCore->getPinLibrary()->GetNumberOfPinCells()+1;
+  size_t i = this->NuclearCore->getPinLibrary()->GetNumberOfPinCells()+1;
   QString pinname = QString("PinCell").append(QString::number(i));
   while(this->NuclearCore->getPinLibrary()->labelConflicts(pinname.toStdString()) ||
         this->NuclearCore->getPinLibrary()->nameConflicts(pinname.toStdString()))
@@ -914,7 +914,7 @@ void cmbNucInputListWidget::updateWithPinLibrary(cmbNucPinLibrary * pl)
   }
   for(size_t i = 0; i < pl->GetNumberOfPinCells(); i++)
   {
-    this->updateWithPin(pl->GetPinCell(i));
+    this->updateWithPin(pl->GetPinCell(static_cast<int>(i)));
   }
 }
 
@@ -932,7 +932,7 @@ void cmbNucInputListWidget::updateWithDuctLibrary(cmbNucDuctLibrary * dl)
   }
   for(size_t i = 0; i < dl->GetNumberOfDuctCells(); i++)
   {
-    this->updateWithDuct(dl->GetDuctCell(i));
+    this->updateWithDuct(dl->GetDuctCell(static_cast<int>(i)));
   }
 }
 

@@ -29,7 +29,7 @@ namespace
     for(size_t idx=0; idx<dataset->GetNumberOfBlocks(); idx++)
     {
       // Brutal. I wish the SetDefaultExecutivePrototype had workd :(
-      if(vtkDataObject* objBlock = dataset->GetBlock(idx))
+      if(vtkDataObject* objBlock = dataset->GetBlock(static_cast<unsigned int>(idx)))
       {
         if(vtkMultiBlockDataSet* assyPartBlock =
            vtkMultiBlockDataSet::SafeDownCast(objBlock))
@@ -108,7 +108,7 @@ void cmbNucCoregen::selectionChanged(QTreeWidgetItem * item)
   this->clearMeshDisplayMaterial();
   MeshTreeItem * mitem = dynamic_cast<MeshTreeItem *>(item);
   if(mitem == NULL) return;
-  this->selectedType = mitem->rootId;
+  this->selectedType = static_cast<unsigned int>(mitem->rootId);
   this->subSection = mitem->subId;
   this->MeshDisplayedMaterial = mitem->materials;
   for(size_t i = 0; i < this->MeshDisplayedMaterial.size(); ++i)
@@ -152,13 +152,13 @@ unsigned int cmbNucCoregen::numberOfParts()
   }
   else
   {
-    return this->MeshDisplayedMaterial.size();
+    return static_cast<unsigned int>(this->MeshDisplayedMaterial.size());
   }
 }
 
 void cmbNucCoregen::getColor(int i, QColor & color_out, bool & visible)
 {
-  int offset = this->MeshDisplayedMaterial.size()-1;
+  int offset = static_cast<int>(this->MeshDisplayedMaterial.size())-1;
   int idx = (this->subSection == -1)?(i+offset)%(this->MeshDisplayedMaterial.size()):(i);
   bool tmpv = this->SubPartVisible[this->selectedType][(this->subSection == -1)?idx:this->subSection];
   switch(this->color)

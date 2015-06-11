@@ -358,9 +358,11 @@ std::vector< cmbNucAssembly* > cmbNucCore::GetUsedAssemblies()
   std::set<std::string> usedDict;
   for(size_t i = 0; i < this->lattice.getSize(); i++)
   {
+    const int ti = static_cast<int>(i);
     for(size_t j = 0; j < this->lattice.getSize(i); j++)
     {
-      usedDict.insert(this->lattice.GetCell(i, j).label);
+      usedDict.insert(this->lattice.GetCell(ti, 
+                                            static_cast<int>(j)).label);
     }
   }
   std::vector< cmbNucAssembly* > result;
@@ -380,9 +382,11 @@ std::vector< cmbNucAssemblyLink* > cmbNucCore::GetUsedLinks()
   std::set<std::string> usedDict;
   for(size_t i = 0; i < this->lattice.getSize(); i++)
   {
+    int ti = static_cast<int>(i);
     for(size_t j = 0; j < this->lattice.getSize(i); j++)
     {
-      usedDict.insert(this->lattice.GetCell(i, j).label);
+      usedDict.insert(this->lattice.GetCell(ti, 
+                                            static_cast<int>(j)).label);
     }
   }
   std::vector< cmbNucAssemblyLink* > result;
@@ -706,7 +710,7 @@ void cmbNucCore::sendDefaults()
 
   for(size_t i = 0; i < this->DuctLibrary->GetNumberOfDuctCells(); ++i)
   {
-    DuctCell * dc = this->DuctLibrary->GetDuctCell(i);
+    DuctCell * dc = this->DuctLibrary->GetDuctCell(static_cast<int>(i));
     dc->setDuctThickness(dt1,dt2);
     dc->setLength(l);
     dc->setZ0(z0);
@@ -791,11 +795,13 @@ cmbNucCore::getDrawModesForAssemblies()
   std::map< std::string, std::set< Lattice::CellDrawMode> > result;
   for(size_t i = 0; i < lattice.getSize(); i++) //layer
   {
+    const int ti = static_cast<int>(i);
     for(size_t j = 0; j < lattice.getSize(i); j++) //index on ring
     {
-      if(!lattice.GetCell(i,j).isBlank())
+      const int tj = static_cast<int>(j);
+      if(!lattice.GetCell(ti, tj).isBlank())
       {
-        result[lattice.GetCell(i,j).label].insert(lattice.getDrawMode(/*index*/j, /*Layer*/ i) );
+        result[lattice.GetCell(ti, tj).label].insert(lattice.getDrawMode(/*index*/tj, /*Layer*/ ti) );
       }
     }
   }

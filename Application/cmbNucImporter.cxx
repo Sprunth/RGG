@@ -293,7 +293,7 @@ bool cmbNucImporter::importXMLAssembly()
     std::map<std::string, std::string> pinMap;
 
     xmlFileReader::read(fileNames[i].toStdString(), assys, pl, dl, materials);
-    for(unsigned int j = 0; j < assys.size(); ++j)
+    for(size_t j = 0; j < assys.size(); ++j)
     {
       cmbNucAssembly * assy = assys[j];
       if(assy->IsHexType() != mainWindow->NuclearCore->IsHexType())
@@ -302,7 +302,7 @@ bool cmbNucImporter::importXMLAssembly()
         msgBox.setText("Not the same type");
         msgBox.setInformativeText(fileNames[i]+" is not the same geometry type as current core.");
         msgBox.exec();
-        for(unsigned int k = 0; k < assys.size(); ++k)
+        for(size_t k = 0; k < assys.size(); ++k)
         {
           delete assys[k];
         }
@@ -328,7 +328,7 @@ bool cmbNucImporter::importXMLAssembly()
       //update pins
       for(std::size_t k = 0; k < assy->GetNumberOfPinCells(); ++k)
       {
-        PinCell* old = assy->GetPinCell(k);
+        PinCell* old = assy->GetPinCell(static_cast<int>(k));
         PinCell* newpc = NULL;
         if(addedPin.find(old) != addedPin.end())
         {
@@ -341,7 +341,7 @@ bool cmbNucImporter::importXMLAssembly()
           addedPin[old] = newpc;
           this->addPin(newpc, tmpD, jnk);
         }
-        assy->SetPinCell(k, newpc);
+        assy->SetPinCell(static_cast<int>(k), newpc);
         if(old->getLabel() != newpc->getLabel())
         {
           assy->getLattice().replaceLabel(old->getLabel(), newpc->getLabel());
@@ -397,7 +397,7 @@ void cmbNucImporter::addDuct(DuctCell * dc, double dh, double dt[2], std::map<st
   for(unsigned int k = 0; k < dc->numberOfDucts(); ++k)
   {
     Duct * d = dc->getDuct(k);
-    int layers = d->NumberOfLayers();
+    int layers = static_cast<int>(d->NumberOfLayers());
     for(int l = 0; l < layers; ++l)
     {
       QPointer<cmbNucMaterial> tmpm = this->getMaterial(d->getMaterial(l));
