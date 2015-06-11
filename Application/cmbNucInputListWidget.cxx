@@ -505,7 +505,7 @@ void cmbNucInputListWidget::onNewDuct()
   cd->setName(ductname.toStdString());
   this->NuclearCore->getDuctLibrary()->addDuct(cd);
   this->initCoreRootNode();
-  this->updateWithDuct(cd);
+  this->updateWithDuct(cd, true);
   //this->NuclearCore->setAndTestDiffFromFiles(true);
   emit assembliesModified(this->NuclearCore);
   emit checkSavedAndGenerate();
@@ -537,9 +537,10 @@ void cmbNucInputListWidget::onNewPin()
     newpin->setName(tmp);
     newpin->setLabel(tmp);
   }
-  this->NuclearCore->getPinLibrary()->addPin(&newpin, cmbNucPinLibrary::KeepOriginal);
+  this->NuclearCore->getPinLibrary()->addPin(&newpin,
+                                             cmbNucPinLibrary::KeepOriginal);
   this->initCoreRootNode();
-  this->updateWithPin(newpin);
+  this->updateWithPin(newpin, true);
   //this->NuclearCore->setAndTestDiffFromFiles(true);
   emit assembliesModified(this->NuclearCore);
   emit checkSavedAndGenerate();
@@ -958,18 +959,32 @@ void cmbNucInputListWidget::updateWithDuct(DuctCell * dc, bool select)
 void cmbNucInputListWidget::onPartsSelectionChanged()
 {
   cmbNucPartsTreeItem* selItem = this->getSelectedItem(this->Internal->PartsList);
-  this->updateContextMenu(selItem ? selItem->getPartObject() : NULL);
+  this->updateContextMenu(selItem ? selItem->getPartObject() : NULL,selItem);
   this->fireObjectSelectedSignal(selItem);
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputListWidget::updateContextMenu(AssyPartObj* selObj)
+void cmbNucInputListWidget
+::updateContextMenu(AssyPartObj* selObj, const cmbNucPartsTreeItem* selItem)
 {
   if(!selObj)
-    {
+  {
     this->setActionsEnabled(false);
-    return;
+    if(selItem == this->Internal->PinsNode)
+    {
+      this->Internal->Action_NewPin->setEnabled(true);
     }
+    else if(selItem == this->Internal->DuctsNode)
+    {
+      this->Internal->Action_NewDuct->setEnabled(true);
+    }
+    else if(selItem == this->Internal->AssemblyNode)
+    {
+      this->Internal->Action_NewAssembly->setEnabled(true);
+    }
+
+    return;
+  }
   this->setActionsEnabled(false);
   this->Internal->Action_NewAssembly->setEnabled(true);
   this->Internal->Action_NewPin->setEnabled(true);
@@ -1345,7 +1360,7 @@ void cmbNucInputListWidget::onClone()
         clonePin->setName(name);
         this->NuclearCore->getPinLibrary()->addPin(&clonePin, cmbNucPinLibrary::KeepOriginal);
         this->initCoreRootNode();
-        this->updateWithPin(clonePin);
+        this->updateWithPin(clonePin, true);
         //this->NuclearCore->setAndTestDiffFromFiles(true);
         emit assembliesModified(this->NuclearCore);
       }
@@ -1368,7 +1383,7 @@ void cmbNucInputListWidget::onClone()
         cloneDuct->setName(name);
         this->NuclearCore->getDuctLibrary()->addDuct(cloneDuct);
         this->initCoreRootNode();
-        this->updateWithDuct(cloneDuct);
+        this->updateWithDuct(cloneDuct, true);
         //this->NuclearCore->setAndTestDiffFromFiles(true);
         emit assembliesModified(this->NuclearCore);
       }
