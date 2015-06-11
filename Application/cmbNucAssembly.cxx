@@ -177,7 +177,7 @@ void cmbNucAssemblyConnection::pinDeleted(PinCell* pc)
 cmbNucAssembly::cmbNucAssembly()
 {
   this->Pins = NULL;
-  KeepPinsCentered = false;
+  KeepPinsCentered = true; //on by default
   this->LegendColor = Qt::white;
   this->Parameters = new cmbAssyParameters;
   this->DifferentFromJournel = true;

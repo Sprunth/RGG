@@ -1898,6 +1898,7 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
       if(assyInfo.exists() && readAssy)
       {
         cmbNucAssembly* assembly = new cmbNucAssembly;
+        assembly->setCenterPins(false);
         fnameToAssy[assyfilename] = assembly;
         assembly->setLabel(assylabel);
         inpFileReader freader;
