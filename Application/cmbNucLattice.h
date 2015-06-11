@@ -112,7 +112,7 @@ public:
 
   size_t getSize() const
   {return Grid.size();}
-  size_t getSize(unsigned int i)const
+  size_t getSize(size_t i)const
   { return Grid[i].size(); }
 
   bool labelUsed(const std::string &l) const;

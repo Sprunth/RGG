@@ -45,7 +45,7 @@ Duct::Duct(Duct * previous, bool resize)
     z1=tz1;
     z2=tz2;
   }
-  this->SetNumberOfLayers(previous->NumberOfLayers());
+  this->SetNumberOfLayers(static_cast<int>(previous->NumberOfLayers()));
   thickness[0] = previous->thickness[0];
   thickness[1] = previous->thickness[1];
   for(unsigned int i = 0; i < previous->NumberOfLayers(); ++i)
@@ -79,7 +79,7 @@ double Duct::GetLayerThick(size_t layer, size_t t) const
 void Duct::insertLayer( int a )
 {
   if(static_cast<size_t>(a) > this->Materials.size()) return; //Do nothing
-  this->SetNumberOfLayers(this->Materials.size()+1);
+  this->SetNumberOfLayers(static_cast<int>(this->Materials.size())+1);
   if(static_cast<size_t>(a) == this->Materials.size()-1)
   {
     this->getNormThick(a)[0] = 1.0;
@@ -130,9 +130,10 @@ void Duct::removeLayer( int a )
     ntat[0] = ntatm1[0];
     ntat[1] = ntatm1[1];
   }
-  this->SetNumberOfLayers(this->Materials.size()-1);
-  this->getNormThick(this->Materials.size()-1)[0] = 1.0;
-  this->getNormThick(this->Materials.size()-1)[1] = 1.0;
+  const int tend = static_cast<int>(this->Materials.size())-1;
+  this->SetNumberOfLayers(tend);
+  this->getNormThick(tend)[0] = 1.0;
+  this->getNormThick(tend)[1] = 1.0;
 }
 
 bool Duct::operator==(const Duct& obj)
@@ -251,11 +252,12 @@ void Duct::splitMaterialLayer( std::vector<double> const& lx,
     }
   }
   assert( materials.size() == lx.size());
-  this->SetNumberOfLayers(lx.size());
-  for(unsigned int i = 0; i < lx.size(); ++i)
+  this->SetNumberOfLayers(static_cast<int>(lx.size()));
+  for(size_t i = 0; i < lx.size(); ++i)
   {
-    this->setMaterial(i, materials[i]);
-    double * ntat = getNormThick(i);
+    const int ti = static_cast<int>(i);
+    this->setMaterial(ti, materials[i]);
+    double * ntat = getNormThick(ti);
     ntat[0] = lx[i];
     ntat[1] = ly[i];
   }
@@ -268,11 +270,11 @@ bool Duct::isInnerDuctMaterial(QPointer<cmbNucMaterial> blMat) const
 
 void Duct::removeFakeBoundaryLayer(std::string blname)
 {
-  for(unsigned int at=0; at< this->Materials.size(); ++at )
+  for(size_t at=0; at< this->Materials.size(); ++at )
   {
     if(this->Materials[at].getMaterial()->getLabel().toStdString() == blname)
     {
-      removeLayer(at);
+      removeLayer(static_cast<int>(at));
     }
   }
 }
@@ -306,8 +308,8 @@ void DuctCell::RemoveDuct(Duct* duct, bool merge_prev)
 {
   if(duct != NULL && this->Ducts.size() > 1)
   {
-    unsigned int at = this->Ducts.size();
-    for(unsigned int i = 0; i < this->Ducts.size(); ++i)
+    size_t at = this->Ducts.size();
+    for(size_t i = 0; i < this->Ducts.size(); ++i)
     {
       if(this->Ducts[i] == duct)
       { at = i; break; }

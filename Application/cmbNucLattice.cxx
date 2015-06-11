@@ -123,7 +123,7 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
     this->Grid.resize(iin);
     for(int k = 0; k < iin; k++)
     {
-      int old = reset?0:this->Grid[k].size();
+      int old = static_cast<int>(reset?0:this->Grid[k].size());
       this->Grid[k].resize(jin);
       for(int r = old; r < jin; ++r)
       {
@@ -133,7 +133,7 @@ void Lattice::SetDimensions(int iin, int jin, bool reset)
   }
   else if(this->enGeometryType == HEXAGONAL)
   {
-    int current = reset ? 0 : this->Grid.size();
+    int current = reset ? 0 : static_cast<int>(this->Grid.size());
     if(current == iin)
     {
       return;
@@ -201,16 +201,19 @@ void Lattice::computeValidRange()
       }
       else
       {
-        this->validRange[layer].second = 6*layer-1;
+        const int tl = static_cast<int>(layer);
+        this->validRange[layer].second = 6 * tl - 1;
         if(subType != 0 && !(subType & ANGLE_360))
         {
-          this->validRange[layer].first = (subType & FLAT)?(layer):(layer-(layer)/2);
-          this->validRange[layer].second = ((subType & FLAT)?(layer+1):
-                                                           (((layer+1)-(layer+2)%2)))+this->validRange[layer].first-1;
+          this->validRange[layer].first = (subType & FLAT)?(tl):(tl - (tl / 2));
+          this->validRange[layer].second =  ((subType & FLAT)?(tl + 1):
+                                                              ((tl + 1) - (tl + 2) % 2))+
+                                                                this->validRange[layer].first-1;
           if(subType & ANGLE_30)
           {
-            this->validRange[layer].first = 2*layer - layer/2;
-            this->validRange[layer].second = (layer%2 ? (layer+1)/2 :(layer+2)/2) + this->validRange[layer].first - 1;
+            this->validRange[layer].first = 2*tl - tl/2;
+            this->validRange[layer].second = (layer%2 ? (tl+1)/2 :(tl+2)/2) + 
+                                                                  this->validRange[layer].first - 1;
           }
         }
       }
@@ -313,10 +316,12 @@ bool Lattice::ClearCell(const std::string &label)
   {
     for(size_t j = 0; j < this->Grid[i].size(); j++)
     {
-      if(this->GetCell(i, j).label == label)
+      if(this->GetCell(static_cast<int>(i), 
+                       static_cast<int>(j)).label == label)
       {
         r = true;
-        this->ClearCell(i, j);
+        this->ClearCell(static_cast<int>(i), 
+                        static_cast<int>(j));
       }
     }
   }
@@ -513,7 +518,7 @@ bool Lattice::fillRing(int r, int c, std::string const& label)
       if(label != Grid[i][ring].getCell()->label)
       {
         change = true;
-        this->SetCell(i,ring,label);
+        this->SetCell(static_cast<int>(i),ring,label);
       }
     }
     for( std::size_t i = ring; i < this->Grid[0].size()-ring; ++i )
@@ -521,25 +526,27 @@ bool Lattice::fillRing(int r, int c, std::string const& label)
       if(label != Grid[ring][i].getCell()->label)
       {
         change = true;
-        this->SetCell(ring,i,label);
+        this->SetCell(ring, static_cast<int>(i), label);
       }
     }
-    int tmp = this->Grid.size()-1-ring;
+    int tmp = static_cast<int>(this->Grid.size()-1-ring);
     for( std::size_t i = ring; i < this->Grid[0].size()-ring; ++i )
     {
       if(label != Grid[tmp][i].getCell()->label)
       {
         change = true;
-        this->SetCell(tmp,i,label);
+        this->SetCell(static_cast<int>(tmp),
+                      static_cast<int>(i), label);
       }
     }
-    tmp = this->Grid[0].size()-1-ring;
-    for( std::size_t i = ring; i < this->Grid.size()-ring; ++i )
+    tmp = static_cast<int>(this->Grid[0].size()) - 1 - ring;
+    for( std::size_t i = ring; i < this->Grid.size() - ring; ++i )
     {
       if(label != Grid[i][tmp].getCell()->label)
       {
         change = true;
-        this->SetCell(i,tmp,label);
+        this->SetCell(static_cast<int>(i),
+                      static_cast<int>(tmp), label);
       }
     }
   }

@@ -288,11 +288,11 @@ void cmbNucPinCellEditor::Reset()
                                                    << "Top\nRadius" << "Origin\nX"
                                                    << "Origin\nY");
 
-  this->Ui->piecesTable->setRowCount(this->InternalPinCell->GetNumberOfParts());
+  this->Ui->piecesTable->setRowCount(static_cast<int>(this->InternalPinCell->GetNumberOfParts()));
   for(size_t i = 0; i < this->InternalPinCell->GetNumberOfParts(); i++)
   {
-    PinSubPart *component = this->InternalPinCell->GetPart(i);
-    this->createComponentItem(i, component);
+    PinSubPart *component = this->InternalPinCell->GetPart(static_cast<int>(i));
+    this->createComponentItem(static_cast<int>(i), component);
   }
 
   this->Ui->piecesTable->resizeColumnsToContents();

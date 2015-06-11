@@ -46,7 +46,7 @@ cmbNucPinLibrary::addPin(PinCell ** in, AddMode mode)
   ConflictMode cm = this->testPinConflicts(pc);
   if(cm == No_Conflict)
   {
-    int loc = PinCells.size();
+    int loc = static_cast<int>(PinCells.size());
     PinCells.push_back(pc);
     this->setNameLocal(pc->getName(), loc);
     this->setLabelLocal(pc->getLabel(), loc);

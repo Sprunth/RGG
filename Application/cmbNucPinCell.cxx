@@ -152,7 +152,7 @@ bool PinSubPart::fill(PinSubPart const* other)
   if( other->Materials.size() != this->Materials.size() )
   {
     changed = true;
-    this->SetNumberOfLayers(other->Materials.size());
+    this->SetNumberOfLayers(static_cast<int>(other->Materials.size()));
   }
 
   for(unsigned int i = 0; i < this->Materials.size(); ++i)
@@ -368,7 +368,7 @@ enumNucPartsType PinCell::GetType() const
 { return CMBNUC_ASSY_PINCELL;}
 
 int PinCell::NumberOfSections() const
-{ return this->Parts.size();}
+{ return static_cast<int>(this->Parts.size());}
 
 void PinCell::RemoveSection(AssyPartObj* obj)
 {
@@ -421,7 +421,7 @@ void PinCell::SetLegendColor(const QColor& color)
 int PinCell::GetNumberOfLayers()
 {
   if(this->Parts.empty()) return 0;
-  return (*(this->Parts.begin()))->GetNumberOfLayers();
+  return static_cast<int>((*(this->Parts.begin()))->GetNumberOfLayers());
 }
 
 void PinCell::SetNumberOfLayers(int numLayers)
@@ -506,7 +506,7 @@ bool PinCell::fill(PinCell const* other)
   if(other->Parts.size() < this->Parts.size())
   {
     changed = true;
-    unsigned int i = other->Parts.size();
+    size_t i = other->Parts.size();
     for(;i < this->Parts.size(); ++i)
     {
       delete this->Parts[i];

@@ -57,7 +57,7 @@ void vtkCmbLayeredConeSource::SetNumberOfLayers(int layers)
 
 int vtkCmbLayeredConeSource::GetNumberOfLayers()
 {
-  return this->LayerRadii.size();
+  return static_cast<int>(this->LayerRadii.size());
 }
 
 void vtkCmbLayeredConeSource::SetTopRadius(int layer, double r1, double r2)
@@ -505,7 +505,7 @@ vtkCmbLayeredConeSource
   {
     GeneratePoints gp(outerRes);
     outerRes = gp.usedResolution();
-    innerRes = InnerPoints.size();
+    innerRes = static_cast<int>(InnerPoints.size());
     points->Allocate((outerRes+innerRes)*2);
     gp.AddPoints(points, 0, outerBottomR, 0);
     for(unsigned int i = 0; i < InnerPoints.size(); ++i)

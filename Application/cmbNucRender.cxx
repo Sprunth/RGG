@@ -194,11 +194,13 @@ public:
         }
       }
 
+      const int ti = static_cast<int>(i);
       for(size_t j = 0; j < lat.getSize(i); j++) //index on ring
       {
-        if(!lat.GetCell(i,j).isBlank() || markblank)
+        const int tj = static_cast<int>(j);
+        if(!lat.GetCell(ti,tj).isBlank() || markblank)
         {
-          CellKey key( lat.GetCell(i,j).label, lat.getDrawMode(/*index*/j, /*Layer*/ i) );
+          CellKey key( lat.GetCell(ti,tj).label, lat.getDrawMode(/*index*/tj, /*Layer*/ ti) );
 
           // For hex geometry type, figure out the six corners first
 
@@ -212,8 +214,8 @@ public:
           }
           else if( i > 1)
           {
-            cornerIdx = j/i;
-            int idxOnEdge = j%i;
+            cornerIdx = static_cast<int>(j/i);
+            int idxOnEdge = static_cast<int>(j%i);
             if(idxOnEdge == 0) // one of the corners
             {
               tX += layerCorners[cornerIdx][0];
@@ -252,12 +254,13 @@ public:
 
     for(size_t i = 0; i < lat.getSize(); i++)
     {
-
+      const int ti = static_cast<int>(i);
       for(size_t j = 0; j < lat.getSize(i); j++)
       {
-        if(!lat.GetCell(i,j).isBlank())
+        const int tj = static_cast<int>(j);
+        if(!lat.GetCell(ti,tj).isBlank())
         {
-          CellKey key( lat.GetCell(i,j).label, lat.getDrawMode(j, i));
+          CellKey key( lat.GetCell(ti,tj).label, lat.getDrawMode(tj, ti));
           PinCell* pincell = input->GetPinCell(key.str);
           if(pincell && (pincell->GetNumberOfParts())>0)
           {
@@ -272,8 +275,8 @@ public:
             }
             else if( i > 1)
             {
-              cornerIdx = j / i;
-              int idxOnEdge = j%i;
+              cornerIdx = static_cast<int>(j / i);
+              int idxOnEdge = static_cast<int>(j%i);
               if(idxOnEdge == 0) // one of the corners
               {
                 tX += pinDistFromCenter*cmbNucAssembly::CosSinAngles[cornerIdx][0];
@@ -312,12 +315,16 @@ public:
 
     for(size_t i = 0; i < lat.getSize(); i++)
     {
+      const int ti = static_cast<int>(i);
       for(size_t j = 0; j < lat.getSize(i); j++)
       {
-        input->calculateRectPt(i, j, currentLaticePoint);
-        if(!lat.GetCell(i,j).isBlank() || markblank)
+        const int tj = static_cast<int>(j);
+        input->calculateRectPt(static_cast<unsigned int>(i), 
+                               static_cast<unsigned int>(j), 
+                               currentLaticePoint);
+        if(!lat.GetCell(ti,tj).isBlank() || markblank)
         {
-          CellKey key( lat.GetCell(i,j).label, lat.getDrawMode(j, i));
+          CellKey key( lat.GetCell(ti,tj).label, lat.getDrawMode(tj, ti));
           idToPoint[key].push_back(point( currentLaticePoint[0],
                                           currentLaticePoint[1]));
         }
@@ -434,7 +441,7 @@ public:
 
     for(size_t j = 0; j < numParts; ++j)
     {
-      PinSubPart* part = pincell->GetPart(j);
+      PinSubPart* part = pincell->GetPart(static_cast<int>(j));
       vtkSmartPointer<vtkCmbLayeredConeSource> manager =
           cmbNucRender::CreateLayerManager(pincell, isHex, j, pitchX, pitchY);
       if(manager == NULL) continue;
@@ -869,12 +876,12 @@ public:
       newGeo.geo = tmpGeoI.geo;
     }
 
-    unsigned int at = newGeo.points.size();
+    size_t at = newGeo.points.size();
     newGeo.points.resize(newGeo.points.size() + points.size()*tmpGeoI.points.size());
-    for(unsigned int j = 0; j<points.size(); ++j)
+    for(size_t j = 0; j<points.size(); ++j)
     {
       point const& apt = points[j];
-      for(unsigned int k = 0; k < tmpGeoI.points.size(); ++k)
+      for(size_t k = 0; k < tmpGeoI.points.size(); ++k)
       {
         newGeo.points[at] = computeData( tmpGeoI.points[k], apt,
                                          extraXTrans, extraYTrans,xformR);
@@ -1296,7 +1303,7 @@ vtkSmartPointer<vtkCmbLayeredConeSource>
 cmbNucRender::CreateLayerManager(PinCell* pincell, bool isHex, size_t j,
                                  double pitchX, double pitchY)
 {
-  PinSubPart* part = pincell->GetPart(j);
+  PinSubPart* part = pincell->GetPart(static_cast<int>(j));
   
   vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
       vtkSmartPointer<vtkCmbLayeredConeSource>::New();
@@ -1346,7 +1353,7 @@ cmbNucRender::CreateLayerManager(PinCell* pincell, bool isHex, size_t j,
 vtkSmartPointer<vtkCmbLayeredConeSource>
 cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
 {
-  Duct *duct = ductCell->getDuct(i);
+  Duct *duct = ductCell->getDuct(static_cast<int>(i));
   double z = duct->getZ1();
   double height = duct->getZ2() - duct->getZ1();
   double deltaZ = height * 0.0005;
@@ -1365,7 +1372,7 @@ cmbNucRender::CreateLayerManager(DuctCell* ductCell, bool isHex, size_t i)
     z = duct->getZ1() + deltaZ;
   }
 
-  int numLayers = duct->NumberOfLayers();
+  int numLayers = static_cast<int>(duct->NumberOfLayers());
   vtkSmartPointer<vtkCmbLayeredConeSource> coneSource =
      vtkSmartPointer<vtkCmbLayeredConeSource>::New();
   coneSource->SetNumberOfLayers(numLayers);
