@@ -248,37 +248,13 @@ if(BUILD_TESTING)
                     --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
   endif(Q_WS_MAC)
 
-  set (TESTS_BOTH_2D_3D simple_rect_test
-                        simple_rect_assy_test
-                        simple_hex_test
-                        simple_hex_assy_test
-                        test_open_12th_hex
-                        test_open_6th_flat
-                        test_open_6th_vertex
-                        test_open_assy_hex
-                        test_open_assy_rect
-                        testing_delete_pin
-                        testing_delete_assy
-                        testing_delete_core
-                        testing_6thflat
-                        test_new_rect
-                        test_new_hex)
+  set (TESTS_BOTH_2D_3D)
 
-  set (TESTS_WITH_MODEL_BASELINES  ${TESTS_BOTH_2D_3D}
-                                   test_multi_layer_rect_duct
-                                   test_multi_layer_hex_duct
-                                   test_multi_duct_rect
-                                   test_multi_duct_hex
-                                   test_pin_material_layers
-                                   test_pin_sections
-                                   test_pin_cellmaterial_rect
-                                   test_pin_cellmaterial_hex
-                                   test_material )
+  set (TESTS_WITH_MODEL_BASELINES )
 
-  set (TESTS_WITH_MESH_BASELINES test_mesh_load)
+  set (TESTS_WITH_MESH_BASELINES )
 
-  set (LONG_TEST create_and_save_rect
-                 create_and_save_hex)
+  set (LONG_TEST )
 
   set (TESTS_WITH_2D_BASELINES  ${TESTS_BOTH_2D_3D})
 
