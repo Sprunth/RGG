@@ -252,6 +252,10 @@ public:
   QString TestOutputDirectory;
 
   cmbNucInpExporter inpExporter;
+#ifdef __APPLE__
+  bool isNative;
+#endif
+  bool playingTest;
 };
 
 int numAssemblyDefaultColors = 42;
@@ -1804,14 +1808,24 @@ void cmbNucMainWindow::setAxis(bool ison)
 
 void cmbNucMainWindow::onStopRecordingTest()
 {
+  if(this->Internal->playingTest) return;
   if(this->TestUtility == NULL) return;
   this->Internal->observer->setStream(NULL);
   delete this->TestUtility;
   this->TestUtility = NULL;
+#ifdef __APPLE__
+  menuBar()->setNativeMenuBar(this->Internal->isNative);
+#endif
 }
 
 void cmbNucMainWindow::onStartRecordTest()
 {
+  this->Internal->playingTest = false;
+#ifdef __APPLE__
+  this->Internal->isNative = menuBar()->isNativeMenuBar();
+  menuBar()->setNativeMenuBar(false);
+#endif
+  this->repaint();
   if(this->TestUtility != NULL)
   {
     onStopRecordingTest();
@@ -1834,7 +1848,6 @@ void cmbNucMainWindow::onStartRecordTest()
 
 void cmbNucMainWindow::onPlayTest()
 {
-
   QString filename = QFileDialog::getOpenFileName (this, "Test File Name",
                                                    QString(), "XML Files (*.xml)");
   this->playTest(filename);
@@ -1848,6 +1861,7 @@ bool cmbNucMainWindow::playTest(QString filename)
   }
   if (!filename.isEmpty())
   {
+    this->Internal->playingTest = true;
     this->TestUtility = new pqTestUtility(this);
     this->Internal->observer = new pqXMLEventObserver(this);
     this->TestUtility->addEventObserver("xml", this->Internal->observer);
