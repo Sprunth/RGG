@@ -148,7 +148,7 @@ cmbNucGenerateOuterCylinder
     output << "### loop one less than total number of blocks\n";
     output << "web vol in g1  with zplane offset {BLOCK2_ZBOT}\n";
     output << "##group 'g1' equals vol all\n";
-    output << "## web vol in g1  with zplane offset {BLOCK3_ZBOT}\n";
+    output << "web vol in g1  with zplane offset {BLOCK3_ZBOT}\n";
     output << "### loop ends\n";
     output << "merge vol all\n";
     output << "imprint vol all\n";
