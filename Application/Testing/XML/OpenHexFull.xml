@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenFile" />
+  <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/simple_hexflatcore-Modified/simple_hexflatcore.rxf" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assemblies" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="3D View" />
+</events>
