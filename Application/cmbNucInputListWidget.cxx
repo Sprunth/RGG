@@ -25,6 +25,8 @@
 #include <QPainter>
 #include <QTreeWidgetItem>
 
+extern bool IS_IN_TESTING_MODE;
+
 class PartsItemDelegate: public QItemDelegate
 {
 public:
@@ -715,19 +717,23 @@ void cmbNucInputListWidget::onSaveMaterial()
 void cmbNucInputListWidget::onMaterialClicked(QTreeWidgetItem* item, int col)
 {
   if(col != 3)
-    {
+  {
     return;
-    }
+  }
 
   QBrush bgBrush = item->background(col);
+  QColorDialog::ColorDialogOptions options = QColorDialog::ShowAlphaChannel;
+  if(IS_IN_TESTING_MODE)
+  {
+    options |= QColorDialog::DontUseNativeDialog;
+  }
   QColor color = QColorDialog::getColor(bgBrush.color(), this,
-                                        "Select Color for Material",
-                                        QColorDialog::ShowAlphaChannel);
+                                        "Select Color for Material", options);
   if(color.isValid() && color != bgBrush.color())
-    {
+  {
     bgBrush.setColor(color);
     item->setBackground(col, bgBrush);
-    }
+  }
 }
 
 //-----------------------------------------------------------------------------

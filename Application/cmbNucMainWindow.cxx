@@ -225,6 +225,8 @@ namespace
   }
 }
 
+bool IS_IN_TESTING_MODE;
+
 class NucMainInternal
 {
 public:
@@ -309,6 +311,7 @@ int defaultAssemblyColors[][3] =
 cmbNucMainWindow::cmbNucMainWindow()
 {
   isCameraIsMoving = false;
+  IS_IN_TESTING_MODE = false;
 
   importer = new cmbNucImporter(this);
 
@@ -1808,6 +1811,7 @@ void cmbNucMainWindow::setAxis(bool ison)
 
 void cmbNucMainWindow::onStopRecordingTest()
 {
+  IS_IN_TESTING_MODE = false;
   if(this->Internal->playingTest) return;
   if(this->TestUtility == NULL) return;
   this->Internal->observer->setStream(NULL);
@@ -1830,6 +1834,7 @@ void cmbNucMainWindow::onStartRecordTest()
   {
     onStopRecordingTest();
   }
+  IS_IN_TESTING_MODE = true;
   this->TestUtility = new pqTestUtility(this);
   this->Internal->observer = new pqXMLEventObserver(this);
   this->TestUtility->addEventObserver("xml", this->Internal->observer);
@@ -1861,6 +1866,7 @@ bool cmbNucMainWindow::playTest(QString filename)
   }
   if (!filename.isEmpty())
   {
+    IS_IN_TESTING_MODE = true;
     this->Internal->playingTest = true;
     this->TestUtility = new pqTestUtility(this);
     this->Internal->observer = new pqXMLEventObserver(this);
@@ -1873,6 +1879,7 @@ bool cmbNucMainWindow::playTest(QString filename)
     bool result = this->TestUtility->playTests(filename);
     delete this->TestUtility;
     this->TestUtility = NULL;
+    IS_IN_TESTING_MODE = false;
     return result;
   }
   return false;
