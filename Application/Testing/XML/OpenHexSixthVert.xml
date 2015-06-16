@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/toolBar/1QToolButton0" command="activate" arguments="" />
+  <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/sixth_hexvertexcore/sixth_hexvertexcore.rxf" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="3D View" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools/menuTesting" command="activate" arguments="actionStop_Recording" />
+</events>

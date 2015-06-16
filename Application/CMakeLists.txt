@@ -248,9 +248,18 @@ if(BUILD_TESTING)
                     --test-directory=${CMAKE_SOURCE_DIR}/TestingData)
   endif(Q_WS_MAC)
 
-  set (TESTS_BOTH_2D_3D)
+  set (TESTS_BOTH_2D_3D  ImportHexFull
+                         ImportHexSixthVert
+                         ImportRect
+                         OpenHexSixthFlat
+                         OpenHexTwelth
+                         ImportHexSixthFlat
+                         ImportHexTwelth
+                         OpenHexFull
+                         OpenHexSixthVert
+                         OpenRect )
 
-  set (TESTS_WITH_MODEL_BASELINES )
+  set (TESTS_WITH_MODEL_BASELINES ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES )
 
@@ -258,7 +267,7 @@ if(BUILD_TESTING)
 
   set (TESTS_WITH_2D_BASELINES  ${TESTS_BOTH_2D_3D})
 
-  set (TESTS_WITHOUT_BASELINES exit )
+  set (TESTS_WITHOUT_BASELINES exit TestAbout)
 
   foreach(test ${TESTS_WITHOUT_BASELINES})
     add_test(NAME ${test}_baseline
