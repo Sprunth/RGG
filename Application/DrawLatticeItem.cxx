@@ -63,7 +63,11 @@ void DrawLatticeItem::drawText(QPainter *painter)
 {
   QRectF textRect = boundingRect();
 
-  QColor textColor = (this->m_color.lightnessF() < 0.5) ? Qt::white : Qt::black;
+  double gray = this->m_color.red()*0.299 +
+                this->m_color.green()*0.587 +
+                this->m_color.blue()*0.114;
+
+  QColor textColor = ( gray < 186 ) ? Qt::white : Qt::black;
 
   QFont font;
   font.setPixelSize(12);
