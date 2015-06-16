@@ -33,6 +33,8 @@
 static const int degreesHex[6] = {-120, -60, 0, 60, 120, 180};
 static const int degreesRec[4] = {-90, 0, 90, 180};
 
+extern bool IS_IN_TESTING_MODE;
+
 #define set_and_test_for_change(X, Y)\
    change |= ((Y) != (X)); \
    X = (Y)
@@ -1015,8 +1017,13 @@ void cmbNucInputPropertiesWidget::chooseLegendColor()
     swatch = this->Internal->assyLinkColorSwatch;
   }
   if(swatch == NULL) return;
+  QColorDialog::ColorDialogOptions options;
+  if(IS_IN_TESTING_MODE)
+  {
+    options = QColorDialog::DontUseNativeDialog;
+  }
   QColor selected = QColorDialog::getColor(oc, this,
-                                           "Select key color");
+                                           "Select key color", options);
   if(selected.isValid())
   {
     QPalette c_palette = swatch->palette();
