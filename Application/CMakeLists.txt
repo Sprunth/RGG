@@ -250,13 +250,13 @@ if(BUILD_TESTING)
                          ImportRect
                          ImportHexSixthFlat
                          ImportHexTwelth
-                         OpenHexSixthFlat
-                         OpenHexTwelth
                          new_hex_full
                          new_hex_sixth_flat
                          new_hex_sixth_vert
                          new_hex_twelth
                          new_rect.xml
+                         OpenHexSixthFlat
+                         OpenHexTwelth
                          OpenHexFull
                          OpenHexSixthVert
                          OpenRect )

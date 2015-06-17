@@ -976,7 +976,12 @@ void cmbNucInputListWidget
   if(!selObj)
   {
     this->setActionsEnabled(false);
-    if(selItem == this->Internal->PinsNode)
+
+    if(selItem == NULL)
+    {
+      //DO nothing
+    }
+    else if(selItem == this->Internal->PinsNode)
     {
       this->Internal->Action_NewPin->setEnabled(true);
     }
