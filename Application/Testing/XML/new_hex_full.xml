@@ -1,0 +1,223 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile/menuNew/menuNew_Hexagonal_Core" command="activate" arguments="actionFullHexagonal" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.1.0.0.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="S" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="key" arguments="16777219" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="key" arguments="16777248" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="W" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="Wa" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="Wat" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="Water" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="Water" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="key" arguments="32" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="key" arguments="16777248" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="Water D" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="Water Du" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="Water Duc" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Name" command="set_string" arguments="Water Duct" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/groupBox/DuctSegmentTable" command="mousePress" arguments="1,1,0,55,1,/0:1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/groupBox/DuctSegmentTable" command="mouseRelease" arguments="1,0,0,55,1,/0:1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,10,103" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,18,213" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,18,213" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/MaterialBox/MaterialLayerTable/qt_scrollarea_viewport/DuctMaterialBox_0" command="set_string" arguments="water" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assembly Defaults" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="20" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="20" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="20" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="20" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="set_double" arguments="20" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/Height" command="key" arguments="16777220" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DuctThicknessLayout/DuctThickX" command="set_double" arguments="1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DuctThicknessLayout/DuctThickX" command="set_double" arguments="1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DuctThicknessLayout/DuctThickX" command="set_double" arguments="15" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DuctThicknessLayout/DuctThickX" command="set_double" arguments="15" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DuctThicknessLayout/DuctThickX" command="set_double" arguments="15" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_4/qDefaults/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/DuctThicknessLayout/DuctThickX" command="key" arguments="16777220" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Lattice" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_2/coreLatticeX" command="set_int" arguments="2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_2/coreLatticeX" command="set_int" arguments="3" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,340,245" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu/Replace_All_With" command="activate" arguments="Assy_0" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuPart" />
+  <event object="qNucMainWindow/menuBar/menuPart" command="activate" arguments="Create Pin" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.0.0.0.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,8,66" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,17,194" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,17,194" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/layersTable/qt_scrollarea_viewport/PinMaterialBox_0" command="set_string" arguments="fuel" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,8,176" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,9,51" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,9,51" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mousePress" arguments="1,1,0,22,20,/0:2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseRelease" arguments="1,0,0,22,20,/0:2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseDblClick" arguments="1,1,0,22,20,/0:2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseRelease" arguments="1,0,0,22,20,/0:2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,48,0,0,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,48,0,0,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="46" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,46,0,.,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,46,0,.,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="0.2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,50,0,2,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,50,0,2,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="16777217" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777217,0,	,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777217,0,	,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="16777217" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777217,0,	,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777217,0,	,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageAssembly/tabWidget_3/qt_tabwidget_stackedwidget/tab_6/latticeX" command="set_int" arguments="2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageAssembly/tabWidget_3/qt_tabwidget_stackedwidget/tab_6/latticeX" command="set_int" arguments="3" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,291,323" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="PinCell1 (PinCell1)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,361,270" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="PinCell1 (PinCell1)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,372,191" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="PinCell1 (PinCell1)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,274,404" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="PinCell1 (PinCell1)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,205,382" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="Empty Cell (xx)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,305,213" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="PinCell1 (PinCell1)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,203,366" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="PinCell1 (PinCell1)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,108,426" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="PinCell1 (PinCell1)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,125,336" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="Empty Cell (xx)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,129,340" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu" command="activate" arguments="PinCell1 (PinCell1)" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="3D View" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.0.0.0.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mousePress" arguments="1,1,0,20,14,/0:2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseRelease" arguments="1,0,0,20,14,/0:2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseDblClick" arguments="1,1,0,20,14,/0:2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseRelease" arguments="1,0,0,20,14,/0:2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="16777219" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777219,0,,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777219,0,,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="16777219" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777219,0,,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777219,0,,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="16777219" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777219,0,,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777219,0,,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,48,0,0,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,48,0,0,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="46" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,46,0,.,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,46,0,.,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="0.6" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,54,0,6,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,54,0,6,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="16777217" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777217,0,	,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777217,0,	,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable/qt_scrollarea_viewport/1QExpandingLineEdit0" command="key" arguments="16777217" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777217,0,	,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777217,0,	,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="6,16777220,0,
+,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="6,16777220,0,
+,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777220,0,
+,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseMove" arguments="1,0,0,22,3,/0:3" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseRelease" arguments="1,0,0,22,3,/0:3" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mousePress" arguments="1,1,0,25,12,/0:3" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseRelease" arguments="1,0,0,25,12,/0:3" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseDblClick" arguments="1,1,0,25,12,/0:3" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="mouseRelease" arguments="1,0,0,25,12,/0:3" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="6,16777220,0,
+,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="6,16777220,0,
+,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pagePinCell/cmbNucPinCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/piecesTable" command="keyEvent" arguments="7,16777220,0,
+,0,1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="3D View" />
+</events>

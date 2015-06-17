@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile/menuNew/menuNew_Hexagonal_Core" command="activate" arguments="action1_12_Symetric" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assemblies" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0.1.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.1.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0.2.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.1.0.0.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/groupBox/DuctSegmentTable" command="mousePress" arguments="1,1,0,80,16,/0:1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/groupBox/DuctSegmentTable" command="mouseRelease" arguments="1,0,0,80,16,/0:1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,11,136" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,-1,312" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,-1,312" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/MaterialBox/MaterialLayerTable/qt_scrollarea_viewport/DuctMaterialBox_0" command="set_string" arguments="reflector" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_2/coreLatticeX" command="set_int" arguments="2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_2/coreLatticeX" command="set_int" arguments="3" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_2/coreLatticeX" command="set_int" arguments="4" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageCore/tabWidget/qt_tabwidget_stackedwidget/tab_2/coreLatticeX" command="set_int" arguments="5" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,115,422" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu/Fill_Ring_All_With" command="activate" arguments="Assy_0" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="mousePress" arguments="2,2,0,217,375" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/Replace_Menu/Replace_All_With" command="activate" arguments="Assy_0" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget/1QWidget0" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget/Drawing_2D_Widget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D/LatticeDrawWidget" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/Dock2D" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow" command="contextMenu" arguments="" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="3D View" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuPart" />
+  <event object="qNucMainWindow/menuBar/menuTools/menuTesting" command="activate" arguments="actionStop_Recording" />
+</events>

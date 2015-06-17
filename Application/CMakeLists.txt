@@ -248,10 +248,15 @@ if(BUILD_TESTING)
   set (TESTS_BOTH_2D_3D  ImportHexFull
                          ImportHexSixthVert
                          ImportRect
-                         OpenHexSixthFlat
-                         OpenHexTwelth
                          ImportHexSixthFlat
                          ImportHexTwelth
+                         OpenHexSixthFlat
+                         OpenHexTwelth
+                         new_hex_full
+                         new_hex_sixth_flat
+                         new_hex_sixth_vert
+                         new_hex_twelth
+                         new_rect.xml
                          OpenHexFull
                          OpenHexSixthVert
                          OpenRect )
@@ -273,8 +278,6 @@ if(BUILD_TESTING)
   else()
      set( LIBRARY_PATH )
   endif()
-
-message("${LIBRARY_PATH}")
 
   foreach(test ${TESTS_WITHOUT_BASELINES})
     add_test(NAME ${test}_baseline
