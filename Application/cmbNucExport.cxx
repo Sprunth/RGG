@@ -25,7 +25,6 @@
 #include <QProcess>
 #include <QTime>
 #include <QMetaType>
-#include <QMessageBox>
 
 #include <iostream>
 #include <sstream>

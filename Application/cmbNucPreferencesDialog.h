@@ -28,6 +28,8 @@ public:
                             int & numberOfProcessors);
   static bool getPackaged(QString & assygenExe, QString & coregenExe);
 
+  static bool testCubitVersion(QString & cubitExe);
+
 public slots:
   void setPreferences(bool e = false);
 
