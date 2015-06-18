@@ -32,70 +32,21 @@
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="30" column="1">
-        <widget class="QComboBox" name="Info">
-         <item>
-          <property name="text">
-           <string>NotSet</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>On</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Off</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="27" column="0">
+       <item row="38" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
           <string>Center</string>
          </property>
         </widget>
        </item>
-       <item row="11" column="0">
+       <item row="18" column="0">
         <widget class="QLabel" name="label_19">
          <property name="text">
           <string>List of Neumann Set Start Ids</string>
          </property>
         </widget>
        </item>
-       <item row="21" column="1">
-        <widget class="QLineEdit" name="NumSuperBlocks"/>
-       </item>
-       <item row="22" column="1">
-        <widget class="QLineEdit" name="SuperBlocks"/>
-       </item>
-       <item row="12" column="0">
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Material Set Start Id</string>
-         </property>
-        </widget>
-       </item>
-       <item row="29" column="0">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>CreateSideSet</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="1">
-        <widget class="QLineEdit" name="MaterialSet_StartId"/>
-       </item>
-       <item row="10" column="0">
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>Neumann Set StartId</string>
-         </property>
-        </widget>
-       </item>
-       <item row="27" column="1">
+       <item row="38" column="1">
         <widget class="QComboBox" name="CenterXYZ">
          <item>
           <property name="text">
@@ -119,21 +70,14 @@
          </item>
         </widget>
        </item>
-       <item row="31" column="0">
+       <item row="42" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>MeshScheme</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="TetMeshSize">
-         <property name="inputMethodHints">
-          <set>Qt::ImhNone</set>
-         </property>
-        </widget>
-       </item>
-       <item row="29" column="1">
+       <item row="40" column="1">
         <widget class="QComboBox" name="CreateSideset">
          <item>
           <property name="text">
@@ -152,122 +96,61 @@
          </item>
         </widget>
        </item>
-       <item row="21" column="0">
+       <item row="28" column="0">
         <widget class="QLabel" name="label_21">
          <property name="text">
           <string>NumSuperBlocks</string>
          </property>
         </widget>
        </item>
-       <item row="36" column="0" colspan="2">
+       <item row="47" column="0" colspan="2">
         <widget class="QLabel" name="label_23">
          <property name="text">
           <string>User Defined</string>
          </property>
         </widget>
        </item>
-       <item row="15" column="0">
+       <item row="22" column="0">
         <widget class="QLabel" name="label_14">
          <property name="text">
           <string>CreateFiles</string>
          </property>
         </widget>
        </item>
-       <item row="14" column="1">
+       <item row="21" column="1">
         <widget class="QLineEdit" name="MergeTolerance"/>
        </item>
-       <item row="13" column="1">
+       <item row="20" column="1">
         <widget class="QLineEdit" name="List_MaterialSet_StartId"/>
        </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Radial Mesh Size</string>
-         </property>
-        </widget>
-       </item>
-       <item row="30" column="0">
+       <item row="41" column="0">
         <widget class="QLabel" name="label_9">
          <property name="text">
           <string>Info</string>
          </property>
         </widget>
        </item>
-       <item row="22" column="0">
-        <widget class="QLabel" name="label_22">
-         <property name="text">
-          <string>SuperBlocks</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="CreateMatFiles"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_15">
-         <property name="text">
-          <string>StartPinId</string>
-         </property>
-        </widget>
-       </item>
-       <item row="15" column="1">
+       <item row="22" column="1">
         <widget class="QLineEdit" name="CreateFiles"/>
        </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="StartPinId"/>
-       </item>
-       <item row="13" column="0">
+       <item row="20" column="0">
         <widget class="QLabel" name="label_20">
          <property name="text">
           <string>List of Material Set Start Ids</string>
          </property>
         </widget>
        </item>
-       <item row="8" column="1">
-        <widget class="QLineEdit" name="RadialMeshSize"/>
-       </item>
-       <item row="14" column="0">
+       <item row="21" column="0">
         <widget class="QLabel" name="label_13">
          <property name="text">
           <string>MergeTolerance</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_17">
-         <property name="text">
-          <string>CreateMatFiles</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_19">
-         <item>
-          <widget class="QCheckBox" name="Save_Exodus">
-           <property name="text">
-            <string>Save Exodus</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="37" column="0" colspan="2">
-        <widget class="QPlainTextEdit" name="Unknown"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>TetMeshSize</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="1">
-        <widget class="QLineEdit" name="NeumannSet_StartId"/>
-       </item>
-       <item row="11" column="1">
+       <item row="18" column="1">
         <widget class="QLineEdit" name="List_NeumannSet_StartId"/>
        </item>
-       <item row="31" column="1">
+       <item row="42" column="1">
         <widget class="QComboBox" name="MeshScheme">
          <item>
           <property name="text">
@@ -286,7 +169,111 @@
          </item>
         </widget>
        </item>
-       <item row="35" column="0" colspan="2">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Radial Mesh Size</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="NeumannSet_StartId">
+         <property name="toolTip">
+          <string>The start id for the Neumann Sets.  This makes sure assemblies have unique Neumann Set Ids.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Neumann Set Start Id</string>
+         </property>
+        </widget>
+       </item>
+       <item row="31" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="text">
+          <string>CreateMatFiles</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QLineEdit" name="TetMeshSize">
+         <property name="inputMethodHints">
+          <set>Qt::ImhNone</set>
+         </property>
+        </widget>
+       </item>
+       <item row="28" column="1">
+        <widget class="QLineEdit" name="NumSuperBlocks"/>
+       </item>
+       <item row="29" column="1">
+        <widget class="QLineEdit" name="SuperBlocks"/>
+       </item>
+       <item row="40" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>CreateSideSet</string>
+         </property>
+        </widget>
+       </item>
+       <item row="29" column="0">
+        <widget class="QLabel" name="label_22">
+         <property name="text">
+          <string>SuperBlocks</string>
+         </property>
+        </widget>
+       </item>
+       <item row="48" column="0" colspan="2">
+        <widget class="QPlainTextEdit" name="Unknown"/>
+       </item>
+       <item row="31" column="1">
+        <widget class="QLineEdit" name="CreateMatFiles"/>
+       </item>
+       <item row="33" column="1">
+        <widget class="QLineEdit" name="StartPinId"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="RadialMeshSize">
+         <property name="toolTip">
+          <string>The length of the edges around the outer edge of the pins.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLineEdit" name="MaterialSet_StartId">
+         <property name="toolTip">
+          <string>The start id for the Material Sets.  This makes sure assemblies have unique Material Ids number.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="33" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>Start Pin Id</string>
+         </property>
+        </widget>
+       </item>
+       <item row="41" column="1">
+        <widget class="QComboBox" name="Info">
+         <item>
+          <property name="text">
+           <string>NotSet</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>On</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Off</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="46" column="0" colspan="2">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QLabel" name="label_6">
@@ -370,6 +357,27 @@
          </item>
         </layout>
        </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Material Set Start Id</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QCheckBox" name="Save_Exodus">
+         <property name="text">
+          <string>Save Exodus</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>TetMeshSize</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>
@@ -377,19 +385,19 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>TetMeshSize</tabstop>
-  <tabstop>StartPinId</tabstop>
-  <tabstop>CreateMatFiles</tabstop>
-  <tabstop>Save_Exodus</tabstop>
   <tabstop>RadialMeshSize</tabstop>
   <tabstop>NeumannSet_StartId</tabstop>
-  <tabstop>List_NeumannSet_StartId</tabstop>
   <tabstop>MaterialSet_StartId</tabstop>
+  <tabstop>Save_Exodus</tabstop>
+  <tabstop>TetMeshSize</tabstop>
+  <tabstop>List_NeumannSet_StartId</tabstop>
   <tabstop>List_MaterialSet_StartId</tabstop>
   <tabstop>MergeTolerance</tabstop>
   <tabstop>CreateFiles</tabstop>
   <tabstop>NumSuperBlocks</tabstop>
   <tabstop>SuperBlocks</tabstop>
+  <tabstop>CreateMatFiles</tabstop>
+  <tabstop>StartPinId</tabstop>
   <tabstop>CenterXYZ</tabstop>
   <tabstop>CreateSideset</tabstop>
   <tabstop>Info</tabstop>
