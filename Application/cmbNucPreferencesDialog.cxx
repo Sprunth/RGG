@@ -6,6 +6,8 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QMainWindow>
+#include <QProcess>
+#include <QMessageBox>
 
 #define NAME_PROJECT "RGGNuclear"
 #define EXPORTER_NAME "Exporter"
@@ -139,15 +141,44 @@ void cmbNucPreferencesDialog::checkValues()
 #if __APPLE__
   if(QFileInfo(cubitExe).isBundle())
   {
+    if(cubitExe.endsWith('/'))
+    {
+      cubitExe.resize(cubitExe.size()-1);
+    }
     cubitExe = QFileInfo(cubitExe).dir().absoluteFilePath("Cubit.app/Contents/MacOS/Cubit");
     this->ui->cubitExecutable->setText(cubitExe);
   }
 #endif
 
   enabled &= (!cubitExe.isEmpty() && QFileInfo(cubitExe).exists() &&
-              !QFileInfo(cubitExe).isDir() && QFileInfo(cubitExe).isExecutable());
+              !QFileInfo(cubitExe).isDir() &&
+              QFileInfo(cubitExe).isExecutable() && testCubitVersion(cubitExe));
 
   ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
+}
+
+bool cmbNucPreferencesDialog::testCubitVersion(QString & cubitExe)
+{
+  static bool message_sent = false; //make sure message is only sent once
+  QProcess test_cubit;
+  QStringList args;
+  args << "-v" << "-nographics";
+  test_cubit.start(cubitExe, args);
+  test_cubit.waitForFinished();
+  QByteArray out = test_cubit.readAllStandardOutput();
+  bool result = QString(out).contains("Cubit Version 14.0");
+  if(!result && !message_sent )
+  {
+    message_sent = true;
+    QMessageBox msgBox;
+    msgBox.setText("Invalid version number.");
+    int ret = msgBox.exec();
+  }
+  else if(result)
+  {
+    message_sent = false;
+  }
+  return result;
 }
 
 bool cmbNucPreferencesDialog::isOk()
@@ -162,7 +193,7 @@ bool cmbNucPreferencesDialog::isOk()
   bool hasCoregen = !coregenexe.isEmpty() && QFileInfo(coregenexe).exists();
   bool hasPack = cmbNucPreferencesDialog::hasPackaged();
   bool hasRgg = (!useCustom && hasPack) || ((!hasPack || useCustom) && hasAssygen && hasCoregen);
-  return hasRgg && hasCubit;
+  return hasRgg && hasCubit && testCubitVersion(cubitexe);
 }
 
 bool cmbNucPreferencesDialog::hasPackaged()

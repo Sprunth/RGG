@@ -12,6 +12,11 @@ cmbNucAboutDialog::cmbNucAboutDialog(QWidget* Parent)
   this->setWindowTitle(QApplication::translate("RGG AboutDialog",
                                                "About RGG",
                                                0, QApplication::UnicodeUTF8));
+  if(!QString(RGG_VERSION_STR).contains("Devel"))
+  {
+    this->Ui->buildID->setVisible(false);
+    this->Ui->label_2->setVisible(false);
+  }
   this->Ui->version->setText(RGG_VERSION_STR);
   this->Ui->buildID->setText("<html><head/><body><p><a "
                              "href=\"https://github.com/Kitware/RGG/commit/"

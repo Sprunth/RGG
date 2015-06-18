@@ -457,27 +457,43 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
-  connect(this->ui->actionOpenFile, SIGNAL(triggered()), this, SLOT(onFileOpen()));
-  connect(this->ui->importINPFile, SIGNAL(triggered()), this, SLOT(onImportINPFile()));
-  connect(this->ui->actionImportPins, SIGNAL(triggered()), this, SLOT(onImportPins()));
-  connect(this->ui->actionImportDucts, SIGNAL(triggered()), this, SLOT(onImportDucts()));
-  connect(this->ui->actionImportAssemblies, SIGNAL(triggered()), this, SLOT(onImportAssemblies()));
-  connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()), this, SLOT(onFileOpenMoab()));
-  connect(this->ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(onSaveSelectedAs()));
-  connect(this->ui->actionSave,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
-  connect(this->ui->actionSaveFile,        SIGNAL(triggered()), this, SLOT(onSaveAll()));
+  connect(this->ui->actionOpenFile, SIGNAL(triggered()),
+          this,                     SLOT(onFileOpen()));
+  connect(this->ui->importINPFile, SIGNAL(triggered()),
+          this,                    SLOT(onImportINPFile()));
+  connect(this->ui->actionImportPins, SIGNAL(triggered()),
+          this,                       SLOT(onImportPins()));
+  connect(this->ui->actionImportDucts, SIGNAL(triggered()),
+          this,                        SLOT(onImportDucts()));
+  connect(this->ui->actionImportAssemblies, SIGNAL(triggered()),
+          this,                             SLOT(onImportAssemblies()));
+  connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()),
+          this,                         SLOT(onFileOpenMoab()));
+  connect(this->ui->actionSaveAs, SIGNAL(triggered()),
+          this,                   SLOT(onSaveSelectedAs()));
+  connect(this->ui->actionSave,        SIGNAL(triggered()),
+          this,                        SLOT(onSaveAll()));
+  connect(this->ui->actionSaveFile,        SIGNAL(triggered()),
+          this,                            SLOT(onSaveAll()));
 
-  connect(this->ui->actionExport_Visible_Mesh, SIGNAL(triggered()), this, SLOT(onExportVisibleMesh()));
+  connect(this->ui->actionExport_Visible_Mesh, SIGNAL(triggered()),
+          this,                                SLOT(onExportVisibleMesh()));
 
-  connect(this->ui->ExportImpFiles, SIGNAL(triggered()), this, SLOT(onExportINPFiles()));
+  connect(this->ui->ExportImpFiles, SIGNAL(triggered()),
+          this,                     SLOT(onExportINPFiles()));
 
-  connect(this->ui->actionView_Axis,      SIGNAL(triggered(bool)), this, SLOT(setAxis(bool)));
+  connect(this->ui->actionView_Axis,      SIGNAL(triggered(bool)),
+          this,                           SLOT(setAxis(bool)));
 
-  connect(this->ui->actionImporter_Log, SIGNAL(triggered()), this, SLOT(onShowImportLog()));
+  connect(this->ui->actionImporter_Log, SIGNAL(triggered()),
+          this,                         SLOT(onShowImportLog()));
 
-  connect(this->ui->actionRecord,         SIGNAL(triggered(bool)), this, SLOT(onStartRecordTest()));
-  connect(this->ui->actionStop_Recording, SIGNAL(triggered(bool)), this, SLOT(onStopRecordingTest()));
-  connect(this->ui->actionPlay,           SIGNAL(triggered(bool)), this, SLOT(onPlayTest()));
+  connect(this->ui->actionRecord,         SIGNAL(triggered(bool)),
+          this,                           SLOT(onStartRecordTest()));
+  connect(this->ui->actionStop_Recording, SIGNAL(triggered(bool)),
+          this,                           SLOT(onStopRecordingTest()));
+  connect(this->ui->actionPlay,           SIGNAL(triggered(bool)),
+          this,                           SLOT(onPlayTest()));
 
   connect( this->ui->action1_6_Symetric_Flat,    SIGNAL(triggered()),
            this,                                 SLOT(onNewCore()) );
@@ -498,8 +514,10 @@ cmbNucMainWindow::cmbNucMainWindow()
           this, SLOT(useParallelProjection(bool)));
   connect(this->Preferences, SIGNAL(valuesSet()),
           this, SLOT(exportRGG()));
-  connect(this->ui->actionClearAll, SIGNAL(triggered()), this, SLOT(clearAll()));
-  connect(this->ui->actionClear_Mesh, SIGNAL(triggered()), this, SLOT(onClearMesh()));
+  connect(this->ui->actionClearAll, SIGNAL(triggered()),
+          this,                     SLOT(clearAll()));
+  connect(this->ui->actionClear_Mesh, SIGNAL(triggered()),
+          this,                       SLOT(onClearMesh()));
 
   QObject::connect(this->ui->actionAbout, SIGNAL(triggered()),
                    this, SLOT(onAboutDialog()));
@@ -1256,11 +1274,13 @@ QString cmbNucMainWindow::requestXMLFileName(QString name, QString type)
 
 bool cmbNucMainWindow::onExportINPFiles()
 {
-  QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                          QDir::homePath()).toString();
-  QString	dir = QFileDialog::getExistingDirectory( this,
-                                                  "Save Project To Single Directory",
-                                                  tdir.path() );
+  QDir tdir =
+      QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                  QDir::homePath()).toString();
+  QString	dir =
+      QFileDialog::getExistingDirectory( this,
+                                         "Export INP Files to Directory",
+                                         tdir.path() );
 
   if(dir.isEmpty()) return false;
   QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
