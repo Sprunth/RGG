@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>392</width>
+    <width>410</width>
     <height>533</height>
    </rect>
   </property>
@@ -267,7 +267,7 @@
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>332</width>
+                      <width>350</width>
                       <height>84</height>
                      </rect>
                     </property>
@@ -627,37 +627,34 @@
               <widget class="QLineEdit" name="AssyLabel"/>
              </item>
              <item>
-              <widget class="QLabel" name="assyColorSwatch">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>30</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>35</width>
-                 <height>20</height>
-                </size>
-               </property>
-               <property name="autoFillBackground">
-                <bool>true</bool>
-               </property>
+              <widget class="QLabel" name="label_16">
                <property name="text">
-                <string/>
+                <string>Key Color:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="assyColorSelectButton">
+              <widget class="QPushButton" name="assyColorButton">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>38</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">border: 1px solid black;</string>
+               </property>
                <property name="text">
-                <string>Change Key Color...</string>
+                <string/>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -715,39 +712,68 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
-          <widget class="QLabel" name="colorSwatch">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>35</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="autoFillBackground">
-            <bool>true</bool>
-           </property>
+          <widget class="QLabel" name="label_17">
            <property name="text">
-            <string/>
+            <string>Key Color:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="colorSelectButton">
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Preferred</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pincellColorButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>38</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border: 1px solid black;</string>
+           </property>
            <property name="text">
-            <string>Change Key Color...</string>
+            <string/>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
            </property>
           </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Expanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
@@ -838,37 +864,34 @@
           <widget class="QLineEdit" name="AssyLinkLabel"/>
          </item>
          <item>
-          <widget class="QLabel" name="assyLinkColorSwatch">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>35</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="autoFillBackground">
-            <bool>true</bool>
-           </property>
+          <widget class="QLabel" name="label_18">
            <property name="text">
-            <string/>
+            <string>Key Color:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="assyLinkColorSelectButton">
+          <widget class="QPushButton" name="assyLinkColorButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>38</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">border: 1px solid black;</string>
+           </property>
            <property name="text">
-            <string>Change Key Color...</string>
+            <string/>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -895,16 +918,41 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>coreLatticeX</tabstop>
+  <tabstop>coreLatticeY</tabstop>
+  <tabstop>JacketMode</tabstop>
+  <tabstop>BackgroundSetting</tabstop>
+  <tabstop>BackgroundClear</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>OuterEdgeInterval</tabstop>
+  <tabstop>RadiusBox</tabstop>
+  <tabstop>FindMinCylinder</tabstop>
+  <tabstop>boundaryLayer</tabstop>
+  <tabstop>boundaryMaterials</tabstop>
+  <tabstop>thickness</tabstop>
+  <tabstop>interval</tabstop>
+  <tabstop>bias</tabstop>
+  <tabstop>AssyLabel</tabstop>
+  <tabstop>assyColorButton</tabstop>
   <tabstop>latticeX</tabstop>
   <tabstop>latticeY</tabstop>
   <tabstop>CenterPins</tabstop>
+  <tabstop>pitchX</tabstop>
+  <tabstop>pitchY</tabstop>
+  <tabstop>computePitch</tabstop>
+  <tabstop>Ducts</tabstop>
+  <tabstop>rotationDegree</tabstop>
+  <tabstop>pincellColorButton</tabstop>
+  <tabstop>MaterialLabel</tabstop>
+  <tabstop>AssyLinkLabel</tabstop>
+  <tabstop>assyLinkColorButton</tabstop>
+  <tabstop>MaterialSetId</tabstop>
+  <tabstop>NeumannSetId</tabstop>
   <tabstop>ApplyButton</tabstop>
   <tabstop>ResetButton</tabstop>
-  <tabstop>colorSelectButton</tabstop>
-  <tabstop>MaterialLabel</tabstop>
-  <tabstop>colorSelectButton</tabstop>
-  <tabstop>tabWidget_3</tabstop>
   <tabstop>tabWidget</tabstop>
+  <tabstop>tabWidget_3</tabstop>
+  <tabstop>pincellColorButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>
