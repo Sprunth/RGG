@@ -83,8 +83,8 @@ void cmbNucInputPropertiesWidget::initUI()
   connect(this->assyConf, SIGNAL(valuesChanged()),
           this, SIGNAL(valuesChanged()));
 
-  this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
-  this->Internal->assyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
+  //this->Internal->colorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
+  //this->Internal->assyColorSwatch->setFrameStyle(QFrame::Box | QFrame::Plain);
 
   QObject::connect(this->Internal->ApplyButton, SIGNAL(clicked()),
     this, SLOT(onApply()));
@@ -118,12 +118,11 @@ void cmbNucInputPropertiesWidget::initUI()
   QObject::connect( this->Internal->BackgroundClear, SIGNAL(clicked()),
                     this, SLOT(onClearBackgroundMesh()));
 
-  // pincell related connections
-  QObject::connect(this->Internal->colorSelectButton, SIGNAL(clicked()),
+  QObject::connect(this->Internal->pincellColorButton, SIGNAL(clicked()),
                    this, SLOT(chooseLegendColor()));
-  QObject::connect(this->Internal->assyColorSelectButton, SIGNAL(clicked()),
+  QObject::connect(this->Internal->assyColorButton, SIGNAL(clicked()),
                    this, SLOT(chooseLegendColor()));
-  QObject::connect(this->Internal->assyLinkColorSelectButton, SIGNAL(clicked()),
+  QObject::connect(this->Internal->assyLinkColorButton, SIGNAL(clicked()),
                    this, SLOT(chooseLegendColor()));
 
   CoreDefaults = new cmbNucDefaultWidget();
@@ -438,9 +437,11 @@ void cmbNucInputPropertiesWidget::pinNameChanged(PinCell* pincell,
 void cmbNucInputPropertiesWidget::resetPinCell(PinCell* pincell)
 {
   // Show color swatch with legendColor
-  QPalette c_palette = this->Internal->colorSwatch->palette();
-  c_palette.setColor(this->Internal->colorSwatch->backgroundRole(), pincell->GetLegendColor());
-  this->Internal->colorSwatch->setPalette(c_palette);
+  QPalette c_palette = this->Internal->pincellColorButton->palette();
+  c_palette.setColor(this->Internal->pincellColorButton->backgroundRole(),
+                     pincell->GetLegendColor());
+  this->Internal->pincellColorButton->setAutoFillBackground(true);
+  this->Internal->pincellColorButton->setPalette(c_palette);
   if(this->Internal->PinCellEditor)
   {
     this->Internal->PinCellEditor->Reset();
@@ -489,8 +490,9 @@ void cmbNucInputPropertiesWidget::resetAssemblyLattice()
 //-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 {
-  QPalette c_palette = this->Internal->colorSwatch->palette();
-  QColor c = c_palette.color(this->Internal->colorSwatch->backgroundRole());
+  QPalette c_palette = this->Internal->pincellColorButton->palette();
+  QColor c =
+      c_palette.color(this->Internal->pincellColorButton->backgroundRole());
   if(c != pincell->GetLegendColor())
   {
     pincell->SetLegendColor(c);
@@ -548,8 +550,8 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
       this->Internal->AssyLabel->setText(old_label.c_str());
     }
   }
-  QPalette c_palette = this->Internal->assyColorSwatch->palette();
-  QColor c = c_palette.color(this->Internal->assyColorSwatch->backgroundRole());
+  QPalette c_palette = this->Internal->assyColorButton->palette();
+  QColor c = c_palette.color(this->Internal->assyColorButton->backgroundRole());
   if(c != assy->GetLegendColor())
   {
     assy->SetLegendColor(c);
@@ -615,8 +617,8 @@ void cmbNucInputPropertiesWidget::applyToAssemblyLink(cmbNucAssemblyLink* link)
     }
   }
 
-  QPalette c_palette = this->Internal->assyLinkColorSwatch->palette();
-  QColor c = c_palette.color(this->Internal->assyLinkColorSwatch->backgroundRole());
+  QPalette c_palette = this->Internal->assyLinkColorButton->palette();
+  QColor c = c_palette.color(this->Internal->assyLinkColorButton->backgroundRole());
   if(c != link->GetLegendColor())
   {
     link->SetLegendColor(c);
@@ -843,10 +845,14 @@ void cmbNucInputPropertiesWidget::resetAssembly(cmbNucAssembly* assy)
   }
 
   // Show color swatch with legendColor
-  QLabel* swatch = this->Internal->assyColorSwatch;
+  QPushButton* swatch = this->Internal->assyColorButton;
+
+  QPalette::ColorRole role = swatch->backgroundRole();
+  //swatch->setBackgroundRole(QPalette::Window);
 
   QPalette c_palette = swatch->palette();
   c_palette.setColor(swatch->backgroundRole(), assy->GetLegendColor());
+  swatch->setAutoFillBackground(true);
   swatch->setPalette(c_palette);
   this->resetLattice(&assy->getLattice());
 }
@@ -860,9 +866,10 @@ void cmbNucInputPropertiesWidget::resetAssemblyLink(cmbNucAssemblyLink* link)
     list.append(this->Core->GetAssembly(i)->getLabel().c_str());
   }
 
-  QLabel* swatch = this->Internal->assyLinkColorSwatch;
+  QPushButton* swatch = this->Internal->assyLinkColorButton;
   QPalette c_palette = swatch->palette();
   c_palette.setColor(swatch->backgroundRole(), link->GetLegendColor());
+  swatch->setAutoFillBackground(true);
   swatch->setPalette(c_palette);
 
   this->Internal->AssyLinkLabel->setText(link->getLabel().c_str());
@@ -1002,19 +1009,19 @@ void cmbNucInputPropertiesWidget::showPinCellEditor()
 
 void cmbNucInputPropertiesWidget::chooseLegendColor()
 {
-  QLabel * swatch = NULL;
+  QPushButton * swatch = NULL;
   QColor oc = this->CurrentObject->GetLegendColor();
   if(dynamic_cast<PinCell*>(this->CurrentObject) != NULL)
   {
-    swatch = this->Internal->colorSwatch;
+    swatch = this->Internal->pincellColorButton;
   }
   else if(dynamic_cast<cmbNucAssembly*>(this->CurrentObject) != NULL)
   {
-    swatch = this->Internal->assyColorSwatch;
+    swatch = this->Internal->assyColorButton;
   }
   else if(dynamic_cast<cmbNucAssemblyLink*>(this->CurrentObject) != NULL)
   {
-    swatch = this->Internal->assyLinkColorSwatch;
+    swatch = this->Internal->assyLinkColorButton;
   }
   if(swatch == NULL) return;
   QColorDialog::ColorDialogOptions options;
