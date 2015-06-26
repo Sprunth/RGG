@@ -8,6 +8,7 @@ if(BUILD_MESHKIT_MASTER)
       --with-imesh=<INSTALL_DIR>
       --with-igeom=<INSTALL_DIR>
       --prefix=<INSTALL_DIR>
+      --disable-fortran
   )
 else()
   add_external_project(lasso
@@ -19,5 +20,6 @@ else()
       --with-imesh=<INSTALL_DIR>
       --with-igeom=<INSTALL_DIR>
       --prefix=<INSTALL_DIR>
+      --disable-fortran
   )
 endif()

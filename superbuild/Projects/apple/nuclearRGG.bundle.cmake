@@ -88,11 +88,9 @@ if(ENABLE_meshkit)
 endif()
 
 
-if(BUILD_DOCUMENTATION)
-  install(FILES ${install_location}/Docs/RGGUsersGuide.pdf
-          DESTINATION "Documentation"
-          COMPONENT superbuild)
-endif()
+install( FILES ${CMAKE_SOURCE_DIR}/../Documentation/UsersGuide/RGGUsersGuide.pdf
+         DESTINATION "Documentation"
+         COMPONENT superbuild)
 
 install(DIRECTORY 
         ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/simple_hexflatcore-Modified

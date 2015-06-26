@@ -16,6 +16,7 @@ if(BUILD_WITH_CUBIT)
       --with-cubit=${CUBIT_PATH}
       --prefix=<INSTALL_DIR>
       --enable-shared
+      --disable-fortran
       ${ldFlags}
       "CFLAGS=${cflags}" "CXXFLAGS=${cxxflags}"
     BUILD_COMMAND ${BUILD_STEP} )
@@ -41,6 +42,7 @@ else()
       --with-occ=<INSTALL_DIR>
       --prefix=<INSTALL_DIR>
       --enable-shared
+      --disable-fortran
       "CFLAGS=${cflags}" "CXXFLAGS=${cxxflags}"
     BUILD_COMMAND ${BUILD_STEP})
 
