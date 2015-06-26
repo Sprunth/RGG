@@ -11,11 +11,9 @@ include(CPack)
 #  USE_SOURCE_PERMISSIONS
 #  COMPONENT superbuild)
 
-if(BUILD_DOCUMENTATION)
-  install(FILES ${install_location}/Docs/RGGUsersGuide.pdf
-          DESTINATION "Documentation"
-          COMPONENT superbuild)
-endif()
+install( FILES ${CMAKE_SOURCE_DIR}/../Documentation/UsersGuide/RGGUsersGuide.pdf
+DESTINATION "Documentation"
+COMPONENT superbuild)
 
 install(FILES ${CPACK_RESOURCE_FILE_LICENSE} DESTINATION bin)
 

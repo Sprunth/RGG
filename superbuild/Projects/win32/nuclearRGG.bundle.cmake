@@ -11,14 +11,9 @@ set(CPACK_MONOLITHIC_INSTALL TRUE)
 # URL to website providing assistance in installing your application.
 set (CPACK_NSIS_HELP_LINK "http://paraview.org/Wiki/ParaView")
 
-if(BUILD_DOCUMENTATION)
   set (CPACK_NSIS_MENU_LINKS
     "bin/RGGNuclear.exe" "RGG Nuclear GUI"
     "Documentation/RGGUsersGuide.pdf" "RGG Users Guide")
-else()
-  set (CPACK_NSIS_MENU_LINKS
-       "bin/RGGNuclear.exe" "RGG Nuclear GUI")
-endif()
 
 #FIXME: need a pretty icon.
 #set (CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_LIST_DIR}/paraview.ico")
@@ -54,11 +49,9 @@ if (qt_ENABLED AND NOT USE_SYSTEM_qt)
     PATTERN "*.dll")
 endif()
 
-if(BUILD_DOCUMENTATION)
-  install(FILES ${install_location}/Docs/RGGUsersGuide.pdf
-          DESTINATION "Documentation"
-          COMPONENT superbuild)
-endif()
+install( FILES ${CMAKE_SOURCE_DIR}/../Documentation/UsersGuide/RGGUsersGuide.pdf
+         DESTINATION "Documentation"
+         COMPONENT superbuild)
 
 install(DIRECTORY
         ${CMAKE_SOURCE_DIR}/../TestingData/Reactors/simple_hexflatcore-Modified

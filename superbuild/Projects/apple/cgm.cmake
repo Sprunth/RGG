@@ -17,6 +17,7 @@ add_external_project(cgm
     --with-occ=${OCE_DIR}
     --prefix=<INSTALL_DIR>
     --enable-shared
+    --disable-fortran
 )
 
 if(ENABLE_meshkit)

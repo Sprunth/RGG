@@ -3,16 +3,25 @@
 
 Upon successful creation of a mesh, you either need to load it in manually via the \ui{open MOAB file dialog} accessed from the \ui{open MOAB file item} in the \ui{file menu}, or, if you've just meshed an INP file you had loaded in previously, the mesh will load in automatically.
 
-\begin{figure}[h]
+
+\subsection{Views of the Mesh}
+To control viewing the mesh, be sure to click on the \ui{mesh tab} of the \ui{inputs panel}.  RGG allows you to six different options to control the \ui{Mesh view} of the mesh inside a drop down box (Figure \ref{fig:meshViews}), listed below:
+
+\begin{wrapfigure}{R}{0.40\textwidth}
+        \vspace{-4.5cm}
 	\begin{center}
-		\includegraphics[width=0.5\linewidth]{Images/mash-tab.png}
+		\includegraphics[width=0.95\linewidth]{Images/mash-tab.png}
 		\caption{Used to control the mesh}
 		\label{fig:mainwindow4}
 	\end{center}
-\end{figure}
-
-\subsection{Views of the Mesh}
-To control viewing the mesh, be sure to click on the \ui{mesh tab} of the \ui{inputs panel}.  RGG allows you to six different options to control the \ui{Mesh view} of the mesh inside a drop down box (Figure ~\ref{fig:meshViews}, listed below:
+	\vspace{10pt}
+	\begin{center}
+		\includegraphics[width=0.95\linewidth]{Images/overview-of-mesh-options.png}
+		\caption{The Views}
+		\label{fig:meshViews}
+	\end{center}
+	\vspace{-1.5cm}
+\end{wrapfigure}
 
 \begin{itemize}
 	\item{Volumes}
@@ -23,24 +32,8 @@ To control viewing the mesh, be sure to click on the \ui{mesh tab} of the \ui{in
 	\item{Material Sets}
 \end{itemize}
 
-\begin{figure}[h]
-	\begin{center}
-		\includegraphics[width=0.5\linewidth]{Images/overview-of-mesh-options.png}
-		\caption{The Views}
-		\label{fig:meshViews}
-	\end{center}
-\end{figure}
 
-
-More detail on these views is provided below.  When available, we allow you to select a subsection for the selected option.  When selected, only that part is displayed int he Mesh View.  Also, using the checkboxes, one can hide a subsection (Figure ~\ref{fig:subsectionMesh}).  Additionally, you can check the \ui{show edges checkbox} to view the mesh superimposed on the Mesh View and check the \ui{color checkbox} to colorize the different pieces of the view based on the option you've selected.
-
-\begin{figure}[h]
-	\begin{center}
-		\includegraphics[width=0.5\linewidth]{Images/mesh-selection.png}
-		\caption{All but water subsection are hidden}
-		\label{fig:subsectionMesh}
-	\end{center}
-\end{figure}
+More detail on these views is provided below.  When available, we allow you to select a subsection for the selected option.  When selected, only that part is displayed int he Mesh View.  Also, using the checkboxes, one can hide a subsection (Figure \ref{fig:subsectionMesh}).  Additionally, you can check the \ui{show edges checkbox} to view the mesh superimposed on the Mesh View and check the \ui{color checkbox} to colorize the different pieces of the view based on the option you've selected.
 
 \subsubsection{Volumes}
 Clicking the \ui{volumes option} shows all the volumes of the mesh.  Checking the color checkbox will colorize all of the distinct volumes in different colors.
@@ -50,6 +43,15 @@ When the \ui{Boundary option} is selected, RGG displays only the boundary condit
 
 \subsubsection{Surfaces}
 When the \ui{surfaces option} is selected, RGG displays only the surfaces of the mesh.
+
+\begin{wrapfigure}{R}{0.45\textwidth}
+	\begin{center}
+		\includegraphics[width=0.95\linewidth]{Images/mesh-selection.png}
+		\caption{All but water subsection are hidden}
+		\label{fig:subsectionMesh}
+	\end{center}
+	\vspace{-5.cm}
+\end{wrapfigure}
 
 \subsubsection{Neumann Sets}
 Clicking the \ui{Neumann Sets option} will show the natural boundary conditions on sides of domains.
