@@ -64,22 +64,22 @@ Right-click on the assembly and choose ``Create Pin'' (Figure \ref{fig:rectCreat
 
 \begin{figure}
 \centering
-\begin{minipage}{.45\textwidth}
+\begin{minipage}{.4\textwidth}
        \begin{center}
-	\includegraphics[width=0.9\linewidth]{Images/rect-create-pin-option.png}
+	\includegraphics[width=0.70\linewidth]{Images/rect-create-pin-option.png}
 	\caption{Create pin option.}
 	\label{fig:rectCreatePin}
      \end{center}
-\vspace{20pt}
+\vspace{15pt}
      \begin{center}
-	 \includegraphics[width=0.9\textwidth]{Images/rect-pin.png}
+	 \includegraphics[width=0.70\textwidth]{Images/rect-pin.png}
 	 \caption{Final fuel pin product.}
   	\label{fig:Rect6}
       \end{center}
 \end{minipage} \hspace{.5cm}%
-\begin{minipage}{.45\textwidth}
+\begin{minipage}{.4\textwidth}
   \centering
-	\includegraphics[width=0.82\linewidth]{Images/rect-pin-params.png}
+	\includegraphics[width=0.65\linewidth]{Images/rect-pin-params.png}
 	\caption{Fuel pin parameters.}
 	\label{fig:Rect5}
 \end{minipage}
@@ -97,41 +97,40 @@ Using the ``Add Before'' button, you can create a fuel pin with different layers
 
 Note also the option to toggle the fuel pin's shape between a cylinder and a frustum.  The ``\ui{Cutaway view}'' helps to view how the different materials are distributed within the fuel pin.
 
-\subsection{Creating a Control Rod}
-\begin{wrapfigure}{R}{0.7\textwidth}
-  \vspace{-20pt}
-  \begin{center}
-    \includegraphics[width=0.8\linewidth]{Images/rect-control-rod.png}
-  \end{center}
-  \caption{Final control product.}
-  \label{fig:Rect7}
-  \vspace{-40pt}
-\end{wrapfigure}
-
 Control rods are used to control nuclear fission. They are made out of materials which can easily absorb neutrons without undergoing fission themselves such as certain isotopes of boron, silver, or cadmium.
 
 This is created using largely the same process as creating the fuel pin.  You can use the ``control rod'' material.  Once again, it's beneficial to change the key color to green.
 
 Refer to Figure \ref{fig:Rect7} for the final product.
 
-\begin{figure}[b]
+\subsection{Adding Fuel Pins to the Assembly}
+
+\begin{wrapfigure}{R}{0.6\textwidth}
+  \vspace{-10pt}
+  \begin{center}
+    \includegraphics[width=0.8\linewidth]{Images/rect-control-rod.png}
+  \end{center}
+  \caption{Final control product.}
+  \label{fig:Rect7}
+  \vspace{-20pt}
+\end{wrapfigure}
+
+\begin{figure}[H]
 \centering
-\begin{minipage}{.55\textwidth}
+\begin{minipage}{.5\textwidth}
   \centering
-  \includegraphics[width=0.95\linewidth]{Images/rect-empty-assy.png}
+  \includegraphics[width=0.90\linewidth]{Images/rect-empty-assy.png}
 \caption{Empty duct in the assemblies view.}
 \label{fig:Rect8}
 \end{minipage}%
 \hspace{0.5cm}
-\begin{minipage}{.40\textwidth}
+\begin{minipage}{.35\textwidth}
   \centering
- \includegraphics[width=0.95\linewidth]{Images/rect-assign-pin.png}
+ \includegraphics[width=0.9\linewidth]{Images/rect-assign-pin.png}
 \caption{Right-click to organize the assembly.}
 \label{fig:Rect9}
 \end{minipage}
 \end{figure}
-
-\subsection{Adding Fuel Pins to the Assembly}
 
 Now we want to add the pins we've created back to the assembly.  Click back on ``Assy\_0'' in the assemblies view in order to see the assembly layout.  You should once again be able to see the water duct you created, and it should still be empty.  Compare your view with Figure \ref{fig:Rect8}.
 
@@ -141,9 +140,9 @@ In the end you should end up with something like ~\ref{fig:Rect10}.
 
 Remember to click ``Apply'' in order to see your changes in the render window, or save them before navigating to another tab or pin.
 
-\begin{figure}[t]
+\begin{figure}[h]
 \begin{center}
-\includegraphics[width=0.8\linewidth]{Images/rect-final-assy1.png}
+\includegraphics[width=0.60\linewidth]{Images/rect-final-assy1.png}
 \caption{Final assembly.}
 \label{fig:Rect10}
 \end{center}
