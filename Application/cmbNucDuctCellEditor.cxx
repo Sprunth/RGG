@@ -114,8 +114,9 @@ public:
     this->setText(QString::number(init));
   }
 
-  void setValue(double v)
+  void setValue(Duct * in, double v)
   {
+    duct = in;
     this->setText(QString::number(v));
   }
 
@@ -131,6 +132,7 @@ public:
       {
         return;
       }
+      int tr = this->row();
       // Make sure value is greater than previous row
       if (this->row() > 0)
       {
@@ -587,7 +589,7 @@ cmbNucDuctCellEditor
   }
   else
   {
-    thick1Item->setValue(thick[0]);
+    thick1Item->setValue(duct, thick[0]);
   }
 
   if(thick2Item == NULL)
@@ -597,7 +599,7 @@ cmbNucDuctCellEditor
   }
   else
   {
-    thick2Item->setValue(thick[1]);
+    thick2Item->setValue(duct, thick[1]);
   }
 }
 

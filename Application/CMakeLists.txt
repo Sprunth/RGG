@@ -261,7 +261,8 @@ if(BUILD_TESTING)
                          OpenHexSixthVert
                          OpenRect )
 
-  set (TESTS_WITH_MODEL_BASELINES ${TESTS_BOTH_2D_3D})
+  set (TESTS_WITH_MODEL_BASELINES TestDuctSplit
+                                  ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES )
 
