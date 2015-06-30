@@ -45,11 +45,11 @@ install(PROGRAMS ${install_location}/bin/RGGNuclear DESTINATION "bin")
 if(ENABLE_meshkit)
   set(meskit_loc)
   if(BUILD_WITH_CUBIT)
-    install(PROGRAMS ${install_location}/lib/RGGNuclear-GUI DESTINATION "lib")
+    install(PROGRAMS ${install_location}/lib/RGGNuclear DESTINATION "lib")
     install(CODE
       "execute_process(COMMAND
       ${CMAKE_COMMAND}
-        -Dexecutable:PATH=${install_location}/lib/RGGNuclear-GUI
+        -Dexecutable:PATH=${install_location}/lib/RGGNuclear
         -Ddependencies_root:PATH=${install_location}
         -Dpv_libraries_root:PATH=${install_location}/lib
         -Dcmb_libraries_root:PATH=${install_location}/lib
