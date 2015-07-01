@@ -190,7 +190,6 @@ public:
       return false;
     }
     QObject::connect( &(runner->connection), SIGNAL(currentMessage(QString)), exporter, SIGNAL(statusMessage(QString)) );
-    qDebug() << "Current thread count: " << threadPool.activeThreadCount() << "out of" << threadPool.maxThreadCount();
     runner->setAutoDelete(true);
     threadPool.start(runner);
     return true;
@@ -252,7 +251,6 @@ struct ExporterInput
   {  }
   ExporterInput(const remus::worker::Job& job)
   {
-    //qDebug() << remus::worker::to_string(job).c_str();
     std::stringstream ss(job.details("data"));
     getline(ss, ExeDir,   ';');
     getline(ss, FileArg,  ';');
@@ -325,6 +323,7 @@ cmbNucExporterWorker
  connection(rconn), exporter(e), ExtraArgs(extra_args),
  keepGoing(true), pid(0)
 {
+  qDebug() << "Constructing Worker: " << conn.endpoint().c_str();
   this->label = l;
 }
 
@@ -351,8 +350,7 @@ cmbNucExporterWorker
   this->askForJobs(1);
   while(this->pendingJobCount() == 0)
   {
-    //qDebug() << count <<"waiting for jobs: " << this->pendingJobCount();
-    if(count++>=100)
+    if(count++>=1000)
     {
       connection.sendErrorMessage("JOB NEVER CAME");
       connection.sendCurrentMessage( QString("Process ") +
@@ -629,6 +627,7 @@ cmbNucExporterClient::getOutput(std::string label, std::string it, std::string o
   remus::proto::JobRequirements reqs = remus::proto::make_JobRequirements(mesh_types, label,"");
   if(Client->canMesh(reqs))
   {
+    qDebug() << "can mesh: " << label.c_str() << it.c_str() << ot.c_str();
     remus::proto::JobContent content =
     remus::proto::make_JobContent(in);
 
@@ -930,6 +929,8 @@ bool cmbNucExport::startUpHelper()
   {
     QMutexLocker locker(&ServerProtect);
     valid = this->internal->Server->startBrokering(remus::Server::NONE);
+    //brokering might use different ports
+    this->internal->serverPorts = this->internal->Server->serverPortInfo();
     remus::client::ServerConnection conn = remus::client::make_ServerConnection(this->internal->serverPorts.client().endpoint());
     conn.context(this->internal->serverPorts.context());
     client = new cmbNucExporterClient(conn);
@@ -1180,6 +1181,7 @@ remus::worker::ServerConnection
 cmbNucExportInternal::make_ServerConnection()
 {
   remus::worker::ServerConnection conn = remus::worker::make_ServerConnection(this->serverPorts.worker().endpoint());
+  qDebug() << "Creating connection: " << (this->serverPorts.worker().endpoint()).c_str() << "->" << conn.endpoint().c_str();
   conn.context(this->serverPorts.context());
   return conn;
 }
