@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 #include <QObject>
 #include <QDebug>
+#include <QObjectList>
 
 #include <vtkRenderWindow.h>
 #include "vtkCompositeDataDisplayAttributes.h"
