@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqXMLEventObserver.h"
 
 #include <QTextStream>
+#include <QDebug>
 
 /// Escapes strings so they can be embedded in an XML document
 static const QString textToXML(const QString& string)
@@ -80,6 +81,10 @@ void pqXMLEventObserver::onRecordEvent(
   const QString& Command,
   const QString& Arguments)
 {
+  if(Widget.contains("piecesTable/qt_scrollarea_viewport"))
+  {
+    qDebug() << Widget << Command << Arguments;
+  }
   if(this->Stream)
     {
     *this->Stream

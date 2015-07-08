@@ -173,6 +173,10 @@ protected:
       mainWindow->waitForExportingToBeDone();
       return getNextEvent(widget, command, arguments);
     }
+    if(widget == "TESTER" && command == "save_xml")
+    {
+
+    }
     if(widget == "APPLICATION")
     {
       widget = QFileInfo( QCoreApplication::applicationFilePath() ).fileName()+"-app";
@@ -457,24 +461,24 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // Set up action signals and slots
   connect(this->ui->actionExit, SIGNAL(triggered()), this, SLOT(onExit()));
-  connect(this->ui->actionOpenFile, SIGNAL(triggered()),
-          this,                     SLOT(onFileOpen()));
-  connect(this->ui->importINPFile, SIGNAL(triggered()),
-          this,                    SLOT(onImportINPFile()));
-  connect(this->ui->actionImportPins, SIGNAL(triggered()),
-          this,                       SLOT(onImportPins()));
-  connect(this->ui->actionImportDucts, SIGNAL(triggered()),
-          this,                        SLOT(onImportDucts()));
+  connect(this->ui->actionOpenFile,     SIGNAL(triggered()),
+          this,                         SLOT(onFileOpen()));
+  connect(this->ui->importINPFile,      SIGNAL(triggered()),
+          this,                         SLOT(onImportINPFile()));
+  connect(this->ui->actionImportPins,   SIGNAL(triggered()),
+          this,                         SLOT(onImportPins()));
+  connect(this->ui->actionImportDucts,      SIGNAL(triggered()),
+          this,                             SLOT(onImportDucts()));
   connect(this->ui->actionImportAssemblies, SIGNAL(triggered()),
           this,                             SLOT(onImportAssemblies()));
-  connect(this->ui->actionOpenMOABFile, SIGNAL(triggered()),
-          this,                         SLOT(onFileOpenMoab()));
-  connect(this->ui->actionSaveAs, SIGNAL(triggered()),
-          this,                   SLOT(onSaveSelectedAs()));
-  connect(this->ui->actionSave,        SIGNAL(triggered()),
-          this,                        SLOT(onSaveAll()));
-  connect(this->ui->actionSaveFile,        SIGNAL(triggered()),
-          this,                            SLOT(onSaveAll()));
+  connect(this->ui->actionOpenMOABFile,     SIGNAL(triggered()),
+          this,                             SLOT(onFileOpenMoab()));
+  connect(this->ui->actionSaveAs,       SIGNAL(triggered()),
+          this,                         SLOT(onSaveSelectedAs()));
+  connect(this->ui->actionSave,         SIGNAL(triggered()),
+          this,                         SLOT(onSaveAll()));
+  connect(this->ui->actionSaveFile,     SIGNAL(triggered()),
+          this,                         SLOT(onSaveAll()));
 
   connect(this->ui->actionExport_Visible_Mesh, SIGNAL(triggered()),
           this,                                SLOT(onExportVisibleMesh()));
@@ -508,12 +512,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->setCoreActions(false);
 
   connect(this->ui->actionPreferences, SIGNAL(triggered()),
-          this->Preferences, SLOT(setPreferences()));
-  connect(this->ui->actionExport, SIGNAL(triggered()), this, SLOT(exportRGG()));
+          this->Preferences,           SLOT(setPreferences()));
+  connect(this->ui->actionExport, SIGNAL(triggered()),
+          this,                   SLOT(exportRGG()));
   connect(this->Preferences, SIGNAL(actionParallelProjection(bool)),
-          this, SLOT(useParallelProjection(bool)));
+          this,              SLOT(useParallelProjection(bool)));
   connect(this->Preferences, SIGNAL(valuesSet()),
-          this, SLOT(exportRGG()));
+          this,              SLOT(exportRGG()));
   connect(this->ui->actionClearAll, SIGNAL(triggered()),
           this,                     SLOT(clearAll()));
   connect(this->ui->actionClear_Mesh, SIGNAL(triggered()),
@@ -540,12 +545,12 @@ cmbNucMainWindow::cmbNucMainWindow()
 
   // by default 1:1 scaling for the Z-axis
   this->ZScale = 1.0;
-  connect(this->ui->viewScaleSlider, SIGNAL(valueChanged(int)),
+  connect(this->ui->viewScaleSlider,  SIGNAL(valueChanged(int)),
           this->ui->viewScaleSpinBox, SLOT(setValue(int)));
   connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
-          this->ui->viewScaleSlider, SLOT(setValue(int)));
+          this->ui->viewScaleSlider,  SLOT(setValue(int)));
   connect(this->ui->viewScaleSpinBox, SIGNAL(valueChanged(int)),
-          this, SLOT(zScaleChanged(int)));
+          this,                       SLOT(zScaleChanged(int)));
 
   //setup camera interaction to render more quickly and less precisely
   vtkInteractorObserver *iStyle = renderWindow->GetInteractor()->GetInteractorStyle();
@@ -588,7 +593,9 @@ void cmbNucMainWindow::CameraMovedHandlerModel()
 
 void cmbNucMainWindow::CameraMovedHandlerMesh()
 {
-  if(isCameraIsMoving || !this->Internal->CamerasLinked || !isMeshTabVisible()) return;
+  if(isCameraIsMoving || !this->Internal->CamerasLinked ||
+     !isMeshTabVisible())
+    return;
   isCameraIsMoving = true;
   this->ui->qvtkMeshWidget->GetRenderWindow()->Render();
   isCameraIsMoving = false;
@@ -626,7 +633,8 @@ void cmbNucMainWindow::initPanels()
                       this->InputsWidget, SIGNAL(checkSavedAndGenerate()) );
     QObject::connect( this->ui->actionNew_Assembly, SIGNAL(triggered()),
                       this->InputsWidget,           SLOT(onNewAssembly()) );
-    QObject::connect( this->InputsWidget, SIGNAL(objectSelected(AssyPartObj*, const char*)),
+    QObject::connect( this->InputsWidget, SIGNAL(objectSelected(AssyPartObj*,
+                                                                const char*)),
                       this, SLOT(onObjectSelected(AssyPartObj*, const char*)) );
     QObject::connect( this->InputsWidget, SIGNAL(objectRemoved()),
                       this, SLOT(onObjectModified()));
@@ -661,18 +669,26 @@ void cmbNucMainWindow::initPanels()
                      this, SLOT(onSelectionChange()));
     QObject::connect(this->Internal->MoabSource, SIGNAL(fileOpen(bool)),
                      this, SLOT(meshControls(bool)));
-    QObject::connect(this->Internal->MoabSource, SIGNAL(components(QList<QTreeWidgetItem*>)),
-                     this->InputsWidget, SLOT(updateMeshTable(QList<QTreeWidgetItem*>)));
-    QObject::connect(this->InputsWidget, SIGNAL(subMeshSelected(QTreeWidgetItem*)),
-                     this->Internal->MoabSource, SLOT(selectionChanged(QTreeWidgetItem *)));
-    QObject::connect(this->InputsWidget, SIGNAL(meshValueChanged(QTreeWidgetItem*)),
-                     this->Internal->MoabSource, SLOT(valueChanged(QTreeWidgetItem *)));
+    QObject::connect(this->Internal->MoabSource,
+                     SIGNAL(components(QList<QTreeWidgetItem*>)),
+                     this->InputsWidget,
+                     SLOT(updateMeshTable(QList<QTreeWidgetItem*>)));
+    QObject::connect(this->InputsWidget,
+                     SIGNAL(subMeshSelected(QTreeWidgetItem*)),
+                     this->Internal->MoabSource,
+                     SLOT(selectionChanged(QTreeWidgetItem *)));
+    QObject::connect(this->InputsWidget,
+                     SIGNAL(meshValueChanged(QTreeWidgetItem*)),
+                     this->Internal->MoabSource,
+                     SLOT(valueChanged(QTreeWidgetItem *)));
     QObject::connect(this->InputsWidget, SIGNAL(sendColorControl(int)),
                      this->Internal->MoabSource, SLOT(setColor(int)));
     QObject::connect(this->InputsWidget, SIGNAL(majorMeshSelection(int)),
                      this->Internal->MoabSource, SLOT(rootChanged(int)));
-    QObject::connect(this->Internal->MoabSource, SIGNAL(components(QStringList, int)),
-                     this->InputsWidget, SLOT(updateMainMeshComponents(QStringList, int)));
+    QObject::connect(this->Internal->MoabSource,
+                     SIGNAL(components(QStringList, int)),
+                     this->InputsWidget,
+                     SLOT(updateMainMeshComponents(QStringList, int)));
     QObject::connect(this->Internal->MoabSource, SIGNAL(resetCamera()),
                      this, SLOT(resetMeshCamera()));
     QObject::connect(this->InputsWidget, SIGNAL(resetMeshCamera()),

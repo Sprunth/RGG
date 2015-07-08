@@ -262,6 +262,7 @@ if(BUILD_TESTING)
                          OpenRect )
 
   set (TESTS_WITH_MODEL_BASELINES TestDuctSplit
+                                  pin_test
                                   ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES )
