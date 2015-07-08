@@ -175,7 +175,8 @@ protected:
     }
     if(widget == "TESTER" && command == "save_xml")
     {
-
+      mainWindow->onSaveAll(arguments);
+      return getNextEvent(widget, command, arguments);
     }
     if(widget == "APPLICATION")
     {
@@ -1189,8 +1190,12 @@ void cmbNucMainWindow::onSaveSelected()
   this->saveXML(this->NuclearCore, true, true);
 }
 
-void cmbNucMainWindow::onSaveAll()
+void cmbNucMainWindow::onSaveAll(QString fname)
 {
+  if(fname != QString())
+  {
+    this->NuclearCore->setFileName( fname.toStdString() );
+  }
   this->saveXML(this->NuclearCore, false, false);
 }
 

@@ -259,6 +259,7 @@ if(BUILD_TESTING)
                          OpenHexTwelth
                          OpenHexFull
                          OpenHexSixthVert
+                         test_save_and_load_xml
                          OpenRect )
 
   set (TESTS_WITH_MODEL_BASELINES TestDuctSplit
