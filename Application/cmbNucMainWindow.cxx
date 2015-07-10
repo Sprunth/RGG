@@ -178,6 +178,11 @@ protected:
       mainWindow->onSaveAll(arguments);
       return getNextEvent(widget, command, arguments);
     }
+    if(widget == "TESTER" && command == "save_inp")
+    {
+      mainWindow->onExportINPFiles(arguments);
+      return getNextEvent(widget, command, arguments);
+    }
     if(widget == "APPLICATION")
     {
       widget = QFileInfo( QCoreApplication::applicationFilePath() ).fileName()+"-app";
@@ -454,10 +459,13 @@ cmbNucMainWindow::cmbNucMainWindow()
   this->Internal->UnlinkCameraModel = Renderer->GetActiveCamera();
   this->Internal->LinkCamera.TakeReference(Renderer->MakeCamera());
 
-  this->Renderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerMesh);
-  this->MeshRenderer->AddObserver(vtkCommand::EndEvent, this, &cmbNucMainWindow::CameraMovedHandlerModel);
+  this->Renderer->AddObserver(vtkCommand::EndEvent, this,
+                              &cmbNucMainWindow::CameraMovedHandlerMesh);
+  this->MeshRenderer->AddObserver(vtkCommand::EndEvent, this,
+                                  &cmbNucMainWindow::CameraMovedHandlerModel);
 
-  vtkSmartPointer<vtkCompositeDataDisplayAttributes> attributes = vtkSmartPointer<vtkCompositeDataDisplayAttributes>::New();
+  vtkSmartPointer<vtkCompositeDataDisplayAttributes> attributes =
+      vtkSmartPointer<vtkCompositeDataDisplayAttributes>::New();
   this->MeshMapper->SetCompositeDataDisplayAttributes(attributes);
 
   // Set up action signals and slots
@@ -1293,17 +1301,25 @@ QString cmbNucMainWindow::requestXMLFileName(QString name, QString type)
   return fileName;
 }
 
-bool cmbNucMainWindow::onExportINPFiles()
+bool cmbNucMainWindow::onExportINPFiles(QString dir_in)
 {
-  QDir tdir =
-      QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                  QDir::homePath()).toString();
-  QString	dir =
-      QFileDialog::getExistingDirectory( this,
-                                         "Export INP Files to Directory",
-                                         tdir.path() );
+  QString	dir;
+  if(dir_in.isEmpty())
+  {
+    QDir tdir =
+        QSettings("CMBNuclear",
+                  "CMBNuclear").value("cache/lastDir",
+                                      QDir::homePath()).toString();
+    dir = QFileDialog::getExistingDirectory(this,
+                                            "Export INP Files to Directory",
+                                            tdir.path() );
 
-  if(dir.isEmpty()) return false;
+    if(dir.isEmpty()) return false;
+  }
+  else
+  {
+    dir = dir_in;
+  }
   QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
   for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {

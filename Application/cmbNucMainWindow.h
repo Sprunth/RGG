@@ -74,7 +74,7 @@ public slots:
   void onSaveSelected();
   void onSaveAll(QString fname = QString());
   void onSaveSelectedAs();
-  bool onExportINPFiles();
+  bool onExportINPFiles(QString dir = QString());
   bool onUpdateINPFiles();
   void onShowImportLog();
   void clearAll();

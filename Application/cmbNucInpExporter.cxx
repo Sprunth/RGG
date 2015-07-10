@@ -60,9 +60,9 @@ bool cmbNucInpExporter
       iter != cells.end(); ++iter)
   {
     cmbNucAssembly* assembly = NuclearCore->GetAssembly(iter->first);
+    if(assembly == NULL) continue;
     assembly->setPath(coreinfo.dir().absolutePath().toStdString());
     std::set< Lattice::CellDrawMode > const& forms = iter->second;
-    if(assembly == NULL) continue;
     cmbNucAssembly* assemblyClone = assembly->clone(pl, dl);
     this->exportInpFile(assemblyClone, false, forms);
     delete assemblyClone;

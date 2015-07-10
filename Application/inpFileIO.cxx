@@ -1977,7 +1977,10 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   size_t count = 0;
   for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)
   {
-    count += iter->second.size();
+    if(core.GetAssembly(iter->first) != NULL)
+    {
+      count += iter->second.size();
+    }
   }
 
   std::vector< cmbNucAssemblyLink* > usedLinks = core.GetUsedLinks();
@@ -1994,6 +1997,8 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       cell_iter != cells.end(); ++cell_iter)
   {
     cmbNucAssembly* assembly = core.GetAssembly(cell_iter->first);
+    if(assembly == NULL)
+      continue;
     std::set< Lattice::CellDrawMode > const& forms = cell_iter->second;
 
     for(ModeSet::const_iterator form_iter = forms.begin();

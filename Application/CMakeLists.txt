@@ -250,6 +250,11 @@ if(BUILD_TESTING)
                          ImportRect
                          ImportHexSixthFlat
                          ImportHexTwelth
+                         export_hex_full
+                         export_hex_sixth_flat
+                         export_hex_sixth_vert
+                         export_hex_twelth
+                         export_rect
                          new_hex_full
                          new_hex_sixth_flat
                          new_hex_sixth_vert
