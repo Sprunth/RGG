@@ -269,6 +269,10 @@ if(BUILD_TESTING)
 
   set (TESTS_WITH_MODEL_BASELINES TestDuctSplit
                                   pin_test
+                                  testImportDucts
+                                  testImportPins
+                                  importAssembly
+                                  importAssemblyInp
                                   ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES )
