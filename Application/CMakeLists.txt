@@ -273,7 +273,7 @@ if(BUILD_TESTING)
 
   set (TESTS_WITH_MESH_BASELINES )
 
-  set (LONG_TEST )
+  set (LONG_TEST test_export_hex )
 
   set (TESTS_WITH_2D_BASELINES  ${TESTS_BOTH_2D_3D})
 

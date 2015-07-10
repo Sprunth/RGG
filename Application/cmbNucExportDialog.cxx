@@ -260,6 +260,7 @@ void cmbNucExportDialog::GetRunnableAssyFiles(bool force)
       cell_iter != cells.end(); ++cell_iter)
   {
     cmbNucAssembly* assembly = this->Core->GetAssembly(cell_iter->first);
+    if(assembly == NULL) continue;
     std::set< Lattice::CellDrawMode > const& forms = cell_iter->second;
 
     for(modeSet::const_iterator form_iter = forms.begin();
