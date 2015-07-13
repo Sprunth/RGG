@@ -505,17 +505,6 @@ void cmbNucInputPropertiesWidget::applyToPinCell(PinCell* pincell)
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucInputPropertiesWidget::applyToLattice(Lattice* lattice)
-{
-  bool change = false;
-  if(change)
-  {
-    if(this->Assembly->isPinsAutoCentered()) this->Assembly->centerPins();
-    emit valuesChanged();
-  }
-  emit this->objGeometryChanged(lattice);
-}
-//-----------------------------------------------------------------------------
 void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
 {
   std::string selected = this->Internal->Ducts->currentText().toStdString();
