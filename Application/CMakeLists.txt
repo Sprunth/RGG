@@ -265,6 +265,8 @@ if(BUILD_TESTING)
                          OpenHexFull
                          OpenHexSixthVert
                          test_save_and_load_xml
+                         removeLinkedAssembly
+                         removeCore
                          OpenRect )
 
   set (TESTS_WITH_MODEL_BASELINES TestDuctSplit
@@ -273,6 +275,9 @@ if(BUILD_TESTING)
                                   testImportPins
                                   importAssembly
                                   importAssemblyInp
+                                  removeAssembly
+                                  removeDuct
+                                  removeAssemblyLink
                                   ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES )

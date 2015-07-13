@@ -271,9 +271,8 @@ void cmbNucCore::RemoveAssembly(const std::string &label)
   {
     if(this->AssemblyLinks[i]->getLink()->getLabel() == label)
     {
-      delete this->AssemblyLinks[i];
-      this->AssemblyLinks.erase(this->AssemblyLinks.begin() + i);
-      this->fileChanged();
+      std::string link = this->AssemblyLinks[i]->getLabel();
+      this->RemoveAssemblyLink(link);
     }
     else
     {
