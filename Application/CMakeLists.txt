@@ -293,7 +293,7 @@ if(BUILD_TESTING)
 
   foreach(test ${TESTS_WITHOUT_BASELINES})
     add_test(NAME ${test}_baseline
-             COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}
+             COMMAND ${TEST_BINARY} --test-script=${CMAKE_CURRENT_SOURCE_DIR}/Testing/XML/${test}.xml
                                     --exit  --test-output-directory=${CMAKE_CURRENT_BINARY_DIR})
     set_tests_properties(${test}_baseline PROPERTIES TIMEOUT 1000)
     set_tests_properties(${test}_baseline PROPERTIES ENVIRONMENT "${LIBRARY_PATH}")
