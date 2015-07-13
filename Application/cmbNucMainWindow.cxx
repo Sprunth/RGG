@@ -752,9 +752,6 @@ void cmbNucMainWindow::initPanels()
     QObject::connect(this->LatticeDraw, SIGNAL(objGeometryChanged(AssyPartObj*, int)),
                      this, SLOT(onUpdateLattice(AssyPartObj*, int)));
 
-    QObject::connect(this->PropertyWidget, SIGNAL(sendLatticeFullMode(Lattice::CellDrawMode)),
-                     this->LatticeDraw,    SLOT(set_full_mode(Lattice::CellDrawMode)));
-
     QObject::connect(this->PropertyWidget, SIGNAL(select3DModelView()),
                      this->ui->Dock3D,     SLOT(raise()));
   }
@@ -1191,11 +1188,6 @@ void cmbNucMainWindow::setCameras(bool coreModel, bool fullMesh)
   }
   this->Internal->IsCoreView = coreModel;
   this->Internal->IsFullMesh = fullMesh;
-}
-
-void cmbNucMainWindow::onSaveSelected()
-{
-  this->saveXML(this->NuclearCore, true, true);
 }
 
 void cmbNucMainWindow::onSaveAll(QString fname)

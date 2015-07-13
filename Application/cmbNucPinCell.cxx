@@ -367,9 +367,6 @@ PinCell::~PinCell()
 enumNucPartsType PinCell::GetType() const
 { return CMBNUC_ASSY_PINCELL;}
 
-int PinCell::NumberOfSections() const
-{ return static_cast<int>(this->Parts.size());}
-
 void PinCell::RemoveSection(AssyPartObj* obj)
 {
   if(!obj)

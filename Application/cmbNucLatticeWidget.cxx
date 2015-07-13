@@ -84,22 +84,10 @@ cmbNucLatticeWidget::apply()
   }
 }
 
-void cmbNucLatticeWidget::set_full_mode(Lattice::CellDrawMode m)
-{
-  this->draw_control->setFullCellMode(m);
-}
-
 void
 cmbNucLatticeWidget::reset()
 {
   if(lattice == NULL) return;
-}
-
-void
-cmbNucLatticeWidget::redraw()
-{
-  if(lattice == NULL) return;
-  this->draw_control->rebuild();
 }
 
 void cmbNucLatticeWidget::createImage(QString fname)

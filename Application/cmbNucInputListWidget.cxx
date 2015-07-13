@@ -648,30 +648,6 @@ void cmbNucInputListWidget::onDeleteAssemblyLink(QTreeWidgetItem* item)
 }
 
 //----------------------------------------------------------------------------
-void cmbNucInputListWidget::createMaterialItem(
-  const QString& name, const QString& label, const QColor& color)
-{
-  QTreeWidgetItem* matRoot = this->Internal->MaterialTree->invisibleRootItem();
-  Qt::ItemFlags matFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable |
-                         Qt::ItemIsEditable | Qt::ItemIsUserCheckable);
-  cmbNucPartsTreeItem* mNode = new cmbNucPartsTreeItem(matRoot, NULL);
-  mNode->setText(1, name);
-  mNode->setText(2, label);
-  QBrush bgBrush(color);
-  mNode->setBackground(3, bgBrush);
-  mNode->setFlags(matFlags);
-  mNode->setCheckState(0, Qt::Checked);
-
-  cmbNucPartsTreeItem* selItem = this->getSelectedItem(
-    this->Internal->MaterialTree);
-  if(selItem)
-    {
-    selItem->setSelected(false);
-    }
-  mNode->setSelected(true);
-}
-
-//----------------------------------------------------------------------------
 void cmbNucInputListWidget::onImportMaterial()
 {
   QStringList fileNames =
@@ -1175,38 +1151,6 @@ void cmbNucInputListWidget::valueChanged()
       this->coreModified();
       break;
   }
-}
-
-AssyPartObj* cmbNucInputListWidget::getSelectedCoreOrAssembly()
-{
-  AssyPartObj* part = this->getSelectedPart();
-  cmbNucPartsTreeItem* selItem = this->getSelectedPartNode();
-  if(part == NULL || selItem == NULL)
-  {
-    return NULL;
-  }
-  //TODO: CMBNUC_ASSEMBLY_LINK
-  switch(part->GetType())
-  {
-    case CMBNUC_ASSY_LATTICE:
-    case CMBNUC_ASSY_DUCTCELL:
-    case CMBNUC_ASSY_PINCELL:
-      return dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent())->getPartObject();
-      break;
-    case CMBNUC_ASSY_FRUSTUM_PIN:
-    case CMBNUC_ASSY_CYLINDER_PIN:
-    case CMBNUC_ASSY_DUCT:
-    case CMBNUC_ASSY_BASEOBJ:
-      return dynamic_cast<cmbNucPartsTreeItem*>(selItem->parent()->parent())->getPartObject();
-      break;
-    case CMBNUC_ASSEMBLY:
-    case CMBNUC_CORE:
-      return part;
-      break;
-    case CMBNUC_ASSEMBLY_LINK:
-      return NULL;
-  }
-  return NULL;
 }
 
 void cmbNucInputListWidget::clearTable()

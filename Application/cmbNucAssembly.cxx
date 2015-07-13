@@ -155,18 +155,6 @@ void cmbNucAssemblyConnection::geometryChanged()
   emit colorChanged();
 }
 
-void cmbNucAssemblyConnection::ductDeleted()
-{
-  for(unsigned int i = 0; i < v->Ducts->GetNumberOfDuctCells(); ++i)
-  {
-    if(v->AssyDuct != v->Ducts->GetDuctCell(i))
-    {
-      v->setDuctCell(v->Ducts->GetDuctCell(i));
-    }
-  }
-  cmbNucAssemblyConnection::dataChanged();
-}
-
 void cmbNucAssemblyConnection::pinDeleted(PinCell* pc)
 {
   v->RemovePinCell(pc->getLabel());
@@ -725,8 +713,6 @@ bool cmbNucAssembly::setDuctCell(DuctCell * ad, bool resetPitch)
   {
     QObject::disconnect(AssyDuct->GetConnection(), SIGNAL(Changed()),
                         this->Connection, SLOT(dataChanged()));
-    QObject::disconnect(AssyDuct->GetConnection(), SIGNAL(Deleted()),
-                        this->Connection, SLOT(ductDeleted()));
     this->AssyDuct->freed();
   }
   this->AssyDuct = ad;
@@ -735,8 +721,6 @@ bool cmbNucAssembly::setDuctCell(DuctCell * ad, bool resetPitch)
     if(resetPitch) this->calculatePitch(pinPitchX, pinPitchY);
     QObject::connect(ad->GetConnection(), SIGNAL(Changed()),
                      this->Connection, SLOT(dataChanged()));
-    QObject::connect(ad->GetConnection(), SIGNAL(Deleted()),
-                     this->Connection, SLOT(ductDeleted()));
     this->AssyDuct->used();
 
   }

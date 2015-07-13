@@ -195,8 +195,6 @@ public:
   void RemoveAssembly(const std::string &label);
   void RemoveAssemblyLink(const std::string &label);
 
-  bool okToDelete(std::string const& label);
-
   // Returns the Assembly with label or index.
   // Returns 0 if no Assembly with label or index exists.
   cmbNucAssembly* GetAssembly(const std::string &label);
@@ -281,9 +279,6 @@ public:
   void setGeometryLabel(std::string geomType);
 
   void setFileName( std::string const& fname );
-
-  void setGenerateDirectory(std::string const& dir);
-  std::string const& getGenerateDirectory() const;
 
   std::string getMeshOutputFilename() const;
   void setMeshOutputFilename(std::string const& fname);

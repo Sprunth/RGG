@@ -108,7 +108,6 @@ protected:
 
   bool IsDisplayed[2];
 
-  cmbNucMaterial();
   cmbNucMaterial(const QString& name, const QString& label, const QColor& color);
 
   void revertName(QString name);

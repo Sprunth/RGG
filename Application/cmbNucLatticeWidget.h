@@ -24,8 +24,6 @@ public slots:
   void setLatticeY(int v);
   void apply();
   void reset();
-  void redraw();
-  void set_full_mode(Lattice::CellDrawMode m);
   void clear();
   void createImage(QString);
   void updateActionList();

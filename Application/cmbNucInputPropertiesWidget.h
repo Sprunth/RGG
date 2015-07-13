@@ -57,7 +57,6 @@ signals:
   void valuesChanged();
   void resetView();
   void sendLattice(LatticeContainer *);
-  void sendLatticeFullMode(Lattice::CellDrawMode);
   void apply();
   void reset();
   void sendXSize(int i);

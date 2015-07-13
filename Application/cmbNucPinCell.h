@@ -208,8 +208,6 @@ public:
 
   enumNucPartsType GetType() const;
 
-  int NumberOfSections() const;
-
   void RemoveSection(AssyPartObj* obj);
 
   double Radius(int idx) const;

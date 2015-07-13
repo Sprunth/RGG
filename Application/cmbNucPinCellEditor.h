@@ -26,7 +26,6 @@ public:
   ~cmbNucPinCellEditor();
 
   void SetPinCell(PinCell *pincell, bool hex);
-  PinCell* GetPinCell();
 
   void clear();
 
@@ -64,7 +63,6 @@ private slots:
 
 private:
   PinSubPart* getSelectedPiece();
-  void rebuildLayersFromTable();
 
   void setButtons();
 

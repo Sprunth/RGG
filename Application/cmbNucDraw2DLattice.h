@@ -33,9 +33,7 @@ public:
   int apply();
   void showContextMenu(DrawLatticeItem* hexitem, QMouseEvent* event);
   void setActions(const QStringList& actions);
-  void setItemShape(DrawLatticeItem::ShapeStyle shapetype);
   void setLatticeContainer(LatticeContainer* l);
-  void setFullCellMode(Lattice::CellDrawMode m);
 
 public slots:
   void clear();

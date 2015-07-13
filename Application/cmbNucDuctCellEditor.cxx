@@ -255,17 +255,6 @@ cmbNucDuctCellEditor
 
 void
 cmbNucDuctCellEditor
-::clear()
-{
-  this->Ui->MaterialLayerTable->clear();
-  this->Ui->DuctPitchX->setText("0");
-  this->Ui->DuctPitchY->setText("0");
-  this->Ui->Z1->setText("0");
-  this->Ui->Z2->setText("0");
-}
-
-void
-cmbNucDuctCellEditor
 ::Apply()
 {
   if(this->ExternalDuctCell != NULL)
@@ -521,12 +510,6 @@ cmbNucDuctCellEditor
 
   this->Ui->DeleteMaterial->setEnabled(table->rowCount() > 1);
   this->update();
-}
-
-void
-cmbNucDuctCellEditor
-::rebuildLayersFromTable()
-{
 }
 
 void
