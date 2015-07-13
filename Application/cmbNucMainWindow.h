@@ -81,7 +81,6 @@ public slots:
   void ResetView();
   void Render();
   void onInteractionTransition(vtkObject *, unsigned long event);
-  void onInteractionMeshTransition(vtkObject *, unsigned long event);
   void useParallelProjection(bool val);
   void checkForNewCUBH5MFiles();
   void setAxis(bool ison);
