@@ -2,13 +2,13 @@
 <events>
   <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenFile" />
-  <event object="RGGNuclear-app" command="FilesOpen" arguments="/Users/jacobbecker/Programing/RGG_NuclearGui/RGG_Fork/TestingData/Reactors/simple_hexflatcore-Modified/simple_hexflatcore.rxf" />
+  <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/simple_hexflatcore-Modified/simple_hexflatcore.rxf" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assemblies" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
   <event object="qNucMainWindow/menuBar/menuFile/menuImport" command="activate" arguments="actionImportPins" />
-  <event object="RGGNuclear-app" command="FilesOpen" arguments="/Users/jacobbecker/Programing/RGG_NuclearGui/RGG_Fork/TestingData/Reactors/sixth_hexflatcore/sixth_hexflatcore.rxf" />
+  <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/sixth_hexflatcore/sixth_hexflatcore.rxf" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0.0.0" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.0.0.3.0" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.0.0.4.0" />
