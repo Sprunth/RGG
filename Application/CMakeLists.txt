@@ -278,6 +278,10 @@ if(BUILD_TESTING)
                                   removeAssembly
                                   removeDuct
                                   removeAssemblyLink
+                                  materialAddTest
+                                  materialDeleteTest
+                                  materialRenameTest
+                                  materialSaveAndLoad
                                   ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES )
@@ -286,7 +290,7 @@ if(BUILD_TESTING)
 
   set (TESTS_WITH_2D_BASELINES  ${TESTS_BOTH_2D_3D})
 
-  set (TESTS_WITHOUT_BASELINES exit TestAbout)
+  set (TESTS_WITHOUT_BASELINES exit TestAbout materialTestShowLabel)
 
   if(APPLE)
      set(LIBRARY_PATH "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${OCE_LIB}:$ENV{DYLD_LIBRARY_PATH}")
