@@ -807,17 +807,6 @@ cmbNucCore::getDrawModesForAssemblies()
   return result;
 }
 
-bool cmbNucCore::okToDelete(std::string const& label)
-{
-  //NOTE: We might want to make this more effient
-  if(this->Assemblies.size() == 1) return false;
-  for(unsigned int i = 0; i < this->AssemblyLinks.size(); ++i)
-  {
-    if(this->AssemblyLinks[i]->getLink()->getLabel() == label) return false;
-  }
-  return true;
-}
-
 void cmbNucCore::addBoundaryLayer(boundaryLayer * bl)
 {
   if(bl == NULL) return;
@@ -888,14 +877,4 @@ void cmbNucCore::setExportFileName(std::string const& fname)
 void cmbNucCore::setFileName( std::string const& fname )
 {
   this->CurrentFileName = fname;
-}
-
-void cmbNucCore::setGenerateDirectory(std::string const& dir)
-{
-  this->GenerateDirectory = dir;
-}
-
-std::string const& cmbNucCore::getGenerateDirectory() const
-{
-  return this->GenerateDirectory;
 }

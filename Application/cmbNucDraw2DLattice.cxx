@@ -103,11 +103,6 @@ void cmbNucDraw2DLattice::setHeight(int val)
   this->rebuild();
 }
 
-void cmbNucDraw2DLattice::setItemShape(DrawLatticeItem::ShapeStyle shapetype)
-{
-  this->ItemShape = shapetype;
-}
-
 void cmbNucDraw2DLattice::setLatticeContainer(LatticeContainer* l)
 {
   this->CurrentLattice = l;
@@ -116,11 +111,6 @@ void cmbNucDraw2DLattice::setLatticeContainer(LatticeContainer* l)
     this->changed = static_cast<int>(NoChange);
     this->Grid = l->getLattice();
   }
-}
-
-void cmbNucDraw2DLattice::setFullCellMode(Lattice::CellDrawMode m)
-{
-  this->FullCellMode = m;
 }
 
 void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,

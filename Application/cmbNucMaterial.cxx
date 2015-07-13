@@ -101,13 +101,6 @@ void cmbNucMaterialLayer::operator=( const cmbNucMaterialLayer & other )
   this->changeMaterial(other.Material);
 }
 
-cmbNucMaterial::cmbNucMaterial()
-: Visible(true), NumberReferenced(0)
-{
-  IsDisplayed[MODEL] = false;
-  IsDisplayed[MESH] = false;
-}
-
 cmbNucMaterial::cmbNucMaterial(const QString& name,
                                const QString& label, const QColor& color)
 : Name(name), Label(label), Color(color), Visible(true), NumberReferenced(0)

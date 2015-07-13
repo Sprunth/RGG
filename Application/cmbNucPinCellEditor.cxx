@@ -310,11 +310,6 @@ void cmbNucPinCellEditor::Reset()
   this->setButtons();
 }
 
-PinCell* cmbNucPinCellEditor::GetPinCell()
-{
-  return this->ExternalPinCell;
-}
-
 void cmbNucPinCellEditor::clear()
 {
   delete(InternalPinCell);
@@ -803,23 +798,3 @@ void cmbNucPinCellEditor::deleteLayer()
   this->UpdateData();
   this->setButtons();
 }
-
-//-----------------------------------------------------------------------------
-void cmbNucPinCellEditor::rebuildLayersFromTable()
-{
-  int layers = this->Ui->layersTable->rowCount();
-  this->InternalPinCell->SetNumberOfLayers(layers);
-
-  for(int layer = 0; layer < layers; layer++)
-    {
-    QComboBox* mat = qobject_cast<QComboBox*>(
-      this->Ui->layersTable->cellWidget(layer, 0));
-    QPointer<cmbNucMaterial> matPtr =
-        cmbNucMaterialColors::instance()->getMaterial(mat);
-    QTableWidgetItem* item = this->Ui->layersTable->item(layer, 1);
-    this->InternalPinCell->SetMaterial(layer, matPtr);
-    this->InternalPinCell->SetRadius(layer, item->text().toDouble());
-    }
-  this->setButtons();
-}
-

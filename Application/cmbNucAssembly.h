@@ -116,7 +116,6 @@ public slots:
   void dataChanged();
   void calculatePitch();
   void geometryChanged();
-  void ductDeleted();
   void pinDeleted(PinCell*);
 signals:
   void dataChangedSig();

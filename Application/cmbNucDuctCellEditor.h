@@ -30,8 +30,6 @@ public:
 
   void SetDuctCell(DuctCell *pincell, bool hex);
 
-  void clear();
-
   bool isCrossSectioned();
 
 signals:
@@ -55,8 +53,6 @@ private slots:
   void onUpdateLayerMaterial();
 
 private:
-  void rebuildLayersFromTable();
-
   void setDuctRow(int i, Duct * d);
   void setDuctMaterialRow(int i, Duct * d);
 

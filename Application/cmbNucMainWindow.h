@@ -71,7 +71,6 @@ public slots:
   void onFileOpen();
   void onImportINPFile();
   void onFileOpenMoab();
-  void onSaveSelected();
   void onSaveAll(QString fname = QString());
   void onSaveSelectedAs();
   bool onExportINPFiles(QString dir = QString());

@@ -36,7 +36,6 @@ public:
   void updateUI(bool selCore);
   /// get selected part object
   AssyPartObj* getSelectedPart();
-  AssyPartObj* getSelectedCoreOrAssembly();
   cmbNucPartsTreeItem* getSelectedPartNode();
 
   bool onlyMeshLoaded();
@@ -114,8 +113,6 @@ protected:
   cmbNucPartsTreeItem* getCurrentAssemblyNode();
   cmbNucPartsTreeItem* getCurrentAssemblyLinkNode();
   void initCoreRootNode();
-  void createMaterialItem( const QString& name, const QString& label,
-                           const QColor& color );
   void assemblyModified(cmbNucPartsTreeItem* assyNode);
   void coreModified();
   void updateWithAssemblyLink();
