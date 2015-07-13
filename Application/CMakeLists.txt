@@ -269,7 +269,8 @@ if(BUILD_TESTING)
                          removeCore
                          OpenRect )
 
-  set (TESTS_WITH_MODEL_BASELINES TestDuctSplit
+  set (TESTS_WITH_MODEL_BASELINES axisProjectionTest
+                                  TestDuctSplit
                                   pin_test
                                   testImportDucts
                                   testImportPins

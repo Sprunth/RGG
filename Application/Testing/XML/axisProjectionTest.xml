@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuView" />
+  <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenFile" />
+  <event object="RGGNuclear-app" command="FilesOpen" arguments="/Users/jacobbecker/Programing/RGG_NuclearGui/RGG_Fork/TestingData/Reactors/simple_hexflatcore-Modified/simple_hexflatcore.rxf" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assemblies" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/menuBar/menuView" command="activate" arguments="actionView_Axis" />
+  <event object="qNucMainWindow/menuBar/menuEdit" command="activate" arguments="actionPreferences" />
+  <event object="qNucMainWindow/Preferences/groupBox/parallel_Projection" command="set_boolean" arguments="true" />
+  <event object="qNucMainWindow/Preferences/buttonBox/1QPushButton0" command="activate" arguments="" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mousePress" arguments="1,1,0,157,297" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseMove" arguments="1,0,0,157,170" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseRelease" arguments="1,0,0,157,170" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mousePress" arguments="1,1,0,166,130" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseMove" arguments="1,0,0,148,165" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseRelease" arguments="1,0,0,148,165" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mousePress" arguments="1,1,0,184,244" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseMove" arguments="1,0,0,202,337" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseRelease" arguments="1,0,0,202,337" />
+  <event object="qNucMainWindow/toolBar/viewScaleWidget/viewScaleSlider" command="set_int" arguments="40" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mousePress" arguments="1,1,0,102,250" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseMove" arguments="1,0,0,111,286" />
+  <event object="qNucMainWindow/Dock3D/dockWidgetContents_3/qvtkWidget" command="mouseRelease" arguments="1,0,0,111,286" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuEdit" command="activate" arguments="actionPreferences" />
+  <event object="qNucMainWindow/Preferences/groupBox/parallel_Projection" command="set_boolean" arguments="false" />
+  <event object="qNucMainWindow/Preferences/groupBox/parallel_Projection" command="set_boolean" arguments="true" />
+  <event object="qNucMainWindow/Preferences/buttonBox/1QPushButton0" command="activate" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuPart" />
+  <event object="qNucMainWindow/menuBar/menuTools/menuTesting" command="activate" arguments="actionStop_Recording" />
+</events>
