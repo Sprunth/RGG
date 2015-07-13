@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile/menuNew/menuNew_Hexagonal_Core" command="activate" arguments="actionFullHexagonal" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.1.0.0.0" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/groupBox/DuctSegmentTable" command="mousePress" arguments="1,1,0,127,12,/0:1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/groupBox/DuctSegmentTable" command="mouseRelease" arguments="1,0,0,127,12,/0:1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,6,108" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,6,276" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,6,276" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/MaterialBox/MaterialLayerTable/qt_scrollarea_viewport/DuctMaterialBox_0" command="set_string" arguments="water" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuPart" command="activate" arguments="Create Duct" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.1.0.1.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,11,203" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,24,49" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,24,49" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/groupBox/DuctSegmentTable" command="mousePress" arguments="1,1,0,123,14,/0:1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/groupBox/DuctSegmentTable" command="mouseRelease" arguments="1,0,0,123,14,/0:1" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mousePress" arguments="1,1,0,6,104" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseMove" arguments="1,0,0,7,217" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_vcontainer/1QScrollBar0" command="mouseRelease" arguments="1,0,0,7,217" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageDuctCell/cmbDuctCellEditor/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/MaterialBox/MaterialLayerTable/qt_scrollarea_viewport/DuctMaterialBox_0" command="set_string" arguments="sodium" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageAssembly/tabWidget_3/qt_tabwidget_stackedwidget/tab_6/Ducts" command="set_string" arguments="Duct_2" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.1.0.0.0" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuPart" />
+  <event object="qNucMainWindow/menuBar/menuPart" command="activate" arguments="Delete Selected" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+</events>
