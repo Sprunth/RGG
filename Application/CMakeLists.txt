@@ -282,6 +282,7 @@ if(BUILD_TESTING)
                                   materialDeleteTest
                                   materialRenameTest
                                   materialSaveAndLoad
+                                  materialVisablityTest
                                   ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES )
