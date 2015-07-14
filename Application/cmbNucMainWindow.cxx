@@ -1721,19 +1721,6 @@ void cmbNucMainWindow::onInteractionTransition(vtkObject *, unsigned long e)
     }
 }
 
-void cmbNucMainWindow::onInteractionMeshTransition(vtkObject *, unsigned long e)
-{
-  switch (e)
-  {
-    case vtkCommand::StartInteractionEvent:
-      this->MeshRenderer->SetMaximumNumberOfPeels(3);
-      break;
-    case vtkCommand::EndInteractionEvent:
-      this->MeshRenderer->SetMaximumNumberOfPeels(10);
-      break;
-  }
-}
-
 void cmbNucMainWindow::useParallelProjection(bool val)
 {
   if (val)

@@ -269,7 +269,11 @@ if(BUILD_TESTING)
                          removeCore
                          OpenRect )
 
-  set (TESTS_WITH_MODEL_BASELINES TestDuctSplit
+  set (TESTS_WITH_MODEL_BASELINES axisProjectionTest
+                                  testCloneAssemblyLink
+                                  testCloneAssembly
+                                  cloneDuctTest
+                                  TestDuctSplit
                                   pin_test
                                   testImportDucts
                                   testImportPins
@@ -285,7 +289,7 @@ if(BUILD_TESTING)
                                   materialVisablityTest
                                   ${TESTS_BOTH_2D_3D})
 
-  set (TESTS_WITH_MESH_BASELINES )
+  set (TESTS_WITH_MESH_BASELINES test_loading_mesh)
 
   set (LONG_TEST test_export_hex )
 

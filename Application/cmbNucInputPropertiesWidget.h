@@ -95,7 +95,6 @@ protected slots:
 
   // apply property panel to given object
   void applyToPinCell(PinCell* pincell);
-  void applyToLattice(Lattice* lattice);
   void applyToAssembly(cmbNucAssembly* assy);
   void applyToAssemblyLink(cmbNucAssemblyLink* link);
   void applyToCore(cmbNucCore* nucCore);
