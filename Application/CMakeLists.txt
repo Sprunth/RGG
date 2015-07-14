@@ -270,6 +270,9 @@ if(BUILD_TESTING)
                          OpenRect )
 
   set (TESTS_WITH_MODEL_BASELINES axisProjectionTest
+                                  testCloneAssemblyLink
+                                  testCloneAssembly
+                                  cloneDuctTest
                                   TestDuctSplit
                                   pin_test
                                   testImportDucts
