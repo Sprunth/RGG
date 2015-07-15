@@ -1246,14 +1246,10 @@ QString cmbNucMainWindow::requestXMLFileName()
                                                          QDir::homePath()).toString();
   defaultLoc = dir.path();
 
-  QFileDialog saveQD( this, "Save RXF File...", defaultLoc, "RGG XML Files (*.rxf)");
-  saveQD.setAcceptMode(QFileDialog::AcceptSave);
-  QString fileName;
-  if(saveQD.exec()== QDialog::Accepted)
-  {
-    fileName = saveQD.selectedFiles().first();
-  }
-  else
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Save RXF File..."),
+                                                  defaultLoc,
+                                                  tr("RGG XML Files (*.rxf)"));
+  if (fileName.isEmpty())
   {
     return QString();
   }
@@ -1261,14 +1257,10 @@ QString cmbNucMainWindow::requestXMLFileName()
   {
     fileName += ".rxf";
   }
-
-  if(!fileName.isEmpty())
-  {
-    // Cache the directory for the next time the dialog is opened
-    QFileInfo info(fileName);
-    QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir",
-                                                   info.dir().path());
-  }
+  // Cache the directory for the next time the dialog is opened
+  QFileInfo info(fileName);
+  QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir",
+                                                  info.dir().path());
   return fileName;
 }
 
