@@ -4,15 +4,6 @@
 #include <QBrush>
 #include <QDebug>
 
-void cmbNucMaterialTreeItemConnection::revert()
-{
-  qDebug() << "Reverting: " << v->Material->getName() << v->Material->getLabel();
-  v->setHidden(true);
-  v->setText(1,v->Material->getName());
-  v->setText(2,v->Material->getLabel());
-  v->setHidden(false);
-}
-
 void cmbNucMaterialTreeItemConnection::show(int mode)
 {
   if(this->v->Material == NULL)

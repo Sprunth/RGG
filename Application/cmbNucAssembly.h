@@ -303,7 +303,6 @@ public:
 
   //Transforms exist for inp file import and export
   bool addTransform(Transform * in); //Will not add invalid xfroms, takes ownership
-  bool updateTransform(int at, Transform * in); //Take ownership of in
 
   bool removeOldTransforms(int newSize);
   Transform* getTransform(int i) const; //NULL if not found

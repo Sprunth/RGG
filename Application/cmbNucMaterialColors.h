@@ -71,10 +71,6 @@ public:
   bool nameUsed( const QString& name ) const;
   bool labelUsed( const QString& label ) const;
 
-  void SetBlockMaterialColor(vtkCompositeDataDisplayAttributes *attributes,
-                             unsigned int flatIdx,
-                             QPointer<cmbNucMaterial> material);
-
   void setUp(QComboBox *comboBox) const;
   void selectIndex(QComboBox *comboBox, QPointer<cmbNucMaterial>) const;
 
@@ -106,9 +102,6 @@ protected slots:
   void testAndRelabel(QString oldl, QPointer<cmbNucMaterial> material);
   void UnknownRename(QString oldn);
   void UnknownRelabel(QString oldl);
-
-  void sendMaterialFromName(QString const& name);
-  void sendMaterialFromLabel(QString const& label);
 
 signals:
   void showModeSig(int);

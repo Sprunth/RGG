@@ -18,8 +18,6 @@ public:
   // Get the assembly part object
   virtual QPointer<cmbNucMaterial> getMaterial()
     {return this->Material;}
-  virtual void setPartObject(QPointer<cmbNucMaterial> input)
-    {this->Material=input;}
 
   // column text
   virtual void setData ( int column, int role, const QVariant & value );
@@ -46,7 +44,6 @@ public:
   cmbNucMaterialTreeItem * v;
 signals:
 public slots:
-  void revert();
   void show(int mode);
 };
 

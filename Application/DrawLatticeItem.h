@@ -15,8 +15,7 @@ public:
     };
 
     DrawLatticeItem(const QPolygonF& polygon, int layer, int cellIdx,
-                   DrawLatticeItem::ShapeStyle shape=DrawLatticeItem::Circle,
-                   QGraphicsItem* parent = 0);
+                    QGraphicsItem* parent = 0);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
@@ -31,13 +30,11 @@ public:
     void set_available(bool b);
 
 protected:
-    void drawCircle(QPainter* painter);
     void drawText(QPainter* painter);
 
 private:
     QColor m_color;
     QString m_text;
-    ShapeStyle m_shape;
     int m_layer;
     int m_cellIndex;
     bool m_available;

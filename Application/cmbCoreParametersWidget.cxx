@@ -60,17 +60,6 @@ void cmbCoreParametersWidget::setCore(cmbNucCore *CoreObj)
   this->onReset();
 }
 
-// Invoked when Apply button clicked
-//-----------------------------------------------------------------------------
-void cmbCoreParametersWidget::onApply()
-{
-  if(this->Core == NULL)
-    {
-    return;
-    }
-  this->applyToCore(this->Core);
-}
-
 // Invoked when Reset button clicked
 //-----------------------------------------------------------------------------
 void cmbCoreParametersWidget::onReset()

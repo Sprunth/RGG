@@ -131,7 +131,6 @@ public:
 private:
   cmbNucCore * v;
 public slots:
-  void dataChanged();
   void justFileChanged();
   void assemblyChanged();
 signals:
@@ -256,7 +255,6 @@ public:
   void boundaryLayerChanged();
   bool changeSinceLastSave() const;
   bool changeSinceLastGenerate() const;
-  bool boundaryLayerChangedSinceLastGenerate() const;
 
   std::string getFileName(){return CurrentFileName;}
   virtual std::string getTitle(){ return "Core"; }

@@ -106,20 +106,6 @@ double vtkCmbLayeredConeSource::GetBaseRadius(int layer, int s)
   return this->LayerRadii[layer].BaseRadii[s];
 }
 
-double vtkCmbLayeredConeSource::GetTopThickness(int layer)
-{
-  if(layer == 0) return this->LayerRadii[layer].TopRadii[0];
-  return this->LayerRadii[layer].TopRadii[layer] -
-         this->LayerRadii[layer].TopRadii[layer-1];
-}
-
-double vtkCmbLayeredConeSource::GetBaseThickness(int layer)
-{
-  if(layer == 0) return this->LayerRadii[layer].BaseRadii[0];
-  return this->LayerRadii[layer].BaseRadii[layer] -
-         this->LayerRadii[layer].BaseRadii[layer-1];
-}
-
 vtkSmartPointer<vtkPolyData> vtkCmbLayeredConeSource::CreateUnitLayer(int l)
 {
   if(l < 0) return NULL;
@@ -190,76 +176,6 @@ vtkCmbLayeredConeSource::CreateBoundaryLayer(double thickness, int l)
     return normals->GetOutput();
   }
   return tmpLayer;
-}
-
-int vtkCmbLayeredConeSource::RequestData(
-  vtkInformation *vtkNotUsed(request),
-  vtkInformationVector **vtkNotUsed(inputVector),
-  vtkInformationVector *outputVector)
-{
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-
-  // get multi-block data set
-  vtkMultiBlockDataSet *output =
-    vtkMultiBlockDataSet::SafeDownCast(
-      outInfo->Get(vtkDataObject::DATA_OBJECT())
-    );
-
-  // create and add each layer to the output
-  output->SetNumberOfBlocks(this->GetNumberOfLayers());
-  int innerRes = 0;
-  int outerRes = 0;
-  double * innerBottomR = NULL;
-  double * innerTopR = NULL;
-  double * outerBottomR = NULL;
-  double * outerTopR = NULL;
-
-  vtkTransform *t = vtkTransform::New();
-  t->Translate(this->BaseCenter[0], this->BaseCenter[1], this->BaseCenter[2]);
-  if( this->Direction[0] != 0.0 || this->Direction[1] != 0.0 || this->Direction[2] != 1.0 )
-    {
-    assert(!"Change in direction is currently not supported");
-    }
-  vtkNew<vtkTransformPolyDataFilter> filter;
-  filter->SetTransform(t);
-  t->Delete();
-
-  for(int i = 0; i < this->GetNumberOfLayers(); i++)
-    {
-    outerBottomR = this->LayerRadii[i].BaseRadii;
-    outerTopR = this->LayerRadii[i].TopRadii;
-    outerRes = this->LayerRadii[i].Resolution;
-    vtkSmartPointer<vtkPolyData> tmpLayer = CreateLayer( this->Height,
-                                                         innerBottomR, outerBottomR,
-                                                         innerTopR,    outerTopR,
-                                                         innerRes,     outerRes );
-    innerBottomR = outerBottomR;
-    innerTopR    = outerTopR;
-    innerRes     = outerRes;
-    if(tmpLayer == NULL)
-    {
-      output->SetBlock(i, tmpLayer);
-      continue;
-    }
-
-    filter->SetInputDataObject(tmpLayer);
-    if(tmpLayer != NULL) tmpLayer->Delete();
-    filter->Update();
-    if (this->GenerateNormals)
-      {
-      vtkNew<vtkPolyDataNormals> normals;
-      normals->SetInputConnection(filter->GetOutputPort());
-      normals->ComputePointNormalsOn();
-      normals->Update();
-      output->SetBlock(i, normals->GetOutput());
-      }
-    else
-      {
-      output->SetBlock(i, filter->GetOutput());
-      }
-    }
-
-  return 1;
 }
 
 namespace
@@ -647,13 +563,4 @@ void vtkCmbLayeredConeSource::addInnerPoint(double x, double y)
   std::vector<double> pt(2);
   pt[0] = x; pt[1] = y;
   InnerPoints.push_back(pt);
-}
-void vtkCmbLayeredConeSource::clearInnerPoints()
-{
-  InnerPoints.clear();
-}
-
-void vtkCmbLayeredConeSource::PrintSelf(ostream &os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os, indent);
 }

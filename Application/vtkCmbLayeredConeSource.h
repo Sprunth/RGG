@@ -10,15 +10,11 @@ class vtkPolyData;
 class vtkPoints;
 class vtkCellArray;
 
-// Creates a cone with multiple layers. Each layer is a separate block
-// in the multi-block output data-set so that individual layers property's
-// can be modified with the composite poly-data mapper.
 class vtkCmbLayeredConeSource : public vtkMultiBlockDataSetAlgorithm
 {
 public:
   static vtkCmbLayeredConeSource* New();
   vtkTypeMacro(vtkCmbLayeredConeSource, vtkMultiBlockDataSetAlgorithm);
-  void PrintSelf(ostream &os, vtkIndent indent);
 
   void SetNumberOfLayers(int layers);
   int GetNumberOfLayers();
@@ -32,11 +28,7 @@ public:
   void SetBaseRadius(int layer, double r1, double r2);
   double GetBaseRadius(int layer, int s = 0);
 
-  double GetTopThickness(int layer);
-  double GetBaseThickness(int layer);
-
   void addInnerPoint(double x, double y);
-  void clearInnerPoints();
 
   void SetResolution(int layer, int res);
   int GetResolution(int layer);
@@ -67,8 +59,6 @@ public:
 protected:
   vtkCmbLayeredConeSource();
   ~vtkCmbLayeredConeSource();
-
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   vtkSmartPointer<vtkPolyData> CreateLayer( double h,
                                             double * innerBottomR, double * outerBottomR,

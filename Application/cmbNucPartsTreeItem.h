@@ -32,8 +32,6 @@ public:
   // Get the assembly part object  
   virtual AssyPartObj* getPartObject()
     {return this->PartObject;}
-  virtual void setPartObject(AssyPartObj* obj)
-    {this->PartObject=obj;}
 
   QVariant data( int index, int role ) const;
 

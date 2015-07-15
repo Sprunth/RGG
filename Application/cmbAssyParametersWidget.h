@@ -24,8 +24,6 @@ signals:
   void valuesChanged();
 
 public slots:
-  // Invoked when Apply button clicked
-  void onApply();
   // Invoked when Reset button clicked
   void onReset();
 

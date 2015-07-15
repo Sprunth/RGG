@@ -78,14 +78,9 @@ public:
   void SetCell(int i, int j, const std::string &name);
   void SetCellColor(const std::string & label, const QColor& color);
 
-  void setAsInvalid(int i, int j);
-
   // Returns the contents of the cell (i, j).
   // For Hex type, i is layer/ring index, j is index on that layer
   LatticeCell GetCell(int i, int j) const;
-
-  // Returns the contents of the cell (I).
-  LatticeCell GetCell(int i) const;
 
   // Clears the contents of the cell (i, j). This is equivalent
   // to calling SetCell(i, j, "xx").
@@ -99,9 +94,6 @@ public:
 
   enumNucPartsType GetType() const;
 
-  // get number of cells
-  int GetNumberOfCells();
-
   // get/set Geometry type (hex or rect)
   void SetGeometryType(enumGeometryType type);
 
@@ -114,8 +106,6 @@ public:
   {return Grid.size();}
   size_t getSize(size_t i)const
   { return Grid[i].size(); }
-
-  bool labelUsed(const std::string &l) const;
 
   Lattice::CellDrawMode getDrawMode(int index, int layer) const;
 

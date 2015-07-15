@@ -31,12 +31,6 @@
 #include <QDir>
 #include <QDebug>
 
-void cmbNucCoreConnection::dataChanged()
-{
-  v->setAndTestDiffFromFiles(true);
-  emit dataChangedSig();
-}
-
 void cmbNucCoreConnection::justFileChanged()
 {
   v->fileChanged();
@@ -611,11 +605,6 @@ bool cmbNucCore::changeSinceLastSave() const
 bool cmbNucCore::changeSinceLastGenerate() const
 {
   return this->DifferentFromH5M;
-}
-
-bool cmbNucCore::boundaryLayerChangedSinceLastGenerate() const
-{
-  return this->DifferentFromH5M || this->DifferentFromGenBoundaryLayer;
 }
 
 QPointer<cmbNucDefaults> cmbNucCore::GetDefaults()

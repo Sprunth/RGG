@@ -50,17 +50,6 @@ void cmbAssyParametersWidget::setAssembly(cmbNucAssembly *assyObj)
   this->onReset();
 }
 
-// Invoked when Apply button clicked
-//-----------------------------------------------------------------------------
-void cmbAssyParametersWidget::onApply()
-{
-  if(this->Assembly == NULL)
-    {
-    return;
-    }
-  this->applyToAssembly(this->Assembly);
-}
-
 // Invoked when Reset button clicked
 //-----------------------------------------------------------------------------
 void cmbAssyParametersWidget::onReset()

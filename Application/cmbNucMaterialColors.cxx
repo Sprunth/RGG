@@ -209,22 +209,6 @@ cmbNucMaterialColors
 }
 
 //-----------------------------------------------------------------------------
-void cmbNucMaterialColors
-::sendMaterialFromName(QString const& name)
-{
-  QPointer<cmbNucMaterial> result = this->getMaterialByName(name);
-  emit materialSelected(result);
-}
-
-//-----------------------------------------------------------------------------
-void cmbNucMaterialColors
-::sendMaterialFromLabel(QString const& label)
-{
-  QPointer<cmbNucMaterial> result = this->getMaterialByLabel(label);
-  emit materialSelected(result);
-}
-
-//-----------------------------------------------------------------------------
 QPointer<cmbNucMaterial> cmbNucMaterialColors::getUnknownMaterial() const
 {
   return UnknownMaterial;
@@ -365,20 +349,6 @@ void cmbNucMaterialColors::RemoveMaterialByLabel(const QString& name)
     }
     this->LabelToMaterial.erase(it);
   }
-}
-
-
-//-----------------------------------------------------------------------------
-void cmbNucMaterialColors::SetBlockMaterialColor(
-  vtkCompositeDataDisplayAttributes *attributes, unsigned int flatIdx,
-  QPointer<cmbNucMaterial> material)
-{
-  QColor bColor = material->getColor();
-  bool visible = material->isVisible();
-  double color[] = { bColor.redF(), bColor.greenF(), bColor.blueF() };
-  attributes->SetBlockColor(flatIdx, color);
-  attributes->SetBlockOpacity(flatIdx, bColor.alphaF());
-  attributes->SetBlockVisibility(flatIdx, visible);
 }
 
 //----------------------------------------------------------------------------

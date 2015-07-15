@@ -32,7 +32,6 @@ public:
     return coreLevelLayers;
   }
 protected:
-  bool updateCoreLevelLayers();
   bool updateAssemblyLevelLayers(cmbNucAssembly * assy);
   bool exportInpFile(cmbNucAssembly * assy, bool isCylinder,
                      std::set< Lattice::CellDrawMode > const& mode);
