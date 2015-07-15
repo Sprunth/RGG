@@ -119,8 +119,6 @@ protected slots:
   void onStopRecordingTest();
   void onPlayTest();
 
-  void onChangeToModelTab();
-
   void onSelectionChange();
 
   void onChangeMeshColorMode();

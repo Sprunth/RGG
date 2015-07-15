@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile/menuImport" command="activate" arguments="importINPFile" />
+  <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/sixth_hexflatcore/sixth_hexflatcore.inp" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuEdit" />
+  <event object="qNucMainWindow/menuBar/menuView" command="activate" arguments="actionImporter_Log" />
+  <event object="qImportLog/clear" command="activate" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionExit" />
+  <event object="1QMessageBox0/qt_msgbox_buttonbox/1QPushButton0" command="activate" arguments="" />
+</events>

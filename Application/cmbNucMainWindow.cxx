@@ -1590,13 +1590,6 @@ void cmbNucMainWindow::Render()
   this->ui->qvtkWidget->update();
 }
 
-void cmbNucMainWindow::onChangeToModelTab()
-{
-  this->onSelectionChange();
-  connect(this->Internal->MoabSource, SIGNAL(update()),
-          this, SLOT(onSelectionChange()), Qt::UniqueConnection);
-}
-
 void cmbNucMainWindow::onSelectionChange()
 {
   int sel = this->Internal->MoabSource->getSelectedType();
