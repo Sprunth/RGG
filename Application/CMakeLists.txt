@@ -291,7 +291,8 @@ if(BUILD_TESTING)
                                   test_pincell_material_rect
                                   ${TESTS_BOTH_2D_3D})
 
-  set (TESTS_WITH_MESH_BASELINES test_loading_mesh)
+  set (TESTS_WITH_MESH_BASELINES test_loading_mesh
+                                 testExportMesh)
 
   set (LONG_TEST test_export_hex )
 
