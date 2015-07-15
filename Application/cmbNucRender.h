@@ -101,8 +101,6 @@ public:
                                                                      double pitchX = -1, double pitchY = -1);
   static vtkSmartPointer<vtkCmbLayeredConeSource> CreateLayerManager(DuctCell* ductCell, bool isHex, size_t j);
 
-  void debug();
-
 protected:
   //vtkSmartPointer<vtkCompositePolyDataMapper2> PolyMapper;
   //vtkSmartPointer<vtkActor> PolyActor;

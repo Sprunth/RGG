@@ -4,9 +4,9 @@
 #include <QPainter>
 
 DrawLatticeItem::DrawLatticeItem(const QPolygonF& poly, int l, int cellIdx,
-  DrawLatticeItem::ShapeStyle ss, QGraphicsItem* parent)
+                                 QGraphicsItem* parent)
     : QGraphicsPolygonItem(poly, parent), m_color(Qt::gray),
-      m_text("xx"), m_shape(ss),
+      m_text("xx"),
       m_layer(l), m_cellIndex(cellIdx), m_available(true)
 {
   this->setAcceptDrops(true);
@@ -24,9 +24,7 @@ void DrawLatticeItem::set_available(bool b)
 
 const QString& DrawLatticeItem::text() const
 {
-  //if(m_available)
   return this->m_text;
-  //return QString("");
 }
 
 void DrawLatticeItem::setColor(const QColor& color)
@@ -42,11 +40,6 @@ void DrawLatticeItem::setText(const QString& tin)
     }
   this->m_text = tin;
   this->update();
-}
-
-void DrawLatticeItem::setShape(DrawLatticeItem::ShapeStyle sstyle)
-{
-  this->m_shape = sstyle;
 }
 
 int DrawLatticeItem::layer()
@@ -76,30 +69,13 @@ void DrawLatticeItem::drawText(QPainter *painter)
   painter->drawText(textRect, Qt::AlignCenter | Qt::AlignCenter | Qt::TextWordWrap, m_text);
 }
 
-void DrawLatticeItem::drawCircle(QPainter *painter)
-{
-  painter->setPen(Qt::gray);
-  painter->setBrush(QBrush(m_color));
-  QRectF myRect = boundingRect();
-  qreal edge = std::min(myRect.width(), myRect.height()) - 1;
-  QRectF circleRect(myRect.left() + 6, myRect.top() + 1, edge, edge);
-  painter->drawEllipse(circleRect);
-}
-
 void DrawLatticeItem::paint(QPainter* painter,
   const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   this->setBrush(QBrush((m_available)?m_color:Qt::black));
   painter->setPen(Qt::gray);
 
-  if(this->m_shape == DrawLatticeItem::Circle)
-    {
-    this->drawCircle(painter);
-    }
-  else if(this->m_shape == DrawLatticeItem::Polygon)
-    {
-    this->Superclass::paint(painter, option, widget);
-    }
+  this->Superclass::paint(painter, option, widget);
 
   if(!this->m_text.isEmpty())
     {

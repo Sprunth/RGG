@@ -126,13 +126,6 @@ bool cmbNucInpExporter
   return true;
 }
 
-bool cmbNucInpExporter
-::updateCoreLevelLayers()
-{
-  
-  return true;
-}
-
 void cmbNucInpExporter
 ::updateCoreLayers(bool ignore_regen)
 {

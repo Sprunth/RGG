@@ -256,51 +256,9 @@ void Lattice::SetCellColor(const std::string &name, const QColor& color)
   cr->color = color;
 }
 
-void Lattice::setAsInvalid(int i, int j)
-{
-  LatticeCell * cr = this->getCell("");
-  cr->setInvalid();
-  this->Grid[i][j].setCell(cr);
-}
-
 Lattice::LatticeCell Lattice::GetCell(int i, int j) const
 {
   return *(this->Grid[i][j].getCell());
-}
-
-Lattice::LatticeCell Lattice::GetCell(int i) const
-{
-  // Convert to j,k
-  int s = static_cast<int>(this->Grid.size());
-  // For Hex type, This is different
-  if(this->enGeometryType == HEXAGONAL)
-  {
-    int j = 0, k = 0;
-    int totalNum = 0, preTotal;
-    for(int layer = 0; layer < s; layer++)
-    {
-      preTotal = totalNum;
-      // totalNum += (6*layer);
-      totalNum = 1 + 3*layer*(layer+1);
-      if(i < totalNum)
-      {
-        j = layer;
-        k = i-preTotal;
-        break;
-      }
-    }
-    return this->GetCell(j,k);
-  }
-  else
-  {
-    int size = static_cast<int>(this->Grid[0].size());
-    int j = i / size;
-    int k = i - (j*size);
-    assert(j < static_cast<int>(this->Grid.size()));
-    assert(k < static_cast<int>(this->Grid[j].size()));
-
-    return this->GetCell(j,k);
-  }
 }
 
 void Lattice::ClearCell(int i, int j)
@@ -360,23 +318,6 @@ bool Lattice::replaceLabel(const std::string &oldL, const std::string &newL)
 enumNucPartsType Lattice::GetType() const
 { return CMBNUC_ASSY_LATTICE;}
 
-int Lattice::GetNumberOfCells()
-{
-  if(this->Grid.size() == 0)
-  {
-    return 0;
-  }
-  if(this->enGeometryType == HEXAGONAL)
-  {
-    int tmp = static_cast<int>(this->Grid.size());
-    return 1 + 3*tmp*(tmp - 1);
-  }
-  else
-  {
-    return static_cast<int>(this->Grid.size()*this->Grid[0].size());
-  }
-}
-
 void Lattice::SetGeometryType(enumGeometryType type)
 {
   if(this->enGeometryType == type) return;
@@ -393,16 +334,6 @@ void Lattice::SetGeometrySubType(int type)
 
 int Lattice::GetGeometrySubType() const
 { return subType; }
-
-bool Lattice::labelUsed(const std::string &l) const
-{
-  std::map<std::string, LatticeCell *>::const_iterator iter = LabelToCell.find(l);
-  if(iter == LabelToCell.end())
-  {
-    return false;
-  }
-  return iter->second->getCount() != 0;
-}
 
 Lattice::LatticeCell * Lattice::getCell(std::string label)
 {

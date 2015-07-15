@@ -99,7 +99,6 @@ signals:
   void cancelled();
   void terminate();
   void sendCoreResult(QString);
-  void sendPartialBoundryLayer(QString);
   void progress(int);
   void currentProcess(QString);
   void errorMessage( QString );

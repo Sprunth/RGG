@@ -1008,7 +1008,6 @@ void cmbNucExport::processJobs()
 {
   QEventLoop el;
   bool inErrorState = false;
-  bool errorInBoundryLayer = false;
   QString filename;
   emit currentProcess("  Generating Mesh");
   double count = 2;
@@ -1149,23 +1148,7 @@ void cmbNucExport::processJobs()
     }
   }
   qDebug() << "All jobs have been finished";
-  if(errorInBoundryLayer)
-  {
-    QFileInfo fi(filename);
-
-    emit errorMessage("ERROR: Boundary Layer Generation Failed.  Partial Result: " + fi.fileName() );
-    emit currentProcess("Boundary Layer Generation Failed.  Partial Result: " + fi.fileName());
-    emit sendPartialBoundryLayer(filename);
-    QThread::Priority	prior = QThread::currentThread()->priority();
-    QThread::currentThread()->setPriority(QThread::LowestPriority);
-    QThread::yieldCurrentThread();
-
-    emit done();
-    clearJobs();
-    this->deleteServer();
-    QThread::currentThread()->setPriority(prior);
-  }
-  else if(inErrorState)
+  if(inErrorState)
   {
     emit done();
     clearJobs();

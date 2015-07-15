@@ -37,7 +37,6 @@ public:
   EASY_DEFAULT_PARAMS_MACRO()
 #undef FUN1
 #undef FUN2
-  void set(cmbNucDefaults const& other);
 signals:
   void calculatePitch();
   void recieveCalculatedPitch(double x, double y);

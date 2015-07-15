@@ -62,7 +62,6 @@ private:
   Lattice::CellDrawMode FullCellMode;
 
   QStringList ActionList;
-  DrawLatticeItem::ShapeStyle ItemShape;
 };
 
 #endif

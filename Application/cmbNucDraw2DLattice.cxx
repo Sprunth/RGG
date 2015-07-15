@@ -21,7 +21,7 @@
 cmbNucDraw2DLattice::cmbNucDraw2DLattice(DrawLatticeItem::ShapeStyle shape,
     QWidget* p, Qt::WindowFlags f)
       : QGraphicsView(p), CurrentLattice(NULL),
-        FullCellMode(Lattice::HEX_FULL), ItemShape(shape)
+        FullCellMode(Lattice::HEX_FULL)
 {
   changed = static_cast<int>(NoChange);
   setScene(&this->Canvas);
@@ -196,8 +196,7 @@ void cmbNucDraw2DLattice::addCell( double centerPos[2], double radius,
               << QPoint( radius,-radius);
       break;
   }
-  DrawLatticeItem* cell = new DrawLatticeItem(polygon, layer, cellIdx,
-    this->ItemShape);
+  DrawLatticeItem* cell = new DrawLatticeItem(polygon, layer, cellIdx);
 
   cell->setPos(centerPos[0] + this->rect().center().x(),
                centerPos[1] + this->rect().center().y());

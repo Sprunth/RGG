@@ -634,31 +634,6 @@ bool cmbNucAssembly::addTransform(cmbNucAssembly::Transform * in)
   return false;
 }
 
-bool cmbNucAssembly::updateTransform(int at, Transform * in)
-{
-  if(in != NULL && in->isValid() &&
-     static_cast<size_t>(at) <= this->Transforms.size())
-  {
-    Transform * tat = NULL;
-    if(static_cast<size_t>(at) == this->Transforms.size() && addTransform(in))
-    {
-      return true;
-    }
-    else if( ( tat = getTransform(at) ) != NULL &&
-             ( tat->getAxis() != in->getAxis() ||
-               tat->getValue() != in->getValue() ||
-               tat->reverse() != in->reverse() ||
-               tat->getLabel() != in->getLabel() ) )
-    {
-      this->Transforms[at] =in;
-      delete tat;
-      return true;
-    }
-  }
-  delete in;
-  return false;
-}
-
 bool cmbNucAssembly::removeOldTransforms(int i)
 {
   for(unsigned int r = i; r < this->Transforms.size(); ++r)

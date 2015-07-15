@@ -31,8 +31,6 @@ cmbNucExportDialog::cmbNucExportDialog(cmbNucMainWindow *mainWindow)
            this->Progress->ui->OutputArea, SLOT(appendPlainText(const QString&)));
   connect( this->Exporter, SIGNAL(successful()),
            this, SLOT(exportDone()));
-  connect( this->Exporter, SIGNAL(sendPartialBoundryLayer(QString)),
-           this, SLOT(sendParialMesh(QString)));
   connect( this->Exporter, SIGNAL(currentProcess(QString)),
            this->Progress->ui->command, SLOT(setText(const QString &)));
   connect( this->Progress->ui->cancel, SIGNAL(clicked()),
@@ -311,21 +309,4 @@ void cmbNucExportDialog::exportDone()
   QString outputMesh = path + "/" + QString(Core->getMeshOutputFilename().c_str()).trimmed();
   if(send_core_mesh)
     emit(finished(outputMesh));
-}
-
-void cmbNucExportDialog::sendParialMesh(QString fname)
-{
-  QMessageBox msgBox;
-  msgBox.setText("There was an error with generating boundary layers");
-  msgBox.setInformativeText("One of the boundary layers failed to generate.  Do you want to last successfull mesh: " + QFileInfo(fname).fileName());
-  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No );
-  msgBox.setDefaultButton(QMessageBox::Yes);
-  int ret = msgBox.exec();
-  switch (ret)
-  {
-    case QMessageBox::Yes:
-      emit(finished(fname));
-    default:
-      break;
-  }
 }

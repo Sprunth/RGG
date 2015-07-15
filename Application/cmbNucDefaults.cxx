@@ -45,14 +45,3 @@ EASY_DEFAULT_PARAMS_MACRO()
 
 #undef FUN1
 #undef FUN2
-
-void cmbNucDefaults::set(cmbNucDefaults const& other)
-{
-#define FUN1(T, X) if(other.X.valid) X.set(other.X);            \
-                   else X.valid = false;
-#define FUN2(T1, X, T2, Y, L) if(other.L.valid) L.set(other.L); \
-                              else L.valid = false;
-  EASY_DEFAULT_PARAMS_MACRO()
-#undef FUN1
-#undef FUN2
-}
