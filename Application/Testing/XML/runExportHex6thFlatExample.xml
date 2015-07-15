@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenFile" />
+  <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/sixth_hexflatcore/sixth_hexflatcore.rxf" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assemblies" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
+  <event object="RGGNuclear-app" command="DirOpen" arguments="${OUTPUT_DIRECTORY}" />
+  <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton1" command="activate" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
+  <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
+  <event object="qNucMainWindow/qExporterDialog/qProgress/cancel" command="activate" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
+  <event object="qNucMainWindow/qExporterDialog/buttonBox/1QPushButton0" command="activate" arguments="" />
+  <event object="TESTER" command="wait_for_export" arguments="" />
+  <event object="TESTER" command="pause" arguments="5" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="Mesh View" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools/menuTesting" command="activate" arguments="actionStop_Recording" />
+</events>

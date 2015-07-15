@@ -372,6 +372,8 @@ bool xmlHelperClass::write(pugi::xml_node & node, PinCell * dc)
   r &= write(node, NAME_TAG.c_str(), dc->getName());
   r &= write(node, LABEL_TAG.c_str(), dc->getLabel());
   r &= write(node, LEGEND_COLOR_TAG.c_str(), dc->GetLegendColor());
+  if(dc->cellMaterialSet())
+    r &= write(node, MATERIAL_TAG.c_str(), dc->getCellMaterial()->getName());
 
   for(unsigned int i = 0; i < dc->GetNumberOfParts(); ++i)
   {
@@ -920,6 +922,12 @@ bool xmlHelperClass::read(pugi::xml_node & node, PinCell * dc,
   r &= read(node, NAME_TAG.c_str(), name);
   r &= read(node, LABEL_TAG.c_str(), label);
   r &= read(node, LEGEND_COLOR_TAG.c_str(), color);
+
+  std::string materialName;
+  if(read(node, MATERIAL_TAG.c_str(), materialName))
+  {
+    dc->setCellMaterial(materials->getMaterialByName(materialName.c_str()));
+  }
   dc->setName(name);
   dc->setLabel(label);
   dc ->legendColor = color;

@@ -287,9 +287,16 @@ if(BUILD_TESTING)
                                   materialRenameTest
                                   materialSaveAndLoad
                                   materialVisablityTest
+                                  test_pincell_material_hex
+                                  test_pincell_material_rect
                                   ${TESTS_BOTH_2D_3D})
 
-  set (TESTS_WITH_MESH_BASELINES test_loading_mesh)
+  set (TESTS_WITH_MESH_BASELINES test_loading_mesh
+                                 testExportMesh
+                                 runExportHex12thExample
+                                 runExportHex6thVertExample
+                                 runExportHex6thFlatExample
+                                 runExportHexFullExample)
 
   set (LONG_TEST test_export_hex )
 

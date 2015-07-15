@@ -1217,7 +1217,7 @@ void cmbNucMainWindow::saveXML(cmbNucCore* core, bool request_file_name,
   QString fileName = core->getFileName().c_str();
   if(request_file_name || fileName.isEmpty())
   {
-    fileName = cmbNucMainWindow::requestXMLFileName("","Core");
+    fileName = cmbNucMainWindow::requestXMLFileName();
   }
   if(fileName.isEmpty()) return;
   core->setFileName( fileName.toStdString() );
@@ -1239,38 +1239,15 @@ void cmbNucMainWindow::checkForNewCUBH5MFiles()
   emit checkSave();
 }
 
-QString cmbNucMainWindow::requestXMLFileName(QString name, QString type)
+QString cmbNucMainWindow::requestXMLFileName()
 {
-  QString defaultName("");
   QString defaultLoc;
-  if(!name.isEmpty())
-  {
-    QFileInfo fi(name);
-    QDir dir = fi.dir();
-    if(dir.path() == ".")
-    {
-      defaultName = fi.baseName();
-      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                              QDir::homePath()).toString();
-      defaultLoc = tdir.path();
-    }
-    else
-    {
-      defaultLoc = dir.path();
-      defaultName = fi.baseName();
-    }
-  }
-  if(defaultLoc.isEmpty())
-  {
-    QDir dir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                           QDir::homePath()).toString();
-    defaultLoc = dir.path();
-  }
+  QDir dir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
+                                                         QDir::homePath()).toString();
+  defaultLoc = dir.path();
 
-  QFileDialog saveQD( this, "Save "+type+" File...", defaultLoc, "RGG XML Files (*.rxf)");
-  saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
+  QFileDialog saveQD( this, "Save RXF File...", defaultLoc, "RGG XML Files (*.rxf)");
   saveQD.setAcceptMode(QFileDialog::AcceptSave);
-  saveQD.selectFile(defaultName);
   QString fileName;
   if(saveQD.exec()== QDialog::Accepted)
   {
@@ -1281,7 +1258,9 @@ QString cmbNucMainWindow::requestXMLFileName(QString name, QString type)
     return QString();
   }
   if( !fileName.endsWith(".rxf") )
+  {
     fileName += ".rxf";
+  }
 
   if(!fileName.isEmpty())
   {

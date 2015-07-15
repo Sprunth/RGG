@@ -102,7 +102,7 @@ protected:
   void saveSelected(bool requestFileName, bool force);
   bool exportINPs();
   void saveXML(cmbNucCore*, bool request_file_name, bool force);
-  QString requestXMLFileName(QString name, QString type);
+  QString requestXMLFileName();
   virtual void closeEvent(QCloseEvent *event);
   void CameraMovedHandlerMesh();
   void CameraMovedHandlerModel();
