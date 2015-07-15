@@ -8,15 +8,6 @@
 
 #include <QDebug>
 
-void PinConnection::clearOldData()
-{
-  if(pc)
-  {
-    pc->CachedData = NULL;
-    emit CellMaterialChanged();
-  }
-}
-
 PinSubPart::PinSubPart(double z1in, double z2in) : Materials(1, new cmbNucMaterialLayer())
 {
   this->Label = "PinPart";
@@ -351,8 +342,6 @@ PinCell::PinCell()
   cutaway = false;
   Connection = new PinConnection();
   Connection->pc = this;
-  QObject::connect(CellMaterial.GetConnection(), SIGNAL(materialChanged()),
-                   this->Connection, SLOT(clearOldData()));
   //When cellmaterial is unkown, it is not used, so dec unknown by one
   this->CellMaterial.getMaterial()->dec();
 }

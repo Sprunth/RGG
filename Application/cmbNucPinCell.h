@@ -25,8 +25,6 @@ public:
   {
     emit Deleted(pincell);
   }
-public slots:
-  void clearOldData();
 signals:
   void Changed();
   void CellMaterialChanged();
@@ -249,7 +247,6 @@ public:
   vtkBoundingBox computeBounds( bool isHex );
 
   QColor legendColor;
-  vtkSmartPointer<vtkMultiBlockDataSet> CachedData;
   bool cutaway;
 
   std::vector<double> getPinLayers() const;
