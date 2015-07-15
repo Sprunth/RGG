@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/toolBar/1QToolButton0" command="activate" arguments="" />
+  <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/simple_hexflatcore-Modified/simple_hexflatcore.rxf" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assemblies" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuPart" />
+  <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
+  <event object="RGGNuclear-app" command="DirOpen" arguments="${OUTPUT_DIRECTORY}" />
+  <event object="qNucMainWindow/qExporterDialog/frame/AssygneGroup/assygenFileList" command="mousePress" arguments="1,1,0,302,15,/0:0" />
+  <event object="qNucMainWindow/qExporterDialog/frame/AssygneGroup/assygenFileList" command="mouseRelease" arguments="1,0,0,302,15,/0:0" />
+  <event object="qNucMainWindow/qExporterDialog/frame/AssygneGroup/runSelectedAssy" command="activate" arguments="" />
+    <event object="TESTER" command="wait_for_export" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
+  <event object="qNucMainWindow/qExporterDialog/frame/AssygneGroup/runSelectedAssy" command="activate" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
+  <event object="qNucMainWindow/qExporterDialog/frame/AssygneGroup/runAssy" command="activate" arguments="" />
+  <event object="TESTER" command="wait_for_export" arguments="" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools" command="activate" arguments="actionExport" />
+  <event object="qNucMainWindow/qExporterDialog/frame/groupBox/runCore" command="activate" arguments="" />
+  <event object="qNucMainWindow/qExporterDialog/qProgress/OutputPromp" command="mousePress" arguments="1,1,0,92,8" />
+  <event object="qNucMainWindow/qExporterDialog/qProgress/OutputPromp" command="mouseRelease" arguments="1,0,0,92,8" />
+  <event object="TESTER" command="wait_for_export" arguments="" />
+  <event object="TESTER" command="pause" arguments="5" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="Mesh View" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools/menuTesting" command="activate" arguments="actionStop_Recording" />
+</events>
