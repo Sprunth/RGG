@@ -307,6 +307,7 @@ if(BUILD_TESTING)
   set (TESTS_WITHOUT_BASELINES exit
                                TestAbout
                                materialTestShowLabel
+                               testConfigsSaveLoadExport
                                testImportLog)
 
   if(APPLE)
