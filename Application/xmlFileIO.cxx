@@ -1283,16 +1283,6 @@ bool xmlFileReader::read(std::string fname, cmbNucCore & core)
   return helper.read(content, core);
 }
 
-bool xmlFileReader::read(std::string fname, cmbNucMaterialColors * materials)
-{
-  xmlHelperClass helper;
-
-  pugi::xml_document document;
-  if(!helper.openReadFile(fname,document)) return false;
-  pugi::xml_node node = document.child(CORE_TAG.c_str()).child(MATERIALS_TAG.c_str());
-  return helper.read(node, materials);
-}
-
 bool xmlFileReader::read(std::string fname, std::vector<PinCell*> & pincells, cmbNucMaterialColors * materials)
 {
   xmlHelperClass helper;

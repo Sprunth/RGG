@@ -228,11 +228,6 @@ cmbNucPinLibrary * cmbNucPinLibrary::clone() const
   return result;
 }
 
-void cmbNucPinLibrary::clearRenameEquivelence()
-{
-  OldLabelToNewPincell.clear();
-}
-
 bool cmbNucPinLibrary::isEquivelence(PinCell* pc) const
 {
   PinCell * other = PinCells[this->findLabel(pc->getLabel())->second];

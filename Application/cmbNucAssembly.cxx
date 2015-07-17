@@ -141,13 +141,6 @@ void cmbNucAssemblyConnection::dataChanged()
   emit dataChangedSig();
 }
 
-void cmbNucAssemblyConnection::calculatePitch()
-{
-  double x, y;
-  v->calculatePitch(x, y);
-  emit pitchResult(x, y);
-}
-
 void cmbNucAssemblyConnection::geometryChanged()
 {
   v->geometryChanged();
@@ -177,8 +170,6 @@ cmbNucAssembly::cmbNucAssembly()
   this->pinPitchX = 0;
   this->pinPitchY = 0;
 
-  QObject::connect(this->Defaults,   SIGNAL(calculatePitch()),
-                   this->Connection, SLOT(calculatePitch()));
   QObject::connect(this->Connection, SIGNAL(pitchResult(double, double)),
                    this->Defaults,   SIGNAL(recieveCalculatedPitch(double, double)));
 }
@@ -497,11 +488,6 @@ std::string cmbNucAssembly::getOutputExtension()
 bool cmbNucAssembly::changeSinceLastGenerate() const
 {
   return this->DifferentFromCub || this->DifferentFromJournel;
-}
-
-bool cmbNucAssembly::needsBothAssygenCubit() const
-{
-  return this->DifferentFromJournel;
 }
 
 void cmbNucAssembly::clear()

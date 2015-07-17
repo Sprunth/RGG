@@ -59,8 +59,6 @@ public:
 
   cmbNucPinLibrary * clone() const;
 
-  void clearRenameEquivelence();
-
   bool isEquivelence(PinCell* pc) const;
 
   void removeFakeBoundaryLayer(std::string blname);

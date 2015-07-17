@@ -256,7 +256,6 @@ public:
   void setHeight(double nh);
 
   double getZ0() const;
-  void setZ0(double z0);
 
   bool operator==(PinCell const& other);
 

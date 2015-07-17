@@ -114,7 +114,6 @@ private:
   void sendPitch(double x, double y);
 public slots:
   void dataChanged();
-  void calculatePitch();
   void geometryChanged();
   void pinDeleted(PinCell*);
 signals:
@@ -251,8 +250,6 @@ public:
   //Set the different from file and tests the cub file;
   void setAndTestDiffFromFiles(bool diffFromFile);
   bool changeSinceLastGenerate() const;
-
-  bool needsBothAssygenCubit() const;
 
   void GetDuctWidthHeight(double r[2]);
 

@@ -38,7 +38,6 @@ public:
 #undef FUN1
 #undef FUN2
 signals:
-  void calculatePitch();
   void recieveCalculatedPitch(double x, double y);
 protected:
 #define FUN1(T, X) \

@@ -300,7 +300,7 @@ if(BUILD_TESTING)
                                  runExportHex6thFlatExample
                                  runExportHexFullExample)
 
-  set (LONG_TEST test_export_hex )
+  set (LONG_TEST test_export_hex createExportRect)
 
   set (TESTS_WITH_2D_BASELINES  ${TESTS_BOTH_2D_3D})
 
@@ -308,6 +308,8 @@ if(BUILD_TESTING)
                                TestAbout
                                materialTestShowLabel
                                testConfigsSaveLoadExport
+                               rename_unknown_material
+                               testUnknownParameter
                                testImportLog)
 
   if(APPLE)

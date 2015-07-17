@@ -27,10 +27,6 @@ bool cmbNucInpExporter
 ::exportInpFiles()
 {
   QString coreName = this->NuclearCore->getExportFileName().c_str();
-  if(coreName.isEmpty())
-  {
-    coreName = requestInpFileName("","Core");
-  }
   if(coreName.isEmpty()) return false;
 
   //clone the pins and ducts.  These are needed for determining layers
@@ -252,59 +248,3 @@ bool cmbNucInpExporter
   assy->removeOldTransforms(0);
   return true;
 }
-
-QString cmbNucInpExporter::requestInpFileName(QString name,
-                                              QString type)
-{
-  QString defaultName("");
-  QString defaultLoc;
-  if(!name.isEmpty())
-  {
-    QFileInfo fi(name);
-    QDir dir = fi.dir();
-    if(dir.path() == ".")
-    {
-      defaultName = fi.baseName();
-      QDir tdir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                              QDir::homePath()).toString();
-      defaultLoc = tdir.path();
-    }
-    else
-    {
-      defaultLoc = dir.path();
-      defaultName = fi.baseName();
-    }
-  }
-  if(defaultLoc.isEmpty())
-  {
-    QDir dir = QSettings("CMBNuclear", "CMBNuclear").value("cache/lastDir",
-                                                           QDir::homePath()).toString();
-    defaultLoc = dir.path();
-  }
-
-  QFileDialog saveQD( NULL, "Save "+type+" File...", defaultLoc, "INP Files (*.inp)");
-  saveQD.setOptions(QFileDialog::DontUseNativeDialog); //There is a bug on the mac were one does not seem to be able to set the default name.
-  saveQD.setAcceptMode(QFileDialog::AcceptSave);
-  saveQD.selectFile(defaultName);
-  QString fileName;
-  if(saveQD.exec()== QDialog::Accepted)
-  {
-    fileName = saveQD.selectedFiles().first();
-  }
-  else
-  {
-    return QString();
-  }
-  if( !fileName.endsWith(".inp") )
-    fileName += ".inp";
-
-  if(!fileName.isEmpty())
-  {
-    // Cache the directory for the next time the dialog is opened
-    QFileInfo info(fileName);
-    QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir",
-                                                   info.dir().path());
-  }
-  return fileName;
-}
-

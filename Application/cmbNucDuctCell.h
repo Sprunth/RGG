@@ -134,7 +134,6 @@ public:
   void AddDuct(Duct* duct);
   size_t numberOfDucts() const;
   Duct * getDuct(int i);
-  Duct * getPrevious();
   void getZRange(double & z1, double & z2);
   QSet< cmbNucMaterial* > getMaterials();
   bool GetInnerDuctSize(double & x, double & y);
