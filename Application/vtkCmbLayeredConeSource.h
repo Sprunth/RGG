@@ -14,7 +14,7 @@ class vtkCmbLayeredConeSource : public vtkMultiBlockDataSetAlgorithm
 {
 public:
   static vtkCmbLayeredConeSource* New();
-  vtkTypeMacro(vtkCmbLayeredConeSource, vtkMultiBlockDataSetAlgorithm);
+  //vtkTypeMacro(vtkCmbLayeredConeSource, vtkMultiBlockDataSetAlgorithm);
 
   void SetNumberOfLayers(int layers);
   int GetNumberOfLayers();
@@ -40,17 +40,17 @@ public:
   vtkGetVectorMacro(BaseCenter,double,3);
 
   vtkSetVector3Macro(Direction,double);
-  vtkGetVectorMacro(Direction,double,3);
+  //vtkGetVectorMacro(Direction,double,3);
 
   // Determines whether surface normals should be generated
   // On by default
-  vtkSetMacro(GenerateNormals,int);
-  vtkGetMacro(GenerateNormals,int);
-  vtkBooleanMacro(GenerateNormals,int);
+  //vtkSetMacro(GenerateNormals,int);
+  //vtkGetMacro(GenerateNormals,int);
+  //vtkBooleanMacro(GenerateNormals,int);
 
-  vtkSetMacro(GenerateEnds,int);
-  vtkGetMacro(GenerateEnds,int);
-  vtkBooleanMacro(GenerateEnds,int);
+  //vtkSetMacro(GenerateEnds,int);
+  //vtkGetMacro(GenerateEnds,int);
+  //vtkBooleanMacro(GenerateEnds,int);
 
   vtkSmartPointer<vtkPolyData> CreateUnitLayer(int l);
   vtkSmartPointer<vtkPolyData> CreateBoundaryLayer( double thickness, int l );

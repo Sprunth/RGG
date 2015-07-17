@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile/menuNew/menuNew_Hexagonal_Core" command="activate" arguments="action1_12_Symetric" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0.1.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.1.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0.2.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCurrent" arguments="0.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="0.1,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="edit" arguments="0.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="asd" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="asd" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="asdf" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="asdf" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCurrent" arguments="0.2" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="0.2,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="0.2,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="edit" arguments="0.2" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="a" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="asd" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="asdf" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree/qt_scrollarea_viewport/1QExpandingLineEdit0" command="set_string" arguments="asdf" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCurrent" arguments="0.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="0.1,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="0.1,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="edit" arguments="0.1" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCurrent" arguments="0.2" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="0.2,0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="edit" arguments="0.2" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCurrent" arguments="2.2" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabMaterial/MaterialTree" command="setCheckState" arguments="2.2,0" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuTools" />
+  <event object="qNucMainWindow/menuBar/menuTools/menuTesting" command="activate" arguments="actionStop_Recording" />
+</events>

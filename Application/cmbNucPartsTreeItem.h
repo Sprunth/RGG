@@ -45,8 +45,8 @@ public:
   void checkSaveAndGenerate();
 
   cmbNucPartsTreeItemConnection * connection;
-  bool fileChanged() const;
-  bool needGeneration() const;
+  //bool fileChanged() const;
+  //bool needGeneration() const;
 
 protected:
   bool FileChanged, NeedGeneration;

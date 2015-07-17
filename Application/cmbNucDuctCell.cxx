@@ -402,12 +402,6 @@ bool DuctCell::GetInnerDuctSize(double & x, double & y)
   return x != -1 && y != -1;
 }
 
-Duct * DuctCell::getPrevious()
-{
-  if(Ducts.empty()) return NULL;
-  return *Ducts.rbegin();
-}
-
 double DuctCell::getLength()
 {
   if(this->Ducts.size() == 0) return 10;

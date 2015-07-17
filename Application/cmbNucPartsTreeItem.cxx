@@ -87,15 +87,15 @@ void cmbNucPartsTreeItem::checkSaveAndGenerate()
 
 }
 
-bool cmbNucPartsTreeItem::fileChanged() const
-{
-  return FileChanged;
-}
+//bool cmbNucPartsTreeItem::fileChanged() const
+//{
+//  return FileChanged;
+//}
 
-bool cmbNucPartsTreeItem::needGeneration() const
-{
-  return NeedGeneration;
-}
+//bool cmbNucPartsTreeItem::needGeneration() const
+//{
+//  return NeedGeneration;
+//}
 
 void cmbNucPartsTreeItem::setHighlights(bool fc, bool ng)
 {

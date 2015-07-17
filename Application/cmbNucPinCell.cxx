@@ -721,19 +721,6 @@ double PinCell::getZ0() const
   return (*(this->Parts.begin()))->getZ1();
 }
 
-void PinCell::setZ0(double z0)
-{
-  if(this->Parts.empty()) return;
-  double d = z0 - this->GetPart(0)->getZ1();
-  if(d == 0) return;
-  for(unsigned int i = 0; i < this->GetNumberOfParts(); ++i)
-  {
-    PinSubPart* p = this->GetPart(i);
-    p->setZ1(p->getZ1() + d);
-    p->setZ2(p->getZ2() + d);
-  }
-}
-
 void PinCell::removeFakeBoundaryLayer(std::string blname)
 {
   //For now only support the outer most
