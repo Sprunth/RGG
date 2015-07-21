@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <events>
+  <event object="TESTER" command="delete" arguments="${OUTPUT_DIRECTORY};*.inp;*.cub;*.rxf;*.jou;*.sat;*.h5m;*.log" />
   <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
   <event object="qNucMainWindow/menuBar/menuFile" command="activate" arguments="actionOpenFile" />
   <event object="RGGNuclear-app" command="FilesOpen" arguments="${TEST_DIRECTORY}/Reactors/twelfth_hexflatcore/twelfth_hexflatcore.rxf" />

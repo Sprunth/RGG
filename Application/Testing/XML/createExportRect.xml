@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <events>
+  <event object="TESTER" command="delete" arguments="${OUTPUT_DIRECTORY};*.inp;*.cub;*.rxf;*.jou;*.sat;*.h5m;*.log" />
   <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
   <event object="qNucMainWindow/menuBar/menuFile/menuNew" command="activate" arguments="actionNew_Rectilinear_Core" />
   <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />

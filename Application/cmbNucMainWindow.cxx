@@ -165,7 +165,16 @@ protected:
     }
     if(widget == "TESTER" && command == "delete")
     {
-      QFile::remove(arguments);
+      QStringList args = arguments.split(";");
+      QString path = args[0];
+      args.pop_front();
+      QDir dir(path);
+      dir.setNameFilters(args);
+      dir.setFilter(QDir::Files);
+      foreach(QString dirFile, dir.entryList())
+      {
+        dir.remove(dirFile);
+      }
       return getNextEvent(widget, command, arguments);
     }
     if(widget == "TESTER" && command == "wait_for_export")
