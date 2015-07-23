@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<events>
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuFile" />
+  <event object="qNucMainWindow/menuBar/menuFile/menuNew/menuNew_Hexagonal_Core" command="activate" arguments="actionFullHexagonal" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Materials" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Mesh" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_tabbar" command="set_tab_with_text" arguments="Assemblies" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0.1.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.1.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="expand" arguments="0.0.2.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.2.0.0.0" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/stackedWidget/pageAssembly/tabWidget_3/qt_tabwidget_stackedwidget/tab_6/assyColorButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/1QColorDialog0/1QWellArray0" command="mousePress" arguments="1,1,0,39,11" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/1QColorDialog0/1QWellArray0" command="mouseRelease" arguments="1,0,0,39,11" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/1QColorDialog0/1QDialogButtonBox0/1QPushButton0" command="activate" arguments="" />
+  <event object="qNucMainWindow/PropertyDock/InputPropertiesWidget/ApplyButton" command="activate" arguments="" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0.0.0" />
+  <event object="qNucMainWindow/InputsDock/InputListWidget/tabInputs/qt_tabwidget_stackedwidget/tabParts/PartsList" command="setCurrent" arguments="0.0" />
+  <event object="qNucMainWindow/1QTabBar0" command="set_tab_with_text" arguments="2D View" />
+  <event object="qNucMainWindow/menuBar" command="activate" arguments="menuPart" />
+  <event object="qNucMainWindow/menuBar/menuTools/menuTesting" command="activate" arguments="actionPlay" />
+  <event object="RGGNuclear-app" command="FileOpen" arguments="" />
+</events>

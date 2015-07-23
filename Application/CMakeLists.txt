@@ -292,6 +292,8 @@ if(BUILD_TESTING)
                                   exportImportBoundaryLayer
                                   saveAndLoadBoundaryLayer
                                   testPinComponentDelete
+                                  test_rect_size_changes
+                                  delete_duct_material_layer
                                   ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES test_loading_mesh
@@ -303,7 +305,10 @@ if(BUILD_TESTING)
 
   set (LONG_TEST test_export_hex createExportRect)
 
-  set (TESTS_WITH_2D_BASELINES  ${TESTS_BOTH_2D_3D})
+  set (TESTS_WITH_2D_BASELINES test_assy_color_select
+                               test_pin_color_select
+                               test_assy_link_color_select
+                               ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITHOUT_BASELINES exit
                                TestAbout
@@ -311,7 +316,8 @@ if(BUILD_TESTING)
                                testConfigsSaveLoadExport
                                rename_unknown_material
                                testUnknownParameter
-                               testImportLog)
+                               testImportLog
+                               cylinder_generate_error_test)
 
   if(APPLE)
      set(LIBRARY_PATH "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${OCE_LIB}:$ENV{DYLD_LIBRARY_PATH}")
