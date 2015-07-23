@@ -292,6 +292,7 @@ if(BUILD_TESTING)
                                   exportImportBoundaryLayer
                                   saveAndLoadBoundaryLayer
                                   testPinComponentDelete
+                                  test_rect_size_changes
                                   ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES test_loading_mesh
