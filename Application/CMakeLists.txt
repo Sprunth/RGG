@@ -316,7 +316,8 @@ if(BUILD_TESTING)
                                testConfigsSaveLoadExport
                                rename_unknown_material
                                testUnknownParameter
-                               testImportLog)
+                               testImportLog
+                               cylinder_generate_error_test)
 
   if(APPLE)
      set(LIBRARY_PATH "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${OCE_LIB}:$ENV{DYLD_LIBRARY_PATH}")
