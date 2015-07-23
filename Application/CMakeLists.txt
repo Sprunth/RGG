@@ -304,6 +304,7 @@ if(BUILD_TESTING)
   set (LONG_TEST test_export_hex createExportRect)
 
   set (TESTS_WITH_2D_BASELINES test_assy_color_select
+                               test_pin_color_select
                                ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITHOUT_BASELINES exit
