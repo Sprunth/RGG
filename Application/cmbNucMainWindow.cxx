@@ -1368,6 +1368,7 @@ void cmbNucMainWindow::doClearAll(bool needSave)
   this->ui->qvtkWidget->update();
   this->resetCamera();
   this->Renderer->Render();
+  this->setTitle();
 }
 
 void cmbNucMainWindow::clearCore()
@@ -1733,13 +1734,13 @@ bool cmbNucMainWindow::is3DTabVisible()
 void cmbNucMainWindow::updatePropertyDockTitle(const QString& title)
 {
   if (title == "")
-    {
+  {
     this->ui->PropertyDock->setWindowTitle("Properties");
-    }
+  }
   else
-    {
+  {
     this->ui->PropertyDock->setWindowTitle(title);
-    }
+  }
 }
 
 bool cmbNucMainWindow::checkFilesBeforePreceeding()
