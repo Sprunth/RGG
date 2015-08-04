@@ -294,6 +294,7 @@ if(BUILD_TESTING)
                                   testPinComponentDelete
                                   test_rect_size_changes
                                   delete_duct_material_layer
+                                  test_clone_manual_pitch
                                   ${TESTS_BOTH_2D_3D})
 
   set (TESTS_WITH_MESH_BASELINES test_loading_mesh

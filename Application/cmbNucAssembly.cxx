@@ -753,6 +753,8 @@ cmbNucAssembly * cmbNucAssembly::clone(cmbNucPinLibrary * pl,
   result->DifferentFromCub = this->DifferentFromCub;
   result->DifferentFromJournel = this->DifferentFromJournel;
 
+  result->KeepPinsCentered = this->KeepPinsCentered;
+
   result->Parameters->fill(this->Parameters);
 
   result->pinPitchX = this->pinPitchX;
