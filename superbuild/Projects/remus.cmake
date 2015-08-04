@@ -2,7 +2,7 @@
 add_external_project(remus
   DEPENDS boost zeroMQ
   CMAKE_ARGS
-    -DBUILD_SHARED_LIBS=OFF
+    -DBUILD_SHARED_LIBS=ON
     -DRemus_ENABLE_EXAMPLES:BOOL=OFF
     -DRemus_NO_SYSTEM_BOOST:BOOL=ON
     -DRemus_ENABLE_TESTING:BOOL=OFF

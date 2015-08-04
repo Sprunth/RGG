@@ -10,10 +10,8 @@ if(SUPPRESS_ZEROMQ_BUILD_OUTPUT)
 endif()
 
 add_external_project(zeroMQ
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --enable-shared
-    --disable-static
-    --prefix=<INSTALL_DIR>
-  BUILD_IN_SOURCE 1
+  CMAKE_ARGS
+    -DBUILD_SHARED_LIBS:BOOL=ON
+    -DZMQ_BUILD_FRAMEWORK:BOOL=OFF
   ${suppress_build_out}
 )
