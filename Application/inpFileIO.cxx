@@ -1984,7 +1984,67 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   }
 
   std::vector< cmbNucAssemblyLink* > usedLinks = core.GetUsedLinks();
+  std::vector< std::pair<cmbNucAssemblyLink*, Lattice::CellDrawMode> > usedLinksForWriteOut;
   count += usedLinks.size();
+
+  // Given a vector of links (usedLinks)
+  // Create a map between these links and the corresponding Lattice::CellDrawMode
+  // foreach link
+  for (unsigned int i = 0; i < usedLinks.size(); i++)
+  {
+    cmbNucAssemblyLink * link = usedLinks[i];
+    cmbNucAssembly * assembly = link->getLink();
+
+    // Get the label of the assembly the link belongs to (ie 'Assy_1')
+    std::string assyPartLabel = link->getLabel();
+
+    // Get the drawmode for this link
+    Lattice::CellDrawMode mode;
+    for(CellMap::const_iterator cell_iter = cells.begin();
+      cell_iter != cells.end(); ++cell_iter)
+    {
+      // if the cell pair is the one for this link
+      if (assyPartLabel.compare(cell_iter->first) == 0)
+      {
+        // Get the mode corresponding to the matched cell
+        //mode = core.GetAssembly(cell_iter->first)->getLattice().getDrawMode(0,0);
+        mode = *(cell_iter->second.begin());
+        break;
+      }
+    }
+    // todo: If mode unassigned, we need to write out assembly for this link ('v2 bug')
+
+    // loop through cell pairs of the assembly we want to link with
+    // and make sure there is one for the same drawmode
+    std::string linkTargetMode = assembly->getLabel();
+    for(CellMap::const_iterator cell_iter = cells.begin();
+      cell_iter != cells.end(); ++cell_iter)
+    {
+      // if the cell pair is the one for this link
+      if (linkTargetMode.compare(cell_iter->first) == 0)
+      {
+        // cell_iter is the cellpair with our link's target
+        std::set<Lattice::CellDrawMode> validModes = cell_iter->second;
+        // search for the mode our link is in
+        std::set<Lattice::CellDrawMode>::iterator it = validModes.find(mode);
+        if (it != validModes.end())
+        {
+          // The mode exists
+          // Create/Assign our temp this link
+          cmbNucAssemblyLink * tmpLink = new cmbNucAssemblyLink(assembly,
+                                                                link->getMaterialStartID(),
+                                                                link->getNeumannStartID());
+          std::string tmpLabel = assyPartLabel;
+          tmpLabel = Lattice::generate_string(tmpLabel, mode);
+          tmpLink->setLabel(tmpLabel);
+
+          usedLinksForWriteOut.push_back(std::pair<cmbNucAssemblyLink*, Lattice::CellDrawMode>(tmpLink, mode));
+        }
+        //else...'v2' bug
+      }
+    }
+  }
+
 
   output << "Assemblies " << count;
   output << " " << core.getAssemblyPitchX();
@@ -2015,11 +2075,25 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
              << Lattice::generate_string(assembly->getLabel(), mode) << "\n";
     }
   }
-  for(unsigned int i = 0; i < usedLinks.size(); ++i)
+  for(unsigned int i = 0; i < usedLinksForWriteOut.size(); ++i)
   {
-    cmbNucAssemblyLink * link = usedLinks[i];
+    cmbNucAssemblyLink * link = usedLinksForWriteOut[i].first;
     cmbNucAssembly * assembly = link->getLink();
-    std::string assemblyName = assembly->getFileName();
+    
+    // get the number of modes. todo: use stl to fast find this
+    size_t nom = 1; // getFileName default
+    for(CellMap::const_iterator cell_iter = cells.begin();
+        cell_iter != cells.end(); ++cell_iter)
+    {
+      // match the assembly's label to the cell label (ie 'Assy_0')
+      if (cell_iter->first.compare(assembly->getLabel()) == 0)
+      {
+        nom = cell_iter->second.size();
+        break;
+      }
+    }
+
+    std::string assemblyName = assembly->getFileName(usedLinksForWriteOut[i].second, nom);
     QFileInfo temp(assemblyName.c_str());
     assemblyName = temp.completeBaseName().toStdString();
 
@@ -2028,7 +2102,9 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
            << assemblyName << assembly->getOutputExtension() << " "
            << link->getMaterialStartID() << " " << link->getNeumannStartID()
            << "\n";
-  }
+
+    delete usedLinksForWriteOut[i].first;
+  } 
   output.flush();
   qDebug() << "wrote assemplies";
 }
