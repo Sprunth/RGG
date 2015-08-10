@@ -1999,7 +1999,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     std::string assyPartLabel = link->getLabel();
 
     // Get the drawmode for this link
-    Lattice::CellDrawMode mode;
+    std::set<Lattice::CellDrawMode> modes;
     for(CellMap::const_iterator cell_iter = cells.begin();
       cell_iter != cells.end(); ++cell_iter)
     {
@@ -2008,7 +2008,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       {
         // Get the mode corresponding to the matched cell
         //mode = core.GetAssembly(cell_iter->first)->getLattice().getDrawMode(0,0);
-        mode = *(cell_iter->second.begin());
+        modes = cell_iter->second;
         break;
       }
     }
@@ -2025,22 +2025,31 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       {
         // cell_iter is the cellpair with our link's target
         std::set<Lattice::CellDrawMode> validModes = cell_iter->second;
-        // search for the mode our link is in
-        std::set<Lattice::CellDrawMode>::iterator it = validModes.find(mode);
-        if (it != validModes.end())
-        {
-          // The mode exists
-          // Create/Assign our temp this link
-          cmbNucAssemblyLink * tmpLink = new cmbNucAssemblyLink(assembly,
-                                                                link->getMaterialStartID(),
-                                                                link->getNeumannStartID());
-          std::string tmpLabel = assyPartLabel;
-          tmpLabel = Lattice::generate_string(tmpLabel, mode);
-          tmpLink->setLabel(tmpLabel);
 
-          usedLinksForWriteOut.push_back(std::pair<cmbNucAssemblyLink*, Lattice::CellDrawMode>(tmpLink, mode));
+        // iterate through all the modes the link could be in
+        for(ModeSet::const_iterator modes_iter = modes.begin();
+            modes_iter != modes.end(); ++modes_iter)
+        {
+            Lattice::CellDrawMode mode = *modes_iter;
+
+            // search for the mode our link is in
+            std::set<Lattice::CellDrawMode>::iterator it = validModes.find(mode);
+            if (it != validModes.end())
+            {
+              // The mode exists
+              // Create/Assign our temp this link
+              cmbNucAssemblyLink * tmpLink = new cmbNucAssemblyLink(assembly,
+                                                                    link->getMaterialStartID(),
+                                                                    link->getNeumannStartID());
+              std::string tmpLabel = assyPartLabel;
+              tmpLabel = Lattice::generate_string(tmpLabel, mode);
+              tmpLink->setLabel(tmpLabel);
+
+              usedLinksForWriteOut.push_back(std::pair<cmbNucAssemblyLink*, Lattice::CellDrawMode>(tmpLink, mode));
+            }
+            //else...'v2' bug
+
         }
-        //else...'v2' bug
       }
     }
   }
