@@ -2,6 +2,7 @@
 #include "inpFileIO.h"
 #include "cmbNucCore.h"
 #include "cmbNucAssembly.h"
+#include "cmbNucAssemblyLink.h"
 #include "cmbNucDuctLibrary.h"
 
 #include <QFileInfo>
@@ -56,12 +57,63 @@ bool cmbNucInpExporter
       iter != cells.end(); ++iter)
   {
     cmbNucAssembly* assembly = NuclearCore->GetAssembly(iter->first);
-    if(assembly == NULL) continue;
-    assembly->setPath(coreinfo.dir().absolutePath().toStdString());
-    std::set< Lattice::CellDrawMode > const& forms = iter->second;
-    cmbNucAssembly* assemblyClone = assembly->clone(pl, dl);
-    this->exportInpFile(assemblyClone, false, forms);
-    delete assemblyClone;
+    if(assembly != NULL)
+    {
+        assembly->setPath(coreinfo.dir().absolutePath().toStdString());
+        std::set< Lattice::CellDrawMode > const& forms = iter->second;
+        cmbNucAssembly* assemblyClone = assembly->clone(pl, dl);
+        this->exportInpFile(assemblyClone, false, forms);
+        delete assemblyClone;
+    }
+    else
+    {
+        // check to see if iter->first is a link
+        // if it is a link but there is no corresponding target assembly with the same mode
+        // clone the link target assembly and write it out with the link mode
+
+        cmbNucAssemblyLink * correspondingLink = NuclearCore->GetAssemblyLink(iter->first);;
+//        for(std::vector< cmbNucAssemblyLink* >::const_iterator link_iter = NuclearCore->AssemblyLinks.begin(); link_iter != NuclearCore->AssemblyLinks.end(); ++link_iter)
+//        {
+//            if (link_iter->getLabel().compare(iter->getLabel()) == 0)
+//            {
+//                correspondingLink = *link_iter;
+//                break;
+//            }
+//        }
+        if (correspondingLink == NULL)
+        {
+            continue;
+        }
+        // correspondingLink is the link that this current iter is linked with
+        // this assumes only 1 link can be had for any label
+
+        //std::string linkTargetLabel = correspondingLink->link.getLabel();
+        std::string linkTargetLabel = correspondingLink->getLink()->getLabel();
+        cmbNucAssembly* linkTargetAssy = NuclearCore->GetAssembly(linkTargetLabel);
+
+        if (linkTargetAssy == NULL)
+        {
+            continue;
+        }
+
+        // now find the assembly that goes along with the linkTargetLabel
+//        for(std::vector< cmbNucAssembly* >::const_iterator assy_iter = NuclearCore->AssemblyLinks.begin(); assy_iter != NuclearCore->AssemblyLinks.end(); ++assy_iter)
+//        {
+//            if (assy_iter->getLabel().compare(linkTargetLabel) == 0)
+//            {
+//                linkTargetAssy = *assy_iter;
+//                break;
+//            }
+//        }
+
+        // same as above. Maybe worth merging?
+        linkTargetAssy->setPath(coreinfo.dir().absolutePath().toStdString());
+        std::set< Lattice::CellDrawMode > const& forms = iter->second;
+        cmbNucAssembly* assemblyClone = linkTargetAssy->clone(pl, dl);
+        assemblyClone->setLabel(iter->first);
+        this->exportInpFile(assemblyClone, false, forms);
+        delete assemblyClone;
+    }
   }
   if(this->NuclearCore->changeSinceLastGenerate())
   {
@@ -200,7 +252,7 @@ bool cmbNucInpExporter
     }
 
     Lattice::CellDrawMode mode = *fiter;
-    std::string const& fname = assy->getFileName(mode, forms.size());
+    std::string const& fname = assy->getFileName(mode, forms.size()+1);
 
     switch(mode)
     {

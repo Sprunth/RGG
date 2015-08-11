@@ -2012,7 +2012,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
         break;
       }
     }
-    // todo: If mode unassigned, we need to write out assembly for this link ('v2 bug')
+    // todo: If modes unassigned, what do? link w/o modes?
 
     // loop through cell pairs of the assembly we want to link with
     // and make sure there is one for the same drawmode
@@ -2047,13 +2047,19 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
 
               usedLinksForWriteOut.push_back(std::pair<cmbNucAssemblyLink*, Lattice::CellDrawMode>(tmpLink, mode));
             }
-            //else...'v2' bug
+            //'v2' bug
+            else
+            {
+                // mode has nothing to link to,
+                // so make it a "real" assembly
+                // and make sure it is written out as such
 
+
+            }
         }
       }
     }
   }
-
 
   output << "Assemblies " << count;
   output << " " << core.getAssemblyPitchX();
