@@ -1985,6 +1985,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
 
   std::vector< cmbNucAssemblyLink* > usedLinks = core.GetUsedLinks();
   std::vector< std::pair<cmbNucAssemblyLink*, Lattice::CellDrawMode> > usedLinksForWriteOut;
+  std::map< cmbNucAssembly*, std::set<Lattice::CellDrawMode> > orphanedAssembilies;
   count += usedLinks.size();
 
   // Given a vector of links (usedLinks)
@@ -1998,8 +1999,9 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     // Get the label of the assembly the link belongs to (ie 'Assy_1')
     std::string assyPartLabel = link->getLabel();
 
-    // Get the drawmode for this link
+    // Get the drawmodes for this link
     std::set<Lattice::CellDrawMode> modes;
+
     for(CellMap::const_iterator cell_iter = cells.begin();
       cell_iter != cells.end(); ++cell_iter)
     {
@@ -2007,7 +2009,6 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       if (assyPartLabel.compare(cell_iter->first) == 0)
       {
         // Get the mode corresponding to the matched cell
-        //mode = core.GetAssembly(cell_iter->first)->getLattice().getDrawMode(0,0);
         modes = cell_iter->second;
         break;
       }
@@ -2020,42 +2021,45 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     for(CellMap::const_iterator cell_iter = cells.begin();
       cell_iter != cells.end(); ++cell_iter)
     {
-      // if the cell pair is the one for this link
-      if (linkTargetMode.compare(cell_iter->first) == 0)
+      // if the cell pair is not the one for this link, skip
+      if (linkTargetMode.compare(cell_iter->first) != 0)
       {
-        // cell_iter is the cellpair with our link's target
-        std::set<Lattice::CellDrawMode> validModes = cell_iter->second;
+          continue;
+      }
+      // cell_iter is the cellpair with our link's target
+      std::set<Lattice::CellDrawMode> validModes = cell_iter->second;
 
-        // iterate through all the modes the link could be in
-        for(ModeSet::const_iterator modes_iter = modes.begin();
-            modes_iter != modes.end(); ++modes_iter)
+      // iterate through all the modes the link could be in
+      for(ModeSet::const_iterator modes_iter = modes.begin();
+          modes_iter != modes.end(); ++modes_iter)
+      {
+        Lattice::CellDrawMode mode = *modes_iter;
+
+        // search for the mode our link is in
+        std::set<Lattice::CellDrawMode>::iterator it = validModes.find(mode);
+        if (it == validModes.end())
         {
-            Lattice::CellDrawMode mode = *modes_iter;
+          //'v2' bug
+          // cmbNucInpExporter::exportInpFiles() handles writing the assembly inp file
+          // but the core.inp file still needs this v2 entry
+          cmbNucAssembly* assy = assembly->clone(assembly->getPinLibrary()->clone(), assembly->getDuctLibrary()->clone());
+          std::string tmpLabel = assyPartLabel;
+          //tmpLabel = Lattice::generate_string(tmpLabel, mode);
+          assy->setLabel(tmpLabel);
+          orphanedAssembilies[assy].insert(mode);
+        }
+        else
+        {
+          // The mode exists
+          // Create/Assign our temp this link
+          cmbNucAssemblyLink * tmpLink = new cmbNucAssemblyLink(assembly,
+                                                                link->getMaterialStartID(),
+                                                                link->getNeumannStartID());
+          std::string tmpLabel = assyPartLabel;
+          tmpLabel = Lattice::generate_string(tmpLabel, mode);
+          tmpLink->setLabel(tmpLabel);
 
-            // search for the mode our link is in
-            std::set<Lattice::CellDrawMode>::iterator it = validModes.find(mode);
-            if (it != validModes.end())
-            {
-              // The mode exists
-              // Create/Assign our temp this link
-              cmbNucAssemblyLink * tmpLink = new cmbNucAssemblyLink(assembly,
-                                                                    link->getMaterialStartID(),
-                                                                    link->getNeumannStartID());
-              std::string tmpLabel = assyPartLabel;
-              tmpLabel = Lattice::generate_string(tmpLabel, mode);
-              tmpLink->setLabel(tmpLabel);
-
-              usedLinksForWriteOut.push_back(std::pair<cmbNucAssemblyLink*, Lattice::CellDrawMode>(tmpLink, mode));
-            }
-            //'v2' bug
-            else
-            {
-                // mode has nothing to link to,
-                // so make it a "real" assembly
-                // and make sure it is written out as such
-
-
-            }
+          usedLinksForWriteOut.push_back(std::pair<cmbNucAssemblyLink*, Lattice::CellDrawMode>(tmpLink, mode));
         }
       }
     }
@@ -2089,6 +2093,27 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
       output << assemblyName << assembly->getOutputExtension() << " "
              << Lattice::generate_string(assembly->getLabel(), mode) << "\n";
     }
+  }
+  // Same as above, but for orphaned links that need have become assemblies
+  for(std::map< cmbNucAssembly*, std::set<Lattice::CellDrawMode> >::const_iterator iter = orphanedAssembilies.begin();
+      iter != orphanedAssembilies.end(); ++iter)
+  {
+      cmbNucAssembly* assembly = iter->first;
+      std::set< Lattice::CellDrawMode > const& forms = iter->second;
+
+      for(ModeSet::const_iterator form_iter = forms.begin();
+          form_iter != forms.end(); ++form_iter)
+      {
+        Lattice::CellDrawMode mode = *form_iter;
+        std::string assemblyName = assembly->getFileName(mode, forms.size()+1);
+        assert(!assemblyName.empty());
+        {
+          QFileInfo temp(assemblyName.c_str());
+          assemblyName = temp.completeBaseName().toStdString();
+        }
+        output << assemblyName << assembly->getOutputExtension() << " "
+               << Lattice::generate_string(assembly->getLabel(), mode) << "\n";
+      }
   }
   for(unsigned int i = 0; i < usedLinksForWriteOut.size(); ++i)
   {
