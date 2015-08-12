@@ -92,6 +92,9 @@ bool cmbNucInpExporter
         std::set< Lattice::CellDrawMode > const& forms = iter->second;
         cmbNucAssembly* assemblyClone = linkTargetAssy->clone(pl, dl);
         assemblyClone->setLabel(iter->first);
+        std::string fname = "assembly_" + assemblyClone->getLabel() + ".inp";
+        std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+        assemblyClone->setFileName(fname);
         this->exportInpFile(assemblyClone, false, forms);
         delete assemblyClone;
     }
