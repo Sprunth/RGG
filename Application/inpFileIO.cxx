@@ -2026,6 +2026,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
           continue;
       }
       // cell_iter is the cellpair with our link's target
+      // validModes is a set of modes that the "link target" is in
       std::set<Lattice::CellDrawMode> validModes = cell_iter->second;
 
       // iterate through all the modes the link could be in
@@ -2041,14 +2042,37 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
           //'v2' bug
           // cmbNucInpExporter::exportInpFiles() handles writing the assembly inp file
           // but the core.inp file still needs this v2 entry
-          cmbNucAssembly* assy = assembly->clone(assembly->getPinLibrary()->clone(), assembly->getDuctLibrary()->clone());
-          std::string tmpLabel = assyPartLabel;
-          //tmpLabel = Lattice::generate_string(tmpLabel, mode);
-          assy->setLabel(tmpLabel);
-          std::string fname = "assembly_" + assy->getLabel() + ".inp";
-          std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
-          assy->setFileName(fname);
-          orphanedAssembilies[assy].insert(mode);
+
+          // check and see if an assembly clone is already in orphanedAssembilies
+          // if so, instead of creating a new clone, just add the mode to a new form
+          cmbNucAssembly* existingClone = NULL;
+          for(std::map< cmbNucAssembly*, std::set<Lattice::CellDrawMode> >::iterator orphan_iter = orphanedAssembilies.begin();
+              orphan_iter != orphanedAssembilies.end(); ++orphan_iter)
+          {
+            if (orphan_iter->first->getLabel().compare(assyPartLabel) == 0)
+            {
+              existingClone = orphan_iter->first;
+            }
+          }
+
+          if (existingClone == NULL)
+          {
+            // we need to create a clone since one doesn't exist
+            cmbNucAssembly* assy = assembly->clone(assembly->getPinLibrary()->clone(), assembly->getDuctLibrary()->clone());
+            std::string tmpLabel = assyPartLabel;
+            //tmpLabel = Lattice::generate_string(tmpLabel, mode);
+            assy->setLabel(tmpLabel);
+            std::string fname = "assembly_" + assy->getLabel() + ".inp";
+            std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+            assy->setFileName(fname);
+            orphanedAssembilies[assy].insert(mode);
+          }
+          else
+          {
+            // Just add the mode to the existing clone
+            orphanedAssembilies[existingClone].insert(mode);
+          }
+
         }
         else
         {
@@ -2106,7 +2130,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
           form_iter != forms.end(); ++form_iter)
       {
         Lattice::CellDrawMode mode = *form_iter;
-        std::string assemblyName = assembly->getFileName(mode, forms.size()+1);
+        std::string assemblyName = assembly->getFileName(mode, forms.size());
         assert(!assemblyName.empty());
         {
           QFileInfo temp(assemblyName.c_str());
