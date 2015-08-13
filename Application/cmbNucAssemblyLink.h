@@ -29,6 +29,8 @@ public:
   virtual std::string getTitle()
   { return "Assembly: " + AssyPartObj::getTitle() + " --> (" + getLink()->getLabel() +")"; }
 
+  cmbNucAssembly * clone();
+
 protected:
   cmbNucAssembly * link;
   std::string materialStartID;
