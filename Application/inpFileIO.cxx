@@ -1974,19 +1974,11 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   typedef std::map< std::string, std::set< Lattice::CellDrawMode > > CellMap;
   typedef std::set< Lattice::CellDrawMode > ModeSet;
   CellMap cells = core.getDrawModesForAssemblies();
-  size_t count = 0;
-  for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)
-  {
-    if(core.GetAssembly(iter->first) != NULL)
-    {
-      count += iter->second.size();
-    }
-  }
 
   std::vector< cmbNucAssemblyLink* > usedLinks = core.GetUsedLinks();
-  count += usedLinks.size();
   std::map< cmbNucAssemblyLink*, Lattice::CellDrawMode > usedLinksForWriteOut;
   std::map< cmbNucAssembly*, std::set<Lattice::CellDrawMode> > orphanedAssembilies;
+  std::map< cmbNucAssemblyLink*, int > orphanCounts;
 
   // Given a vector of links (usedLinks)
   // Create a map between these links and the corresponding Lattice::CellDrawMode
@@ -1994,6 +1986,8 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
   {
     cmbNucAssemblyLink * link = usedLinks[i];
     cmbNucAssembly * assembly = link->getLink();
+
+    int orphanCount = 0;
 
     // Get the label of the assembly the link belongs to (ie 'Assy_1')
     std::string assyPartLabel = link->getLabel();
@@ -2034,6 +2028,10 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
           modes_iter != modes.end(); ++modes_iter)
       {
         Lattice::CellDrawMode mode = *modes_iter;
+
+        // regardless of whether we need to create a clone,
+        // add to a clone, or make a link, we record this as an orphan
+        orphanCount++;
 
         // search for the mode our link is in
         std::set<Lattice::CellDrawMode>::iterator it = validModes.find(mode);
@@ -2088,6 +2086,23 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
         }
       }
     }
+
+    orphanCounts[link] = orphanCount;
+  }
+
+  size_t count = 0;
+  for(CellMap::const_iterator iter = cells.begin(); iter != cells.end(); ++iter)
+  {
+    if(core.GetAssembly(iter->first) != NULL)
+    {
+      count += iter->second.size();
+    }
+  }
+  for(std::vector<cmbNucAssemblyLink*>::iterator link_iter = usedLinks.begin();
+      link_iter != usedLinks.end(); link_iter++)
+  {
+    // could probably replace this loop with std::accumulate
+    count += orphanCounts[*link_iter];
   }
 
   output << "Assemblies " << count;
