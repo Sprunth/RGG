@@ -9,6 +9,8 @@ find_library(CUBIT_LIBRARY
   PATHS "${CUBITROOT}/bin"
         "${CUBITROOT}/lib"
         "${CUBITROOT}/libs"
+        "${CUBITROOT}/Cubit.app/Contents/MacOS/"
+        "${CUBITROOT}/Contents/MacOS/"
         "${CUBITROOT}"
   DOC   "The path to the cubit library")
 
@@ -20,6 +22,8 @@ find_library(CUBIT_UTIL_LIBRARY
   PATHS "${CUBITROOT}/bin"
         "${CUBITROOT}/lib"
         "${CUBITROOT}/libs"
+        "${CUBITROOT}/Cubit.app/Contents/MacOS/"
+        "${CUBITROOT}/Contents/MacOS/"
         "${CUBITROOT}"
   DOC   "The path to the cubit utility library")
 
@@ -29,6 +33,8 @@ find_library(CUBIT_GEOM_LIBRARY
   PATHS "${CUBITROOT}/bin"
         "${CUBITROOT}/lib"
         "${CUBITROOT}/libs"
+        "${CUBITROOT}/Cubit.app/Contents/MacOS/"
+        "${CUBITROOT}/Contents/MacOS/"
         "${CUBITROOT}"
   DOC   "The path to the cubit geometry library")
 
