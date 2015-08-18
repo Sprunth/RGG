@@ -52,6 +52,9 @@ option ( BUILD_WITH_MPI       "Build with MPI support" OFF )
 
 if(BUILD_WITH_CUBIT)
   find_package(CUBIT REQUIRED)
+  if (APPLE) # Match the standard library cubit uses.
+    set(cxxflags "${cxxflags} -stdlib=libstdc++")
+  endif ()
 endif()
 
 if (APPLE)
