@@ -45,19 +45,19 @@ if(BUILD_MESHKIT_MASTER)
   )
 else()
   add_revision( moab
-                GIT_REPOSITORY https://bitbucket.org/judajake/moab.git
-                GIT_TAG add_verdict_support )
+                GIT_REPOSITORY https://bitbucket.org/mathstuf/moab.git
+                GIT_TAG windows-with-cmake-support )
 
   add_revision(lasso
-    GIT_REPOSITORY https://bitbucket.org/fathomteam/lasso.git
-    GIT_TAG Version3.2
+    GIT_REPOSITORY https://bitbucket.org/mathstuf/lasso.git
+    GIT_TAG cmake
   )
 
   add_revision(meshkit
     #GIT_REPOSITORY https://bitbucket.org/fathomteam/meshkit.git
-    GIT_REPOSITORY https://bitbucket.org/judajake/meshkit.git
+    GIT_REPOSITORY  https://bitbucket.org/mathstuf/meshkit.git
     #GIT_TAG MeshKitv1.3
-    GIT_TAG v3
+    GIT_TAG cmake
     #GIT_TAG 57659678d1632bcac7a4f551cad7800a40c27aa4
   )
 endif()
