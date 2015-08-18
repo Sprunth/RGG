@@ -143,22 +143,14 @@ add_revision(vxl
   URL http://vtk.org/files/support/vxl_r35313.tar.gz
   URL_MD5 2fd3ed6fe208e70be2637bd7342a0011a3e2574e)
 
-if (WIN32)
-  #windows uses the custom cmake build of zeroMQ
-  add_revision(zeroMQ
-    GIT_REPOSITORY https://github.com/robertmaynard/zeromq2-x
-    GIT_TAG master)
-else()
-  #unix and mac uses the stable release
-  add_revision(zeroMQ
-    URL "http://download.zeromq.org/zeromq-3.2.5.tar.gz"
-    URL_MD5 d4189c152fbdc45b376a30bd643f67fd)
-
-endif()
+add_revision(zeroMQ
+  GIT_REPOSITORY "https://github.com/robertmaynard/zeromq4-x.git"
+  GIT_TAG "master"
+)
 
 add_revision(remus
   GIT_REPOSITORY https://github.com/Kitware/Remus.git
-  GIT_TAG v0.5.2
+  GIT_TAG 8cd2d545b09b2282213c7afd581c74731ec775a5
 )
 
 add_revision(kml
