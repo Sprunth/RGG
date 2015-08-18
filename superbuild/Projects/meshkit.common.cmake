@@ -9,8 +9,14 @@ endif()
 cmake_dependent_option(BUILD_WITH_CUBIT "Build CGM with CUBIT" OFF
   ENABLE_meshkit OFF)
 
+set(USE_CUBIT ${BUILD_WITH_CUBIT})
+if (APPLE)
+  # meshkit32bit handles this.
+  set(USE_CUBIT OFF)
+endif()
+
 set(extra_deps)
-if (NOT BUILD_WITH_CUBIT)
+if (NOT BUILD_WITH_CUBIT OR APPLE)
   list(APPEND extra_deps
     freetype)
 endif ()
@@ -24,7 +30,7 @@ set(meshkit_args
   DEPENDS zlib szip hdf5 netcdf ${extra_deps}
   CMAKE_ARGS
     -DBUILD_MESHKIT_MASTER:BOOL=${BUILD_MESHKIT_MASTER}
-    -DBUILD_WITH_CUBIT:BOOL=${BUILD_WITH_CUBIT}
+    -DBUILD_WITH_CUBIT:BOOL=${USE_CUBIT}
     -DENABLE_meshkit:BOOL=ON
     -DCMAKE_INSTALL_PREFIX:path=<INSTALL_DIR>/meshkitCubit
     -DCMAKE_PREFIX_PATH:path=<INSTALL_DIR>/meshkitCubit

@@ -10,7 +10,9 @@ set(CMAKE_OSX_ARCHITECTURES i386)
 add_external_project(meshkit32bit
   APPLE_32Bit
   ${meshkit_args}
-    -DCMAKE_OSX_ARCHITECTURES:STRING=i386)
+    -DCMAKE_OSX_ARCHITECTURES:STRING=i386
+    -DBUILD_WITH_CUBIT:BOOL=${BUILD_WITH_CUBIT}
+)
 
 set(cflags ${BACKUP_CFLAGS})
 set(cxxflags ${BACKUP_CXXFLAGS})
