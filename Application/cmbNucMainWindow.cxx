@@ -983,8 +983,7 @@ void cmbNucMainWindow::onFileOpen()
   if(xmlFileReader::read(fileNames[0].toStdString(), *(this->NuclearCore)))
   {
     this->NuclearCore->setAndTestDiffFromFiles(false);
-    this->NuclearCore->SetLegendColorToAssemblies(numAssemblyDefaultColors,
-                                                  defaultAssemblyColors);
+
     this->setCoreActions(true);
     setTitle();
     this->Internal->HasModel = true;

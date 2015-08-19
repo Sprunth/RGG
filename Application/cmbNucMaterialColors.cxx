@@ -141,11 +141,11 @@ bool cmbNucMaterialColors::OpenFile(const QString& name)
     }
     else if(list1.size() == 5) // with label
     {
-      this->AddMaterial(mat, list1.value(0),
-                        list1.value(1).toDouble(),
-                        list1.value(2).toDouble(),
-                        list1.value(3).toDouble(),
-                        list1.value(4).toDouble());
+      this->AddOrUpdateMaterial(mat, list1.value(0),
+                                QColor::fromRgbF( list1.value(1).toDouble(),
+                                                  list1.value(2).toDouble(),
+                                                  list1.value(3).toDouble(),
+                                                  list1.value(4).toDouble()));
     }
   }
 
