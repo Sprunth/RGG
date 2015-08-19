@@ -546,6 +546,7 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
     assy->SetLegendColor(c);
     this->Core->setAndTestDiffFromFiles(true);
     this->RebuildCoreGrid = true;
+    emit checkSaveAndGenerate();
   }
   this->assyConf->applyToAssembly(assy);
   double px, py;
