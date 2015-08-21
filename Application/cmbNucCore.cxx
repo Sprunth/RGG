@@ -867,3 +867,101 @@ void cmbNucCore::setFileName( std::string const& fname )
 {
   this->CurrentFileName = fname;
 }
+
+/// Ask for a Id to use for Neumann or Material IDs
+int cmbNucCore::getFreeId()
+{
+  std::set<int> occupiedIds = getOccupiedIds();
+
+  int potentialId = 0;
+  while (potentialId < INT_MAX-100)
+  {
+    if (occupiedIds.find(potentialId) != occupiedIds.end())
+    {
+      // id found, go to next
+      potentialId += 100;
+    }
+    else
+    {
+      // this Id is okay to use
+      break;
+    }
+  }
+
+  return potentialId;
+}
+
+// Same as getFreeId(), but in increments of 1000
+// Used for AssemblyLinks
+int cmbNucCore::getFreeLinkId()
+{
+  std::set<int> occupiedIds = getOccupiedIds();
+
+  int potentialId = 0;
+  while (potentialId < INT_MAX-1000)
+  {
+    if (occupiedIds.find(potentialId) != occupiedIds.end())
+    {
+      // id found, go to next
+      potentialId += 1000;
+    }
+    else
+    {
+      // this Id is okay to use
+      break;
+    }
+  }
+
+  return potentialId;
+}
+
+/// Returns True if id is free (can be used for nid/mid)
+bool cmbNucCore::isFreeId(int id)
+{
+  std::set<int> occupiedIds = getOccupiedIds();
+
+  int rounded = id - (id%100);
+
+  return (occupiedIds.find(rounded) != occupiedIds.end());
+}
+
+/// Return a vector of ints that are multiples of 100
+/// They represent all Neumann or Material Ids that are
+/// being used by any assembly
+std::set<int> cmbNucCore::getOccupiedIds()
+{
+  std::set<int> ret;
+
+  for (std::vector<cmbNucAssembly*>::const_iterator iter = Assemblies.begin();
+       iter != Assemblies.end(); ++iter)
+  {
+    int nid = (*iter)->GetParameters()->neumannSetStartId;
+    int mid = (*iter)->GetParameters()->materialSetStartId;
+
+    // round down to nearest 100
+    nid -= nid%100;
+    mid -= mid%100;
+
+    // since we are working with a set no duplicates will be added
+    ret.insert(nid);
+    ret.insert(mid);
+  }
+
+  // do the same for the links. their nid/mid are treated as normal
+  for (std::vector<cmbNucAssemblyLink*>::const_iterator iter = AssemblyLinks.begin();
+     iter != AssemblyLinks.end(); ++iter)
+  {
+    int nid;
+    std::istringstream((*iter)->getNeumannStartID()) >> nid;
+    int mid;
+    std::istringstream((*iter)->getMaterialStartID()) >> mid;
+
+    nid -= nid%100;
+    mid -= mid%100;
+
+    ret.insert(nid);
+    ret.insert(mid);
+  }
+
+  return ret;
+}

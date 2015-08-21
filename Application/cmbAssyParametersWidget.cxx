@@ -211,8 +211,8 @@ void setValue(QCheckBox * to, bool &from)
 #define EASY_ASSY_PARAMS_MACRO()\
   FUN(TetMeshSize) \
   FUN(RadialMeshSize) \
-  FUN(NeumannSet_StartId) \
-  FUN(MaterialSet_StartId) \
+  //FUN(NeumannSet_StartId) \
+  //FUN(MaterialSet_StartId) \
   FUN(MergeTolerance) \
   FUN(CreateFiles) \
   FUN(CenterXYZ) \
@@ -243,6 +243,9 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
   EASY_ASSY_PARAMS_MACRO()
 #undef FUN
 #undef FUN2
+
+  changed |= setValue(parameters->neumannSetStartId, this->Internal->NeumannSet_StartId);
+  changed |= setValue(parameters->materialSetStartId, this->Internal->MaterialSet_StartId);
 
   std::stringstream ss(Internal->Unknown->toPlainText().toStdString().c_str());
   std::string line;
@@ -279,6 +282,10 @@ void cmbAssyParametersWidget::resetAssembly(cmbNucAssembly* assy)
   EASY_ASSY_PARAMS_MACRO()
 #undef FUN
 #undef FUN2
+
+  setValue(this->Internal->NeumannSet_StartId, parameters->neumannSetStartId);
+  setValue(this->Internal->MaterialSet_StartId, parameters->materialSetStartId);
+
   std::string unknowns;
   for(unsigned int i = 0; i < parameters->UnknownParams.size(); ++i)
   {

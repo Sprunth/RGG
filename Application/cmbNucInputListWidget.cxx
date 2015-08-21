@@ -450,6 +450,11 @@ void cmbNucInputListWidget::onNewAssembly()
   assembly->getDefaults()->getDuctThickness(thickX,thickY);
   assembly->getDefaults()->getHeight(h);
 
+  // set neumann/material IDs
+  int id = this->NuclearCore->getFreeId();
+  assembly->GetParameters()->neumannSetStartId = id;
+  assembly->GetParameters()->materialSetStartId = id;
+
   this->initCoreRootNode();
   this->updateWithAssembly(assembly);
   emit assembliesModified(this->NuclearCore);
@@ -478,6 +483,12 @@ void cmbNucInputListWidget::onNewAssemblyLink()
   double r,g,b;
   matColorMap->CalcRGB(r,g,b);
   link->SetLegendColor(QColor::fromRgbF(r,g,b));
+
+  int id = this->NuclearCore->getFreeLinkId();
+  std::ostringstream convert;
+  convert << id;
+  link->setNeumannStartID(convert.str());
+  link->setMaterialStartID(convert.str());
 
   if(!this->NuclearCore->AddAssemblyLink(link))
   {
@@ -1252,6 +1263,9 @@ void cmbNucInputListWidget::onClone()
         }
         clone_assy->setLabel(name);
         clone_assy->setFileName("");
+        int id = this->NuclearCore->getFreeId();
+        clone_assy->GetParameters()->neumannSetStartId = id;
+        clone_assy->GetParameters()->materialSetStartId = id;
         this->NuclearCore->AddAssembly(clone_assy);
         this->initCoreRootNode();
         this->updateWithAssembly(clone_assy);
@@ -1280,6 +1294,11 @@ void cmbNucInputListWidget::onClone()
           name = (QString(original->getLabel().c_str()) + "_" + QString::number(count++)).toStdString();
         }
         link->setLabel(name);
+        int id = this->NuclearCore->getFreeLinkId();
+        std::ostringstream convert;
+        convert << id;
+        link->setNeumannStartID(convert.str());
+        link->setMaterialStartID(convert.str());
         this->NuclearCore->AddAssemblyLink(link);
         this->initCoreRootNode();
         this->updateWithAssemblyLink(link);

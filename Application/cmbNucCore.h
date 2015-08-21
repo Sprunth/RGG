@@ -5,6 +5,9 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <algorithm>
+#include <climits>
+#include <sstream>
 #include <QColor>
 #include <QString>
 #include <QObject>
@@ -358,6 +361,10 @@ public:
   void clearBoundaryLayer();
   boundaryLayer * getBoundaryLayer(int bl) const;
 
+  int getFreeId();
+  int getFreeLinkId();
+  bool isFreeId(int id);
+
 private:
 
   double AssemblyPitchX;
@@ -396,6 +403,7 @@ private:
   std::string GenerateDirectory;
   std::string ExportFileName;
 
+  std::set<int> getOccupiedIds();
 };
 
 #endif // cmbNucCore_H

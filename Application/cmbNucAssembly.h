@@ -98,6 +98,10 @@ public:
   ASSYGEN_EXTRA_VARABLE_MACRO()
 #undef FUN_SIMPLE
   std::vector<std::string> UnknownParams;
+
+  //int getNeumannSetStartId(){return this->neumannSetStartId;}
+  //int getMaterialSetStartId(){return this->materialSetStartId;}
+  int neumannSetStartId, materialSetStartId;
 };
 
 class cmbNucAssembly;

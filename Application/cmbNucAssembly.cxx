@@ -53,6 +53,8 @@ void cmbAssyParameters::fill(cmbAssyParameters * other)
   this->MoveXYZ[0] = other->MoveXYZ[0];
   this->MoveXYZ[1] = other->MoveXYZ[1];
   this->MoveXYZ[2] = other->MoveXYZ[2];
+  this->neumannSetStartId = other->neumannSetStartId;
+  this->materialSetStartId = other->materialSetStartId;
   //this->SectionReverse = false;
 #define FUN_SIMPLE(TYPE,X,Var,Key,DEFAULT, DK) this->Var = other->Var;
   ASSYGEN_EXTRA_VARABLE_MACRO()
@@ -161,6 +163,8 @@ cmbNucAssembly::cmbNucAssembly()
   KeepPinsCentered = true; //on by default
   this->LegendColor = Qt::white;
   this->Parameters = new cmbAssyParameters;
+  this->Parameters->neumannSetStartId = 0;
+  this->Parameters->materialSetStartId = 0;
   this->DifferentFromJournel = true;
   this->DifferentFromCub = true;
   this->Connection = new cmbNucAssemblyConnection();
