@@ -234,7 +234,7 @@ void setValue(QCheckBox * to, bool &from)
 
 
 //-----------------------------------------------------------------------------
-void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
+void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy, cmbNucCore *core)
 {
   cmbAssyParameters* parameters = assy->GetParameters();
   bool changed = false;
@@ -244,8 +244,30 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy)
 #undef FUN
 #undef FUN2
 
-  changed |= setValue(parameters->neumannSetStartId, this->Internal->NeumannSet_StartId);
-  changed |= setValue(parameters->materialSetStartId, this->Internal->MaterialSet_StartId);
+  int nid = this->Internal->NeumannSet_StartId->text().toInt();
+  int mid = this->Internal->MaterialSet_StartId->text().toInt();
+
+  // make sure the new nid/mid values are valid. if not, reset to previous value
+  // isFreeId will count the IDs we are
+  if (core->isFreeId(assy, nid))
+  {
+    changed |= setValue(parameters->neumannSetStartId, this->Internal->NeumannSet_StartId);
+  }
+  else
+  {
+    this->Internal->NeumannSet_StartId->setText(QString::number(parameters->neumannSetStartId));
+  }
+
+  if (core->isFreeId(assy, mid))
+  {
+    changed |= setValue(parameters->materialSetStartId, this->Internal->MaterialSet_StartId);
+  }
+  else
+  {
+    this->Internal->MaterialSet_StartId->setText(QString::number(parameters->materialSetStartId));
+  }
+
+
 
   std::stringstream ss(Internal->Unknown->toPlainText().toStdString().c_str());
   std::string line;

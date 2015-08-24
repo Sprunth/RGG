@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "cmbNucPartDefinition.h"
 #include <QStringList>
+#include <cmbNucCore.h>
 
 class cmbNucAssembly;
 
@@ -31,9 +32,10 @@ public slots:  // reset property panel with given object
   void resetAssembly(cmbNucAssembly* assy);
 
   // apply property panel to given object
-  void applyToAssembly(cmbNucAssembly* assy);
+  void applyToAssembly(cmbNucAssembly* assy, cmbNucCore* core);
 
 private:
+
   class cmbAssyParametersWidgetInternal;
   cmbAssyParametersWidgetInternal* Internal;
 

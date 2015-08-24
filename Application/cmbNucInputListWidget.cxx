@@ -484,11 +484,13 @@ void cmbNucInputListWidget::onNewAssemblyLink()
   matColorMap->CalcRGB(r,g,b);
   link->SetLegendColor(QColor::fromRgbF(r,g,b));
 
-  int id = this->NuclearCore->getFreeLinkId();
-  std::ostringstream convert;
-  convert << id;
-  link->setNeumannStartID(convert.str());
-  link->setMaterialStartID(convert.str());
+  int nid = this->NuclearCore->getFreeLinkId(assy->GetParameters()->neumannSetStartId);
+  int mid = this->NuclearCore->getFreeLinkId(assy->GetParameters()->materialSetStartId);
+  std::ostringstream convert_nid, convert_mid;
+  convert_nid << nid;
+  convert_mid << mid;
+  link->setNeumannStartID(convert_nid.str());
+  link->setMaterialStartID(convert_mid.str());
 
   if(!this->NuclearCore->AddAssemblyLink(link))
   {
@@ -1294,11 +1296,13 @@ void cmbNucInputListWidget::onClone()
           name = (QString(original->getLabel().c_str()) + "_" + QString::number(count++)).toStdString();
         }
         link->setLabel(name);
-        int id = this->NuclearCore->getFreeLinkId();
-        std::ostringstream convert;
-        convert << id;
-        link->setNeumannStartID(convert.str());
-        link->setMaterialStartID(convert.str());
+        int nid = this->NuclearCore->getFreeLinkId(original->getLink()->GetParameters()->neumannSetStartId);
+        int mid = this->NuclearCore->getFreeLinkId(original->getLink()->GetParameters()->materialSetStartId);
+        std::ostringstream convert_nid, convert_mid;
+        convert_nid << nid;
+        convert_mid << mid;
+        link->setNeumannStartID(convert_nid.str());
+        link->setMaterialStartID(convert_mid.str());
         this->NuclearCore->AddAssemblyLink(link);
         this->initCoreRootNode();
         this->updateWithAssemblyLink(link);

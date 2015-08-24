@@ -548,7 +548,8 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
     this->RebuildCoreGrid = true;
     emit checkSaveAndGenerate();
   }
-  this->assyConf->applyToAssembly(assy);
+
+  this->assyConf->applyToAssembly(assy, this->Core);
   double px, py;
   px = this->Internal->pitchX->value();
   py = this->Internal->pitchY->value();

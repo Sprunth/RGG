@@ -871,9 +871,9 @@ void cmbNucCore::setFileName( std::string const& fname )
 /// Ask for a Id to use for Neumann or Material IDs
 int cmbNucCore::getFreeId()
 {
-  std::set<int> occupiedIds = getOccupiedIds();
+  std::set<int> occupiedIds = getOccupiedIds(NULL);
 
-  int potentialId = 0;
+  int potentialId = 100; // min value for auto-generated IDs
   while (potentialId < INT_MAX-100)
   {
     if (occupiedIds.find(potentialId) != occupiedIds.end())
@@ -893,11 +893,11 @@ int cmbNucCore::getFreeId()
 
 // Same as getFreeId(), but in increments of 1000
 // Used for AssemblyLinks
-int cmbNucCore::getFreeLinkId()
+int cmbNucCore::getFreeLinkId(int parentId)
 {
-  std::set<int> occupiedIds = getOccupiedIds();
+  std::set<int> occupiedIds = getOccupiedIds(NULL);
 
-  int potentialId = 0;
+  int potentialId = parentId + 1000; // same-as is strictly larger than parent
   while (potentialId < INT_MAX-1000)
   {
     if (occupiedIds.find(potentialId) != occupiedIds.end())
@@ -916,25 +916,28 @@ int cmbNucCore::getFreeLinkId()
 }
 
 /// Returns True if id is free (can be used for nid/mid)
-bool cmbNucCore::isFreeId(int id)
+bool cmbNucCore::isFreeId(cmbNucAssembly* assy, int id)
 {
-  std::set<int> occupiedIds = getOccupiedIds();
+  std::set<int> occupiedIds = getOccupiedIds(assy);
 
   int rounded = id - (id%100);
 
-  return (occupiedIds.find(rounded) != occupiedIds.end());
+  return (occupiedIds.find(rounded) == occupiedIds.end());
 }
 
 /// Return a vector of ints that are multiples of 100
 /// They represent all Neumann or Material Ids that are
 /// being used by any assembly
-std::set<int> cmbNucCore::getOccupiedIds()
+std::set<int> cmbNucCore::getOccupiedIds(cmbNucAssembly *exclude)
 {
   std::set<int> ret;
 
   for (std::vector<cmbNucAssembly*>::const_iterator iter = Assemblies.begin();
        iter != Assemblies.end(); ++iter)
   {
+    if (*iter == exclude)
+        continue;
+
     int nid = (*iter)->GetParameters()->neumannSetStartId;
     int mid = (*iter)->GetParameters()->materialSetStartId;
 

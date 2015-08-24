@@ -362,8 +362,8 @@ public:
   boundaryLayer * getBoundaryLayer(int bl) const;
 
   int getFreeId();
-  int getFreeLinkId();
-  bool isFreeId(int id);
+  int getFreeLinkId(int parentId);
+  bool isFreeId(cmbNucAssembly* assy, int id);
 
 private:
 
@@ -403,7 +403,7 @@ private:
   std::string GenerateDirectory;
   std::string ExportFileName;
 
-  std::set<int> getOccupiedIds();
+  std::set<int> getOccupiedIds(cmbNucAssembly* exclude);
 };
 
 #endif // cmbNucCore_H
