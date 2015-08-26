@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <algorithm>
 
 #include "cmbNucLattice.h"
 

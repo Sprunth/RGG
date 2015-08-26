@@ -2,6 +2,7 @@
 #include "inpFileIO.h"
 #include "cmbNucCore.h"
 #include "cmbNucAssembly.h"
+#include "cmbNucAssemblyLink.h"
 #include "cmbNucDuctLibrary.h"
 
 #include <QFileInfo>
@@ -56,12 +57,68 @@ bool cmbNucInpExporter
       iter != cells.end(); ++iter)
   {
     cmbNucAssembly* assembly = NuclearCore->GetAssembly(iter->first);
-    if(assembly == NULL) continue;
-    assembly->setPath(coreinfo.dir().absolutePath().toStdString());
-    std::set< Lattice::CellDrawMode > const& forms = iter->second;
-    cmbNucAssembly* assemblyClone = assembly->clone(pl, dl);
-    this->exportInpFile(assemblyClone, false, forms);
-    delete assemblyClone;
+    if(assembly != NULL)
+    {
+      assembly->setPath(coreinfo.dir().absolutePath().toStdString());
+      std::set< Lattice::CellDrawMode > const& forms = iter->second;
+      cmbNucAssembly* assemblyClone = assembly->clone(pl, dl);
+      this->exportInpFile(assemblyClone, false, forms);
+      delete assemblyClone;
+    }
+    else
+    {
+      // check to see if iter->first is a link
+      cmbNucAssemblyLink * correspondingLink = NuclearCore->GetAssemblyLink(iter->first);;
+      if (correspondingLink == NULL)
+      {
+        continue;
+      }
+      // correspondingLink is the link that this current iter is linked with
+      // this assumes only 1 link can be had for any label
+
+      std::string linkTargetLabel = correspondingLink->getLink()->getLabel();
+      cmbNucAssembly* linkTargetAssy = NuclearCore->GetAssembly(linkTargetLabel);
+
+      if (linkTargetAssy == NULL)
+      {
+        continue;
+      }
+
+      // if it is a link but there is no corresponding target assembly with the same mode
+      std::set< Lattice::CellDrawMode > targetForms;
+      for(std::map< std::string, std::set< Lattice::CellDrawMode > >::const_iterator iter2 = cells.begin();
+          iter2 != cells.end(); ++iter2)
+      {
+        if (iter2->first.compare(linkTargetAssy->getLabel()) != 0)
+        {
+          continue;
+        }
+        targetForms = iter2->second;
+      }
+      if (targetForms.size() == 0)
+      {
+        continue;
+      }
+      // targetForms has the modes of the target
+      // check to see if the link mode exists for this target
+
+      // since we have to conditionally check every mode for writing out,
+      // we need to create sets containing 1 mode each
+      std::set< Lattice::CellDrawMode > forms;
+      linkTargetAssy->setPath(coreinfo.dir().absolutePath().toStdString());
+      cmbNucAssembly* assemblyClone = correspondingLink->clone();
+
+      for (std::set< Lattice::CellDrawMode >::const_iterator mode = iter->second.begin();
+           mode != iter->second.end(); ++mode)
+      {
+        if (targetForms.count(*mode) == 0)
+        {
+          forms.insert(*mode);
+        }
+      }
+      this->exportInpFile(assemblyClone, false, forms);
+      delete assemblyClone;
+    }
   }
   if(this->NuclearCore->changeSinceLastGenerate())
   {

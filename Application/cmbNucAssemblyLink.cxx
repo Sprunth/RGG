@@ -59,3 +59,16 @@ void cmbNucAssemblyLink::SetLegendColor(const QColor& color)
 {
   this->legendColor = color;
 }
+
+cmbNucAssembly * cmbNucAssemblyLink::clone()
+{
+  cmbNucAssembly * result = this->link->clone(this->link->getPinLibrary(),
+                                              this->link->getDuctLibrary());
+  std::string fname = "assembly_" + this->getLabel() + ".inp";
+  std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+  result->setLabel(this->getLabel());
+  result->setFileName(fname);
+  result->GetParameters()->MaterialSet_StartId = this->getMaterialStartID();
+  result->GetParameters()->NeumannSet_StartId = this->getNeumannStartID();
+  return result;
+}
