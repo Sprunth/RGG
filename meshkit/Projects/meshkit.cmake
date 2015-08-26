@@ -1,19 +1,11 @@
 add_external_project(meshkit
   DEPENDS moab cgm lasso
-  USE_AUTOCONF
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure
-  --prefix=<INSTALL_DIR>
-  --with-itaps=<INSTALL_DIR>
-  --enable-algs
-  --enable-optimize
-  --enable-src
-  --enable-utils
-  --enable-rgg
-  --enable-shared
-  "CFLAGS=${cflags}" "CXXFLAGS=${cxxflags}"
+  CMAKE_ARGS
+    -DBUILD_SHARED_LIBS:BOOL=ON
+    -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+    -DENABLE_ALGS:BOOL=ON
+    -DENABLE_SRC:BOOL=ON
+    -DENABLE_UTILS:BOOL=ON
+    -DENABLE_RGG:BOOL=ON
+    -DWITH_MPI:BOOL=${BUILD_WITH_MPI}
 )
-#  --with-camal=DIR        Specify location of CAMAL library.
-#  --with-tetgen=DIR       Specify location of TetGen library.
-#  --with-netgen=DIR       Specify location of Netgen library.
-#  --with-triangle=DIR     Specify location of Triangle library.
-#  --with-mesquite[=DIR]   Specify where to find Mesquite library

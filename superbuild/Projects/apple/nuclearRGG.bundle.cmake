@@ -43,11 +43,11 @@ if(ENABLE_meshkit)
   #set(rgg_programs_to_install ${rgg_programs_to_install} coregen)
   install(CODE "
               file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/coregen/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES
-                   \"${install_location}/bin/coregen\")
+                   \"${install_location}/meshkit/bin/coregen\")
               execute_process(
                 COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
                         \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/coregen\"
-                        \"${SEARCH_LOC}\"
+                        \"${install_location}/meshkit/lib\"
                         \"${install_location}/plugins\")
     "
     COMPONENT superbuild)
@@ -75,7 +75,7 @@ if(ENABLE_meshkit)
   else()
     install(CODE "
               file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen/Contents/bin\" USE_SOURCE_PERMISSIONS TYPE DIRECTORY FILES
-                   \"${install_location}/bin/assygen\")
+                   \"${install_location}/meshkit/bin/assygen\")
               execute_process(
                 COMMAND ${CMAKE_CURRENT_LIST_DIR}/fixup_bundle.py
                         \"\${CMAKE_INSTALL_PREFIX}/${Package_Folder}/RGGNuclear.app/meshkit/assygen\"

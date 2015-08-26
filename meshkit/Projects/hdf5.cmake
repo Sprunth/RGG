@@ -1,32 +1,6 @@
+add_external_dummy_project(hdf5)
 
-get_include_dir(szip szip_include_dir)
-get_libraries(szip szip_libraries)
-
-#hdf5 supports CMake
-add_external_project(hdf5
-# HDF5 1.8.9 has a CMake install rule bug. Fix that.
-  PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                ${CMAKE_SOURCE_DIR}/patches/hdf5.CMakeLists.txt
-                <SOURCE_DIR>/CMakeLists.txt
-  DEPENDS zlib szip
-  CMAKE_ARGS
-    -DBUILD_SHARED_LIBS:BOOL=TRUE
-    -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=TRUE
-    -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=TRUE
-    -DHDF5_ENABLE_SZIP_ENCODING:BOOL=TRUE
-    -DHDF5_BUILD_HL_LIB:BOOL=TRUE
-    -DSZIP_LIBRARY:FILEPATH=${szip_libraries}
-    -DSZIP_INCLUDE_DIR:FILEPATH=${szip_include_dir}
-)
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  ExternalProject_Add_Step(hdf5 cpDebugDylib
-    COMMAND ${CMAKE_COMMAND} -E create_symlink
-    <INSTALL_DIR>/lib/libhdf5_debug${CMAKE_SHARED_LIBRARY_SUFFIX}
-    <INSTALL_DIR>/lib/libhdf5${CMAKE_SHARED_LIBRARY_SUFFIX}
-    DEPENDEES install
-    )
-endif()
-
-ExternalProject_Get_Property(${name} install_dir)
-set_libraries(hdf5 ${install_dir}/lib/libhdf5${CMAKE_SHARED_LIBRARY_SUFFIX})
+add_extra_cmake_args(
+  -DHDF5_DIR:PATH=${HDF5_DIR}
+  -DHDF5_LIBRARIES:FILEPATH=${HDF5_LIBRARIES}
+  -DHDF5_INCLUDE_DIR:PATH=${HDF5_INCLUDE_DIR})

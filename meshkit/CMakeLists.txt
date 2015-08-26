@@ -9,7 +9,17 @@ endif()
 
 
 project(MeshKitSuperBuild)
+set (SuperBuild_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+set (SuperBuild_PROJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Projects")
 include(CMakeDependentOption)
+
+set (MeshKitSuperBuild_CMAKE_DIR
+  "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
+set (install_location "${CMAKE_CURRENT_BINARY_DIR}/install")
+set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
+set (patch_location "${CMAKE_CURRENT_SOURCE_DIR}/patches")
+set (prefix_path "${install_location}")
 
 set (platform)
 if (APPLE)
@@ -17,8 +27,8 @@ if (APPLE)
 elseif (UNIX)
   set (platform "unix")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC"  )
+  set (cppflags "${cppflags} -I${install_location}/include")
   set (cflags "${cflags} -fPIC")
-  set (cppflags "${cppflags} -fPIC")
   set (cxxflags "${cxxflags} -fPIC")
 elseif (WIN32)
   set (platform "win32")
@@ -33,28 +43,18 @@ set (CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   )
 
-
-set (MeshKitSuperBuild_CMAKE_DIR
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
-
-include (MeshKitModules)
+include (ParaViewModules)
 include (${CMAKE_CURRENT_SOURCE_DIR}/versions.cmake)
-
-set (install_location "${CMAKE_CURRENT_BINARY_DIR}/install")
-set (download_location "${CMAKE_CURRENT_BINARY_DIR}/downloads")
-set (patch_location "${CMAKE_CURRENT_SOURCE_DIR}/patches")
-set (prefix_path "${install_location}")
 
 option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
 option ( BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF )
-
-find_package(Autotools REQUIRED)
+option ( BUILD_WITH_MPI       "Build with MPI support" OFF )
 
 if(BUILD_WITH_CUBIT)
-  set(CUBIT_PATH CACHE PATH "Location of the CUBIT Libraries")
-  if(NOT IS_DIRECTORY ${CUBIT_PATH})
-    message(FATAL_ERROR "CUBIT_PATH needs to be set to a valid path")
-  endif()
+  find_package(CUBIT REQUIRED)
+  if (APPLE) # Match the standard library cubit uses.
+    set(cxxflags "${cxxflags} -stdlib=libstdc++")
+  endif ()
 endif()
 
 if (APPLE)
@@ -73,20 +73,28 @@ endif()
 #add_project(mpich2)
 
 
-add_project(zlib SYSTEM REQUIRED)
-add_project(szip SYSTEM REQUIRED)
-add_project(hdf5 SYSTEM REQUIRED)
+include(zlib)
+include(szip)
+include(hdf5)
 include(netcdf)
-if(NOT BUILD_WITH_CUBIT)
-  add_project(freetype SYSTEM REQUIRED)
-  add_project(ftgl SYSTEM REQUIRED)
-  add_project(OCE SYSTEM REQUIRED)
+if (NOT WIN32 AND BUILD_WITH_MPI)
+  include(pnetcdf)
+endif ()
+if(BUILD_WITH_CUBIT)
+  include(cubit)
+else ()
+  include(freetype)
+  include(ftgl)
+  include(OCE)
 endif()
-add_project(cgm REQUIRED)
-add_project(moab REQUIRED)
-add_project(lasso REQUIRED)
-add_project(meshkit REQUIRED)
+include(cgm)
+include(moab)
+include(lasso)
+include(meshkit)
 
+#call cmb process dependencies to get the ability to do a build
+#for developers.
+process_dependencies()
 
 INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/bin USE_SOURCE_PERMISSIONS DESTINATION meshkit )
 INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/install/lib USE_SOURCE_PERMISSIONS DESTINATION meshkit )

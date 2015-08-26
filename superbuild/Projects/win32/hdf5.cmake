@@ -14,7 +14,6 @@ add_external_project(
     -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=TRUE
     -DHDF5_ENABLE_SZIP_ENCODING:BOOL=TRUE
     -DHDF5_BUILD_HL_LIB:BOOL=TRUE
-	-DZLIB_LIBRARY:FILEPATH=${install_location}/lib/zlib.lib
 )
 
 if (MSVC)
@@ -29,27 +28,19 @@ if (MSVC)
   )
 endif()
 
-if (WIN32)
-  # On Windows, find_package(HDF5) with cmake 2.8.[8,9] always ends up finding
-  # the dlls instead of the libs. So setting the variables explicitly for
-  # dependent projects.
-  add_extra_cmake_args(
-    -DHDF5_C_LIBRARY:FILEPATH=${install_location}/lib/hdf5.lib
-    -DHDF5_HL_LIBRARY:FILEPATH=${install_location}/lib/hdf5_hl.lib
-    # This variable is for CGNS, since CGNS doesn't use standard find_package()
-    # to find hdf5.
-    -DHDF5_LIBRARY:FILEPATH=${install_location}/lib/hdf5.lib
+# On 32-bit Windows, H5public.h ends up redefining ssize_t. This patch ensures
+# that the old definition is undef-ed before redefining it.
+if (NOT 64bit_build)
+  add_external_project_step(patch_fix_h5public
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${SuperBuild_PROJECTS_DIR}/patches/hdf5.src.H5public.h
+            <SOURCE_DIR>/src/H5public.h
+    DEPENDEES update # do after update
+    DEPENDERS patch  # do before patch
   )
-
-  # On 32-bit Windows, H5public.h ends up redefining ssize_t. This patch ensures
-  # that the old definition is undef-ed before redefining it.
-  if (NOT 64bit_build)
-    add_external_project_step(patch_fix_h5public
-     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-             ${SuperBuild_PROJECTS_DIR}/patches/hdf5.src.H5public.h
-             <SOURCE_DIR>/src/H5public.h
-     DEPENDEES update # do after update
-     DEPENDERS patch  # do before patch
-    )
-  endif()
 endif()
+
+add_extra_cmake_args(
+  -DHDF5_DIR:PATH=<INSTALL_DIR>
+  -DHDF5_LIBRARIES:FILEPATH=<INSTALL_DIR>/lib/libhdf5_hl${CMAKE_STATIC_LIBRARY_SUFFIX};<INSTALL_DIR/lib/libhdf5${CMAKE_STATIC_LIBRARY_SUFFIX}
+  -DHDF5_INCLUDE_DIRS:PATH=<INSTALL_DIR>/include)

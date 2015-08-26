@@ -7,10 +7,10 @@ if (APPLE)
   endif()
 endif()
 
-project(CMBSuperBuild)
+project(RGGSuperBuild)
 set (SuperBuild_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 set (SuperBuild_PROJECTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Projects")
-set (SuperBuild_BINARY_DIR ${CMBSuperBuild_BINARY_DIR})
+set (SuperBuild_BINARY_DIR ${RGGSuperBuild_BINARY_DIR})
 
 set (platform)
 if (APPLE)
@@ -19,28 +19,25 @@ elseif (UNIX)
   set (platform "unix")
 elseif (WIN32)
   set (platform "win32")
+else ()
+  message (FATAL_ERROR "Platform unsupported.")
 endif()
 
 #-----------------------------------------------------------------------------
 # Options
 option(BUILD_DOCUMENTATION "Build the RGG Documentation" OFF)
 option(BUILD_MESHKIT_MASTER "Build Meshkit Master" OFF)
-
-#-----------------------------------------------------------------------------
-# Cross compilation
-set (CROSS_BUILD_STAGE "HOST" CACHE STRING
-  "Cross compilation stage: either HOST(ie no crosscompile)|TOOLS|CROSS")
-set_property(CACHE CROSS_BUILD_STAGE PROPERTY STRINGS
-   "HOST" "TOOLS" "CROSS")
+if (NOT WIN32)
+  # MSMPI is not supported by pnetcdf's configure script.
+  option(BUILD_MESHKIT_WITH_MPI "Build Meshkit with MPI support" OFF)
+endif ()
 
 option(BUILD_SHARED_LIBS "Whether to build shared libs by default" OFF)
 
 #-----------------------------------------------------------------------------
 # Setup CMAKE_MODULE_PATH so that platform specific configurations are processed
 # before the generic ones.
-string(TOLOWER "${CROSS_BUILD_STAGE}" lstage)
 set (CMAKE_MODULE_PATH
-  "${SuperBuild_PROJECTS_DIR}/${platform}/${lstage}"
   "${SuperBuild_PROJECTS_DIR}/${platform}"
   "${SuperBuild_PROJECTS_DIR}/common"
   "${SuperBuild_PROJECTS_DIR}"
@@ -48,37 +45,17 @@ set (CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}"
   ${CMAKE_MODULE_PATH})
 
-#-----------------------------------------------------------------------------
-if (NOT CROSS_BUILD_STAGE STREQUAL "HOST")
-  include(CrossCompilationMacros)
-
-  #ask user to say what machine they are compiling onto
-  #so we can get the right environment settings
-  query_target_machine()
-
-  if (CROSS_BUILD_STAGE STREQUAL "CROSS")
-    #configure the platform dependent settings
-    #64bit_build, static_only, mpi search path
-    do_cross_platform_settings()
-
-    #find location of hosttools or host build to get compilation tools from
-    find_hosttools()
-  endif()
-endif()
-
 include(CMakeDependentOption)
 
 #-----------------------------------------------------------------------------
 # Collect information about the build platform.
 include(CheckTypeSize)
 
-if (NOT CROSS_BUILD_STAGE STREQUAL "CROSS")
-  check_type_size(void* VOID_PTR_SIZE BUILTIN_TYPES_ONLY)
-  if (VOID_PTR_SIZE EQUAL 8)
-    set (64bit_build TRUE)
-  else ()
-    set (64bit_build FALSE)
-  endif()
+check_type_size(void* VOID_PTR_SIZE BUILTIN_TYPES_ONLY)
+if (VOID_PTR_SIZE EQUAL 8)
+  set (64bit_build TRUE)
+else ()
+  set (64bit_build FALSE)
 endif()
 
 # Set suffix to be used for generating archives. This ensures that the package
@@ -90,7 +67,7 @@ else ()
   set (package_suffix "${package_suffix}-32bit")
 endif()
 
-include(paraview_version)
+include(rgg_version)
 
 option(TRUST_SVN_CERTIFICATES_AUTOMATICALLY
   "Trust SVN certificates automatically" ON)
@@ -111,11 +88,9 @@ if (WIN32)
 else ()
   # FIXME: currently, if any of these are empty, we have build issues on Unix.
   set (ldflags "$ENV{LDFLAGS} -L${install_location}/lib")
-  if (NOT CROSS_BUILD_STAGE STREQUAL "CROSS")
-    set (cppflags "$ENV{CPPFLAGS} -fPIC")
-    set (cxxflags "$ENV{CXXFLAGS} -fPIC")
-    set (cflags "$ENV{CFLAGS} -fPIC")
-  endif()
+  set (cppflags "$ENV{CPPFLAGS} -I${install_location}/include")
+  set (cxxflags "$ENV{CXXFLAGS} -fPIC")
+  set (cflags "$ENV{CFLAGS} -fPIC")
   set (ld_library_path "${install_location}/lib:$ENV{LD_LIBRARY_PATH}")
 endif()
 
@@ -157,12 +132,6 @@ if(UNIX AND NOT APPLE AND PASS_LD_LIBRARY_PATH_FOR_BUILDS)
   file(APPEND "${CMAKE_BINARY_DIR}/env.cmake" "set( ENV{LD_LIBRARY_PATH} \"${ld_library_path}\")\n")
 endif()
 
-#-----------------------------------------------------------------------------
-## Top-level options. These must be limited to a commonly used subset with
-## default values being used for building ParaView binaries.
-#option(PV_COMMAND_LINE_TOOLS_ONLY
-#  "Turn this ON to build command lines tools alone." OFF)
-
 if (WIN32)
   if ( (NOT "${CMAKE_GENERATOR}" MATCHES "^NMake.*$") OR
        (NOT "${CMAKE_GENERATOR}" MATCHES "^Visual Studio.*$"))
@@ -198,22 +167,16 @@ include(CTest)
 set (CM_PROJECTS_ALL)
 
 #must before any including of projects
-SetupCMBSuperBuild()
+SetupRGGSuperBuild()
 
 # Include all optional projects. These are the ones user can pick and choose.
 # Some of these allow using system libraries too.
-if (CROSS_BUILD_STAGE STREQUAL "CROSS")
-  include(boost)
-elseif(CROSS_BUILD_STAGE STREQUAL "TOOLS")
-  include(boost)
-else()
-  include(boost)
-  include(hdf5)
-  include(freetype)
-  include(libxml2)
-  include(png)
-  include(qt)
-endif()
+include(boost)
+include(hdf5)
+include(freetype)
+include(libxml2)
+include(png)
+include(qt)
 
 #RGG dependencies
 
@@ -222,44 +185,37 @@ include(zeroMQ)
 include(remus)
 include(vtk)
 
-if(ENABLE_meshkit)
-  include(OCE)
-  include(cgm)
-  include(lasso)
-endif()
-
 include(meshkit)
+
+if (BUILD_WITH_CUBIT)
+  find_package(CUBIT REQUIRED)
+endif ()
 
 if(APPLE AND BUILD_WITH_CUBIT)
   include(meshkit32bit)
   set(ENABLE_meshkit32bit ON)
   mark_as_advanced(ENABLE_meshkit32bit)
-  #mark_as_advanced(ENABLE_meshkit32bit ON)
 elseif(UNIX AND BUILD_WITH_CUBIT)
-  set (ld_library_path "${install_location}/lib:${CUBIT_PATH}/bin:$ENV{LD_LIBRARY_PATH}")
+  set (ld_library_path "${install_location}/lib:${CUBIT_PATH}:$ENV{LD_LIBRARY_PATH}")
 endif()
 
-
 include(netcdf)
-include(ftgl)
+if(BUILD_MESHKIT_WITH_MPI)
+  include(pnetcdf)
+endif()
 include(freetype)
 include(netcdfcpp)
 include(szip)
 include(moab)
 
 if (UNIX AND NOT APPLE)
-    include(fontconfig)
+  include(fontconfig)
 endif()
 
 include(QtTesting)
 include(nuclearRGG)
 
 include(nuclearRGG.bundle OPTIONAL)
-
-# paraview.sdk is a module that is used install the ParaView SDK.
-# Simply enabling this module will result in the ParaView SDK to be
-# installed by "make install". Note that this is not always supported.
-include(paraviewsdk OPTIONAL)
 
 #call cmb process dependencies to get the ability to do a build
 #for developers.

@@ -14,6 +14,8 @@ FIND_PACKAGE(Remus REQUIRED)
 INCLUDE_DIRECTORIES(${Remus_INCLUDE_DIR})
 message("${Remus_INCLUDE_DIR}")
 
+find_package(MOAB REQUIRED)
+
 # support for out-of-source build
 INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_BINARY_DIR} #this is where ui_qNucMainWindow.h is generated
@@ -111,8 +113,6 @@ SET(RGGNuclear_Headers
 SET(RGGNuclear_other_headers )
 
 FIND_PACKAGE(MOAB)
-message(${MOAB_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(moab_wrapper)
 SET(RGGNuclear_Headers ${RGGNuclear_Headers} cmbNucCoregen.h)
 SET(RGGNuclear_other_headers ${RGGNuclear_other_headers}
@@ -323,7 +323,11 @@ if(BUILD_TESTING)
   if(APPLE)
      set(LIBRARY_PATH "DYLD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${OCE_LIB}:$ENV{DYLD_LIBRARY_PATH}")
   elseif(UNIX)
-     set(LIBRARY_PATH "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${OCE_LIB}:$ENV{LD_LIBRARY_PATH}")
+     if(BUILD_WITH_CUBIT)
+       set(LIBRARY_PATH "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${CUBIT_PATH}:$ENV{LD_LIBRARY_PATH}")
+     else()
+       set(LIBRARY_PATH "LD_LIBRARY_PATH=${MOAB_ROOT_DIR}/lib:${OCE_LIB}:$ENV{LD_LIBRARY_PATH}")
+     endif()
   else()
      set( LIBRARY_PATH )
   endif()

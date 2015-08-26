@@ -1,5 +1,3 @@
-get_include_dir(ftgl ftgl_include_dir)
-
 #Open Cascade Community Edition supports CMake
 add_external_project(OCE
   DEPENDS ftgl freetype
@@ -10,7 +8,6 @@ add_external_project(OCE
     -OCE_VISUALISATION:BOOL=TRUE
     -OCE_OCAF:BOOL=TRUE
     -OCE_DRAW:BOOL=FALSE
-    -DFTGL_INCLUDE_DIR:PATH=<INSTALL_DIR>/include
     -DOCE_INSTALL_PREFIX:FilePath=<INSTALL_DIR>
     #force the include dir path, so it doesn't install the include files into
     #install/include/oce/, because than CGM can't find it.
@@ -21,13 +18,10 @@ add_external_project(OCE
 # so that the build doesn't use that over the configured header in the build
 # directory. If we used the installed oce-config the incremental builds will
 # fail as it doesn't have all the defines as the build version
-ExternalProject_Add_Step(OCE OCE-remove-config-file
+add_external_project_step(OCE-remove-config-file
     COMMAND  ${CMAKE_COMMAND} -E remove -f <INSTALL_DIR>/include/oce-config.h
     COMMENT "Removing the installed oce-config.h so that incremental builds works."
     DEPENDEES configure
     DEPENDERS build
     ALWAYS 1
     )
-
-ExternalProject_Get_Property(${name} install_dir)
-set_libraries(OCE ${install_dir}/lib/libTKernel${CMAKE_SHARED_LIBRARY_SUFFIX})

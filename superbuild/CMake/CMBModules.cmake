@@ -3,7 +3,7 @@ include (ParaViewModules)
 
 #------------------------------------------------------------------------------
 #Macro to hide all non optional CMB modules
-macro (SetupCMBSuperBuild)
+macro (SetupRGGSuperBuild)
 
   #force the variables to be advanced so user don't play with them
   #we want to show the user python as a option
@@ -125,7 +125,7 @@ macro(cmb_process_dependencies)
       # user.
       set_property(CACHE USE_SYSTEM_${cm-project} PROPERTY TYPE BOOL)
       if (USE_SYSTEM_${cm-project})
-        message(STATUS "usig system ${cm-project}")
+        message(STATUS "using system ${cm-project}")
         add_external_dummy_project_internal(${cm-project})
         include(${cm-project}.use.system OPTIONAL RESULT_VARIABLE rv)
         if (rv STREQUAL "NOTFOUND")

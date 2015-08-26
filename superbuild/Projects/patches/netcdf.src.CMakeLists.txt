@@ -538,6 +538,11 @@ IF(ENABLE_PARALLEL AND ENABLE_NETCDF_4)
 	SET(STATUS_PARALLEL "ON")
 ENDIF()
 
+if (USE_PARALLEL)
+	find_package(MPI REQUIRED)
+	include_directories(${MPI_C_INCLUDE_PATH})
+endif ()
+
 # Options to enable parallel IO, tests.
 SET(STATUS_PNETCDF "OFF")
 OPTION(ENABLE_PNETCDF "Build netCDF-4 with parallel I/O for classic and 64-bit offset files using parallel-netcdf." OFF)

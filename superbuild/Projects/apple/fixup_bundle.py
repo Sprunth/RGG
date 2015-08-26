@@ -88,7 +88,9 @@ class Library(object):
       return self.__dependencies
     collection = set()
     for dep in getdependencies(self.RealPath):
-      if not re.match(r".*libcubit.*\.dylib", dep): #(dep):
+      if "@rpath/" in dep:
+        dep = dep.replace("@rpath/", "")
+      if not re.match(r"@executable_path\/\.\.\/MacOS\/libcubit.*\.dylib", dep): #(dep):
         collection.add(Library.createFromReference(dep, exepath))
       else:
         logging.info("SKIPPING THIS DEP: %s"%dep)

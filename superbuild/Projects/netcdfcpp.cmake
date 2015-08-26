@@ -1,5 +1,3 @@
-
-
 add_external_project(netcdfcpp
   DEPENDS netcdf
   BUILD_IN_SOURCE 1

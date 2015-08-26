@@ -1,9 +1,5 @@
-add_external_project(szip
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure
-    --enable-encoding
-    --prefix=<INSTALL_DIR>
-    "CFLAGS=${cflags}" "CXXFLAGS=${cxxflags}"
-)
+add_external_dummy_project(szip)
 
-ExternalProject_Get_Property(${name} install_dir)
-set_libraries(szip ${install_dir}/lib/libsz${CMAKE_SHARED_LIBRARY_SUFFIX})
+add_extra_cmake_args(
+  "-DSZIP_DIR:PATH=${SZIP_DIR}"
+  "-DSZIP_LIBRARIES:FILEPATH=${SZIP_LIBRARY}")

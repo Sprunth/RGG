@@ -1,10 +1,7 @@
-set(CMAKE_C_FLAGS ${cflags})
-add_external_project(
-  freetype
-  DEPENDS zlib
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure
-                    --prefix=<INSTALL_DIR>
-                    --enable-static=no
-                     --with-sysroot=<INSTALL_DIR>
-                     "CFLAGS=${cflags}" "CPPFLAGS=${cppflags}"
+add_external_dummy_project(freetype)
+
+add_extra_cmake_args(
+  -DFREETYPE_INCLUDE_DIR_freetype2=${FREETYPE_INCLUDE_DIR_freetype2}
+  -DFREETYPE_INCLUDE_DIR_ft2build=${FREETYPE_INCLUDE_DIR_ft2build}
+  -DFREETYPE_LIBRARY=${FREETYPE_LIBRARY}
 )
