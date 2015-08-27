@@ -267,6 +267,7 @@ if(BUILD_TESTING)
                          test_save_and_load_xml
                          removeLinkedAssembly
                          removeCore
+                         test_export_same_as_sixth
                          OpenRect )
 
   set (TESTS_WITH_MODEL_BASELINES axisProjectionTest
