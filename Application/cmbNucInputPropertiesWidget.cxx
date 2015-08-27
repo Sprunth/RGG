@@ -617,18 +617,51 @@ void cmbNucInputPropertiesWidget::applyToAssemblyLink(cmbNucAssemblyLink* link)
     changed = true;
   }
 
-  std::string tmp = this->Internal->MaterialSetId->text().toStdString();
-  if(tmp != link->getMaterialStartID())
+//  std::string tmp = this->Internal->MaterialSetId->text().toStdString();
+//  if(tmp != link->getMaterialStartID())
+//  {
+//    changed = true;
+//    link->setMaterialStartID(tmp);
+//  }
+
+//  tmp = this->Internal->NeumannSetId->text().toStdString();
+//  if(tmp != link->getNeumannStartID())
+//  {
+//    changed = true;
+//    link->setNeumannStartID(tmp);
+//  }
+
+  QString nid_str = this->Internal->NeumannSetId->text();
+  QString mid_str = this->Internal->MaterialSetId->text();
+
+  int nid = nid_str.toInt();
+  int mid = mid_str.toInt();
+
+  std::string new_nid = nid_str.toStdString();
+  std::string new_mid = mid_str.toStdString();
+  std::string old_nid = link->getNeumannStartID();
+  std::string old_mid = link->getMaterialStartID();
+
+  if (this->Core->isFreeId(NULL, link, nid) &&
+      new_nid.compare(old_nid) != 0)
   {
     changed = true;
-    link->setMaterialStartID(tmp);
+    link->setNeumannStartID(new_nid);
+  }
+  else
+  {
+    this->Internal->NeumannSetId->setText(QString::fromStdString(old_nid));
   }
 
-  tmp = this->Internal->NeumannSetId->text().toStdString();
-  if(tmp != link->getNeumannStartID())
+  if (this->Core->isFreeId(NULL, link, mid) &&
+      new_mid.compare(old_mid) != 0)
   {
     changed = true;
-    link->setNeumannStartID(tmp);
+    link->setMaterialStartID(old_mid);
+  }
+  else
+  {
+    this->Internal->MaterialSetId->setText(QString::fromStdString(old_mid));
   }
 
   if(changed)

@@ -35,9 +35,7 @@ FUN_SIMPLE(std::string, QString, MeshType,                 meshtype,            
 FUN_SIMPLE(std::string, QString, CellMaterial,             cellmaterial,             ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, CreateMatFiles,           creatematfiles,           ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(bool,        bool,    Save_Exodus,              save_exodus,              false,            "on") \
-FUN_SIMPLE(std::string, QString, NeumannSet_StartId,       neumannset_startid,       ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, List_NeumannSet_StartId,  list_neumannset_startid,  ASSY_NOT_SET_KEY, "") \
-FUN_SIMPLE(std::string, QString, MaterialSet_StartId,      materialset_startid,      ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, List_MaterialSet_StartId, list_materialset_startid, ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, NumSuperBlocks,           numsuperblocks,           ASSY_NOT_SET_KEY, "") \
 FUN_SIMPLE(std::string, QString, SuperBlocks,              superblocks,              ASSY_NOT_SET_KEY, "") \
@@ -99,8 +97,6 @@ public:
 #undef FUN_SIMPLE
   std::vector<std::string> UnknownParams;
 
-  //int getNeumannSetStartId(){return this->neumannSetStartId;}
-  //int getMaterialSetStartId(){return this->materialSetStartId;}
   int neumannSetStartId, materialSetStartId;
 };
 

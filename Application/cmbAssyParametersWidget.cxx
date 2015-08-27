@@ -211,8 +211,6 @@ void setValue(QCheckBox * to, bool &from)
 #define EASY_ASSY_PARAMS_MACRO()\
   FUN(TetMeshSize) \
   FUN(RadialMeshSize) \
-  //FUN(NeumannSet_StartId) \
-  //FUN(MaterialSet_StartId) \
   FUN(MergeTolerance) \
   FUN(CreateFiles) \
   FUN(CenterXYZ) \
@@ -249,7 +247,7 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy, cmbNucCore *
 
   // make sure the new nid/mid values are valid. if not, reset to previous value
   // isFreeId will count the IDs we are
-  if (core->isFreeId(assy, nid))
+  if (core->isFreeId(assy, NULL, nid))
   {
     changed |= setValue(parameters->neumannSetStartId, this->Internal->NeumannSet_StartId);
   }
@@ -258,7 +256,7 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy, cmbNucCore *
     this->Internal->NeumannSet_StartId->setText(QString::number(parameters->neumannSetStartId));
   }
 
-  if (core->isFreeId(assy, mid))
+  if (core->isFreeId(assy, NULL, mid))
   {
     changed |= setValue(parameters->materialSetStartId, this->Internal->MaterialSet_StartId);
   }
@@ -266,8 +264,6 @@ void cmbAssyParametersWidget::applyToAssembly(cmbNucAssembly* assy, cmbNucCore *
   {
     this->Internal->MaterialSet_StartId->setText(QString::number(parameters->materialSetStartId));
   }
-
-
 
   std::stringstream ss(Internal->Unknown->toPlainText().toStdString().c_str());
   std::string line;

@@ -363,7 +363,7 @@ public:
 
   int getFreeId();
   int getFreeLinkId(int parentId);
-  bool isFreeId(cmbNucAssembly* assy, int id);
+  bool isFreeId(cmbNucAssembly* exclude, cmbNucAssemblyLink* excludeLink, int id);
 
 private:
 
@@ -403,7 +403,7 @@ private:
   std::string GenerateDirectory;
   std::string ExportFileName;
 
-  std::set<int> getOccupiedIds(cmbNucAssembly* exclude);
+  std::set<int> getOccupiedIds(cmbNucAssembly* exclude, cmbNucAssemblyLink* excludeLink);
 };
 
 #endif // cmbNucCore_H
