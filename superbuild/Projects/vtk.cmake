@@ -17,6 +17,8 @@ add_external_project(vtk
     -DModule_vtkViewsQt:BOOL=ON
     -DModule_vtkTestingCore:BOOL=ON
     -DModule_vtkTestingRendering:BOOL=ON
+    -DModule_vtkTestingGenericBridge:BOOL=ON
+    -DModule_vtkTestingIOSQL:BOOL=ON
     -DVTK_RENDERING_BACKEND:STRING=OpenGL2
     -DVTK_REQUIRED_OBJCXX_FLAGS:STRING=""
   ${suppress_build_out}
