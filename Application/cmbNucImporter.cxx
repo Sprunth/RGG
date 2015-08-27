@@ -131,7 +131,10 @@ bool cmbNucImporter::importInpFile()
         }
         QFileInfo finfo(fileNames[i]);
         std::string label = finfo.completeBaseName().toStdString();
+
+        std::string name = finfo.baseName().toStdString();
         cmbNucAssembly *assembly = new cmbNucAssembly();
+        assembly->setName(name);
         assembly->setLabel(label);
         if(!freader.read(*assembly, mainWindow->NuclearCore->getPinLibrary(),
                          mainWindow->NuclearCore->getDuctLibrary()))
@@ -162,12 +165,17 @@ bool cmbNucImporter::importInpFile()
         assembly->SetLegendColor(acolor);
         bool need_to_calc_defaults = mainWindow->NuclearCore->GetNumberOfAssemblies() == 0;
         std::string n = assembly->getLabel();
-        int count = 0;
+        name = assembly->getName();
+        int count = 0, nameCount = 0;
         while(!mainWindow->NuclearCore->label_unique(n))
         {
           n = (QString(assembly->getLabel().c_str()) + QString::number(count++)).toStdString();
         }
         assembly->setLabel(n);
+        while (!mainWindow->NuclearCore->name_unique(name))
+        {
+          name = (QString(assembly->getName().c_str()) + QString::number(nameCount++)).toStdString();
+        }
         mainWindow->NuclearCore->AddAssembly(assembly);
         if(need_to_calc_defaults)
         {

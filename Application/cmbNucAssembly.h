@@ -284,7 +284,7 @@ public:
   void setFileName(std::string const& fname);
   std::string getFileName();
   std::string getFileName(Lattice::CellDrawMode mode, size_t nom = 1);
-  virtual std::string getTitle(){ return "Assembly: " + Label; }
+  virtual std::string getTitle(){ return Name + " (" + Label + ")"; }
   bool needToRunMode(Lattice::CellDrawMode mode, std::string & fname, size_t nom = 1);
 
   std::string getGeometryLabel() const;

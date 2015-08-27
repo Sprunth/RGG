@@ -1867,9 +1867,11 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
   for(int i = 0; i < count; i++)
   {
 
-    std::string assyfilename, assylabel, tmpPath = strPath;
+    std::string assyfilename, assylabel, assyName, tmpPath = strPath;
     QString assyQString;
     input >> assyfilename >> assylabel;
+    // since we don't have a QFileInfo, we just use substr to strip ext
+    assyName = assyfilename.substr(0, assyfilename.find_last_of("."));
     assyQString = QString(assyfilename.c_str());
     if(assyQString.endsWith(".cub", Qt::CaseInsensitive))
     {

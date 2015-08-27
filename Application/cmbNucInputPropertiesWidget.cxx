@@ -271,6 +271,7 @@ void cmbNucInputPropertiesWidget::onReset()
       QString tmp(assy->getAssyDuct().getName().c_str());
       assy->getDuctLibrary()->fillList(list);
       int i = list.indexOf(tmp);
+      this->Internal->AssyName->setText(QString::fromStdString(assy->getName()));
       this->Internal->Ducts->clear();
       this->Internal->Ducts->addItems(list);
       this->Internal->Ducts->setCurrentIndex(i);
@@ -516,7 +517,10 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
     assy->setAndTestDiffFromFiles(v);
     emit checkSaveAndGenerate();
   }
+
+  std::string new_name = this->Internal->AssyName->text().toStdString();
   std::string new_label = this->Internal->AssyLabel->text().toStdString();
+  std::string old_name = assy->getName();
   std::string old_label = assy->getLabel();
   std::replace(new_label.begin(), new_label.end(), ' ', '_');
   if( old_label != new_label)
@@ -539,6 +543,22 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
       this->Internal->AssyLabel->setText(old_label.c_str());
     }
   }
+  if( old_name != new_name)
+  {
+    if(this->Core->name_unique(new_name))
+    {
+      assy->setName(new_name);
+      this->Internal->AssyName->setText(new_name.c_str());
+      emit currentObjectNameChanged( assy->getTitle().c_str());
+      //emit sendNameChange( QString(new_name.c_str()) );
+      emit checkSaveAndGenerate();
+    }
+    else
+    {
+      this->Internal->AssyName->setText(old_name.c_str());
+    }
+  }
+
   QPalette c_palette = this->Internal->assyColorButton->palette();
   QColor c = c_palette.color(this->Internal->assyColorButton->backgroundRole());
   if(c != assy->GetLegendColor())

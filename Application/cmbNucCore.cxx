@@ -705,6 +705,31 @@ void cmbNucCore::sendDefaults()
   }
 }
 
+bool cmbNucCore::name_unique(std::string n)
+{
+  std::transform(n.begin(), n.end(), n.begin(), ::tolower);
+  {
+    std::vector< cmbNucAssembly* > assys = this->Assemblies;
+    for (unsigned int i=0; i < assys.size(); ++i)
+    {
+      std::string aname = assys[i]->getName();
+      std::transform(aname.begin(), aname.end(), aname.begin(), ::tolower);
+      if (aname == n) return false;
+    }
+  }
+
+  {
+    std::vector< cmbNucAssemblyLink* > assys = this->AssemblyLinks;
+    for(unsigned int i = 0; i < assys.size(); ++i)
+    {
+      std::string aname = assys[i]->getName();
+      std::transform(aname.begin(), aname.end(), aname.begin(), ::tolower);
+      if(aname == n) return false;
+    }
+  }
+  return true;
+}
+
 bool cmbNucCore::label_unique(std::string n)
 {
   std::transform(n.begin(), n.end(), n.begin(), ::tolower);
