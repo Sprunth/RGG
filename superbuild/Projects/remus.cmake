@@ -1,4 +1,3 @@
-
 add_external_project(remus
   DEPENDS boost zeroMQ
   CMAKE_ARGS

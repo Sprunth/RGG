@@ -66,9 +66,9 @@ if ((NOT 64bit_build) AND UNIX AND (NOT APPLE))
   # 8 (instead of 4) with GCC4.1 toolchain on old debians. This patch overcomes
   # that.
   add_external_project_step(qt-patch-configure
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                              ${SuperBuild_PROJECTS_DIR}/patches/qt.configure
-			      <SOURCE_DIR>/configure
+    COMMAND   ${CMAKE_COMMAND} -E copy_if_different
+              ${SuperBuild_PROJECTS_DIR}/patches/qt.configure
+              <SOURCE_DIR>/configure
     DEPENDEES patch
     DEPENDERS configure)
 endif()
@@ -76,9 +76,27 @@ endif()
 if (APPLE)
   # corewlan .pro file needs to be patched to find
   add_external_project_step(qt-patch-corewlan
+    COMMAND   ${CMAKE_COMMAND} -E copy_if_different
+              ${SuperBuild_PROJECTS_DIR}/patches/qt.src.plugins.berarer.corewlan.corewlan.pro
+              <SOURCE_DIR>/src/plugins/bearer/corewlan/corewlan.pro
+    DEPENDEES patch
+    DEPENDERS configure)
+
+  # Patch for modal dialog errors on 10.9 and up
+  # See https://bugreports.qt-project.org/browse/QTBUG-37699?focusedCommentId=251106#comment-251106
+  add_external_project_step(qt-patch-modal-dialogs
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                              ${SuperBuild_PROJECTS_DIR}/patches/qt.src.plugins.berarer.corewlan.corewlan.pro
-           <SOURCE_DIR>/src/plugins/bearer/corewlan/corewlan.pro
+                              ${SuperBuild_PROJECTS_DIR}/patches/qt.src.gui.kernel.qeventdispatcher_mac.mm
+                              <SOURCE_DIR>/src/gui/kernel/qeventdispatcher_mac.mm
+    DEPENDEES patch
+    DEPENDERS configure)
+
+  # Patch for build failures on 10.10
+  # See http://fink.9193.n7.nabble.com/qt4-base-mac-4-8-6-2-compile-failure-on-OS-X-10-10-Public-Beta-3-td46612.html
+  add_external_project_step(qt-patch-cocoa-build-fail
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                              ${SuperBuild_PROJECTS_DIR}/patches/qt.src.gui.kernel.qcocoaapplicationdelegate_mac.mm
+                              <SOURCE_DIR>/src/gui/kernel/qcocoaapplicationdelegate_mac.mm
     DEPENDEES patch
     DEPENDERS configure)
 endif()

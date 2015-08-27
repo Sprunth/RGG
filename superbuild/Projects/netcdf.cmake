@@ -1,20 +1,16 @@
-option(SUPPRESS_NETCDF_BUILD_OUTPUT
-"Suppress netcdf build output"
-ON)
+option(SUPPRESS_NETCDF_BUILD_OUTPUT "Suppress netcdf build output" ON)
 mark_as_advanced(SUPPRESS_NETCDF_BUILD_OUTPUT)
 
 set(suppress_build_out)
-
 if(SUPPRESS_NETCDF_BUILD_OUTPUT)
-set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
+  set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
 
-#this will only modify the cppflags for netcdf as the next project in the tree
-#moab will unset the cppflags back to the original values
-if (build-projects)
-  set (pre_netcdf_cpp_flags ${cppflags})
-  set (cppflags "-I${install_location}/include ${cppflags}")
-endif()
+set(cmake_args)
+if (BUILD_MESHKIT_WITH_MPI)
+  list(APPEND cmake_args
+    -DENABLE_PARALLEL:BOOL=ON)
+endif ()
 
 add_external_project(netcdf
   DEPENDS hdf5
@@ -33,5 +29,11 @@ add_external_project(netcdf
     -DUSE_SZIP:BOOL=ON
     -DUSE_HDF5:BOOL=ON
     -DENABLE_NETCDF_4:BOOL=ON
+    -DENABLE_DAP:BOOL=OFF
+    -DENABLE_TESTS:BOOL=OFF
+    ${cmake_args}
   ${suppress_build_out}
 )
+
+add_extra_cmake_args(
+  "-DNetCDF_DIR:path=<INSTALL_DIR>")

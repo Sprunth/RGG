@@ -51,11 +51,11 @@ set(CMAKE_MODULE_PATH "${CMBNuc_CMAKE_DIR}" ${CMAKE_MODULE_PATH})
 
 include(cmbNucVersion)
 
-if(NOT APPLE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-  if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-fPIC")
+if(NOT APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  if(NOT CMAKE_CXX_FLAGS MATCHES "-fPIC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
   endif()
-  if(NOT "${CMAKE_C_FLAGS}" MATCHES "-fPIC")
+  if(NOT CMAKE_C_FLAGS MATCHES "-fPIC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
   endif()
 endif()
@@ -155,6 +155,34 @@ endif()
 
 add_subdirectory(Application)
 
+option(CMBNuc_BUILD_MESHKIT "Build Meshkit." OFF)
+if(CMBNuc_BUILD_MESHKIT)
+  include(ExternalProject)
+  option ( BUILD_WITH_CUBIT       "Build CGM with CUBIT"                 OFF )
+
+  if(BUILD_WITH_CUBIT)
+    find_package(CUBIT REQUIRED)
+  endif()
+
+  if(APPLE)
+    if(BUILD_WITH_CUBIT)
+      message("Apple cubit currently only 32 bit, forcing to 32bit")
+      set(APPLE_OPTIONS -DCMAKE_OSX_ARCHITECTURES:STRING=i386 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET} -DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT})
+    else()
+      set(APPLE_OPTIONS -DCMAKE_OSX_ARCHITECTURES:STRING=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET} -DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT})
+    endif()
+  endif()
+
+  ExternalProject_Add(meshkit SOURCE_DIR ${CMAKE_SOURCE_DIR}/meshkit
+                              BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/meshkit
+                              CMAKE_ARGS ${APPLE_OPTIONS}
+                                         -DCMAKE_BUILD_TYPE:STRING=Release
+                                         -DBUILD_WITH_CUBIT:BOOL=${BUILD_WITH_CUBIT}
+                                         -DCUBITROOT:PATH=${CUBITROOT}
+                                         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
+
+
+endif()
 
 #-----------------------------------------------------------------------------
 # LaTeX User's Guide

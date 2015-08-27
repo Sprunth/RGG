@@ -1,10 +1,7 @@
-option(SUPPRESS_PNG_BUILD_OUTPUT
-       "Suppress PNG build output"
-      ON)
+option(SUPPRESS_PNG_BUILD_OUTPUT "Suppress PNG build output" ON)
 mark_as_advanced(SUPPRESS_PNG_BUILD_OUTPUT)
 
 set(suppress_build_out)
-
 if(SUPPRESS_PNG_BUILD_OUTPUT)
   set(suppress_build_out SUPPRESS_BUILD_OUTPUT)
 endif()
