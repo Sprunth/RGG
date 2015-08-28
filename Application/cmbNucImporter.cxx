@@ -176,6 +176,7 @@ bool cmbNucImporter::importInpFile()
         {
           name = (QString(assembly->getName().c_str()) + QString::number(nameCount++)).toStdString();
         }
+        assembly->setName(name);
         mainWindow->NuclearCore->AddAssembly(assembly);
         if(need_to_calc_defaults)
         {

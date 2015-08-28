@@ -728,7 +728,7 @@ bool xmlHelperClass::read(std::string const& in, cmbNucCore & core)
           core.getParams().BackgroundMode = cmbNucCoreParams::None;
           QMessageBox msgBox;
           msgBox.setText( QString(core.getParams().Background.c_str()) +
-                         QString(" was not found in same director as the core inp file.  Will be ingored."));
+                         QString(" was not found in same director as the core inp file.  Will be ignored."));
           msgBox.exec();
         }
         core.getParams().BackgroundFullPath = tmpFI.absoluteFilePath().toStdString();

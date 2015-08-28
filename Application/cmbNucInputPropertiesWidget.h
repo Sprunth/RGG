@@ -51,7 +51,7 @@ signals:
   // Fired when the current object is modified
   void objGeometryChanged(AssyPartObj* selObj);
   void currentObjectNameChanged(const QString& name);
-  //void sendNameChange(const Qstring);
+  void sendNameChange(const QString);
   void sendLabelChange(const QString);
   void badPinLabel(QString prevL);
   void badPinName(QString prev);

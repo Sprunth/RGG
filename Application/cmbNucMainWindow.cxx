@@ -1294,7 +1294,7 @@ bool cmbNucMainWindow::onExportINPFiles(QString dir_in)
   QSettings("CMBNuclear", "CMBNuclear").setValue("cache/lastDir", dir);
   for(int i = 0; i < NuclearCore->GetNumberOfAssemblies();++i)
   {
-    QString label(NuclearCore->GetAssembly(i)->getLabel().c_str());
+    QString label(NuclearCore->GetAssembly(i)->getName().c_str());
     std::string tmpl = label.toLower().toStdString();
     NuclearCore->GetAssembly(i)->setPath(dir.toStdString());
     NuclearCore->GetAssembly(i)->setFileName( "assembly_" + tmpl + ".inp" );

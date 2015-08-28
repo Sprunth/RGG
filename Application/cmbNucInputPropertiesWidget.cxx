@@ -550,7 +550,7 @@ void cmbNucInputPropertiesWidget::applyToAssembly(cmbNucAssembly* assy)
       assy->setName(new_name);
       this->Internal->AssyName->setText(new_name.c_str());
       emit currentObjectNameChanged( assy->getTitle().c_str());
-      //emit sendNameChange( QString(new_name.c_str()) );
+      emit sendNameChange( QString(new_name.c_str()) );
       emit checkSaveAndGenerate();
     }
     else

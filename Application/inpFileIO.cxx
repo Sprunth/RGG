@@ -533,7 +533,7 @@ bool inpFileReader
         core.getParams().BackgroundMode = cmbNucCoreParams::None;
         QMessageBox msgBox;
         msgBox.setText( QString(core.getParams().Background.c_str()) +
-                        QString(" was not found in same director as the core inp file.  Will be ingored."));
+                        QString(" was not found in same director as the core inp file.  Will be ignored."));
         msgBox.exec();
       }
       else
@@ -1871,7 +1871,8 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
     QString assyQString;
     input >> assyfilename >> assylabel;
     // since we don't have a QFileInfo, we just use substr to strip ext
-    assyName = assyfilename.substr(0, assyfilename.find_last_of("."));
+    // also for now all assyfilenames start with "assembly_" so we hard code length 9
+    assyName = assyfilename.substr(9, assyfilename.find_last_of("."));
     assyQString = QString(assyfilename.c_str());
     if(assyQString.endsWith(".cub", Qt::CaseInsensitive))
     {
@@ -1903,6 +1904,7 @@ bool inpFileHelper::readAssemblies( std::stringstream &input,
         assembly->setCenterPins(false);
         fnameToAssy[assyfilename] = assembly;
         assembly->setLabel(assylabel);
+        assembly->setName(assyName);
         inpFileReader freader;
         freader.keepGoing = this->keepGoing;
         freader.pinAddMode = this->pinAddMode;
@@ -1992,7 +1994,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     int orphanCount = 0;
 
     // Get the label of the assembly the link belongs to (ie 'Assy_1')
-    std::string assyPartLabel = link->getLabel();
+    std::string assyPartLabel = link->getName();
 
     // Get the drawmodes for this link
     std::set<Lattice::CellDrawMode> modes;
@@ -2012,7 +2014,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
 
     // loop through cell pairs of the assembly we want to link with
     // and make sure there is one for the same drawmode
-    std::string linkTargetMode = assembly->getLabel();
+    std::string linkTargetMode = assembly->getName();
     for(CellMap::const_iterator cell_iter = cells.begin();
       cell_iter != cells.end(); ++cell_iter)
     {
@@ -2049,7 +2051,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
           for(std::map< cmbNucAssembly*, std::set<Lattice::CellDrawMode> >::iterator orphan_iter = orphanedAssembilies.begin();
               orphan_iter != orphanedAssembilies.end(); ++orphan_iter)
           {
-            if (orphan_iter->first->getLabel().compare(assyPartLabel) == 0)
+            if (orphan_iter->first->getName().compare(assyPartLabel) == 0)
             {
               existingClone = orphan_iter->first;
             }
@@ -2062,7 +2064,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
             std::string tmpLabel = assyPartLabel;
             //tmpLabel = Lattice::generate_string(tmpLabel, mode);
             assy->setLabel(tmpLabel);
-            std::string fname = "assembly_" + assy->getLabel() + ".inp";
+            std::string fname = "assembly_" + assy->getName() + ".inp";
             std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
             assy->setFileName(fname);
             orphanedAssembilies[assy].insert(mode);
@@ -2133,7 +2135,7 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
         assemblyName = temp.completeBaseName().toStdString();
       }
       output << assemblyName << assembly->getOutputExtension() << " "
-             << Lattice::generate_string(assembly->getLabel(), mode) << "\n";
+             << Lattice::generate_string(assembly->getName(), mode) << "\n";
     }
   }
   // Same as above, but for orphaned links that need have become assemblies
@@ -2180,8 +2182,8 @@ void inpFileHelper::writeAssemblies( std::ofstream &output,
     QFileInfo temp(assemblyName.c_str());
     assemblyName = temp.completeBaseName().toStdString();
 
-    output << link->getLabel() << assembly->getOutputExtension() << " "
-           << link->getLabel() << " same_as "
+    output << link->getName() << assembly->getOutputExtension() << " "
+           << link->getName() << " same_as "
            << assemblyName << assembly->getOutputExtension() << " "
            << link->getMaterialStartID() << " " << link->getNeumannStartID()
            << "\n";
